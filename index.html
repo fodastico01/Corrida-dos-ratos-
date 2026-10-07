@@ -558,6 +558,10 @@ html.letra-grande .titulo-tela{min-height:calc(100svh / 1.18 - 36px)}
 .cx-ops .opcao.coin{background:var(--coin);border-color:transparent}
 @media (prefers-reduced-motion:reduce){.cx-carta.anima,.cx-carta.anima>div,.cx-baralho{animation:none}}
 .cx-area{width:min(82vw,330px)}
+/* verso das cartas com borda dourada */
+.cx-baralho i,.cx-verso{border-color:transparent;background:repeating-linear-gradient(45deg,#BFE3CF 0 8px,#B1DBC4 8px 16px) padding-box,linear-gradient(135deg,#F7DE8A,#D9A936 40%,#F9E7A6 55%,#C8962A) border-box}
+.cx-baralho i{box-shadow:0 3px 6px -3px rgba(80,55,10,.5)}
+.cx-baralho img,.cx-verso img{box-shadow:0 0 0 3px #E2B84C}
 </style>
 </head>
 <body>
