@@ -654,6 +654,10 @@ body{margin:0!important}
 .tela .opp > .opp-dados + .conta-acoes{flex-direction:row;flex-wrap:nowrap;align-items:center}
 .tela .opp-dados{overflow:hidden}
 .app{overflow-y:auto}
+/* v95: os dados nunca ficam espremidos; botões longos quebram linha */
+.tela .opp{grid-template-columns:minmax(58%,1fr) minmax(0,auto)}
+.tela .opp > .opp-dados + .conta-acoes{flex-direction:column;align-items:stretch;max-width:100%}
+.tela .opp > .opp-dados + .conta-acoes .btn{white-space:normal;line-height:1.2;text-align:center}
 </style>
 </head>
 <body>
