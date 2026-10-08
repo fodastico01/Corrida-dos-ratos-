@@ -673,6 +673,12 @@ body{margin:0!important}
 .rodape-mascote{width:44px;image-rendering:pixelated;opacity:1}
 .titulo-rodape{display:block}
 .titulo-conteudo .rodape-mascote{width:40px;display:block;margin:6px auto 0}
+/* v105: o app fica preso à tela (fixed) e sem zoom no contêiner; o zoom vai em cada parte.
+   Evita o Android não redesenhar as abas quando a altura muda. */
+.app,html.letra-grande .app{position:fixed!important;top:0;bottom:0;left:0;right:0;width:100%;max-width:520px;margin:0 auto!important;height:auto!important;zoom:1!important;overflow:hidden}
+.topo2,.tela,.rodape2,.titulo-tela{zoom:var(--z)}
+.app > .titulo-tela{margin:0 0 0 0}
+.app:has(> .titulo-tela){overflow-y:auto}
 </style>
 </head>
 <body>
