@@ -444,7 +444,7 @@ body{background:var(--bg);color:var(--ink);font-weight:500}
 .conta-hud{background:#F3FAF5;border-color:#CFE8D9}
 .t2-mes.agora{background:#E5F4EA}
 /* letras um pouco maiores em tudo (≈ 8%) */
-.app,#modal .sheet,.barra-in{zoom:1}
+.app,#modal .sheet,.barra-in{zoom:.92}
 @media (max-width:370px){.barra-in .row button,.barra-in button:not(.avancar){font-size:13px;padding-inline:6px}}
 .cena-px{image-rendering:pixelated;image-rendering:crisp-edges}
 .tab2-prog{bottom:3px;height:3px;left:30%;right:30%}
@@ -512,18 +512,18 @@ body{background:var(--bg);color:var(--ink);font-weight:500}
 .cfg .seg button[aria-pressed="true"]{background:var(--coin);color:var(--coin-ink)}
 .cfg .seg button:disabled{opacity:.45}
 .cfg .seg small{display:block;font-size:10px;font-weight:600}
-html.letra-grande .app,html.letra-grande #modal .sheet,html.letra-grande .barra-in{zoom:1.1}
+html.letra-grande .app,html.letra-grande #modal .sheet,html.letra-grande .barra-in{zoom:1.08}
 .titulo-tela{place-items:end center;padding-bottom:44px}
 .titulo-cena{background-position:center 30%}
-.titulo-tela{min-height:calc(100svh / 1 - 36px);margin-bottom:-110px;padding-bottom:36px;background:var(--surface)}
+.titulo-tela{min-height:calc(100svh / .92 - 36px);margin-bottom:-110px;padding-bottom:36px;background:var(--surface)}
 .titulo-cena{inset:0 0 auto 0;width:100%;aspect-ratio:1;height:auto;background-size:cover;background-position:center}
 .titulo-cena::after{background:linear-gradient(to bottom,rgba(255,255,255,0) 55%,var(--surface) 100%)}
-html.letra-grande .titulo-tela{min-height:calc(100svh / 1.1 - 36px)}
+html.letra-grande .titulo-tela{min-height:calc(100svh / 1.08 - 36px)}
 .titulo-splash span{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:.01em;text-transform:none;color:var(--ink)}
 .titulo-splash b{font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 /* eventos como cartas: baralho na mesa, carta que cai e vira */
 .cx-mesa{align-items:center;justify-content:center;background:rgba(40,46,40,.55);backdrop-filter:blur(3px)}
-.cx-area{display:grid;justify-items:center;gap:14px;width:min(92vw,360px);max-height:100svh;overflow:auto;padding:14px 0 24px;zoom:1}
+.cx-area{display:grid;justify-items:center;gap:14px;width:min(92vw,360px);max-height:100svh;overflow:auto;padding:14px 0 24px;zoom:.92}
 .cx-dica{margin:0;color:#fff;font-weight:700;font-size:14px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.3)}
 .cx-baralho{position:relative;width:120px;height:160px;border:0;background:none;padding:0;cursor:pointer;animation:baralho 1.6s ease-in-out infinite}
 .cx-baralho i{position:absolute;inset:0;border-radius:12px;border:5px solid #fff;background:repeating-linear-gradient(45deg,#BFE3CF 0 8px,#B1DBC4 8px 16px);box-shadow:0 4px 10px -4px rgba(0,0,0,.35);transform:translate(calc(var(--k)*2px),calc(var(--k)*-3px));display:grid;place-items:center}
@@ -576,8 +576,8 @@ html.letra-grande .titulo-tela{min-height:calc(100svh / 1.1 - 36px)}
 .fluxo-dica{margin:0;font-size:12.5px;color:var(--muted)}
 
 /* ===== layout de tela única (v93): barra no topo, conteúdo da aba, avançar + 7 abas embaixo ===== */
-:root{--z:1}
-html.letra-grande{--z:1.1}
+:root{--z:.92}
+html.letra-grande{--z:1.08}
 html,body{height:100%;overflow:hidden}
 .app{height:calc(100dvh / var(--z));max-width:520px;margin:0 auto;padding:0!important;display:flex!important;flex-direction:column;gap:0!important}
 .topo2{flex:none;display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:8px;padding:8px 12px calc(6px);padding-top:max(8px,env(safe-area-inset-top));background:var(--bg);border-bottom:1px solid rgba(0,0,0,.06)}
@@ -659,7 +659,7 @@ body{margin:0!important}
 .tela .opp > .opp-dados + .conta-acoes{flex-direction:column;align-items:stretch;max-width:100%}
 .tela .opp > .opp-dados + .conta-acoes .btn{white-space:normal;line-height:1.2;text-align:center}
 /* v97: todas as cartas do mesmo tamanho; conteúdo curto fica centrado, conteúdo longo rola dentro da carta */
-.cx-carta{height:min(520px, calc(74svh))}
+.cx-carta{height:min(520px, calc(74svh / .92))}
 .cx-carta>div{height:100%;box-sizing:border-box}
 .cx-frente{grid-template-rows:auto auto 1fr auto;overflow-y:auto;overscroll-behavior:contain}
 .cx-texto{align-content:center}
