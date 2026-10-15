@@ -5196,7 +5196,7 @@ const AV_CAT={
   m:{
     fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Mago'],['uniforme','Uniforme']],
     cabelo:[['curto','Curto'],['topete','Topete'],['moicano','Moicano'],['cacheado','Cacheado'],['lateral','Risca'],['careca','Careca']],
-    cabeca:[['nenhum','Nada'],['bone','Boné'],['chapeu','Chapéu'],['gorro','Gorro'],['cartola','Cartola'],['fone','Fone'],['faixa','Faixa'],['boina','Boina']],
+    cabeca:[['nenhum','Nada'],['chapeumago','Chapéu de mago'],['bone','Boné'],['chapeu','Chapéu'],['gorro','Gorro'],['cartola','Cartola'],['fone','Fone'],['faixa','Faixa'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['redondo','Redondo'],['quadrado','Quadrado'],['sol','Escuros'],['aviador','Aviador'],['monoculo','Monóculo'],['tapa','Tapa-olho'],['barba','Barba']],
     camisa:[['camiseta','Camiseta'],['regata','Regata'],['polo','Polo'],['social','Social'],['moletom','Moletom'],['listras','Listrada'],['manga','Manga longa'],['colete','Colete']],
     calca:[['calca','Calça'],['bermuda','Bermuda'],['shorts','Shorts'],['social','Social'],['jardineira','Jardineira'],['larga','Larga'],['listra','Esportiva']],
@@ -5205,7 +5205,7 @@ const AV_CAT={
   f:{
     fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Maga'],['uniforme','Uniforme']],
     cabelo:[['longo','Longo'],['rabo','Rabo de cavalo'],['tranca','Maria-chiquinha'],['coque','Coque'],['chanel','Chanel'],['franja','Franja'],['cacheado','Cacheado'],['careca','Raspado']],
-    cabeca:[['nenhum','Nada'],['laco','Laço'],['tiara','Tiara'],['coroa','Coroa'],['chapeu','Chapéu'],['gorro','Gorro'],['fone','Fone'],['flor','Flor'],['boina','Boina']],
+    cabeca:[['nenhum','Nada'],['chapeumago','Chapéu de bruxa'],['laco','Laço'],['tiara','Tiara'],['coroa','Coroa'],['chapeu','Chapéu'],['gorro','Gorro'],['fone','Fone'],['flor','Flor'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['cilios','Cílios'],['maquiagem','Maquiagem'],['redondo','Redondo'],['gato','Gatinho'],['sol','Escuros'],['coracao','Coração'],['sardas','Sardas']],
     camisa:[['camiseta','Camiseta'],['cropped','Cropped'],['blusa','Blusa'],['regata','Regata'],['vestido','Vestido'],['social','Social'],['moletom','Moletom'],['listras','Listrada']],
     calca:[['calca','Calça'],['saia','Saia'],['saialonga','Saia longa'],['shorts','Shorts'],['legging','Legging'],['bermuda','Bermuda'],['jardineira','Jardineira']],
@@ -5378,6 +5378,7 @@ function avRender(cfg){
   const topL=add(mk()), topDet=add(mk(false));
   const ch=cfg.cabeca, ca=cor(cfg.camisaCor);
   const corAcc=cor(cfg.cabecaCor||'vermelho');
+  if(ch==='chapeumago'){ const rd2=avEsc(corAcc); for(let y=-6;y<=10;y++){ const hw=0.6+7.8*(y+6)/16, c0=cx+(10-y)*0.22; for(let x=Math.floor(c0-hw);x<=Math.ceil(c0+hw);x++) if(Math.abs(x-c0)<=hw) set(topL,x,y,corAcc); } ell(topL,cx,10.5,12.6,2.3,corAcc); rect(topDet,12,8,28,9,'#e8c85a'); rect(topDet,12,10,28,10,rd2); }
   if(ch==='bone'){ ell(topL,cx,10,9.8,5.6,corAcc,(x,y)=>y<=12); rect(topL,10,11,32,13,corAcc); rect(topDet,10,13,32,13,avEsc(corAcc)); set(topDet,cx,5,'#f2f0ea'); }
   if(ch==='chapeu'){ ell(topL,cx,12,14,2.4,corAcc); ell(topL,cx,7.5,7,5.5,corAcc,(x,y)=>y<=11); rect(topDet,13,10,27,11,avEsc(corAcc)); }
   if(ch==='gorro'){ ell(topL,cx,10,10.6,6.8,corAcc,(x,y)=>y<=13); rect(topDet,10,12,30,14,avEsc(corAcc)); for(let x=10;x<=30;x+=2) rect(topDet,x,12,x,14,avCla(corAcc)); ell(topL,cx,2.5,2.4,2.4,'#f2f0ea'); }
