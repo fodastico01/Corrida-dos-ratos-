@@ -439,7 +439,7 @@ body{background:var(--bg);color:var(--ink);font-weight:500}
 .tab2-prog{bottom:3px;height:3px;left:30%;right:30%}
 .peao2 img{width:auto;height:96%;max-width:100%;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
 /* fotos e álbum */
-.flash{position:fixed;inset:0;background:#fff;z-index:99;pointer-events:none;animation:flash .8s ease-out forwards}
+.flash{position:fixed;inset:0;background:#fff;z-index:99;pointer-events:none;opacity:0;animation:flash .45s ease-out forwards}
 @keyframes flash{0%{opacity:0}8%{opacity:1}100%{opacity:0}}
 .polaroid{margin:0;background:#fff;padding:8px 8px 10px;border-radius:4px;box-shadow:0 6px 18px -8px rgba(60,50,30,.45),0 1px 2px rgba(60,50,30,.12);transform:rotate(var(--rot,0deg));display:grid;gap:6px;justify-items:center}
 .polaroid img{width:100%;aspect-ratio:1;object-fit:cover;image-rendering:pixelated;border-radius:2px;background:#EEE}
@@ -3671,7 +3671,7 @@ function albumCard(){ const A=album();
   return `<section class="card" aria-labelledby="t-album"><h2 id="t-album">${pix('📷','tit')} Álbum da família</h2>
     ${A.length?`<div class="album-grid">${A.map(f=>polaroid(f,true)).join('')}</div><p class="hint">${A.length} ${A.length>1?'momentos guardados':'momento guardado'}. No fim da vida, eles viram o mural da sua história.</p>`:'<p class="hint">Viagens, casamento, a chegada dos filhos, a formatura e o sonho realizado viram fotos aqui. No fim da vida, elas formam o mural da sua história.</p>'}</section>`; }
 const ratoDoMes = m => ({12:'12',10:'10',2:'2'})[m] || '0';
-function flashFoto(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; const d=document.createElement('div'); d.className='flash'; document.body.appendChild(d); setTimeout(()=>d.remove(),800); }
+function flashFoto(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; const d=document.createElement('div'); document.querySelectorAll('.flash').forEach(x=>x.remove()); d.className='flash'; document.body.appendChild(d); const rm=()=>d.remove(); d.addEventListener('animationend',rm); setTimeout(rm,500); setTimeout(rm,1500); }
 const polaroid = (f,peq) => `<figure class="polaroid ${peq?'peq':''}" style="--rot:${((f.id.length*37+f.m*11)%9-4)*.7}deg" ${peq?`data-acao="verFoto" data-alvo="${f.id}"`:''}><img src="${imgFoto(f)}" alt="${FOTOS[f.id].t}"><figcaption><b>${FOTOS[f.id].t}</b>${peq?'':`<span>${f.rot} · ${f.idade} anos</span>`}</figcaption></figure>`;
 /* vilarejo em pixel art: tudo desenhado num canvas 128x128 e ampliado sem borrar */
 const CENA={}, PX=128;
