@@ -1276,6 +1276,7 @@ const IR_TAB = m => m<=6?0.225 : m<=12?0.20 : m<=24?0.175 : 0.15;
 
 let s, ui = {modal:null, erro:'', resetArmado:false, aba:(()=>{ try{ return localStorage.getItem('corrida-aba')||'resumo'; }catch(e){ return 'resumo'; } })()};
 const cfg = () => FASES[s.fase-1];
+const totalMes = () => cfg().total + ((s&&s.extraMeses)||0);
 const rotulo = m => { const a=cfg().ano0*12+(m-1); return MESES[a%12]+'/'+Math.floor(a/12); };
 const mesCal = () => ((s.mes-1)%12)+1;
 const anoAtual = () => Math.floor((cfg().ano0*12+s.mes-1)/12);
@@ -1579,6 +1580,56 @@ function trocarCarro(n, pag){
   s.licao={tom:n===0||cabe?'bom':'neutro', titulo:n===0?'Agora sem carro':`Carro novo: ${CARROS[n].nome.toLowerCase()}`,
     texto:`${n===0?`Ônibus e aplicativo saem por cerca de ${fmt0(transpBase())} por mês.`:`Preço: ${fmt0(preco)}. Saldo da conta após a compra: ${fmt0(s.conta)}. ${cabe?'Cabe no bolso: o carro vale até metade da sua renda de um ano e a reserva continua de pé. Aproveite!':'Atenção: o carro passa de metade da renda de um ano ou a reserva ficou abaixo de 3 meses. A preocupação come metade da alegria.'} Seguro, IPVA e combustível: ${fmt0(custoCarro(n))} por mês. Carro perde uns 12% de valor por ano.`}${txtAnt}${t}${n>0&&pag==='avista'?parabensAVista(preco, preco, 0.2, 0.016, 48):''}`};
 }
+/* ================= pós-jogo: vitrine de luxo e marcos de patrimônio ================= */
+// bens de sonho com preço e custo mensal compatíveis; imóveis acompanham a inflação, bens móveis perdem valor todo ano
+const LUXO = {
+  esportivo:{nome:'Esportivo italiano', ic:'🏎️', preco:3500000, custo:14000, fel:5, movel:true, onde:'garagem'},
+  dubai:{nome:'Apartamento em Dubai', ic:'🌆', preco:11000000, custo:22000, fel:7, onde:'Emirados Árabes'},
+  helicoptero:{nome:'Helicóptero', ic:'🚁', preco:16000000, custo:95000, fel:6, movel:true, onde:'hangar'},
+  praiafr:{nome:'Casa de praia no sul da França', ic:'🏖️', preco:14000000, custo:38000, fel:8, onde:'Riviera Francesa'},
+  iate:{nome:'Iate de 80 pés', ic:'🛥️', preco:18000000, custo:120000, fel:8, movel:true, onde:'marina'},
+  monaco:{nome:'Casa em Mônaco', ic:'🏙️', preco:70000000, custo:220000, fel:10, onde:'Mônaco'},
+  castelo:{nome:'Castelo na França', ic:'🏰', preco:45000000, custo:280000, fel:10, onde:'Vale do Loire'},
+  jato:{nome:'Jatinho executivo', ic:'✈️', preco:60000000, custo:450000, fel:9, movel:true, onde:'hangar'}
+};
+const luxoKey = id => 'Luxo: '+LUXO[id].nome;
+const luxoPreco = id => Math.round(LUXO[id].preco*(s.idx||1)/10000)*10000;
+const luxoCustoMes = id => Math.round(LUXO[id].custo*(s.idx||1)/100)*100;
+const luxoValor = () => Object.values(s.luxo||{}).reduce((x,o)=>x+(o.valor||0),0);
+const luxoCustoTot = () => Object.keys(s.luxo||{}).reduce((x,id)=>x+luxoCustoMes(id),0);
+function comprarLuxo(id){
+  const X=LUXO[id]; if(!X || (s.luxo||{})[id]) return; const v=luxoPreco(id); if(!podeAVista(v)) return;
+  const m0=mesesLiq(), t=pagarAVista(v); s.luxo=s.luxo||{}; s.luxo[id]={valor:v, mes:s.mes};
+  s.fixos[luxoKey(id)]=Math.round(luxoCustoMes(id)); s.fel=clamp(s.fel+X.fel,0,100);
+  s.licao={tom:'bom', titulo:`Agora é seu: ${X.nome.toLowerCase()}`, texto:`Custou ${fmt0(v)} e vai custar ${fmt0(luxoCustoMes(id))} por mês para manter. ${X.movel?'Bens assim perdem valor todo ano.':'Imóvel acompanha a inflação, mas não rende nada.'}${t}`};
+  checarDescoberto(m0);
+}
+function venderLuxo(id){
+  const o=(s.luxo||{})[id]; if(!o) return; const v=Math.round(o.valor*0.88/1000)*1000;
+  s.conta+=v; delete s.luxo[id]; delete s.fixos[luxoKey(id)];
+  s.licao={tom:'neutro', titulo:`Vendeu: ${LUXO[id].nome.toLowerCase()}`, texto:`Entraram ${fmt0(v)} na conta, já descontados impostos e corretagem. O custo mensal acabou.`};
+}
+function luxoAnual(f){ for(const id of Object.keys(s.luxo||{})){ const o=s.luxo[id]; o.valor=Math.round(o.valor*(LUXO[id].movel?0.90:f)); } }
+const MARCOS_PATR = [1e7, 5e7, 1e8, 5e8, 1e9];
+function checarMarcosPatr(){
+  if(!s.posJogo && s.fase<4) return;
+  s.marcosPatr=s.marcosPatr||[]; const P=patrimonio();
+  for(const m of MARCOS_PATR){ if(P>=m && !s.marcosPatr.includes(m)){ s.marcosPatr.push(m); avisarEvolucao('marco','Patrimônio',`Seu patrimônio passou de ${fmt0(m)}.${m>=1e9?' Você é bilionário(a).':''}`,'🏆 Marco de patrimônio'); } }
+}
+function luxoCard(){
+  if(!(s.posJogo || s.fase===4)) return '';
+  const P=patrimonio(), prox=MARCOS_PATR.find(m=>P<m), pct=prox?clamp(P/prox*100,0,100):100;
+  const linhas=Object.keys(LUXO).map(id=>{ const X=LUXO[id], tem=(s.luxo||{})[id], pr=luxoPreco(id);
+    return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${tem?'Seu':fmt0(pr)}</span></div>
+      <div class="opp-dados"><span>${X.onde}</span><span>Custo <b>${fmt0(luxoCustoMes(id))}/mês</b></span><span>${X.movel?'Perde valor':'Acompanha a inflação'}</span></div>
+      <div class="conta-acoes">${tem?`<button class="btn" data-acao="luxoVende" data-alvo="${id}">Vender por ${fmt0(Math.round(tem.valor*0.88/1000)*1000)}</button>`:`<button class="btn coin" data-acao="luxoCompra" data-alvo="${id}" ${podeAVista(pr)?'':'disabled'}>Comprar à vista</button>`}</div></div>`; }).join('');
+  return `<section class="card" aria-labelledby="t-luxo"><h2 id="t-luxo">Vitrine de luxo</h2>
+    <div class="fl"><span>Patrimônio</span><b>${fmt0(P)}</b></div>
+    ${prox?`<div class="fl"><span>Próximo marco: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:'<div class="fl"><span>Todos os marcos</span><b>conquistados</b></div>'}
+    <div class="fl"><span>Custo mensal dos seus bens de luxo</span><b>${fmt0(luxoCustoTot())}</b></div>
+    <p class="hint">Sonhos caros pedem renda alta. Se a renda não cobrir o custo mensal, o bem vira um peso.</p>
+    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver os bens</summary>${linhas}</details></section>`;
+}
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
 const INFL_CASA = [0,4,7,10,14]; // quanto cada nível de moradia rende num fim de semana com amigos
@@ -1863,7 +1914,7 @@ TYC_EMP.foodtruck={
 TYC_EMP.ecommerce={
   arte:'ecom', ofertaImg:'ecom-oferta', ofertaNome:'Loja online de capinhas e acessórios', negocio:'loja online', porte:['Garagem', 'Operação média', 'Centro de distribuição'], tagPorte:p=>p, digital:true, mult:30, cliRot:'Pedidos por mês', cliMul:26,
   varc:0.58, dem:[0.65, 1.28, 2.27, 3.96, 6.61, 10.75, 16.96, 26.5, 40.71], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[55, 58, 62, 67, 73, 80, 88, 97, 108],
-  fixo:[110, 260, 530, 1070, 2090, 3950, 7280, 13250, 23890], saz:[0.85, 0.8, 0.85, 0.9, 1.0, 0.95, 0.95, 0.95, 1.0, 1.1, 1.6, 1.4], horas:[6, 6, 5, 5, 4, 4, 3, 3, 2], custo:[900, 1600, 2300, 3000, 3500, 5000, 6000, 7000], premio:null,
+  fixo:[110, 260, 530, 1070, 2090, 3950, 7280, 13250, 23890], saz:[0.85, 0.8, 0.85, 0.9, 1.0, 0.95, 0.95, 0.95, 1.0, 1.1, 1.6, 1.4], horas:[6, 6, 5, 5, 4, 4, 3, 3, 2], custo:[2300, 4000, 5800, 7500, 8800, 12500, 15000, 17500], premio:null,
   set:{
   equip:{nome:'Plataforma', ic:'🖥️', peso:1.4, ef:'Quantos pedidos o site aguenta sem cair.',
     niv:['Loja em plataforma pronta', 'Loja própria com domínio', 'Checkout otimizado', 'Integração com marketplaces', 'Painel de gestão integrado', 'Site rápido com carrinho abandonado', 'Plataforma própria', 'Aplicativo da loja', 'Operação omnichannel']},
@@ -1914,6 +1965,7 @@ TYC_EMP.vacinas={
     niv:['Indicação de médicos', 'Instagram e WhatsApp', 'Parceria com pediatras', 'Campanha da gripe', 'Vacinação em empresas', 'Convênio com planos', 'Anúncios locais', 'Parceria com escolas', 'Marca conhecida na cidade']}
   }
 };
+const TYC_OBRA_MESES=2;
 const tycF = () => F2() ? (s.idx||1) : 1;
 const tycPorte = n => n<=3?'Pequena':n<=6?'Média':'Grande';
 const tycNiv = (a,k) => a.tyc.niv[TYC_KEYS.indexOf(k)];
@@ -1924,11 +1976,14 @@ function tycMes(a, saz, alea){
   let cli=0.2*Math.min(...caps)+0.8*caps.reduce((x,y)=>x+y,0)/caps.length;
   const E=tycEfs(a);
   cli*=Math.pow(bonusGestao(a),0.6)*(largado(a)?0.85:1)*(saz||1)*(alea?(0.9+Math.random()*0.2):1)*E.cli;
-  const rec=cli*EM.tk[L('cardapio')]*f*26*E.tk, varc=rec*EM.varc*E.vc;
-  const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(tycNmax(a)-1,i0+1)]*(mn-i0))*f*(1+E.fx);
-  return {cli:Math.round(cli), rec:Math.round(rec), varc:Math.round(varc), fixo:Math.round(fixo), lucro:Math.round(rec-varc-fixo)};
+  const LM=tycLojaMult(a), rec=cli*EM.tk[L('cardapio')]*f*26*E.tk*LM, varc=rec*EM.varc*E.vc;
+  const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(tycNmax(a)-1,i0+1)]*(mn-i0))*f*(1+E.fx)*LM;
+  return {cli:Math.round(cli*LM), rec:Math.round(rec), varc:Math.round(varc), fixo:Math.round(fixo), lucro:Math.round(rec-varc-fixo)};
 }
 const tycPrev = a => tycMes(a,1,false);
+const TYC_LOJA_M=[1,1.9,2.7], TYC_LOJA_MESES=[0,6,9];
+const tycLojas = a => (a.tyc&&a.tyc.lojas)||1;
+const tycLojaMult = a => TYC_LOJA_M[Math.min(tycLojas(a),3)-1];
 function tycGargalo(a){
   const ks=['equip','ambiente','equipe','mkt'], v=ks.map(k=>tycNiv(a,k)), mn=Math.min(...v);
   return mn===Math.max(...v) ? null : ks[v.indexOf(mn)];
@@ -1936,6 +1991,7 @@ function tycGargalo(a){
 const tycCusto = (a,k) => { const n=tycNiv(a,k); return n>=tycNmax(a)?0:Math.round(emp(a).custo[n-1]*emp(a).set[k].peso*tycF()/100)*100; };
 function tycBloqueio(a,k){
   const n=tycNiv(a,k); if(n>=tycNmax(a)) return 'Nível máximo';
+  if(a.tyc.obra) return `Há uma obra em andamento (${Math.max(1,a.tyc.obra.ate-s.mes)} ${a.tyc.obra.ate-s.mes>1?'meses':'mês'} para terminar). Uma de cada vez`;
   const baixo=TYC_KEYS.filter(x=>x!==k && tycNiv(a,x)<n), ST=emp(a).set;
   return baixo.length ? `Antes, ${(baixo.length>1?baixo.slice(0,-1).map(x=>ST[x].nome).join(', ')+' e '+ST[baixo[baixo.length-1]].nome:ST[baixo[0]].nome)} ${baixo.length>1?'precisam':'precisa'} chegar no nível ${n}` : null;
 }
@@ -1953,30 +2009,38 @@ function tycFecharMes(a, ex){
   let aporte=0; if(T.caixa<0){ aporte=-T.caixa; s.conta-=aporte; T.caixa=0; }
   ex.push([`${a.nome}: retirada do lucro`, ret]);
   if(aporte) ex.push([`${a.nome}: você cobriu o prejuízo`, -aporte]);
-  T.med=Math.round(T.med*0.8+m.lucro*0.2); tycAtualizar(a);
+  T.med=Math.round(T.med*0.8+m.lucro*0.2);
+  if(T.obra && s.mes>=T.obra.ate) tycConcluirObra(a);
+  if(T.obraLoja && s.mes>=T.obraLoja.ate){ T.lojas=tycLojas(a)+1; T.obraLoja=null; const EM=emp(a); avisarEvolucao('obra',a.nome,`A loja ${T.lojas} ficou pronta e já está vendendo. Agora são ${T.lojas} lojas.`); }
+  tycAtualizar(a);
+}
+function tycConcluirObra(a){
+  const T=a.tyc, o=T.obra; if(!o) return; T.obra=null; T.niv[o.ki]++;
+  const S=emp(a).set[TYC_KEYS[o.ki]];
+  avisarEvolucao('obra',a.nome,`${S.ic} ${S.nome}: ${S.niv[T.niv[o.ki]-1]} está pronto.`);
+  if(T.niv.every(n=>n>=tycNmax(a)) && !T.premio && emp(a).premio){ T.premio=true; const pf=emp(a).premio.foto; foto(pf); ui.fotoFila=(ui.fotoFila||[]).filter(x=>x!==pf); ui.premioUid=a.uid; ui.modal='premioCafe'; }
+  if(emp(a).local && T.niv.every(n=>n>=tycNmax(a)) && !T.teto){ T.teto=true; ui.tycMsg=emp(a).teto; }
 }
 function tycSubir(uid, ki, fonte){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return;
   const k=TYC_KEYS[ki]; if(!k || tycBloqueio(a,k)) return;
-  const c=tycCusto(a,k), antes=tycPrev(a).lucro, m0=mesesLiq(); let t='';
+  const c=tycCusto(a,k), m0=mesesLiq(); let t='';
   if(fonte==='caixa'){ if(a.tyc.caixa<c) return; a.tyc.caixa-=c; } else { if(!podeAVista(c)) return; t=pagarAVista(c); }
-  a.tyc.niv[ki]++; a.custo+=c; tycAtualizar(a);
-  if(a.tyc.niv.every(n=>n>=tycNmax(a)) && !a.tyc.premio && emp(a).premio){ a.tyc.premio=true; const pf=emp(a).premio.foto; foto(pf); ui.fotoFila=(ui.fotoFila||[]).filter(x=>x!==pf); ui.premioUid=a.uid; ui.modal='premioCafe'; }
-  const dep=tycPrev(a).lucro, S=emp(a).set[k];
-  ui.tycMsg=`${S.ic} ${S.nome}: ${S.niv[a.tyc.niv[ki]-1]}. Lucro previsto: de ${fmt0(antes)} para ${fmt0(dep)} por mês.${dep<=antes?' Esse item ainda não rendeu: o gargalo está em outro setor.':''}${t}`;
-  if(emp(a).local && a.tyc.niv.every(n=>n>=tycNmax(a)) && !a.tyc.teto){ a.tyc.teto=true; ui.tycMsg+=' '+emp(a).teto; }
+  a.custo+=c; a.tyc.obra={ki, ate:s.mes+TYC_OBRA_MESES}; tycAtualizar(a);
+  const S=emp(a).set[k];
+  ui.tycMsg=`🏗️ Obra iniciada: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. Fica pronta em ${TYC_OBRA_MESES} meses. Só uma obra por vez.${t}`;
   if(fonte!=='caixa') checarDescoberto(m0);
 }
 const TYC_FRANQ_MAX=3;
 const tycFranqs = a => (s.ativos||[]).filter(x=>x.franqDe===a.uid).length;
 const tycCustoFranq = a => Math.round(a.custo/100)*100;
+const tycCustoLoja = a => Math.round(a.custo*0.8/100)*100;
+const tycPodeLoja = a => !!(a.tyc && emp(a).premio && !a.franqDe && tycNP(a,Math.min(...a.tyc.niv))>=6 && tycLojas(a)<3 && !a.tyc.obraLoja);
 function tycFranquia(uid){
-  const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc||!a.tyc.premio||a.franqDe||tycFranqs(a)>=TYC_FRANQ_MAX) return;
-  const v=tycCustoFranq(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycFranqs(a)+1, t=pagarAVista(v);
-  const f={uid:s.uid++, id:a.id, nome:`${a.nome} · unidade ${n}`, tipo:'negocio', valor:v, custo:v, renda:0, horas:4, area:false, desde:s.mes, franqDe:a.uid,
-    tyc:{niv:TYC_KEYS.map(()=>TYC_NMAX), caixa:0, ret:50, meses:0, premio:true, efs:[{nome:'Inauguração: a clientela ainda está chegando', ate:s.mes+3, cli:0.8},{nome:'Clientela crescendo', ate:s.mes+11, cli:0.92}]}};
-  s.ativos.push(f); tycAtualizar(f);
-  ui.tycMsg=`🏪 Unidade ${n} aberta por ${fmt0(v)}, já no nível 9 em todos os setores. A clientela leva cerca de um ano para chegar, e nos primeiros meses o lucro pode ficar abaixo do custo fixo: o prejuízo sai do seu bolso se o caixa não cobrir.${t}`;
+  const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!tycPodeLoja(a)) return;
+  const v=tycCustoLoja(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycLojas(a)+1, t=pagarAVista(v), dur=TYC_LOJA_MESES[n-1];
+  a.custo+=v; a.tyc.obraLoja={ate:s.mes+dur}; tycAtualizar(a);
+  ui.tycMsg=`🏗️ Loja ${n} em construção por ${fmt0(v)}. Fica pronta em ${dur} meses. Até lá ela não vende nada, mas você continua pagando as suas contas.${t}`;
   checarDescoberto(m0);
 }
 function tycRetirada(uid, pct){
@@ -2022,7 +2086,9 @@ function modalTyc(a){
     ${tycEfs(a).lista.length?`<p class="hint"><b>Em andamento:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?'meses':'mês'})`).join(', ')}</p>`:''}
     ${ui.tycMsg?`<p class="hint tyc-msg">${ui.tycMsg}</p>`:''}
     ${EM.local&&nMin>=tycNmax(a)?`<div class="alerta neutro" role="note"><strong>Teto do negócio</strong><p>${EM.teto}</p></div>`:''}
-    ${T.premio&&!a.franqDe?(()=>{ const v=tycCustoFranq(a), n=tycFranqs(a); return `<div class="alerta bom" role="note"><strong>🏆 ${EM.premio.titulo}</strong><p>${n>=TYC_FRANQ_MAX?`Você já abriu o máximo de ${TYC_FRANQ_MAX} unidades próprias.`:`Abra uma nova unidade própria: custa ${fmt0(v)}, o mesmo valor investido nesta loja, e ela já nasce com todos os setores no nível 9. Mas o ponto novo ainda não é conhecido: a clientela leva cerca de um ano para chegar.${n?` Unidades abertas: ${n} de ${TYC_FRANQ_MAX}.`:''}${(s.franqs||[]).length?` Franqueados: ${s.franqs.length}, com royalties previstos de ${fmt0(tycRoyTotal())} por mês.`:''}`}</p>${n>=TYC_FRANQ_MAX?'':`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Abrir unidade própria por ${fmt0(v)}</button></div>`}</div>`; })():''}
+    ${T.obra?`<div class="alerta neutro" role="note"><strong>🏗️ Obra em andamento</strong><p>${EM.set[TYC_KEYS[T.obra.ki]].nome}: ${EM.set[TYC_KEYS[T.obra.ki]].niv[T.niv[T.obra.ki]]}. Termina em ${Math.max(1,T.obra.ate-s.mes)} ${T.obra.ate-s.mes>1?'meses':'mês'}. O efeito só aparece quando ficar pronta.</p></div>`:''}
+    ${T.premio&&!a.franqDe?`<div class="alerta bom" role="note"><strong>🏆 ${EM.premio.titulo}</strong><p>${EM.premio.texto?EM.premio.texto(a):''}${(s.franqs||[]).length?` Franqueados: ${s.franqs.length}, com royalties previstos de ${fmt0(tycRoyTotal())} por mês.`:''}</p></div>`:''}
+    ${EM.premio&&!a.franqDe?(()=>{ const n=tycLojas(a), v=tycCustoLoja(a); return `<div class="alerta bom" role="note"><strong>🏪 Lojas: ${n} de 3</strong><p>${T.obraLoja?`Loja ${n+1} em construção. Termina em ${Math.max(1,T.obraLoja.ate-s.mes)} ${T.obraLoja.ate-s.mes>1?'meses':'mês'}. Sem vendas até lá.`:n>=3?'Você já tem o máximo de lojas.':nEq<6?'Libera quando todos os setores chegarem ao nível 6.':`Uma loja a mais custa ${fmt0(v)} e leva ${TYC_LOJA_MESES[n]} meses para ficar pronta, sem vender nada. Depois, a empresa passa a render cerca de ${Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100)}% a mais.`}</p>${tycPodeLoja(a)?`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Construir loja ${n+1} por ${fmt0(v)}</button></div>`:''}</div>`; })():''}
     <p class="hint">Regra: um setor só sobe para o nível N se todos os outros já estiverem no nível N-1.</p>
     ${linhas}
     <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fechar</b></button></div></div></div>`;
@@ -2163,7 +2229,7 @@ const bonusGestao = a => (a.tipo==='negocio' && ((s.cursosOk||[]).includes('gest
 const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga();
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
-const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) - dividaParcelada();
+const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const rendaInvest = () => investido()*TAXA_RENDA;
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -4179,6 +4245,7 @@ function iniciarMes(){
     for(const a of (s.ativos||[])){ if(escala(a)) a.valor=Math.round(a.valor*f); if(a.tipo!=='terreno'){ a.renda=Math.round(a.renda*f); a.ultReaj=f-1; } }
     s.salario=Math.round(s.salario*f);
     if(s.carro?.valor) s.carro.valor=Math.round(s.carro.valor*0.88);
+    luxoAnual(f);
     ex.push([`Reajuste anual pela inflação (${pctFmt(f-1)})`, 0]);
     lic={tom:'neutro', titulo:`Inflação de ${dec1((f-1)*100)}% no ano`, texto:'Aluguel, mercado e contas subiram, e o salário foi reajustado pelo mesmo índice. Dinheiro parado na conta perdeu esse tanto de poder de compra.'};
   }
@@ -4220,6 +4287,7 @@ function iniciarMes(){
     s.conta+=v; s.rendaAtivosTot=(s.rendaAtivosTot||0)+v; ex.push([`${a.nome}${a.gerente?' (com gerente)':''}`, v]);
   }
   tycFranqMes(ex);
+  checarMarcosPatr();
   crescerNegocios();
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
   if(nFilhos()>0) s.fixos[FK]=custoFilho()*nFilhos();
@@ -4339,12 +4407,12 @@ function resolver(i, confirmado=false){
   checarDesbloqueio(); checarFim(); if(!s.fim) proximoDaFila(); salvar(); render();
 }
 function avancar(n=1){
-  if(s.mes>=cfg().total){ s.fim='fim'; ui.modal='fim'; salvar(); render(); return; }
+  if(s.mes>=totalMes()){ s.fim='fim'; ui.modal='fim'; salvar(); render(); return; }
   let dadoUsado=false;
   if(n===1 && s.mes>=1 && !s.fim){ const k=preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
   const p0=patrimonio(), m0=s.mes;
   let motivo='';
-  for(let i=0;i<n && s.mes<cfg().total;i++){
+  for(let i=0;i<n && s.mes<totalMes();i++){
     iniciarMes(); checarDesbloqueio(); checarFim();
     if(s.fim||s.evento||s.avisosEvolucao?.length) break;
     if(s.conta<0){ motivo='A conta ficou negativa, então paramos para você decidir.'; break; }
@@ -4379,7 +4447,7 @@ function notaFinal(){
 /* ================= pontuação ================= */
 const MULT_PROF = {atendente:1.5, professor:1.0, enfermeiro:1.1, programador:1.3};
 function podeConcluir(){
-  if(s.fim || s.mes>=cfg().total) return false;
+  if(s.fim || s.mes>=totalMes()) return false;
   if(s.fase===1) return s.mes>=12 && notaFinal()==='A';
   if(s.fase===2) return s.mes>=24 && notaFinal()==='A';
   return F3Vitoria();
@@ -4966,7 +5034,7 @@ function render(){
   if(window.__corridaMudo) return;
   if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
-  const m=mesesReserva(), neg=s.conta<0, tot=cfg().total;
+  const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
   let progresso;
   if(tot<=24){ let tr=''; for(let i=1;i<=tot;i++) tr+=`<i class="${i<s.mes?'on':''}${i===s.mes?' now':''}"></i>`; progresso=`<div class="track" aria-hidden="true">${tr}</div>`; }
@@ -5268,7 +5336,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     investir: investirCard,
     renda: `${ofertas}${ativos}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${arvoreCard()}`,
-    casa: `${casaCard}${carroCard}${albumCard()}`,
+    casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
@@ -5323,14 +5391,14 @@ function mapaFases(){
 
 
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
-function avisarEvolucao(tipo,nome,texto){ s.avisosEvolucao=s.avisosEvolucao||[]; s.avisosEvolucao.push({tipo,nome,texto,mes:s.mes}); }
+function avisarEvolucao(tipo,nome,texto,titulo){ s.avisosEvolucao=s.avisosEvolucao||[]; s.avisosEvolucao.push({tipo,nome,texto,titulo,mes:s.mes}); }
 const escHtml = v => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function renderAvisoEvolucao(){
   const box=document.getElementById('aviso-evolucao'); if(!box) return;
   const aviso=s?.avisosEvolucao?.[0];
   box.hidden=!aviso||!!ui.modal||!!ui.girando||ui.tela==='titulo';
   if(box.hidden){ box.innerHTML=''; return; }
-  box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite" aria-atomic="true"><button class="evolucao-fechar" data-acao="evolucaoFechar" aria-label="Fechar aviso de conclusão">×</button><strong>${aviso.tipo==='estudo'?pix('🎓','mini')+' Estudo concluído!':pixK('aba-voce','🌱','mini')+' Habilidade concluída!'}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p><small>Seu tempo foi liberado. Confira a próxima evolução na aba Você.${s.avisosEvolucao.length>1?` Mais ${s.avisosEvolucao.length-1} aviso(s).`:''}</small><button class="btn coin" data-acao="evolucaoVer">${pixK('aba-voce','🌱','mini')} Ver evoluções →</button></div>`;
+  box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite" aria-atomic="true"><button class="evolucao-fechar" data-acao="evolucaoFechar" aria-label="Fechar aviso de conclusão">×</button><strong>${aviso.titulo?aviso.titulo:aviso.tipo==='obra'?'🏗️ Obra concluída!':aviso.tipo==='estudo'?pix('🎓','mini')+' Estudo concluído!':pixK('aba-voce','🌱','mini')+' Habilidade concluída!'}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p>${aviso.tipo==='obra'||aviso.tipo==='marco'?`<small>${aviso.tipo==='marco'?(s.avisosEvolucao.length>1?`Mais ${s.avisosEvolucao.length-1} aviso(s).`:'Continue crescendo.'):s.avisosEvolucao.length>1?`Mais ${s.avisosEvolucao.length-1} aviso(s).`:'Abra a empresa para começar a próxima obra.'}</small>`:`<small>Seu tempo foi liberado. Confira a próxima evolução na aba Você.${s.avisosEvolucao.length>1?` Mais ${s.avisosEvolucao.length-1} aviso(s).`:''}</small><button class="btn coin" data-acao="evolucaoVer">${pixK('aba-voce','🌱','mini')} Ver evoluções →</button>`}</div>`;
 }
 /* ================= confirmação antes de vender ou pegar empréstimo ================= */
 function prepararConfirmacaoEmp(tipo,valor,voltar=null){
@@ -5851,9 +5919,9 @@ function renderFim(){
     botoes = (passou?`<button class="avancar" data-acao="fase" data-alvo="3">Ir para a Fase 3 →</button><button class="btn" data-acao="fase" data-alvo="2">Jogar a Fase 2 de novo</button>`:`<button class="avancar" data-acao="fase" data-alvo="2">Jogar a Fase 2 de novo</button>`) + `<button class="btn" data-acao="menu">Menu de fases</button>`;
   }
   modal.innerHTML=`<div class="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <span class="tag ${nota<='B'?'bom':nota==='C'?'neutro':'ruim'}">${s.semPontos?`${s.fase===4?'Jogo livre':'Fase 3'} · vencida em ${rotulo(s.venceuEm)}`:estouro?'Fim de jogo · '+rotulo(s.mes):s.concluidoEm?`${nomeFase()} · concluída em ${s.concluidoEm} meses`:`${nomeFase()} · resultado de ${cfg().dur}`}</span>
-    <div class="row" style="align-items:center;gap:16px"><div class="nota" style="color:${cor}">${nota}</div><h3 id="m-t">${s.semPontos?'Você venceu o jogo':estouro?'Limite estourado':nota==='A'?(F3()?'Fora da corrida!':F2()?'Dinheiro trabalhando':'Reserva completa'):(F3()&&nota==='B'?'Fora da corrida':'Ainda na corrida')}</h3></div>
-    ${s.semPontos?`<p>A nota e a pontuação ficaram guardadas no momento da vitória. Depois disso você jogou em modo livre até ${rotulo(s.mes)}; abaixo, como ficou a sua situação no fim.</p>`:`<p>${frase}</p>`}
+    <span class="tag ${nota<='B'?'bom':nota==='C'?'neutro':'ruim'}">${s.semPontos&&passou?`${s.fase===4?'Jogo livre':'Fase 3'} · vencida em ${rotulo(s.venceuEm)}`:estouro?'Fim de jogo · '+rotulo(s.mes):s.concluidoEm?`${nomeFase()} · concluída em ${s.concluidoEm} meses`:`${nomeFase()} · resultado de ${cfg().dur}`}</span>
+    <div class="row" style="align-items:center;gap:16px"><div class="nota" style="color:${cor}">${nota}</div><h3 id="m-t">${s.semPontos&&passou?'Você venceu o jogo':estouro?'Limite estourado':nota==='A'?(F3()?'Fora da corrida!':F2()?'Dinheiro trabalhando':'Reserva completa'):(F3()&&nota==='B'?'Fora da corrida':'Ainda na corrida')}</h3></div>
+    ${s.semPontos&&passou?`<p>A nota e a pontuação ficaram guardadas no momento da vitória. Depois disso você jogou em modo livre até ${rotulo(s.mes)}; abaixo, como ficou a sua situação no fim.</p>`:`<p>${frase}</p>`}
     ${lerCamp().avatar?`<div class="res-av"><img src="${avURL(lerCamp().avatar,3)}" alt=""><b>${lerCamp().avatar.nome||''}</b></div>`:''}
     <p class="hint">Sua vida: <b>${tituloVida()}</b> · ${pixK('aba-dinheiro','💰','mini')} Dinheiro ${eixoDinheiro()} · ${pix('❤️','mini')} Vida ${eixoVida()}</p>
     <div class="resumo">${resumo}</div>
@@ -5870,6 +5938,7 @@ function renderFim(){
     </div>
     <ul class="regras">${lic.map(l=>`<li>${l}</li>`).join('')}</ul>
     ${prox}
+    ${!estouro&&F3()&&s.fim==='fim'?'<button class="btn coin" data-acao="continuarFim">Continuar jogando (mais 20 anos)</button>':''}
     ${botoes}
   </div></div>`;
 }
@@ -5973,6 +6042,9 @@ document.addEventListener('click', e=>{
     case 'usarInfl': if((s.infl||0)>=100){ if(!(ui.cartasInfl||[]).length || ui.cartasMes!==s.mes){ ui.cartasInfl=sortearCartasInfl(); ui.cartasMes=s.mes; } ui.modal='infl'; render(); } break;
     case 'cartaInfl': { const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
+    case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
+    case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:'O jogo continua', texto:'Mais 20 anos pela frente. A pontuação ficou guardada. Agora o objetivo é o seu: construir patrimônio, comprar os bens de luxo na aba da casa e chegar ao bilhão.'}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
     case 'mudarOk': { const [n,modo,ant,pag]=alvo.split(':'); moverPara(Number(n), modo, ant==='null'?null:ant, pag); ui.modal=null; checarFim(); salvar(); render(); break; }
@@ -6789,7 +6861,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, tycFranquia, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
