@@ -1249,8 +1249,8 @@ const CARTAS = {
     desc:'Varejo de moda: estoque, coleção, vitrine e vendedor bom. A margem é boa, mas estoque parado é capital morto.'},
   cursinho:{fases:[2,3], tipo:'negocio', tyc:true, area:'professor', nome:'Cursinho Aprova', preco:50000, renda:2000, horas:8, varia:0, risco:0.04, pesos:{comprador:2,conserto:2},
     desc:'Turmas para vestibular e concurso. A fama dos professores enche as salas, e o retorno inicial é alto.'},
-  vacinas:{fases:[2,3], tipo:'negocio', escala:true, dedicacao:true, area:'enfermeiro', nome:'Clínica de vacinas e curativos', preco:120000, renda:2300, horas:10, varia:0.2, risco:0.04, pesos:{comprador:2,conserto:3,falencia:2},
-    desc:'Vacinas particulares, curativos e atendimento domiciliar. Exige responsável técnico.'},
+  vacinas:{fases:[2,3], tipo:'negocio', tyc:true, area:'enfermeiro', nome:'Vida em Dia', preco:60000, renda:1400, horas:14, varia:0, risco:0.04, pesos:{comprador:2,conserto:3},
+    desc:'Uma clínica de vacinas e curativos para administrar: frio, serviços, espaço, equipe e captação. Muita regra sanitária e muita confiança.'},
   saas:{fases:[2,3], tipo:'negocio', tyc:true, area:'programador', nome:'Gestão Fácil', preco:40000, renda:800, horas:8, varia:0, risco:0.05, pesos:{comprador:3,conserto:1},
     desc:'Um sistema vendido por mensalidade. Cada novo assinante custa quase nada, então o lucro escala, mas o produto precisa evoluir.'},
   cafeteria:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Toca do Café', preco:30000, renda:800, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
@@ -1892,6 +1892,26 @@ TYC_EMP.saas={
     niv:['Só você programando', 'Um dev freelancer', 'Dois devs', 'Suporte ao cliente', 'Dev sênior', 'Líder técnico', 'Time de produto', 'Equipe de 15 pessoas', 'Equipe de 30 pessoas treinada']},
   mkt:{nome:'Aquisição', ic:'📣', peso:0.7, ef:'Quantos assinantes novos chegam por dia.',
     niv:['Indicações de conhecidos', 'Site e blog', 'Conteúdo no LinkedIn', 'Anúncios pagos', 'Vendas ativas', 'Parcerias com consultorias', 'Eventos do setor', 'Marca reconhecida', 'Referência no mercado']}
+  }
+};
+/* ===== clínica de vacinas ===== */
+TYC_EMP.vacinas={
+  arte:'vacinas', ofertaImg:'vacinas-oferta', ofertaNome:'Sala de vacinas e curativos', negocio:'clínica de vacinas', porte:['Sala','Clínica','Rede de clínicas'], tagPorte:p=>p,
+  varc:0.45, dem:[2.11, 3.26, 4.32, 5.77, 7.05, 9.07, 10.75, 13.44, 16.08], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[140, 155, 175, 200, 230, 260, 300, 340, 390],
+  fixo:[3080, 5260, 7660, 11690, 15980, 23250, 30880, 43770, 60060], saz:[0.85,0.8,1.15,1.4,1.35,1.1,0.9,0.85,0.9,1.0,1.0,0.9], horas:[14,13,12,11,10,8,7,6,5], custo:[5200,9400,13300,17400,20300,29100,35400,40800],
+  premio:{foto:'premio-vacinas', titulo:'Clínica de referência da cidade', texto:a=>`${a?a.nome:'Sua clínica'} foi eleita a clínica de vacinas de referência da cidade pelos pacientes, com nota 5,0 nas avaliações.`, aval:'"Atendimento cuidadoso e sem fila." · "Vacinas sempre em dia e bem armazenadas." · "Confio de olhos fechados."'},
+  franq:{sabe:'Já trabalhou em clínica de vacinas.', nao:'Nunca trabalhou com saúde.', conheceu:'conheceu a sua clínica premiada'},
+  set:{
+  equip:{nome:'Câmara fria e equipamentos', ic:'🧊', peso:1.4, ef:'Quantas vacinas e curativos saem por dia, sem perder lote.',
+    niv:['Geladeira de vacinas dedicada', 'Câmara fria com alarme', 'Gerador de energia', 'Registro digital de temperatura', 'Duas câmaras de redundância', 'Sala de curativos completa', 'Sala de procedimentos', 'Central de logística de frio', 'Rede de frio integrada']},
+  cardapio:{nome:'Serviços', ic:'💉', peso:0.9, ef:'Quanto cada paciente gasta, em média.',
+    niv:['Vacinas do calendário', 'Curativos e injetáveis', 'Vacinas de viagem', 'Atendimento domiciliar', 'Vacinas corporativas', 'Exames rápidos', 'Check-up preventivo', 'Convênios e planos', 'Medicina preventiva completa']},
+  ambiente:{nome:'Clínica', ic:'🏥', peso:1.4, ef:'Quantos pacientes cabem por dia. Aluguel maior acompanha.',
+    niv:['Sala alugada', 'Sala com recepção', 'Clínica pequena', 'Clínica com duas salas', 'Clínica com estacionamento', 'Segunda unidade', 'Clínica de esquina maior', 'Três unidades', 'Rede de clínicas']},
+  equipe:{nome:'Equipe', ic:'🧑‍⚕️', peso:0.6, ef:'Quantos pacientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você, enfermeiro(a) responsável', 'Uma técnica de enfermagem', 'Recepcionista', 'Duas técnicas', 'Médico parceiro por horas', 'Coordenação de enfermagem', 'Equipe de domicílio', 'Equipe de 15 pessoas', 'Equipe de 30 pessoas treinada']},
+  mkt:{nome:'Captação', ic:'📣', peso:0.7, ef:'Quantos pacientes chegam por dia.',
+    niv:['Indicação de médicos', 'Instagram e WhatsApp', 'Parceria com pediatras', 'Campanha da gripe', 'Vacinação em empresas', 'Convênio com planos', 'Anúncios locais', 'Parceria com escolas', 'Marca conhecida na cidade']}
   }
 };
 const tycF = () => F2() ? (s.idx||1) : 1;
@@ -3624,6 +3644,73 @@ Object.assign(TYC_LIC,{
 TYC_EMP.ecommerce.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ec_'));
 TYC_EMP.saas.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('sa_'));
 
+/* ===== clínica de vacinas: cartas ===== */
+Object.assign(TYC_DEC,{
+ cl_frio:tycCard('⚡','Queda de energia à noite','A energia caiu por horas e a câmara fria das vacinas ficou sem refrigeração. Lotes inteiros podem estar perdidos.',[
+  TO('Descartar o lote duvidoso e repor',0.12,null,TR('bom','Segurança primeiro','Você descartou o que tinha dúvida e protegeu os pacientes. O prejuízo dói, mas a reputação fica.')),
+  TO('Conferir a temperatura e aplicar o que estiver bom',0.01,0.6,TR('neutro','Estava dentro do limite','O registro mostrou temperatura segura. Dessa vez deu certo.'),TR('ruim','Lote comprometido','Parte das doses estava fora da faixa e teve de ser descartada.',['Reputação arranhada',6,{cli:0.92}],-0.1)),
+  TO('Instalar gerador e alarme',0.15,null,TR('bom','Sem susto da próxima vez','O gerador liga sozinho e o alarme avisa. Frio contínuo é obrigação de quem guarda vacina.',['Frio garantido',24,{cli:1.03}]))]),
+ cl_gripe:tycCard('🤧','Campanha da gripe','É a época de maior procura. Quem se prepara com estoque e equipe vende muito; quem erra, perde vacina.',[
+  TO('Comprar lote grande e divulgar',0.2,0.6,TR('bom','Fila na recepção','A procura foi forte e você tinha dose para todo mundo.',['Campanha da gripe',3,{cli:1.35}]),TR('ruim','Sobrou dose','A procura foi menor e parte do lote venceu.',['Lote parado',4,{cli:1.05}],-0.1)),
+  TO('Comprar sob encomenda',0.06,null,TR('bom','Sem sobra','Você vendeu o que tinha encomendado, sem risco.',['Campanha enxuta',3,{cli:1.12}])),
+  TO('Não fazer campanha',0,null,TR('neutro','Mês normal','Você perdeu o pico de demanda.'))]),
+ cl_visa:tycCard('📑','Vigilância sanitária visita a clínica','A fiscal vai checar alvará, responsável técnico, descarte e registro de temperatura.',[
+  TO('Deixar a documentação em dia',0.05,null,TR('bom','Passou limpo','Tudo regularizado, sem problema.')),
+  TO('Arrumar o que der hoje',0,0.5,TR('neutro','Passou','Dessa vez deu certo.'),TR('ruim','Multa','Faltou documento e a multa saiu cara.',null,-0.15)),
+  TO('Deixar como está',0,0.3,TR('neutro','Sem problema','Sorte desta vez.'),TR('ruim','Interdição','A clínica ficou fechada até regularizar.',['Clínica fechada',2,{cli:0.6}],-0.25))]),
+ cl_conv:tycCard('🏦','Plano de saúde quer credenciar a clínica','Um plano oferece volume de pacientes, mas paga pouco e com 90 dias de atraso.',[
+  TO('Aceitar o convênio',0,0.55,TR('bom','Pacientes novos','O volume subiu, mesmo com o ticket menor.',['Convênio',12,{cli:1.2,tk:0.9}]),TR('ruim','Pagamento atrasou','O plano atrasou e o caixa apertou.',['Convênio lento',12,{cli:1.12,tk:0.88}],-0.12)),
+  TO('Aceitar só com prazo de 30 dias',0.01,0.5,TR('bom','Acordo justo','O plano cedeu no prazo.',['Convênio',12,{cli:1.12,tk:0.94}]),TR('neutro','Não aceitaram','O plano recusou as condições.')),
+  TO('Recusar',0,null,TR('neutro','Só particular','Você manteve o paciente particular e a margem.'))]),
+ cl_dom:tycCard('🏠','Pacientes pedem vacina em casa','Idosos e famílias com bebê querem atendimento domiciliar.',[
+  TO('Montar serviço domiciliar',0.08,0.7,TR('bom','Serviço premium','O cliente paga mais pela comodidade.',['Atendimento domiciliar',12,{cli:1.1,tk:1.12}]),TR('neutro','Poucos pedidos','O custo do deslocamento pesou.',['Domicílio pouco usado',4,{tk:0.98}])),
+  TO('Atender só em casos especiais',0,null,TR('neutro','Meio-termo','Poucos atendimentos, sem estrutura nova.',['Domicílio eventual',6,{cli:1.03}])),
+  TO('Não oferecer',0,null,TR('neutro','Sem mudança','Só na clínica.'))]),
+ cl_emp:tycCard('🏢','Empresa quer vacinar os funcionários','Uma empresa grande quer campanha de gripe e hepatite no local, com preço por pessoa.',[
+  TO('Aceitar com desconto por volume',0.03,0.7,TR('bom','Dia cheio','Muitas doses em um dia só, com margem menor.',['Campanha corporativa',3,{cli:1.2,tk:0.93}]),TR('ruim','Pouca adesão','Poucos funcionários foram.',['Campanha fraca',3,{tk:0.95}])),
+  TO('Aceitar com pagamento antecipado',0.01,null,TR('bom','Contrato seguro','Receita antes do serviço e sem risco.',['Campanha corporativa',3,{cli:1.12,tk:0.97}])),
+  TO('Recusar',0,null,TR('neutro','Sem contrato','Você manteve o foco na clínica.'))]),
+ cl_viag:tycCard('✈️','Vacinas de viagem importadas','Vacinas para viagem internacional têm ticket alto, mas dependem do dólar e de lote mínimo.',[
+  TO('Trabalhar com estoque próprio',0.16,0.55,TR('bom','Ticket alto','Viajantes pagam bem e voltam.',['Vacinas de viagem',10,{tk:1.12}]),TR('ruim','Dólar e vencimento','O dólar subiu e parte do lote venceu.',['Estoque de viagem',6,{vc:1.05}],-0.08)),
+  TO('Vender sob encomenda',0.03,null,TR('bom','Sem risco','Você só compra depois do pedido.',['Viagem sob encomenda',8,{tk:1.06}])),
+  TO('Não oferecer',0,null,TR('neutro','Sem mudança','Calendário básico apenas.'))]),
+ cl_rt:tycCard('🩺','Médico responsável técnico quer sair','Ele é obrigatório para a clínica funcionar e pede aumento para ficar.',[
+  TO('Dar o aumento',0,null,TR('bom','Ele ficou','A folha subiu, mas a regularização continua.',['Equipe valorizada',24,{fx:0.03}])),
+  TO('Procurar outro profissional',0.03,0.6,TR('bom','Novo responsável','Achou alguém à altura.'),TR('ruim','Ficou sem responsável','A clínica ficou parada até contratar.',['Sem responsável técnico',2,{cli:0.6}],-0.05)),
+  TO('Assumir você mesmo se for da área',0,0.5,TR('neutro','Você assumiu','Mais responsabilidade e menos tempo livre.',['Dono no balcão',8,{fx:-0.02,cli:0.97}]),TR('ruim','Sem habilitação','Você não tinha registro e a clínica foi notificada.',null,-0.1))]),
+ cl_reac:tycCard('⚠️','Paciente teve reação à vacina','Uma paciente passou mal depois da aplicação e a família cobra explicações.',[
+  TO('Acolher, atender e registrar tudo',0.03,null,TR('bom','Conduta correta','Você atendeu, registrou e notificou. A família entendeu que foi um evento raro.')),
+  TO('Minimizar o ocorrido',0,0.35,TR('neutro','Ficou por isso','Dessa vez a família aceitou.'),TR('ruim','Denúncia','A família denunciou e a clínica foi investigada.',['Reputação arranhada',8,{cli:0.85}],-0.12)),
+  TO('Contratar seguro de responsabilidade',0.05,null,TR('bom','Coberto','O seguro cobre esse tipo de ocorrência.',['Seguro de responsabilidade',24,{vc:0.98}]))]),
+ cl_farm:tycCard('💊','Rede de farmácias começou a aplicar vacinas','Uma farmácia grande oferece aplicação com preço menor e horário estendido.',[
+  TO('Baixar o preço',0,null,TR('neutro','Segurou','O movimento ficou, a margem caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Reforçar atendimento e serviços que a farmácia não tem',0.07,0.65,TR('bom','Diferenciou','A clínica entrega acolhimento, orientação e vacinas especiais.',['Atendimento diferenciado',12,{tk:1.06}]),TR('ruim','Não bastou','Parte dos pacientes migrou.',['Pacientes migraram',6,{cli:0.92}])),
+  TO('Ignorar',0,0.4,TR('neutro','Foi passageiro','Os pacientes voltaram.'),TR('ruim','Perdeu pacientes','O movimento caiu.',['Perdeu pacientes',8,{cli:0.88}]))]),
+ cl_lote:tycCard('📅','Lote próximo do vencimento','Um lote de vacinas vence em um mês e ainda sobram muitas doses.',[
+  TO('Promoção para girar o estoque',0.01,0.7,TR('bom','Estoque girou','As doses foram aplicadas antes de vencer.',null,0.05),TR('neutro','Sobrou parte','Algumas doses venceram.',null,-0.03)),
+  TO('Devolver ao distribuidor',0,0.5,TR('bom','Troca aceita','O distribuidor trocou parte do lote.',null,0.04),TR('neutro','Recusou','Sem acordo.',null,-0.05)),
+  TO('Aplicar fora do prazo',0,0.2,TR('neutro','Ninguém notou','Dessa vez ninguém percebeu.'),TR('ruim','Escândalo','Aplicar vacina vencida gera processo e interdição.',['Reputação arranhada',12,{cli:0.6}],-0.3))]),
+ cl_fam:tycCard('👨‍👩‍👧','Plano familiar de vacinas','Famílias pedem um pacote anual com todas as vacinas das crianças.',[
+  TO('Lançar o plano familiar',0.02,0.7,TR('bom','Fidelizou','As famílias voltam e indicam outras.',['Plano familiar',12,{cli:1.1,tk:0.96}]),TR('neutro','Poucas famílias','Pouca adesão.',['Plano pouco usado',4,{cli:1.02}])),
+  TO('Dar desconto na segunda vacina',0.01,null,TR('neutro','Meio-termo','Um desconto simples gera pouca fidelidade.',['Desconto simples',4,{cli:1.03}])),
+  TO('Manter o preço',0,null,TR('neutro','Sem mudança','Tudo igual.'))])
+});
+Object.assign(TYC_LIC,{
+ cl_frio:{livro:null, ideia:'Em saúde, a cadeia de frio é parte do produto. Gerador, alarme e registro de temperatura custam menos que um lote perdido, e a pior decisão é aplicar o que pode estar estragado.'},
+ cl_gripe:{livro:null, ideia:'Demanda sazonal exige estoque antes do pico, e vacina tem validade. Comprar sob encomenda reduz o risco, com menos margem de vendas extras.'},
+ cl_visa:{livro:null, ideia:'Fiscalização sanitária é regra do jogo em saúde. Alvará, responsável técnico e registros em dia custam menos que multa e interdição.'},
+ cl_conv:{livro:null, ideia:'Convênio dá volume e puxa o preço para baixo, com prazo longo de recebimento. Venda só vira dinheiro quando o plano paga.'},
+ cl_dom:{livro:null, ideia:'Conveniência tem valor, e o cliente paga mais pelo serviço no lugar dele. Deslocamento custa tempo, que é o recurso mais caro do dono.'},
+ cl_emp:{livro:null, ideia:'Contrato corporativo dá volume em um dia, com preço menor por pessoa. Peça pagamento antecipado para não financiar o cliente.'},
+ cl_viag:{livro:null, ideia:'Produto importado carrega risco de câmbio e de validade. Vender sob encomenda elimina o estoque e o risco, e reduz a margem.'},
+ cl_rt:{livro:null, ideia:'Quando uma pessoa é obrigatória para a operação, ela tem poder de barganha. Planeje o plano B antes da crise.'},
+ cl_reac:{livro:null, ideia:'Em saúde, o erro mais caro é esconder. Acolher, registrar e notificar protege o paciente, a clínica e o seu nome.'},
+ cl_farm:{livro:'Estratégia Competitiva, de Michael Porter', ideia:'Contra uma rede grande, diferencie pelo que ela não entrega: acolhimento, orientação e serviços especializados.'},
+ cl_lote:{livro:null, ideia:'Produto com validade é dinheiro com prazo. Girar, devolver ou descartar corretamente. Nunca aplicar vencido.'},
+ cl_fam:{livro:'As Armas da Persuasão, de Robert Cialdini (compromisso e coerência)', ideia:'Quem assina um plano anual tende a voltar. O desconto troca margem por previsibilidade e por fidelidade da família.'}
+});
+TYC_EMP.vacinas.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('cl_'));
+
 /* ================= franqueados: interessados aleatórios, royalties e risco para a marca ================= */
 const FRANQ_ROY=0.05, FRANQ_TAXA=0.08, FRANQ_MAX=8;
 const FRANQ_NOMES=['Marcos','Juliana','Rafael','Camila','Bruno','Patrícia','Diego','Fernanda','Thiago','Larissa','Gustavo','Renata'];
@@ -4169,7 +4256,7 @@ function iniciarMes(){
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
-const TYC_SO_CAFE=true;
+const TYC_SO_CAFE=false;
 const soCafe = id => TYC_SO_CAFE && CARTAS[id].tipo==='negocio' && !CARTAS[id].tyc;
 function gerarOfertas(){
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
@@ -4412,7 +4499,7 @@ const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
-const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='ecommerce'||id==='saas'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='ecommerce'||id==='saas'||id==='vacinas'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
@@ -4624,7 +4711,7 @@ const FOTOS = {
   formatura:{t:'Formatura', ic:'🎓'},
   vitoria:{t:'Livres! Fora da corrida dos ratos', ic:'🎉'},
   'topo-atendente':{t:'Gerente regional: o topo da carreira', ic:'🏆'}, 'topo-professor':{t:'Diretor(a) de escola: o topo da carreira', ic:'🏆'}, 'topo-enfermeiro':{t:'Gerente de enfermagem: o topo da carreira', ic:'🏆'}, 'topo-programador':{t:'Tech lead: o topo da carreira', ic:'🏆'},
-  'premio-cafeteria':{t:'Melhor cafeteria da cidade', ic:'🏆'}, 'premio-geek':{t:'Melhor loja geek do estado', ic:'🏆'}, 'premio-acai':{t:'Melhor açaí da cidade', ic:'🏆'}, 'premio-lavanderia':{t:'Melhor lavanderia da cidade', ic:'🏆'}, 'premio-roupa':{t:'Melhor loja de roupas da cidade', ic:'🏆'}, 'sonho-viagem':{t:'A volta ao mundo em família', ic:'🌍'}, 'sonho-escola':{t:'A escolinha de futebol', ic:'⚽'}, 'sonho-veleiro':{t:'A vida no veleiro', ic:'⛵'}, 'sonho-praia':{t:'A casa de frente para o mar', ic:'🌊'}
+  'premio-cafeteria':{t:'Melhor cafeteria da cidade', ic:'🏆'}, 'premio-geek':{t:'Melhor loja geek do estado', ic:'🏆'}, 'premio-acai':{t:'Melhor açaí da cidade', ic:'🏆'}, 'premio-lavanderia':{t:'Melhor lavanderia da cidade', ic:'🏆'}, 'premio-roupa':{t:'Melhor loja de roupas da cidade', ic:'🏆'}, 'premio-vacinas':{t:'Clínica de referência da cidade', ic:'🏆'}, 'sonho-viagem':{t:'A volta ao mundo em família', ic:'🌍'}, 'sonho-escola':{t:'A escolinha de futebol', ic:'⚽'}, 'sonho-veleiro':{t:'A vida no veleiro', ic:'⛵'}, 'sonho-praia':{t:'A casa de frente para o mar', ic:'🌊'}
 };
 // as fotos de férias mudam com a família: sem sufixo = casal com dois filhos; -s sozinho(a), -c casal, -1 casal com um filho
 ['praia','tropical','esqui','exterior'].forEach(b=>['-s','-c','-1'].forEach(x=>{ FOTOS[b+x]=FOTOS[b]; }));
