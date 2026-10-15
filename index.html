@@ -4232,7 +4232,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       <div data-info="conta"><div class="conta-nome"><i class="dot" style="background:var(--c-conta)"></i>Conta corrente ${ii}</div><div class="conta-taxa">não rende</div></div>
       <div class="conta-valor" style="${neg?'color:var(--loss)':''}">${fmt(s.conta)}</div>
     </div>
-    ${Object.entries(prods()).map(([id,p])=>linhaProduto(id,p)).join('')}
+    ${Object.entries(prods()).sort((a,b)=>(a[0]==='cdb')-(b[0]==='cdb')).map(([id,p])=>linhaProduto(id,p)).join('')}
   </section>`;
   const inflCheia = F2() && (s.infl||0)>=100 ? `<div class="alerta bom"><strong>★ Influência cheia</strong><p>Seus contatos têm oportunidades para você.</p><button class="btn coin" data-acao="usarInfl" style="margin-top:6px">Ver as oportunidades</button></div>` : '';
   const sonhoCard=(()=>{ const tem=s.conta+investido(), pct=s.sonhoFeito?100:clamp(tem/ps*100,0,100), ic=icEscolha('sonho',s.sonho||'viagem');
@@ -4246,13 +4246,13 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     return `<section class="card sonho-card ${podeSonho?'pronto':''}"><div class="sc-top">${ic}<div><span class="label-c">Seu sonho</span><b>${sonho().nome}</b><span class="num sc-v">${s.sonhoFeito?"":tem>=ps?`✓ Você já tem os ${fmt0(ps)}`:`${fmt0(tem)} de ${fmt0(ps)}`}</span></div></div><div class="sc-bar"><i style="width:${pct}%"></i></div><p class="hint">${st}</p>${btn}</section>`; })();
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
-    inicio: `<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="carreira">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
+    inicio: `<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
     dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}`,
+    vida: `${barrasVida}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${albumCard()}`,
-    carreira: `${arvoreCard()}${evoCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
+    carreira: `${evoCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
