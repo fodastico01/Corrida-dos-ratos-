@@ -1118,6 +1118,22 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 .res-av{display:flex;align-items:center;gap:10px;justify-content:center;margin:4px 0}
 .res-av img{height:84px;width:auto;image-rendering:pixelated}
 .res-av b{font-size:18px}
+
+/* criador: linhas com setas */
+.av-fixo{position:sticky;top:-1px;z-index:3;background:var(--surface,var(--bg,#fff));padding-bottom:8px;border-bottom:1px solid var(--line)}
+.av-fixo .av-prev img{height:128px}
+.av-topo{grid-template-columns:minmax(0,108px) minmax(0,1fr)}
+.av-alea{grid-template-columns:1fr 1fr;display:grid}
+.av-linhas{display:grid;gap:6px}
+.av-lin{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:8px}
+.av-rot{font-size:13px;font-weight:700;color:var(--ink)}
+.av-ctl{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center;gap:6px}
+.av-seta{height:44px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:12px;font-size:16px;font-weight:800}
+.av-seta:active{background:var(--coin);color:var(--coin-ink)}
+.av-val{display:grid;justify-items:center;font-weight:700;font-size:15px;line-height:1.1;text-align:center}
+.av-val small{font-weight:500;font-size:11px;opacity:.7}
+.av-bola{width:26px;height:26px;border-radius:50%;border:2px solid var(--ink);display:inline-block}
+.av-cor-lin .av-seta{height:36px}
 </style>
 
 <div class="app" id="app"></div>
@@ -5071,6 +5087,7 @@ document.addEventListener('click', e=>{
     case 'continuar': if(!temAvatar()){ avAbrir('novo'); break; } ui.tela=null; render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
     case 'novoJogo': if(temJogo()){ ui.modal='novoJogo'; renderModal(); } else { avAbrir('novo'); } break;
     case 'avAbrir': avAbrir('editar'); break;
+    case 'avPasso': { const [k,d,tp]=alvo.split(':'); avPasso(k,Number(d),tp); avRe(); break; }
     case 'avAba': ui.avTab=alvo; avRe(); break;
     case 'avSet': { const [k,v]=alvo.split(':'); ui.av[k]=v; const f=ui.av.fantasia, aba=ui.avTab;
       const cobre=(['camisa','calca','calcado'].includes(aba)&&k!=='pelo'&&f!=='nenhuma')||(f==='armadura'&&['cabelo','cabeca','olhos'].includes(aba))||(f==='mago'&&aba==='cabeca');
@@ -5463,32 +5480,36 @@ const AV_COR_DE={fantasia:'camisaCor',pelo:'pelo',cabelo:'cabeloCor',cabeca:'cab
 function avPaleta(aba){ return aba==='pelo'?AV_PELOS:aba==='cabelo'?AV_CABELOS:AV_ROUPAS; }
 function avAbrir(origem){ ui.av=avCfg(AV_CFG_SALVO()); ui.avTab=ui.avTab||'pelo'; ui.avOrigem=origem||'editar'; ui.modal='avatar'; renderModal(); }
 function avTrocaSexo(c,sx){ const C=AV_CAT[sx], ok=(k)=>C[k].some(o=>o[0]===c[k]); const n=Object.assign({},c,{sexo:sx}); ['fantasia','cabelo','cabeca','olhos','camisa','calca','calcado'].forEach(k=>{ if(!ok(k)) n[k]=C[k][0][0]; }); return n; }
+const AV_LINHAS=[['pelo','Ratinho',''],['fantasia','Fantasia','camisaCor'],['cabelo','Cabelo','cabeloCor'],['cabeca','Cabeça','cabecaCor'],['olhos','Olhos',''],['camisa','Camisa','camisaCor'],['calca','Calça','calcaCor'],['calcado','Calçado','calcadoCor']];
+function avLista(campo){ return campo==='pelo'?AV_PELOS.map(p=>[p.id,p.nome]):AV_CAT[ui.av.sexo][campo]; }
+function avPasso(linha,d,tipo){
+  const c=ui.av, L=AV_LINHAS.find(x=>x[0]===linha); if(!L) return;
+  if(tipo==='cor'){ const k=L[2], pal=avPaleta(linha==='fantasia'?'camisa':linha==='pelo'?'pelo':linha==='cabelo'?'cabelo':'camisa'); const i=Math.max(0,pal.findIndex(p=>p.id===c[k])); c[k]=pal[(i+d+pal.length)%pal.length].id; }
+  else { const lista=avLista(linha), i=Math.max(0,lista.findIndex(o=>o[0]===c[linha])); c[linha]=lista[(i+d+lista.length)%lista.length][0]; }
+  const f=c.fantasia;
+  if(linha!=='fantasia'&&f!=='nenhuma'&&(['camisa','calca','calcado'].includes(linha)||(f==='armadura'&&['cabelo','cabeca','olhos'].includes(linha))||(f==='mago'&&linha==='cabeca'))) c.fantasia='nenhuma';
+}
 function modalAvatar(){
-  const c=ui.av, C=AV_CAT[c.sexo], aba=ui.avTab||'pelo';
-  const opcoes=aba==='pelo'?AV_PELOS.map(p=>[p.id,p.nome]):C[aba];
-  const campo=aba==='pelo'?'pelo':aba;
-  const grade=aba==='pelo'
-    ?`<div class="av-grid">${AV_PELOS.map(p=>`<button class="av-opt${c.pelo===p.id?' on':''}" data-acao="avSet" data-alvo="pelo:${p.id}" aria-pressed="${c.pelo===p.id}"><img src="${avURL(Object.assign({},c,{pelo:p.id}),2)}" alt=""><span>${p.nome}</span></button>`).join('')}</div>`
-    :`<div class="av-grid">${opcoes.map(([id,nm])=>`<button class="av-opt${c[campo]===id?' on':''}" data-acao="avSet" data-alvo="${campo}:${id}" aria-pressed="${c[campo]===id}"><img src="${avURL(Object.assign({},c,{[campo]:id}),2)}" alt=""><span>${nm}</span></button>`).join('')}</div>`;
-  const corK=AV_COR_DE[aba], pal=avPaleta(aba);
-  const semCor=aba==='olhos'||aba==='pelo'||(aba==='fantasia'&&!['mago','armadura'].includes(c.fantasia));
-  const aviso=(c.fantasia!=='nenhuma'&&['camisa','calca','calcado'].includes(aba))||(c.fantasia==='armadura'&&['cabelo','cabeca','olhos'].includes(aba))||(c.fantasia==='mago'&&aba==='cabeca')?`<p class="hint">A fantasia escolhida cobre essas peças. Escolha Nenhuma na aba Fantasia para usar peças soltas.</p>`:'';
-  const cores=semCor?'':(`<span class="label-c">Cor</span><div class="av-cores">${pal.map(p=>`<button class="av-cor${c[corK]===p.id?' on':''}" style="background:${p.c}" data-acao="avSet" data-alvo="${corK}:${p.id}" aria-label="${p.id}" aria-pressed="${c[corK]===p.id}"></button>`).join('')}</div>`);
-  const corPelo='';
+  const c=ui.av;
+  const lin=AV_LINHAS.map(([k,nome,corK])=>{
+    const lista=avLista(k), i=Math.max(0,lista.findIndex(o=>o[0]===c[k])), n=lista.length;
+    const temCor=corK&&(k!=='fantasia'||['mago','armadura'].includes(c.fantasia));
+    let cor='';
+    if(temCor){ const pal=avPaleta(k==='fantasia'?'camisa':k==='cabelo'?'cabelo':'camisa'), cur=pal.find(p=>p.id===c[corK])||pal[0];
+      cor=`<div class="av-lin av-cor-lin"><span class="av-rot">Cor</span><div class="av-ctl"><button class="av-seta" data-acao="avPasso" data-alvo="${k}:-1:cor" aria-label="Cor anterior">◀</button><span class="av-val"><i class="av-bola" style="background:${cur.c}"></i></span><button class="av-seta" data-acao="avPasso" data-alvo="${k}:1:cor" aria-label="Próxima cor">▶</button></div></div>`; }
+    return `<div class="av-lin"><span class="av-rot">${nome}</span><div class="av-ctl"><button class="av-seta" data-acao="avPasso" data-alvo="${k}:-1:cat" aria-label="${nome} anterior">◀</button><span class="av-val">${lista[i][1]}<small>${i+1} de ${n}</small></span><button class="av-seta" data-acao="avPasso" data-alvo="${k}:1:cat" aria-label="${nome} seguinte">▶</button></div></div>${cor}`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet av-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <h3 id="m-t">${ui.avOrigem==='novo'?'Crie o seu ratinho':'Aparência do ratinho'}</h3>
-    <div class="av-topo">
+    <div class="av-topo av-fixo">
       <div class="av-prev"><img src="${avURL(c,5)}" alt="Seu ratinho"></div>
       <div class="av-lado">
         <label class="label-c" for="av-nome">Nome</label>
         <input id="av-nome" class="av-nome" type="text" maxlength="14" placeholder="Como ele se chama?" value="${(c.nome||'').replace(/"/g,'&quot;')}" autocomplete="off" data-av-nome>
         <div class="seg"><button data-acao="avSexo" data-alvo="m" aria-pressed="${c.sexo==='m'}">Masculino</button><button data-acao="avSexo" data-alvo="f" aria-pressed="${c.sexo==='f'}">Feminino</button></div>
-        <div class="av-alea"><button class="btn" data-acao="avAlea" data-alvo="m">🎲 Aleatório masculino</button><button class="btn" data-acao="avAlea" data-alvo="f">🎲 Aleatório feminino</button></div>
       </div>
     </div>
-    <div class="av-abas" role="tablist">${AV_ABAS.map(([k,n])=>`<button role="tab" class="av-aba${aba===k?' on':''}" aria-selected="${aba===k}" data-acao="avAba" data-alvo="${k}">${n}</button>`).join('')}</div>
-    ${aviso}${grade}
-    ${cores}
+    <div class="av-alea"><button class="btn" data-acao="avAlea" data-alvo="m">🎲 Aleatório masculino</button><button class="btn" data-acao="avAlea" data-alvo="f">🎲 Aleatório feminino</button></div>
+    <div class="av-linhas">${lin}</div>
     <div class="opcoes"><button class="opcao coin" data-acao="avOk"><b>${ui.avOrigem==='novo'?'Pronto, vamos jogar':'Salvar'}</b></button>${ui.avOrigem==='novo'?'':'<button class="opcao" data-acao="fechar"><b>Cancelar</b></button>'}</div>
   </div></div>`;
 }
