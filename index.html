@@ -5155,7 +5155,7 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ================= personagem: ratinho personalizável (pixel art desenhado por código) ================= */
-const AV_W=40, AV_H=52, AV_OY=4;
+const AV_W=40, AV_H=56, AV_OY=8;
 const AV_PELOS=[
   {id:'cinza',nome:'Cinza',c:'#9a9ca8',b:'#d6d8e0'},
   {id:'branco',nome:'Branco',c:'#ece8e4',b:'#fffaf5'},
@@ -5175,6 +5175,7 @@ const AV_ROUPAS=[
 ];
 const AV_CAT={
   m:{
+    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Mago']],
     cabelo:[['curto','Curto'],['topete','Topete'],['moicano','Moicano'],['cacheado','Cacheado'],['lateral','Risca'],['careca','Careca']],
     cabeca:[['nenhum','Nada'],['bone','Boné'],['chapeu','Chapéu'],['gorro','Gorro'],['cartola','Cartola'],['fone','Fone'],['faixa','Faixa'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['redondo','Redondo'],['quadrado','Quadrado'],['sol','Escuros'],['aviador','Aviador'],['monoculo','Monóculo'],['tapa','Tapa-olho'],['barba','Barba']],
@@ -5183,6 +5184,7 @@ const AV_CAT={
     calcado:[['tenis','Tênis'],['sapato','Sapato'],['bota','Bota'],['chinelo','Chinelo'],['esportivo','Chuteira'],['descalco','Descalço']]
   },
   f:{
+    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Maga']],
     cabelo:[['longo','Longo'],['rabo','Rabo de cavalo'],['tranca','Maria-chiquinha'],['coque','Coque'],['chanel','Chanel'],['franja','Franja'],['cacheado','Cacheado'],['careca','Raspado']],
     cabeca:[['nenhum','Nada'],['laco','Laço'],['tiara','Tiara'],['coroa','Coroa'],['chapeu','Chapéu'],['gorro','Gorro'],['fone','Fone'],['flor','Flor'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['cilios','Cílios'],['maquiagem','Maquiagem'],['redondo','Redondo'],['gato','Gatinho'],['sol','Escuros'],['coracao','Coração'],['sardas','Sardas']],
@@ -5191,7 +5193,7 @@ const AV_CAT={
     calcado:[['tenis','Tênis'],['sapatilha','Sapatilha'],['salto','Salto'],['bota','Bota'],['sandalia','Sandália'],['esportivo','Tênis cano alto'],['descalco','Descalço']]
   }
 };
-const AV_PADRAO={nome:'',sexo:'m',pelo:'cinza',cabelo:'curto',cabeloCor:'castanho',cabeca:'nenhum',olhos:'nenhum',camisa:'camiseta',camisaCor:'azul',cabecaCor:'vermelho',calca:'calca',calcaCor:'jeans',calcado:'tenis',calcadoCor:'branco'};
+const AV_PADRAO={nome:'',sexo:'m',fantasia:'nenhuma',pelo:'cinza',cabelo:'curto',cabeloCor:'castanho',cabeca:'nenhum',olhos:'nenhum',camisa:'camiseta',camisaCor:'azul',cabecaCor:'vermelho',calca:'calca',calcaCor:'jeans',calcado:'tenis',calcadoCor:'branco'};
 
 function avHex(c){ return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]; }
 function avMix(c,t,k){ const a=avHex(c), b=avHex(t); return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*k).toString(16).padStart(2,'0')).join(''); }
@@ -5212,17 +5214,18 @@ function avRender(cfg){
   const dentro=(L)=>(x,y)=>!!get(L,x,y);
   const camadas=[];
   const add=L=>{ camadas.push(L); return L; };
-  const pele=pelo.c, barriga=pelo.b;
+  const fan=cfg.fantasia||'nenhuma'; let pele=pelo.c, barriga=pelo.b; let rosa=AV_ROSA, rosaD=AV_ROSA2;
+  if(fan==='esqueleto'){ pele='#e9e5d4'; barriga='#f7f3e4'; rosa='#c9c3ae'; rosaD='#c9c3ae'; }
 
   // rabo
   const rabo=add(mk(false));
-  [[27,41],[28,41],[29,40],[30,39],[31,38],[32,36],[32,34],[32,32],[31,30],[30,29]].forEach(([x,y])=>{ set(rabo,x,y,AV_ROSA2); set(rabo,x,y+1,AV_ROSA2); });
+  [[27,41],[28,41],[29,40],[30,39],[31,38],[32,36],[32,34],[32,32],[31,30],[30,29]].forEach(([x,y])=>{ set(rabo,x,y,rosaD); set(rabo,x,y+1,rosaD); });
   // pernas (pelo) e corpo
   const pernas=add(mk()); rect(pernas,15,39,17,44,pele); rect(pernas,23,39,25,44,pele);
   const corpo=add(mk()); ell(corpo,cx,33,7.8,8.4,pele);
   const bar=add(mk(false)); ell(bar,cx,34.5,4.6,5.8,barriga);
   const braE=add(mk()), braD=add(mk()); ell(braE,11.5,31,2.7,4.6,pele); ell(braD,28.5,31,2.7,4.6,pele);
-  const maos=add(mk(false)); rect(maos,10,34,12,35,AV_ROSA); rect(maos,28,34,30,35,AV_ROSA);
+  const maos=add(mk(false)); rect(maos,10,34,12,35,rosa); rect(maos,28,34,30,35,rosa);
 
   // ===== calça / saia =====
   const cal=cfg.calca, cc=cor(cfg.calcaCor);
@@ -5302,7 +5305,7 @@ function avRender(cfg){
 
   // ===== cabeça =====
   const orelhas=add(mk()), orInt=add(mk(false));
-  ell(orelhas,9.5,8.5,4.6,4.6,pele); ell(orelhas,30.5,8.5,4.6,4.6,pele); ell(orInt,9.5,8.5,2.5,2.5,AV_ROSA); ell(orInt,30.5,8.5,2.5,2.5,AV_ROSA);
+  ell(orelhas,9.5,8.5,4.6,4.6,pele); ell(orelhas,30.5,8.5,4.6,4.6,pele); ell(orInt,9.5,8.5,2.5,2.5,rosa); ell(orInt,30.5,8.5,2.5,2.5,rosa);
   // cabelo atrás (longo)
   const cabAtras=add(mk());
   const cabTipo=cfg.cabelo;
@@ -5368,6 +5371,49 @@ function avRender(cfg){
   if(ch==='coroa'){ rect(topL,12,6,28,9,'#e8c85a'); [12,16,20,24,28].forEach(x=>{ rect(topL,x-1,3,x+1,6,'#e8c85a'); }); set(topDet,20,7,'#d63f4a'); set(topDet,15,8,'#4a8ae8'); set(topDet,25,8,'#4a8ae8'); }
   if(ch==='flor'){ [[14,7],[16,5],[18,7],[16,9],[16,7]].forEach(([x,y],i)=>ell(topL,x+6,y,1.8,1.8,i<4?'#ee7fb0':'#f0cb3d')); rect(topL,20,10,22,11,'#3fa660'); }
 
+
+  // ===== fantasias de corpo inteiro =====
+  if(fan!=='nenhuma'){
+    [calL,calDet,camL,camDet,manga,calcL,calcDet].forEach(L=>L.p.fill(null));
+    if(fan==='armadura') [cabAtras,cabF,cabDet,topL,topDet,olhosL].forEach(L=>L.p.fill(null));
+    if(fan==='mago') [topL,topDet].forEach(L=>L.p.fill(null));
+  }
+  if(fan==='esqueleto'){
+    const osso=add(mk(false)), OS='#8d8776', cav=add(mk(false));
+    for(const y of [26,28,30,32]) rect(osso,15,y,25,y,OS);
+    rect(osso,20,25,20,35,OS); rect(osso,16,35,24,36,OS); rect(osso,19,37,21,38,OS);
+    [[11,31],[29,31],[16,40],[24,40],[11,34],[29,34]].forEach(([x,y])=>set(osso,x,y,OS));
+    rect(cav,13,12,17,17,AV_OLHO); rect(cav,23,12,27,17,AV_OLHO); set(cav,15,14,'#e0463f'); set(cav,25,14,'#e0463f');
+    rect(cav,19,18,21,19,AV_OLHO); set(cav,20,18,'#4a4252');
+    rect(cav,14,21,26,23,'#f7f3e4'); for(let x=15;x<=25;x+=2) rect(cav,x,21,x,23,'#7a7464'); rect(cav,14,21,26,21,'#7a7464');
+    ell(cav,20,23.5,0.1,0.1,null);
+  }
+  if(fan==='armadura'){
+    const mt=avMix(cor(cfg.camisaCor),'#c9d1de',0.86), dk=avEsc(mt), ar=add(mk()), ad=add(mk(false));
+    ell(ar,cx,33,7.8,8.4,mt,(x,y)=>y>=25&&y<=38&&!!get(corpo,x,y));
+    rect(ar,14,38,18,43,mt); rect(ar,22,38,26,43,mt); set(ar,20,38,null);
+    ell(ar,15.5,43.5,4.1,2.1,dk); ell(ar,24.5,43.5,4.1,2.1,dk);
+    ell(ar,11.5,31.5,2.9,4.4,mt); ell(ar,28.5,31.5,2.9,4.4,mt); ell(ar,11.5,35,3,1.6,dk); ell(ar,28.5,35,3,1.6,dk);
+    ell(ar,11.5,27,3.9,3.3,mt); ell(ar,28.5,27,3.9,3.3,mt);
+    rect(ad,20,26,20,37,dk); rect(ad,14,37,26,37,'#8a6a3a'); set(ad,20,37,'#e8c85a'); rect(ad,15,41,18,41,dk); rect(ad,22,41,25,41,dk);
+    const el=add(mk()), ed=add(mk(false));
+    ell(el,cx,13,10.8,9.6,mt,(x,y)=>y<=23); rect(el,10,13,30,22,mt); set(el,10,22,null); set(el,30,22,null);
+    rect(ed,12,13,28,15,AV_OLHO); for(const x of [16,20,24]) rect(ed,x,13,x,15,dk); rect(ed,12,17,28,17,dk); rect(ed,19,18,21,21,dk);
+    rect(ed,19,2,21,6,'#c63f46'); rect(ed,18,0,22,2,'#c63f46'); rect(ed,20,6,20,9,dk);
+  }
+  if(fan==='mago'){
+    const rc=cor(cfg.camisaCor), rd=avEsc(rc), rb=add(mk()), rdet=add(mk(false));
+    for(let y=25;y<=42;y++){ const w=y<34?7.8:7.8+(y-34)*0.45; for(let x=Math.floor(cx-w);x<=Math.ceil(cx+w-1);x++) if(Math.abs(x+0.5-cx)<=w) set(rb,x,y,rc); }
+    ell(rb,10.5,31.5,3.5,5.2,rc); ell(rb,29.5,31.5,3.5,5.2,rc);
+    rect(rdet,20,27,20,42,rd); rect(rdet,15,25,25,26,'#e8c85a'); rect(rdet,14,34,26,34,'#7a5a2a'); set(rdet,20,34,'#e8c85a');
+    rect(rdet,9,35,12,37,rd); rect(rdet,28,35,31,37,rd); rect(rdet,10,38,11,38,rosa); rect(rdet,29,38,30,38,rosa);
+    const sh=add(mk(false)); ell(sh,15.5,44,3.9,1.8,'#1d1218'); ell(sh,24.5,44,3.9,1.8,'#1d1218');
+    const ch=add(mk()), cd=add(mk(false));
+    for(let y=-6;y<=10;y++){ const hw=0.6+7.8*(y+6)/16, c0=cx+(10-y)*0.22; for(let x=Math.floor(c0-hw);x<=Math.ceil(c0+hw);x++) if(Math.abs(x-c0)<=hw) set(ch,x,y,rc); }
+    ell(ch,cx,10.5,12.6,2.3,rc); rect(cd,12,8,28,9,'#e8c85a'); rect(cd,12,10,28,10,rd);
+    const vr=add(mk(false)); for(let i=0;i<8;i++) set(vr,31+Math.round(i*0.8),37-i,'#7a5238'); set(vr,37,29,'#fff2b0'); set(vr,38,28,'#fff2b0'); set(vr,37,27,'#ffe27a'); set(vr,39,29,'#ffe27a'); set(vr,38,30,'#ffe27a');
+  }
+
   // ===== composição =====
   const out=new Array(W*H).fill(null);
   const ordem=camadas.filter(l=>l);
@@ -5402,7 +5448,7 @@ function avURL(c,esc=4){
 function avAleatorio(sexo){
   const C=AV_CAT[sexo], pick=a=>a[Math.floor(Math.random()*a.length)];
   const nome=(AV_CFG_SALVO().nome)||'';
-  return {nome, sexo, pelo:pick(AV_PELOS).id, cabelo:pick(C.cabelo)[0], cabeloCor:pick(AV_CABELOS).id, cabeca:Math.random()<0.45?'nenhum':pick(C.cabeca)[0], olhos:Math.random()<0.4?'nenhum':pick(C.olhos)[0],
+  return {nome, sexo, fantasia:Math.random()<0.15?pick(C.fantasia)[0]:'nenhuma', pelo:pick(AV_PELOS).id, cabelo:pick(C.cabelo)[0], cabeloCor:pick(AV_CABELOS).id, cabeca:Math.random()<0.45?'nenhum':pick(C.cabeca)[0], olhos:Math.random()<0.4?'nenhum':pick(C.olhos)[0],
     camisa:pick(C.camisa)[0], camisaCor:pick(AV_ROUPAS).id, calca:pick(C.calca)[0], calcaCor:pick(AV_ROUPAS).id, calcado:pick(C.calcado)[0], calcadoCor:pick(AV_ROUPAS).id};
 }
 
@@ -5410,11 +5456,11 @@ function avAleatorio(sexo){
 function AV_CFG_SALVO(){ return lerCamp().avatar||{}; }
 const temAvatar=()=>!!lerCamp().avatar;
 function avSalvar(c){ const k=lerCamp(); k.avatar=avCfg(c); gravarCamp(k); }
-const AV_ABAS=[['pelo','Ratinho'],['cabelo','Cabelo'],['cabeca','Cabeça'],['olhos','Olhos'],['camisa','Camisa'],['calca','Calça'],['calcado','Calçado']];
-const AV_COR_DE={pelo:'pelo',cabelo:'cabeloCor',cabeca:'cabecaCor',camisa:'camisaCor',calca:'calcaCor',calcado:'calcadoCor'};
+const AV_ABAS=[['pelo','Ratinho'],['fantasia','Fantasia'],['cabelo','Cabelo'],['cabeca','Cabeça'],['olhos','Olhos'],['camisa','Camisa'],['calca','Calça'],['calcado','Calçado']];
+const AV_COR_DE={fantasia:'camisaCor',pelo:'pelo',cabelo:'cabeloCor',cabeca:'cabecaCor',camisa:'camisaCor',calca:'calcaCor',calcado:'calcadoCor'};
 function avPaleta(aba){ return aba==='pelo'?AV_PELOS:aba==='cabelo'?AV_CABELOS:AV_ROUPAS; }
 function avAbrir(origem){ ui.av=avCfg(AV_CFG_SALVO()); ui.avTab=ui.avTab||'pelo'; ui.avOrigem=origem||'editar'; ui.modal='avatar'; renderModal(); }
-function avTrocaSexo(c,sx){ const C=AV_CAT[sx], ok=(k)=>C[k].some(o=>o[0]===c[k]); const n=Object.assign({},c,{sexo:sx}); ['cabelo','cabeca','olhos','camisa','calca','calcado'].forEach(k=>{ if(!ok(k)) n[k]=C[k][0][0]; }); return n; }
+function avTrocaSexo(c,sx){ const C=AV_CAT[sx], ok=(k)=>C[k].some(o=>o[0]===c[k]); const n=Object.assign({},c,{sexo:sx}); ['fantasia','cabelo','cabeca','olhos','camisa','calca','calcado'].forEach(k=>{ if(!ok(k)) n[k]=C[k][0][0]; }); return n; }
 function modalAvatar(){
   const c=ui.av, C=AV_CAT[c.sexo], aba=ui.avTab||'pelo';
   const opcoes=aba==='pelo'?AV_PELOS.map(p=>[p.id,p.nome]):C[aba];
@@ -5423,7 +5469,9 @@ function modalAvatar(){
     ?`<div class="av-grid">${AV_PELOS.map(p=>`<button class="av-opt${c.pelo===p.id?' on':''}" data-acao="avSet" data-alvo="pelo:${p.id}" aria-pressed="${c.pelo===p.id}"><img src="${avURL(Object.assign({},c,{pelo:p.id}),2)}" alt=""><span>${p.nome}</span></button>`).join('')}</div>`
     :`<div class="av-grid">${opcoes.map(([id,nm])=>`<button class="av-opt${c[campo]===id?' on':''}" data-acao="avSet" data-alvo="${campo}:${id}" aria-pressed="${c[campo]===id}"><img src="${avURL(Object.assign({},c,{[campo]:id}),2)}" alt=""><span>${nm}</span></button>`).join('')}</div>`;
   const corK=AV_COR_DE[aba], pal=avPaleta(aba);
-  const cores=aba==='olhos'?'':(aba==='pelo'?'':`<span class="label-c">Cor</span><div class="av-cores">${pal.map(p=>`<button class="av-cor${c[corK]===p.id?' on':''}" style="background:${p.c}" data-acao="avSet" data-alvo="${corK}:${p.id}" aria-label="${p.id}" aria-pressed="${c[corK]===p.id}"></button>`).join('')}</div>`);
+  const semCor=aba==='olhos'||aba==='pelo'||(aba==='fantasia'&&!['mago','armadura'].includes(c.fantasia));
+  const aviso=(c.fantasia!=='nenhuma'&&['camisa','calca','calcado'].includes(aba))||(c.fantasia==='armadura'&&['cabelo','cabeca','olhos'].includes(aba))||(c.fantasia==='mago'&&aba==='cabeca')?`<p class="hint">A fantasia escolhida cobre essas peças. Escolha Nenhuma na aba Fantasia para usar peças soltas.</p>`:'';
+  const cores=semCor?'':(`<span class="label-c">Cor</span><div class="av-cores">${pal.map(p=>`<button class="av-cor${c[corK]===p.id?' on':''}" style="background:${p.c}" data-acao="avSet" data-alvo="${corK}:${p.id}" aria-label="${p.id}" aria-pressed="${c[corK]===p.id}"></button>`).join('')}</div>`);
   const corPelo='';
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet av-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <h3 id="m-t">${ui.avOrigem==='novo'?'Crie o seu ratinho':'Aparência do ratinho'}</h3>
@@ -5437,7 +5485,7 @@ function modalAvatar(){
       </div>
     </div>
     <div class="av-abas" role="tablist">${AV_ABAS.map(([k,n])=>`<button role="tab" class="av-aba${aba===k?' on':''}" aria-selected="${aba===k}" data-acao="avAba" data-alvo="${k}">${n}</button>`).join('')}</div>
-    ${grade}
+    ${aviso}${grade}
     ${cores}
     <div class="opcoes"><button class="opcao coin" data-acao="avOk"><b>${ui.avOrigem==='novo'?'Pronto, vamos jogar':'Salvar'}</b></button>${ui.avOrigem==='novo'?'':'<button class="opcao" data-acao="fechar"><b>Cancelar</b></button>'}</div>
   </div></div>`;
