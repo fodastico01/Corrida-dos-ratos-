@@ -1083,6 +1083,7 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 .tyc-pips i.on{background:#3E9A5C}
 
 .opp-foto-fach{height:190px;object-position:50% 50%}
+.opp-foto-oferta{object-position:50% 30%}
 </style>
 
 <div class="app" id="app"></div>
@@ -2389,7 +2390,7 @@ const ESPECIAIS = {
     opcoes:()=>[{label:'Ver se você fica', coin:true, run:()=>{ const r=s.corteR??Math.random(), p=pctCorte(); s.corteR=null;
       if(r<p){ s.demitidoEm=s.mes; s.vistos.push('demissao'); const t0=txt(ESPECIAIS.demissao.texto), res=ESPECIAIS.demissao.aplicar(); return {...res, texto:`Seu nome estava na lista. ${t0} ${res.texto}`}; }
       return {tom:'bom', titulo:'Seu nome não estava na lista', texto:`Respira: desta vez você ficou. ${mesesReserva()>=6?'E se tivesse saído, a sua reserva seguraria as contas.':'Se tivesse saído, a reserva seguraria as contas? É esse susto que mostra para que ela serve.'}`}; }}]},
-  oportunidade:{tipo:'opcoes', titulo:()=>{ const o=ofertaNova(); return o?`Apareceu: ${CARTAS[o.id].nome.toLowerCase()}`:'Oportunidade'; },
+  oportunidade:{tipo:'opcoes', titulo:()=>{ const o=ofertaNova(); return o?`Apareceu: ${nomeOferta(o.id).toLowerCase()}`:'Oportunidade'; },
     texto:()=>{ const o=ofertaNova(); if(!o) return 'A oportunidade já passou.'; const c=CARTAS[o.id], h=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0));
       return `${c.desc} Custa ${fmt0(o.preco)} e ${o.renda?`rende ${fmt0(o.renda)} por mês`:'não rende nada por mês'}${h?`, pedindo ${hm(h)} h suas por mês`:''}. Fica disponível até ${rotulo(o.expira)}.${o.area?' É da sua área: você tem vantagem.':''}`; },
     opcoes:()=>{ const o=ofertaNova(); return [
@@ -3443,11 +3444,12 @@ const pixK = (k, alt, cls='') => { const s=pxSrc(k); return s?`<img class="ic-px
 const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
-const fotoNeg = (id,a) => { const f=(typeof ARTE!=='undefined'&&ARTE.cards||{})[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='influencia'?' opp-foto-fach':''}" src="${f}" alt="">`:''; };
+const nomeOferta = id => CARTAS[id]?.tyc ? 'Cafeteria de bairro' : CARTAS[id].nome;
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0['cafeteria-oferta']||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='franqInteresse' && C['tyc-franquia']) return C['tyc-franquia'];
-  if(id==='oportunidade'){ const o=ofertaNova(); if(o&&C[o.id]) return C[o.id]; }
+  if(id==='oportunidade'){ const o=ofertaNova(); if(o&&CARTAS[o.id]?.tyc){ const f=C['cafeteria-oferta']||C.negocio; if(f) return f; } if(o&&C[o.id]) return C[o.id]; }
   if(id==='grande' && s.grande && C[s.grande.id]) return C[s.grande.id];
   if(id==='casaEstudo'){ const k=s.estudoCasa==='pos'?'pos-'+(s.prof||'professor'):s.estudoCasa; return (ARTE.cursos||{})[k]||C.workshop||''; }
   if(id==='casaBolsa') return quedaCart()<=-0.08 ? (C.crise||'') : '';
@@ -4113,7 +4115,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   </section>`;
   const ofertas=(s.ofertas||[]).length?`<section class="card" aria-labelledby="t-opp"><h2 id="t-opp">Oportunidades</h2>
     ${s.ofertas.map(o=>{ const c=CARTAS[o.id], hO=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0)), semTempo=hl-hO<6 && c.horas>0, ent=Math.round(o.preco*0.3);
-      return `<div class="opp">${fotoNeg(o.id)}<div class="opp-top"><b>${c.nome}</b><span class="num">${fmt0(o.preco)}</span></div>
+      return `<div class="opp">${fotoNeg(o.id,null,true)}<div class="opp-top"><b>${nomeOferta(o.id)}</b><span class="num">${fmt0(o.preco)}</span></div>
         <p class="hint desc">${c.desc}</p>
         <div class="opp-dados"><span>${c.tyc?'Lucro inicial':'Renda'} <b>${o.renda?fmt0(o.renda)+'/mês':'nenhuma'}</b></span><span>Tempo <b>${hm(hO)} h/mês</b></span><span>Expira <b>${rotulo(o.expira)}</b></span></div>
         ${o.area?`<p class="hint" style="color:var(--gain)"><b>Sua área (${prof().nome}):</b> você conhece o ramo. Renda 30% maior, 9 h a menos por mês e bem menos risco.</p>`:c.area?`<p class="hint">Negócio da área de ${PROFISSOES[c.area].nome.toLowerCase()}: quem é do ramo tem vantagem. Para você, sem bônus.</p>`:''}
