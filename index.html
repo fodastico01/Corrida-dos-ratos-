@@ -1112,6 +1112,12 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 .av-card-img{width:56px;height:auto;image-rendering:pixelated;flex:0 0 auto}
 .av-card-img.sem{font-size:40px;text-align:center}
 .av-card-lin p{margin:2px 0 0}
+
+.rk-lin{display:flex;align-items:center;gap:6px;min-width:0}
+.rk-av{height:30px;width:auto;image-rendering:pixelated;flex:0 0 auto}
+.res-av{display:flex;align-items:center;gap:10px;justify-content:center;margin:4px 0}
+.res-av img{height:84px;width:auto;image-rendering:pixelated}
+.res-av b{font-size:18px}
 </style>
 
 <div class="app" id="app"></div>
@@ -3460,7 +3466,7 @@ function gravarPontos(camp, pts){
   else {
     const run=camp.run||{}; total=(run.f1||0)+(run.f2||0)+pts;
     recTotal = total>(camp.rec.total||0); if(recTotal) camp.rec.total=total;
-    camp.ranking.push({total, prof:PROFISSOES[s.prof]?.nome||'', sonho:!!s.sonhoFeito, nota:notaFinal(), data:new Date().toLocaleDateString('pt-BR')});
+    camp.ranking.push({total, nome:camp.avatar?.nome||'', av:camp.avatar||null, prof:PROFISSOES[s.prof]?.nome||'', sonho:!!s.sonhoFeito, nota:notaFinal(), data:new Date().toLocaleDateString('pt-BR')});
     camp.ranking.sort((a,b)=>b.total-a.total); camp.ranking=camp.ranking.slice(0,5);
   }
   s.ptsInfo={pts, recFase, total, recTotal};
@@ -4332,7 +4338,7 @@ function introLivre(){
 }
 function mapaFases(){
   const c=lerCamp(), rk=(c.ranking||[]);
-  const ranking = rk.length ? `<div class="ranking"><span class="label-c">Suas melhores campanhas</span>${rk.map((x,i)=>`<div class="fl"><span>${i+1}º · ${x.prof}${x.sonho?' ★':''} · nota ${x.nota} · ${x.data}</span><b>${fmtPts(x.total)}</b></div>`).join('')}</div>` : '';
+  const ranking = rk.length ? `<div class="ranking"><span class="label-c">Suas melhores campanhas</span>${rk.map((x,i)=>`<div class="fl"><span class="rk-lin">${i+1}º ${x.av?`<img class="rk-av" src="${avURL(x.av,2)}" alt="">`:''}<span>${x.nome?x.nome+' · ':''}${x.prof}${x.sonho?' ★':''} · nota ${x.nota} · ${x.data}</span></span><b>${fmtPts(x.total)}</b></div>`).join('')}</div>` : '';
   return `<div class="fases fases-mini">${FASES.map(f=>{
     const aberta = f.n===1 || (f.n===2 && c.f1Liberou) || (f.n===3 && c.f2Liberou) || (f.n===4 && c.f3Liberou);
     const nota = c['f'+f.n+'Nota'];
@@ -4875,6 +4881,7 @@ function renderFim(){
     <span class="tag ${nota<='B'?'bom':nota==='C'?'neutro':'ruim'}">${s.semPontos?`${s.fase===4?'Jogo livre':'Fase 3'} · vencida em ${rotulo(s.venceuEm)}`:estouro?'Fim de jogo · '+rotulo(s.mes):s.concluidoEm?`${nomeFase()} · concluída em ${s.concluidoEm} meses`:`${nomeFase()} · resultado de ${cfg().dur}`}</span>
     <div class="row" style="align-items:center;gap:16px"><div class="nota" style="color:${cor}">${nota}</div><h3 id="m-t">${s.semPontos?'Você venceu o jogo':estouro?'Limite estourado':nota==='A'?(F3()?'Fora da corrida!':F2()?'Dinheiro trabalhando':'Reserva completa'):(F3()&&nota==='B'?'Fora da corrida':'Ainda na corrida')}</h3></div>
     ${s.semPontos?`<p>A nota e a pontuação ficaram guardadas no momento da vitória. Depois disso você jogou em modo livre até ${rotulo(s.mes)}; abaixo, como ficou a sua situação no fim.</p>`:`<p>${frase}</p>`}
+    ${lerCamp().avatar?`<div class="res-av"><img src="${avURL(lerCamp().avatar,3)}" alt=""><b>${lerCamp().avatar.nome||''}</b></div>`:''}
     <p class="hint">Sua vida: <b>${tituloVida()}</b> · ${pixK('aba-dinheiro','💰','mini')} Dinheiro ${eixoDinheiro()} · ${pix('❤️','mini')} Vida ${eixoVida()}</p>
     <div class="resumo">${resumo}</div>
     ${F3()?(()=>{ const f=s.finalId?FINAIS.find(x=>x.id===s.finalId):finalDaHistoria(); if(!s.finalId){ s.finalId=f.id; const c=lerCamp(); c.finais={...(c.finais||{}), [f.id]:true}; gravarCamp(c); }
