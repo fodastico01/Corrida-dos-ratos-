@@ -3120,7 +3120,7 @@ function eventoForcado(){
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
-  if(!esgotado() && (s.mesesBaixo||0)>=2) return 'esgotamento';
+  if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado) return 'esgotamento';
   if(s.fel<=(temMente()||s.casado?8:15)) return 'impulso';
   if(!esgotado() && s.fel<28 && (s.cansaco||0)>=6 && (!s.beiraEm || s.mes-s.beiraEm>=8)){ s.beiraEm=s.mes; return 'beira'; }
   if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.25) return 'avaliacao';
