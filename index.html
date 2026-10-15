@@ -1236,8 +1236,8 @@ const CARTAS = {
     desc:'Uma lavanderia self-service para administrar: máquinas, serviços, espaço, equipe e clientela. Muito capital em máquina, pouca mão de obra.'},
   acai:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Ponto do Açaí', preco:22000, renda:700, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
     desc:'Um quiosque de açaí que pode virar rede: o verão enche, o inverno esvazia, e a fruta decide a margem.'},
-  ecommerce:{fases:[1,2], tipo:'negocio', escala:true, nome:'Loja online de capinhas e acessórios', preco:8000, renda:260, horas:4, varia:0.5, risco:0.05, pesos:{comprador:1,conserto:1,falencia:3},
-    desc:'Estoque pequeno e vendas pela internet. Um mês vende muito, no outro quase nada.'},
+  ecommerce:{fases:[1,2], tipo:'negocio', tyc:true, nome:'Loja Conecta', preco:8000, renda:300, horas:6, varia:0, risco:0.05, pesos:{comprador:1,conserto:1},
+    desc:'Uma loja online de capinhas e acessórios que pode virar uma operação nacional. Sem ponto físico, mas com frete, estoque e anúncios para administrar.'},
   lavajato:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Lava-jato Brilho', preco:25000, renda:1100, horas:8, varia:0, risco:0.04, pesos:{comprador:2,conserto:4},
     desc:'Movimento garantido nos fins de semana, com retorno alto desde o início. Chuva derruba o faturamento.'},
   foodtruck:{fases:[2,3], tipo:'negocio', tyc:true, nome:'Truck do Chef', preco:55000, renda:2300, horas:12, varia:0, risco:0.05, pesos:{comprador:1,conserto:4},
@@ -1251,8 +1251,8 @@ const CARTAS = {
     desc:'Turmas para vestibular e concurso. A fama dos professores enche as salas, e o retorno inicial é alto.'},
   vacinas:{fases:[2,3], tipo:'negocio', escala:true, dedicacao:true, area:'enfermeiro', nome:'Clínica de vacinas e curativos', preco:120000, renda:2300, horas:10, varia:0.2, risco:0.04, pesos:{comprador:2,conserto:3,falencia:2},
     desc:'Vacinas particulares, curativos e atendimento domiciliar. Exige responsável técnico.'},
-  saas:{fases:[2,3], tipo:'negocio', escala:true, area:'programador', nome:'Aplicativo por assinatura (SaaS)', preco:40000, renda:800, horas:8, varia:0.6, risco:0.05, pesos:{comprador:3,conserto:1,falencia:3},
-    desc:'Um sistema vendido por mensalidade. Pode morrer em meses ou ser comprado por uma empresa grande.'},
+  saas:{fases:[2,3], tipo:'negocio', tyc:true, area:'programador', nome:'Gestão Fácil', preco:40000, renda:800, horas:8, varia:0, risco:0.05, pesos:{comprador:3,conserto:1},
+    desc:'Um sistema vendido por mensalidade. Cada novo assinante custa quase nada, então o lucro escala, mas o produto precisa evoluir.'},
   cafeteria:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Toca do Café', preco:30000, renda:800, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
     desc:'Uma cafeteria de verdade para administrar: você melhora equipamento, cardápio, ambiente, equipe e marketing, e vê o negócio crescer.'},
   geek:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Baú do Jogador', preco:10000, renda:550, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:1},
@@ -1859,6 +1859,41 @@ TYC_EMP.foodtruck={
     niv:['Instagram', 'Cardápio e promoções', 'Contratos com eventos']}
   }
 };
+/* ===== leva 3 (grupo B): negócios digitais, 9 níveis, sem franquia ===== */
+TYC_EMP.ecommerce={
+  arte:'ecom', ofertaImg:'ecom-oferta', ofertaNome:'Loja online de capinhas e acessórios', negocio:'loja online', porte:['Garagem', 'Operação média', 'Centro de distribuição'], tagPorte:p=>p, digital:true, mult:30, cliRot:'Pedidos por mês', cliMul:26,
+  varc:0.58, dem:[0.65, 1.28, 2.27, 3.96, 6.61, 10.75, 16.96, 26.5, 40.71], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[55, 58, 62, 67, 73, 80, 88, 97, 108],
+  fixo:[110, 260, 530, 1070, 2090, 3950, 7280, 13250, 23890], saz:[0.85, 0.8, 0.85, 0.9, 1.0, 0.95, 0.95, 0.95, 1.0, 1.1, 1.6, 1.4], horas:[6, 6, 5, 5, 4, 4, 3, 3, 2], custo:[900, 1600, 2300, 3000, 3500, 5000, 6000, 7000], premio:null,
+  set:{
+  equip:{nome:'Plataforma', ic:'🖥️', peso:1.4, ef:'Quantos pedidos o site aguenta sem cair.',
+    niv:['Loja em plataforma pronta', 'Loja própria com domínio', 'Checkout otimizado', 'Integração com marketplaces', 'Painel de gestão integrado', 'Site rápido com carrinho abandonado', 'Plataforma própria', 'Aplicativo da loja', 'Operação omnichannel']},
+  cardapio:{nome:'Catálogo', ic:'🛒', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Só capinhas', 'Capinhas e películas', 'Acessórios de celular', 'Carregadores e fones', 'Acessórios gamer', 'Linha própria importada', 'Kits e combos', 'Marca própria', 'Marca com linha completa']},
+  ambiente:{nome:'Logística', ic:'📦', peso:1.4, ef:'Quantos pedidos saem por dia. Custo logístico acompanha.',
+    niv:['Estoque na garagem', 'Cômodo só para estoque', 'Estoque terceirizado pequeno', 'Galpão alugado', 'Embalagem automatizada', 'Contrato com transportadoras', 'Centro de distribuição', 'Fulfillment próprio', 'Rede de centros regionais']},
+  equipe:{nome:'Equipe', ic:'🧑‍💼', peso:0.6, ef:'Quantos pedidos são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você', 'Um ajudante para embalar', 'Atendente online', 'Separação e expedição', 'Responsável por compras', 'Gerente de operação', 'Equipe de marketing', 'Equipe de 15 pessoas', 'Equipe de 30 pessoas treinada']},
+  mkt:{nome:'Tráfego', ic:'📣', peso:0.7, ef:'Quantos visitantes viram clientes por dia.',
+    niv:['Boca a boca e Instagram', 'Grupos e comunidades', 'Anúncios no Instagram', 'Google e SEO', 'E-mail marketing', 'Influenciadores', 'Programa de afiliados', 'Campanha de Black Friday', 'Marca conhecida no Brasil']}
+  }
+};
+TYC_EMP.saas={
+  arte:'saas', ofertaImg:'saas-oferta', ofertaNome:'Aplicativo por assinatura (SaaS)', negocio:'aplicativo', porte:['Projeto', 'Produto no mercado', 'Empresa de software'], tagPorte:p=>p, digital:true, mult:60, cliRot:'Assinantes ativos', cliMul:26,
+  varc:0.15, dem:[1.62, 2.36, 3.11, 3.82, 4.62, 5.52, 6.43, 7.27, 7.59], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[59, 69, 89, 119, 159, 219, 299, 399, 549],
+  fixo:[1440, 2310, 3780, 5950, 9210, 14820, 23040, 33950, 47610], saz:[1.1, 1.0, 1.0, 1.0, 1.0, 0.95, 0.95, 1.0, 1.05, 1.05, 1.0, 0.9], horas:[8, 8, 7, 7, 6, 5, 4, 3, 2], custo:[5000, 7000, 9500, 12000, 15500, 19000, 23000, 27500], premio:null,
+  set:{
+  equip:{nome:'Produto', ic:'💻', peso:1.4, ef:'Quantos assinantes o sistema atende bem.',
+    niv:['MVP com o essencial', 'Versão estável', 'Integrações com outros sistemas', 'Aplicativo mobile', 'API pública', 'Módulos avançados', 'Plataforma completa', 'Automações com IA', 'Suíte corporativa']},
+  cardapio:{nome:'Planos', ic:'💳', peso:0.9, ef:'Quanto cada assinante paga por mês, em média.',
+    niv:['Plano único', 'Dois planos', 'Plano anual com desconto', 'Planos por porte', 'Plano empresarial', 'Add-ons e módulos extras', 'Marketplace de integrações', 'Contratos corporativos', 'Licença para parceiros']},
+  ambiente:{nome:'Infraestrutura', ic:'☁️', peso:1.4, ef:'Quantos assinantes o servidor suporta. Custo de nuvem acompanha.',
+    niv:['Servidor compartilhado', 'VPS dedicado', 'Nuvem com backup', 'Banco de dados escalável', 'Monitoramento 24h', 'Ambiente de testes', 'Multi-região', 'Segurança e conformidade', 'Infraestrutura global']},
+  equipe:{nome:'Equipe', ic:'🧑‍💻', peso:0.6, ef:'Quantos assinantes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você programando', 'Um dev freelancer', 'Dois devs', 'Suporte ao cliente', 'Dev sênior', 'Líder técnico', 'Time de produto', 'Equipe de 15 pessoas', 'Equipe de 30 pessoas treinada']},
+  mkt:{nome:'Aquisição', ic:'📣', peso:0.7, ef:'Quantos assinantes novos chegam por dia.',
+    niv:['Indicações de conhecidos', 'Site e blog', 'Conteúdo no LinkedIn', 'Anúncios pagos', 'Vendas ativas', 'Parcerias com consultorias', 'Eventos do setor', 'Marca reconhecida', 'Referência no mercado']}
+  }
+};
 const tycF = () => F2() ? (s.idx||1) : 1;
 const tycPorte = n => n<=3?'Pequena':n<=6?'Média':'Grande';
 const tycNiv = (a,k) => a.tyc.niv[TYC_KEYS.indexOf(k)];
@@ -1887,7 +1922,7 @@ function tycBloqueio(a,k){
 function tycAtualizar(a){
   const T=a.tyc, pv=tycPrev(a); T.med=T.med==null?pv.lucro:T.med;
   a.renda=Math.max(0,Math.round(pv.lucro*T.ret/100));
-  a.valor=Math.round((Math.max(a.custo*0.6, Math.max(0,T.med)*MULT_VALOR)+T.caixa)/100)*100; a.mercado=a.valor;
+  a.valor=Math.round((Math.max(a.custo*0.6, Math.max(0,T.med)*(emp(a).mult||MULT_VALOR))+T.caixa)/100)*100; a.mercado=a.valor;
   a.horas=emp(a).horas[tycNiv(a,'equipe')-1];
 }
 function tycFecharMes(a, ex){
@@ -1956,7 +1991,7 @@ function modalTyc(a){
       <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
       <div class="fl"><span>Lucro do último mês</span><b>${u?fmt0(u.lucro):'ainda sem dados'}</b></div>
       <div class="fl"><span>Lucro previsto (mês comum)</span><b>${fmt0(pv.lucro)}</b></div>
-      <div class="fl"><span>Clientes por dia</span><b>${pv.cli}</b></div>
+      <div class="fl"><span>${EM.cliRot||'Clientes por dia'}</span><b>${EM.cliMul?Math.round(pv.cli*EM.cliMul):pv.cli}</b></div>
       <div class="fl"><span>Tempo seu</span><b>${hm(horasAtivo(a))} h por mês</b></div>
     </div>
     <p class="hint">Quanto do lucro vai para o seu bolso todo mês? O resto fica no caixa para você reinvestir. Se o caixa não cobrir um mês ruim, o prejuízo sai do seu bolso.</p>
@@ -3479,6 +3514,116 @@ Object.assign(TYC_LIC,{
 });
 for(const [id,p] of [['lavajato','lj_'],['estacionamento','es_'],['bike','bk_'],['vending','vd_'],['cursinho','cs_'],['foodtruck','ft_']]) TYC_EMP[id].dec=Object.keys(TYC_DEC).filter(k=>k.startsWith(p));
 
+/* ===== leva 3 (grupo B): cartas ===== */
+Object.assign(TYC_DEC,{
+ /* ---- e-commerce ---- */
+ ec_frete:tycCard('🚚','O frete subiu','As transportadoras reajustaram a tabela e o frete virou o maior custo depois do produto.',[
+  TO('Repassar ao cliente',0,0.6,TR('bom','Cliente aceitou','O frete maior foi absorvido e a margem ficou.',['Frete repassado',8,{tk:1.05}]),TR('ruim','Carrinhos abandonados','O frete mais caro afastou compradores.',['Frete repassado',8,{tk:1.05,cli:0.92}])),
+  TO('Negociar com outra transportadora',0.02,0.6,TR('bom','Tabela melhor','Nova transportadora com preço menor.',['Frete negociado',12,{vc:0.95}]),TR('neutro','Sem acordo','As tarifas continuaram altas.')),
+  TO('Oferecer frete grátis acima de um valor',0.03,0.65,TR('bom','Ticket maior','Quem quer o frete grátis compra mais.',['Frete grátis acima de valor',10,{tk:1.1}]),TR('ruim','Margem espremida','O frete grátis comeu o lucro.',['Frete grátis',8,{vc:1.06}]))]),
+ ec_black:tycCard('🛍️','Black Friday chegando','A data mais forte do ano pede estoque e campanha com meses de antecedência.',[
+  TO('Estocar forte e anunciar',0.18,0.6,TR('bom','Vendeu muito','Os pedidos dispararam e você tinha produto.',['Black Friday',2,{cli:1.5,tk:0.95}]),TR('ruim','Estoque encalhou','A demanda foi menor e sobrou produto.',['Estoque parado',6,{cli:0.97}])),
+  TO('Promoção moderada',0.06,null,TR('bom','Movimento bom','Boas vendas sem muito risco.',['Black Friday moderada',2,{cli:1.2}])),
+  TO('Não participar',0,null,TR('neutro','Mês normal','Você preservou a margem e perdeu o pico.'))]),
+ ec_golpe:tycCard('🚨','Compra suspeita no cartão','Um pedido grande chegou de cartão e o banco avisa que pode ser fraude.',[
+  TO('Cancelar e pedir confirmação',0.01,null,TR('bom','Evitou o golpe','Você confirmou antes de enviar. Perdeu a venda, mas não o produto.')),
+  TO('Enviar o pedido',0,0.5,TR('neutro','Era cliente de verdade','Dessa vez deu certo.',null,0.06),TR('ruim','Chargeback','A compra era fraude e você perdeu o produto e o dinheiro.',null,-0.12)),
+  TO('Contratar antifraude',0.04,null,TR('bom','Loja protegida','O sistema bloqueia pedidos suspeitos.',['Antifraude',12,{vc:0.98}]))]),
+ ec_devol:tycCard('↩️','Muitas devoluções','Os clientes estão devolvendo capinhas que não servem no modelo do celular.',[
+  TO('Melhorar descrição e fotos',0.02,0.7,TR('bom','Menos devoluções','Com informação clara, a devolução caiu.',['Descrição melhor',12,{vc:0.96}]),TR('neutro','Pouca mudança','As devoluções continuaram.')),
+  TO('Cobrar frete de devolução',0,0.5,TR('neutro','Devolução caiu','Mas o cliente reclamou.',['Frete de devolução',6,{cli:0.95,vc:0.97}]),TR('ruim','Reclamações','O cliente desistiu de comprar.',['Frete de devolução',6,{cli:0.9}])),
+  TO('Aceitar tudo',0,null,TR('ruim','Margem menor','As devoluções comeram o lucro.',['Devoluções',6,{vc:1.06}]))]),
+ ec_ads:tycCard('📣','O custo dos anúncios subiu','O custo por clique dobrou e o retorno dos anúncios está caindo.',[
+  TO('Cortar anúncios e investir em e-mail',0.03,0.6,TR('bom','Custo menor','A base de clientes comprou de novo.',['E-mail marketing',10,{cli:1.05,vc:0.98}]),TR('neutro','Menos tráfego','Menos visitas e vendas.',['Menos anúncios',4,{cli:0.93}])),
+  TO('Manter e testar novos anúncios',0.05,0.55,TR('bom','Achou um criativo bom','Um anúncio novo melhorou o retorno.',['Anúncio campeão',8,{cli:1.1}]),TR('ruim','Gastou à toa','Os testes não funcionaram.',null,-0.04)),
+  TO('Manter como está',0,null,TR('ruim','Retorno menor','O custo subiu e as vendas não.',['Anúncios caros',6,{vc:1.04}]))]),
+ ec_dolar:tycCard('💵','O dólar disparou','O custo de importação das capinhas subiu e o preço de venda ficou defasado.',[
+  TO('Reajustar o preço',0,0.65,TR('bom','Margem preservada','O mercado acompanhou o reajuste.',['Preço reajustado',8,{tk:1.06}]),TR('ruim','Vendas caíram','O cliente foi para a concorrência.',['Preço reajustado',8,{tk:1.06,cli:0.9}])),
+  TO('Trocar por fornecedor nacional',0.06,0.55,TR('bom','Preço estável','Sem exposição ao dólar.',['Fornecedor nacional',12,{vc:0.97}]),TR('neutro','Qualidade menor','O produto nacional vendeu menos.',['Fornecedor nacional',6,{cli:0.94}])),
+  TO('Absorver o custo',0,null,TR('ruim','Margem menor','O dólar comeu o lucro.',['Câmbio alto',6,{vc:1.07}]))]),
+ ec_fornec:tycCard('📦','Fornecedor atrasou o lote','O lote que você precisava para a semana de maior venda não chegou.',[
+  TO('Comprar de outro fornecedor com urgência',0.08,0.7,TR('bom','Estoque salvo','Você conseguiu o produto, mais caro.'),TR('ruim','Qualidade ruim','O produto de emergência chegou com defeito.',['Produto com defeito',4,{cli:0.92}])),
+  TO('Avisar os clientes e esperar',0,null,TR('neutro','Clientes esperaram','Alguns cancelaram, outros esperaram.',['Atraso de entrega',3,{cli:0.92}])),
+  TO('Cancelar pedidos',0,null,TR('ruim','Reputação arranhada','Os clientes reclamaram nas redes.',['Reputação arranhada',6,{cli:0.88}]))]),
+ ec_market:tycCard('🛒','Marketplace grande convida a loja','Uma plataforma gigante quer listar seus produtos, com comissão de 15%.',[
+  TO('Entrar no marketplace',0,0.6,TR('bom','Pedidos novos','Os pedidos subiram, mesmo com comissão.',['Marketplace',10,{cli:1.2,tk:0.92}]),TR('ruim','Guerra de preço','A concorrência comprimiu a margem.',['Marketplace apertado',6,{cli:1.08,tk:0.88}])),
+  TO('Entrar só com produtos exclusivos',0.03,0.6,TR('bom','Nicho protegido','Produto exclusivo vende sem guerra de preço.',['Marketplace exclusivo',10,{cli:1.12,tk:1.03}]),TR('neutro','Poucas vendas','Os exclusivos não decolaram.')),
+  TO('Ficar só na loja própria',0,null,TR('neutro','Sem marketplace','Você manteve o cliente e a marca.'))]),
+ ec_review:tycCard('⭐','Avaliação ruim viralizou','Um cliente irritado deu nota 1 e a notícia se espalhou.',[
+  TO('Responder e resolver publicamente',0.01,0.75,TR('bom','Reverteu a imagem','O cliente retirou a nota e outros viram o cuidado.',['Resposta rápida',4,{cli:1.03}]),TR('neutro','Sem efeito','A avaliação continuou.')),
+  TO('Pedir para o cliente apagar',0,0.3,TR('neutro','Ele apagou','Resolveu.'),TR('ruim','Piorou','O cliente postou outra crítica.',['Reputação arranhada',6,{cli:0.9}])),
+  TO('Ignorar',0,null,TR('ruim','Perdeu vendas','A nota baixa afastou compradores.',['Avaliação ruim',6,{cli:0.92}]))]),
+ ec_lgpd:tycCard('🔒','Vazamento de dados de clientes','Uma falha deixou e-mails e endereços expostos.',[
+  TO('Avisar os clientes e corrigir',0.05,null,TR('bom','Crise contida','Você avisou rápido e corrigiu a falha.')),
+  TO('Esconder o problema',0,0.35,TR('neutro','Ninguém soube','Dessa vez ninguém percebeu.'),TR('ruim','Multa e reputação','O caso veio à tona e a multa saiu cara.',['Reputação arranhada',10,{cli:0.85}],-0.2)),
+  TO('Contratar consultoria de segurança',0.08,null,TR('bom','Loja segura','A consultoria corrigiu a falha e reforçou a proteção.',['Segurança reforçada',24,{cli:1.02}]))]),
+ /* ---- saas ---- */
+ sa_churn:tycCard('📉','Muitos cancelamentos este mês','O número de assinantes que cancelam subiu e ninguém sabe por quê.',[
+  TO('Ligar para quem cancelou',0.01,0.7,TR('bom','Achou o problema','Os clientes apontaram uma falha que você corrigiu.',['Churn menor',8,{cli:1.06}]),TR('neutro','Sem resposta','Poucos atenderam.')),
+  TO('Oferecer desconto para ficar',0,0.5,TR('neutro','Alguns ficaram','Metade ficou, com margem menor.',['Desconto de retenção',6,{tk:0.95,cli:1.03}]),TR('ruim','Não adiantou','Eles saíram mesmo assim.',['Churn alto',6,{cli:0.93}])),
+  TO('Ignorar',0,null,TR('ruim','A base encolheu','Sem ação, o churn continuou.',['Churn alto',8,{cli:0.9}]))]),
+ sa_bug:tycCard('🐛','Bug crítico em produção','Um erro está apagando dados de alguns assinantes.',[
+  TO('Parar tudo e corrigir agora',0.05,0.85,TR('bom','Corrigido a tempo','Poucos clientes sentiram o problema.',['Bug corrigido',3,{cli:0.98}]),TR('ruim','Perdeu dados','Alguns dados não foram recuperados.',['Perda de dados',6,{cli:0.9}],-0.06)),
+  TO('Corrigir na próxima versão',0,0.4,TR('neutro','Ninguém notou mais','Dessa vez deu certo.'),TR('ruim','Clientes furiosos','Quem perdeu dados cancelou.',['Perda de dados',8,{cli:0.85}],-0.1)),
+  TO('Contratar um dev sênior de emergência',0.1,null,TR('bom','Resolvido com segurança','O sênior corrigiu e reforçou os testes.',['Testes reforçados',12,{cli:1.03}]))]),
+ sa_conc:tycCard('🏁','Concorrente copiou o seu produto','Uma empresa grande lançou algo parecido, com marketing pesado.',[
+  TO('Focar em quem já é cliente',0.04,0.65,TR('bom','Base fiel','O cliente que usa seu produto não quer migrar.',['Clientes fiéis',10,{cli:1.03}]),TR('ruim','Perdeu assinantes','Parte da base migrou.',['Concorrente forte',6,{cli:0.92}])),
+  TO('Baixar o preço',0,null,TR('neutro','Segurou a base','Mais assinantes ficaram, com margem menor.',['Guerra de preços',8,{tk:0.92}])),
+  TO('Lançar uma funcionalidade que ele não tem',0.1,0.6,TR('bom','Diferenciou','O novo recurso virou argumento de venda.',['Novo recurso',12,{cli:1.1,tk:1.05}]),TR('neutro','Pouco efeito','Os clientes não ligaram.'))]),
+ sa_invest:tycCard('💼','Investidor quer comprar parte da empresa','Um fundo oferece dinheiro por uma fatia do software, e quer um lugar nas decisões.',[
+  TO('Aceitar o investimento',0,0.7,TR('bom','Caixa e contatos','O dinheiro acelerou o crescimento, e você divide o controle.',['Investimento',12,{cli:1.12}],0.4),TR('ruim','Brigas de gestão','O investidor interferiu nas decisões.',['Conflito com sócio',8,{cli:0.95}],0.3)),
+  TO('Recusar e crescer sozinho',0,null,TR('neutro','Controle total','Você mantém tudo, e cresce no ritmo do caixa.')),
+  TO('Pedir mais tempo para decidir',0,null,TR('neutro','Adiou','A proposta ficou em aberto e perdeu o fôlego.'))]),
+ sa_prec:tycCard('💰','Reajustar a mensalidade','Seu produto melhorou muito e o preço continua o mesmo.',[
+  TO('Reajustar para novos clientes',0,0.75,TR('bom','Ticket maior','Os novos assinantes aceitaram o preço novo.',['Preço reajustado',12,{tk:1.08}]),TR('neutro','Menos entrada','Menos clientes novos assinaram.',['Preço reajustado',12,{tk:1.08,cli:0.96}])),
+  TO('Reajustar para todos',0,0.55,TR('bom','Receita maior','A base aceitou o reajuste.',['Preço reajustado',12,{tk:1.12}]),TR('ruim','Cancelamentos','Parte da base cancelou.',['Preço reajustado',12,{tk:1.12,cli:0.9}])),
+  TO('Manter o preço',0,null,TR('neutro','Sem mudança','O preço antigo continua.'))]),
+ sa_freem:tycCard('🎁','Plano gratuito para atrair clientes','Um plano gratuito pode trazer muitos usuários, mas custa servidor e suporte.',[
+  TO('Lançar o plano gratuito',0.05,0.55,TR('bom','Base crescendo','Muitos usuários gratuitos viraram pagantes.',['Plano gratuito',12,{cli:1.15,vc:1.03}]),TR('ruim','Só usuários grátis','Poucos pagaram e o custo subiu.',['Plano gratuito',12,{cli:1.02,vc:1.08}])),
+  TO('Teste grátis de 14 dias',0.02,0.7,TR('bom','Conversão melhor','Quem testa e gosta, assina.',['Teste grátis',12,{cli:1.08}]),TR('neutro','Pouca conversão','Poucos assinaram depois.',['Teste grátis',6,{cli:1.02}])),
+  TO('Manter só pago',0,null,TR('neutro','Sem mudança','Só pagantes, mas crescimento mais lento.'))]),
+ sa_dev:tycCard('🧑‍💻','Dev sênior pede participação','O melhor desenvolvedor quer 10% da empresa para ficar.',[
+  TO('Dar participação',0,null,TR('bom','Ele ficou','O desenvolvedor passou a pensar como dono.',['Dev com participação',24,{cli:1.05}],-0.05)),
+  TO('Oferecer bônus por resultado',0.05,null,TR('bom','Meio-termo','O bônus manteve ele por um tempo.',['Bônus ao dev',12,{cli:1.02}])),
+  TO('Recusar',0,0.5,TR('neutro','Ele ficou','Dessa vez ficou.'),TR('ruim','Ele saiu','Ele saiu e levou o conhecimento do produto.',['Dev saiu',8,{cli:0.88}]))]),
+ sa_lgpd:tycCard('🔒','Cliente corporativo exige conformidade com a LGPD','Uma empresa grande só assina se o seu sistema estiver adequado à lei.',[
+  TO('Adequar o sistema',0.12,0.8,TR('bom','Contrato fechado','Você fechou o contrato e abriu portas para outros.',['Conformidade LGPD',18,{cli:1.08,tk:1.05}]),TR('neutro','Demorou demais','A adequação levou mais tempo que o previsto.',['Conformidade LGPD',12,{cli:1.03}])),
+  TO('Prometer e adequar depois',0,0.35,TR('neutro','Passou','O cliente aceitou a promessa.',['Contrato corporativo',8,{cli:1.05}]),TR('ruim','Perdeu o contrato e a confiança','O cliente descobriu que não estava em conformidade.',['Reputação arranhada',8,{cli:0.92}])),
+  TO('Recusar o cliente',0,null,TR('neutro','Sem o contrato','Você ficou no mercado atual.'))]),
+ sa_queda:tycCard('⚡','O servidor caiu durante o horário comercial','Os clientes ficaram horas sem acessar o sistema.',[
+  TO('Migrar para nuvem redundante',0.12,0.8,TR('bom','Sistema estável','Mais estabilidade e menos risco.',['Infra redundante',24,{cli:1.04}]),TR('neutro','Migração difícil','A migração gerou novos problemas.',['Migração difícil',4,{cli:0.97}])),
+  TO('Reiniciar e pedir desculpas',0.01,0.5,TR('neutro','Voltou','Os clientes relevaram.'),TR('ruim','Clientes irritados','Alguns cancelaram.',['Queda do sistema',6,{cli:0.93}])),
+  TO('Oferecer desconto aos clientes afetados',0.03,null,TR('bom','Cliente conquistado','O gesto manteve a confiança.',['Compensação',3,{cli:1.01}]))]),
+ sa_cs:tycCard('📞','Cliente grande pede customização','Um cliente promete pagar muito mas quer funcionalidades só para ele.',[
+  TO('Aceitar e desenvolver',0.08,0.6,TR('bom','Cliente âncora','O contrato pagou o desenvolvimento e trouxe indicações.',['Cliente âncora',12,{cli:1.08,tk:1.06}]),TR('ruim','Produto torto','O desenvolvimento desviou o foco do produto principal.',['Foco perdido',8,{cli:0.93}])),
+  TO('Cobrar à parte como projeto',0.02,0.7,TR('bom','Projeto lucrativo','Você cobrou pelo trabalho extra.',null,0.08),TR('neutro','Cliente desistiu','Ele não aceitou pagar.')),
+  TO('Recusar',0,null,TR('neutro','Foco no produto','Você manteve o produto simples e igual para todos.'))])
+});
+Object.assign(TYC_LIC,{
+ ec_frete:{livro:null, ideia:'O frete é parte do preço que o cliente enxerga. Frete grátis acima de um valor eleva o ticket médio, mas só funciona se a margem comportar.'},
+ ec_black:{livro:'As Armas da Persuasão, de Robert Cialdini (escassez)', ideia:'Datas de pico concentram demanda, mas o estoque precisa ser comprado antes de saber o resultado. Quem estoca demais troca risco de venda por risco de caixa parado.'},
+ ec_golpe:{livro:null, ideia:'Em venda online, a fraude é custo do negócio. Antifraude e checagem de pedidos grandes custam menos que o prejuízo de um chargeback.'},
+ ec_devol:{livro:null, ideia:'Devolução é custo escondido. Informação clara no anúncio reduz a taxa de devolução mais que qualquer política de troca.'},
+ ec_ads:{livro:null, ideia:'Tráfego pago é aluguel de audiência: quando para de pagar, o tráfego acaba. Construir base própria, como lista de e-mail, reduz a dependência dos anúncios.'},
+ ec_dolar:{livro:null, ideia:'Quem importa vive o câmbio. Repassar, trocar de fornecedor ou absorver: cada opção tem custo. Margem sem reserva é margem que o dólar leva.'},
+ ec_fornec:{livro:null, ideia:'Depender de um único fornecedor é risco. Ter um segundo cadastrado antes da emergência evita decisões ruins sob pressão.'},
+ ec_market:{livro:null, ideia:'Marketplace traz volume e controla a vitrine. Venda onde seu produto é diferente, não onde só o preço decide.'},
+ ec_review:{livro:'As Armas da Persuasão, de Robert Cialdini (prova social)', ideia:'A avaliação dos outros decide a compra. Responder rápido e resolver em público transforma uma crítica em demonstração de cuidado.'},
+ ec_lgpd:{livro:null, ideia:'Dado de cliente é responsabilidade sua. Vazamento com falta de aviso e correção custa multa e confiança, e esconder piora.'},
+ sa_churn:{livro:null, ideia:'Em assinatura, perder cliente custa mais que conquistar. Descobrir por que cancelam vale mais que atrair novos assinantes.'},
+ sa_bug:{livro:null, ideia:'Em software, confiança é o produto. Corrigir rápido e testar antes protege a base, e o custo de um bug cresce a cada hora sem solução.'},
+ sa_conc:{livro:'Estratégia Competitiva, de Michael Porter', ideia:'Contra uma empresa grande, diferencie pelo que ela não faz ou não consegue copiar: nicho, atendimento e velocidade.'},
+ sa_invest:{livro:null, ideia:'Investimento troca controle por velocidade. Vale quando o capital acelera o crescimento, e custa quando o investidor desalinha com o negócio.'},
+ sa_prec:{livro:'Previsivelmente Irracional, de Dan Ariely', ideia:'Preços novos pesam menos em quem ainda não é cliente. Reajustar a base inteira exige um produto claramente melhor.'},
+ sa_freem:{livro:null, ideia:'Plano gratuito vira cliente se resolver um problema real e se a conversão cobrir o custo dos usuários que nunca pagam. Teste grátis limitado costuma ser mais seguro.'},
+ sa_dev:{livro:null, ideia:'Quem constrói o produto leva o conhecimento embora. Participação ou bônus por resultado prende talento sem inflar o custo fixo.'},
+ sa_lgpd:{livro:null, ideia:'Conformidade abre mercados maiores. Prometer o que o produto ainda não faz destrói a confiança do cliente corporativo.'},
+ sa_queda:{livro:null, ideia:'Infraestrutura precisa ser redundante quando o cliente depende de você no horário comercial. A queda custa mais que o servidor extra.'},
+ sa_cs:{livro:null, ideia:'Customização para um cliente só desvia o produto. Cobre o projeto à parte e mantenha o produto igual para todos.'}
+});
+TYC_EMP.ecommerce.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ec_'));
+TYC_EMP.saas.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('sa_'));
+
 /* ================= franqueados: interessados aleatórios, royalties e risco para a marca ================= */
 const FRANQ_ROY=0.05, FRANQ_TAXA=0.08, FRANQ_MAX=8;
 const FRANQ_NOMES=['Marcos','Juliana','Rafael','Camila','Bruno','Patrícia','Diego','Fernanda','Thiago','Larissa','Gustavo','Renata'];
@@ -4267,7 +4412,7 @@ const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
-const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='ecommerce'||id==='saas'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
