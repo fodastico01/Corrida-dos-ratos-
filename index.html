@@ -1789,7 +1789,7 @@ function porQueNaoHab(id){
 }
 function comecarHab(id){
   if(porQueNaoHab(id)) return;
-  const H=HABS[id], c=custoHabC(id); const vend=c?pagarAVista(c):''; const lb=Math.min(s.livroHab||0, H.meses-1); s.livroHab=(s.livroHab||0)-lb; s.habEst={id, ate:s.mes+H.meses-lb, ini:s.mes};
+  const H=HABS[id], c=custoHabC(id); const vend=c?pagarAVista(c):''; const lb0=Math.min(s.livroHab||0, H.meses-1); s.livroHab=(s.livroHab||0)-lb0; const lb=Math.min(H.meses-1, lb0+(H.meses-Math.max(1,Math.round(H.meses*(1-bonV('hab')))))); s.habEst={id, ate:s.mes+H.meses-lb, ini:s.mes};
   s.licao={tom:'bom', titulo:`Começou: ${H.nome}`, texto:`${H.meses===1?'1 mês':H.meses+' meses'} de prática, ${hm(H.horas)} h por mês${c?` e ${fmt0(c)} investidos`:''}.${vend} Ao concluir: ${H.ef}`};
 }
 function concluirHab(){
@@ -2343,9 +2343,11 @@ const EVENTOS = {
       {label:'Esperar 7 dias', sub:'Se ainda quiser, compra depois', run:()=>{ s.fel=clamp(s.fel-1,0,100); return {tom:'bom', titulo:'A vontade passou', texto:'A regra dos 7 dias funciona porque a pressa é criada pela loja. Passada a semana, quase sempre a vontade some e o dinheiro fica.'}; }}]; }},
   workshop:{peso:3, cd:6, cond:()=>!s.aposentado, tipo:'opcoes', titulo:()=>s.desemp>0?'Curso rápido de recolocação':'Workshop com 50% de desconto', texto:()=>s.desemp>0?`Um curso de fim de semana sobre currículo, entrevista e LinkedIn, por ${fmt0(vWorkshop())}.`:`Um workshop prático da sua área, num sábado, por ${fmt0(vWorkshop())}. Quem fez diz que muda o jeito de trabalhar.`,
     opcoes:()=>{ const v=vWorkshop(); return [
-      {label:`Fazer (${fmt0(v)})`, sub:s.desemp>0?'Pode encurtar a busca por emprego':'+1 de desempenho', coin:true, run:()=>{ s.conta-=v;
+      {label:`Fazer (${fmt0(v)})`, sub:s.desemp>0?'Pode encurtar a busca por emprego':((s.workshops||0)<6?'+1% de salário, para sempre':'+1 de desempenho'), coin:true, run:()=>{ s.conta-=v;
         if(s.desemp>1){ s.desemp--; s.seguro=Math.min(s.seguro,s.desemp); return {tom:'bom', titulo:'Currículo afiado', texto:'Você chegou mais preparado(a) às entrevistas: a recolocação vem um mês antes.'}; }
-        s.desempenho=(s.desempenho||0)+1; s.fel=clamp(s.fel+1,0,100); return {tom:'bom', titulo:'Conhecimento ninguém tira', texto:'Você aplicou o que aprendeu já na segunda-feira. Desempenho conta para a promoção e protege nos cortes da empresa.'}; }},
+        s.fel=clamp(s.fel+1,0,100);
+        if((s.workshops||0)<6 && !s.desemp){ s.workshops=(s.workshops||0)+1; const a=Math.round((s.salario||0)*0.01); s.salario=(s.salario||0)+a; return {tom:'bom', titulo:'Conhecimento ninguém tira', texto:`Você aplicou o que aprendeu já na segunda-feira. O salário subiu 1% (${fmt0(a)} por mês), para sempre.`}; }
+        s.desempenho=(s.desempenho||0)+1; return {tom:'bom', titulo:'Conhecimento ninguém tira', texto:'Você aplicou o que aprendeu já na segunda-feira. Desempenho conta para a promoção e protege nos cortes da empresa.'}; }},
       {label:'Agora não', sub:'Fica para a próxima', run:()=>({tom:'neutro', titulo:'Fica para a próxima', texto:'Investir em você é dos investimentos com melhor retorno, mas não precisa ser todo mês.'})}]; }},
   livro:{peso:3, cd:6, tipo:'aviso', titulo:()=>`Um livro que vale a pena: ${livroAtual().t}`,
     antes:()=>{ const lidos=s.livrosLidos||(s.livrosLidos=[]); let op=Object.keys(LIVROS).filter(k=>!lidos.includes(k)); if(!op.length){ s.livrosLidos=[]; op=Object.keys(LIVROS); } s.livroId=op[Math.floor(Math.random()*op.length)]; s.livrosLidos.push(s.livroId); },
@@ -2749,15 +2751,18 @@ Object.assign(ESPECIAIS,{ tycDecisao:{tipo:'opcoes', titulo:()=>{ const c=TYC_DE
   opcoes:()=>{ const c=TYC_DEC[s.tycCarta], a=alvoAtivo(); return c&&a&&a.tyc?c.ops(a):[{label:'Continuar',coin:true,run:()=>({tom:'neutro',titulo:'Sem novidades',texto:''})}]; } }});
 const evento = id => EVENTOS[id] || ESPECIAIS[id];
 const LIVROS={
-  habitos:{t:'Hábitos Atômicos', a:'James Clear', ideia:'melhorar 1% por dia parece pouco, mas em um ano a diferença é enorme. Hábito bom precisa ser fácil de começar.', licao:'Pequenas melhorias repetidas valem mais que grandes promessas de segunda-feira.', aplica:()=>{ const H=s.habEst&&HABS[s.habEst.id]; if(H&&s.habEst.ate>s.mes+1){ s.habEst.ate--; return `"${H.nome}" fica pronto 1 mês antes.`; } s.livroHab=(s.livroHab||0)+1; return 'A próxima habilidade que você começar na árvore fica pronta 1 mês antes.'; }},
-  babilonia:{t:'O Homem Mais Rico da Babilônia', a:'George S. Clason', ideia:'"pague-se primeiro": guarde pelo menos um décimo de tudo o que ganhar antes de pagar as outras contas.', licao:'Guardar primeiro e gastar o que sobra é o contrário do que a maioria faz.', aplica:()=>{ let eco=0; for(const k of Object.keys(s.fixos)){ const n=Math.round(s.fixos[k]*0.98); eco+=s.fixos[k]-n; s.fixos[k]=n; } return `Você revisou o orçamento e cortou o que não usava: as contas fixas ficaram 2% mais baratas para sempre (${fmt0(eco)} a menos por mês).`; }},
-  psicologia:{t:'Psicologia Financeira', a:'Morgan Housel', ideia:'riqueza é o que você não vê: o dinheiro que não foi gasto. Ficar rico e continuar rico são habilidades diferentes.', licao:'Comportamento pesa mais que inteligência quando o assunto é dinheiro.', aplica:()=>{ s.livroCalmaAte=s.mes+12; return 'Nos próximos 12 meses, metade das tentações da roleta não pega você: a vontade passa sozinha.'; }},
-  paiRico:{t:'Pai Rico, Pai Pobre', a:'Robert Kiyosaki', ideia:'ativo coloca dinheiro no seu bolso; passivo tira. A classe média compra passivos achando que são ativos.', licao:'Antes de comprar algo grande, pergunte: isso me paga todo mês ou eu pago por ele?', aplica:()=>{ s.livroDesc=0.1; return 'A próxima oportunidade de negócio ou imóvel que aparecer vem 10% mais barata: você aprendeu a olhar e negociar ativos.'; }},
-  essencialismo:{t:'Essencialismo', a:'Greg McKeown', ideia:'quem diz sim para tudo não faz nada direito. Escolher o essencial é dizer não para quase todo o resto.', licao:'Tempo também é um orçamento: cada sim tira horas de outra coisa.', aplica:()=>{ s.livroHoras=(s.livroHoras||0)+1.2; return 'Você largou compromissos que não importavam: +5 h livres por mês, para sempre.'; }},
-  ramsey:{t:'A Transformação Total do Seu Dinheiro', a:'Dave Ramsey', ideia:'primeiro uma reserva de emergência, depois quitar as dívidas, e só então investir. Um passo de cada vez.', licao:'Reserva antes de investimento: é ela que impede um imprevisto de virar dívida.', aplica:()=>{ const R=s.rol||(s.rol={pos:0,ruins:0,semOpp:0,rr:0}); R.rr=(R.rr||0)+1; return 'Você ganhou 1 "girar de novo": quando cair num imprevisto, na saúde ou numa tentação, pode girar a roleta outra vez.'; }}
+  habitos:{t:'Hábitos Atômicos', a:'James Clear', ideia:'melhorar 1% por dia parece pouco, mas em um ano a diferença é enorme. Hábito bom precisa ser fácil de começar.', licao:'Pequenas melhorias repetidas valem mais que grandes promessas de segunda-feira.', aplica:()=>bonLivro('habitos','hab',0.10,'As próximas habilidades da árvore ficam prontas 10% mais rápido, para sempre.')},
+  babilonia:{t:'O Homem Mais Rico da Babilônia', a:'George S. Clason', ideia:'"pague-se primeiro": guarde pelo menos um décimo de tudo o que ganhar antes de pagar as outras contas.', licao:'Guardar primeiro e gastar o que sobra é o contrário do que a maioria faz.', aplica:()=>{ if((s.bon||{}).babilonia) return 'Você já tinha cortado o que não usava. O orçamento segue enxuto.'; (s.bon||(s.bon={})).babilonia=1; let eco=0; for(const k of Object.keys(s.fixos)){ const n=Math.round(s.fixos[k]*0.98); eco+=s.fixos[k]-n; s.fixos[k]=n; } return `Você revisou o orçamento e cortou o que não usava: as contas fixas ficaram 2% mais baratas para sempre (${fmt0(eco)} a menos por mês).`; }},
+  psicologia:{t:'Psicologia Financeira', a:'Morgan Housel', ideia:'riqueza é o que você não vê: o dinheiro que não foi gasto. Ficar rico e continuar rico são habilidades diferentes.', licao:'Comportamento pesa mais que inteligência quando o assunto é dinheiro.', aplica:()=>bonLivro('psicologia','calma',0.2,'Para sempre, uma em cada cinco tentações da roleta não pega você: a vontade passa sozinha.')},
+  paiRico:{t:'Pai Rico, Pai Pobre', a:'Robert Kiyosaki', ideia:'ativo coloca dinheiro no seu bolso; passivo tira. A classe média compra passivos achando que são ativos.', licao:'Antes de comprar algo grande, pergunte: isso me paga todo mês ou eu pago por ele?', aplica:()=>bonLivro('paiRico','desc',0.03,'Para sempre, negócios e imóveis que aparecem à venda vêm 3% mais baratos: você aprendeu a olhar e negociar ativos.')},
+  essencialismo:{t:'Essencialismo', a:'Greg McKeown', ideia:'quem diz sim para tudo não faz nada direito. Escolher o essencial é dizer não para quase todo o resto.', licao:'Tempo também é um orçamento: cada sim tira horas de outra coisa.', aplica:()=>{ if((s.bon||{}).essencialismo) return 'Você reforçou o hábito de dizer não ao que não importa.'; (s.bon||(s.bon={})).essencialismo=1; s.livroHoras=(s.livroHoras||0)+0.5; return 'Você largou compromissos que não importavam: +2 h livres por mês, para sempre.'; }},
+  ramsey:{t:'A Transformação Total do Seu Dinheiro', a:'Dave Ramsey', ideia:'primeiro uma reserva de emergência, depois quitar as dívidas, e só então investir. Um passo de cada vez.', licao:'Reserva antes de investimento: é ela que impede um imprevisto de virar dívida.', aplica:()=>bonLivro('ramsey','rr',1,'Uma vez por ano, você ganha 1 "girar de novo": quando cair num imprevisto, na saúde ou numa tentação, pode girar a roleta outra vez.')}
+
 };
+const bonLivro = (id,k,v,msg) => { const B=s.bon||(s.bon={}); if(B[id]) return 'Você releu o livro e a lição ficou ainda mais firme. O bônus que ele deu continua valendo.'; B[id]=1; B[k]=(B[k]||0)+v; return msg; };
+const bonV = k => ((s.bon||{})[k])||0;
 const livroAtual = () => LIVROS[s.livroId] || LIVROS.habitos;
-const livroVant = id => ({habitos:'a habilidade da árvore que você está desenvolvendo (ou a próxima) fica pronta 1 mês antes.', babilonia:'contas fixas 2% mais baratas para sempre.', psicologia:'por 12 meses, metade das tentações não pega você.', paiRico:'a próxima oportunidade de negócio ou imóvel vem 10% mais barata.', essencialismo:'+5 h livres por mês, para sempre.', ramsey:'1 "girar de novo" na roleta para fugir de um imprevisto.'})[id]||'';
+const livroVant = id => { if((s.bon||{})[id]) return 'você já ganhou o bônus deste livro; ele continua valendo.'; return ({habitos:'habilidades da árvore prontas 10% mais rápido, para sempre.', babilonia:'contas fixas 2% mais baratas, para sempre.', psicologia:'1 em cada 5 tentações não pega você, para sempre.', paiRico:'negócios e imóveis à venda vêm 3% mais baratos, para sempre.', essencialismo:'+2 h livres por mês, para sempre.', ramsey:'1 "girar de novo" na roleta por ano, para sempre.'})[id]||''; };
 const vVitrine = () => Math.round(Math.max(C(300), (s.salario||0)*0.12)/10)*10;
 const vWorkshop = () => Math.round(Math.max(C(250), (s.salario||0)*0.08)/50)*50;
 const bonusBem = a => Math.max(100, Math.round(rendaAtivo(a)*0.6/10)*10);
@@ -2923,7 +2928,7 @@ function eventoDaCasa(t, forcar){
     case 'cre': { if(s.habEst || !candHab().length){ t='apr'; break; } return 'casaCresc'; }
     case 'est': { const L=estudosAbertos(); if(L.length && horasLivres()>=8){ s.estBolsa=Math.random()<0.35; return 'casaEstudo'; } t='apr'; break; }
     case 'tra': if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.6) return 'avaliacao'; break;
-    case 'ten': if((temHab('emocional') || (s.livroCalmaAte||0)>=s.mes) && Math.random()<0.5) return 'resistiu';
+    case 'ten': if(Math.random()<Math.min(0.7,(temHab('emocional')?0.5:0)+((s.livroCalmaAte||0)>=s.mes?0.5:0)+bonV('calma'))) return 'resistiu';
       if(F2() && !s.aposentado && s.conta>4*custoMensal() && (!s.tentEm || s.mes-s.tentEm>=6) && Math.random()<0.6){ s.tentEm=s.mes; return 'tentacao'; } break;
     case 'sau': if(!forcar && (temHab('exercicio') ? Math.random()<0.7 : Math.random()>fatorSaude()*(s.casado?0.6:1))) return 'checkup'; break;
   }
@@ -2959,7 +2964,7 @@ function aplicarPend(R){
 }
 function jogarDado(){
   const R=s.rol||(s.rol={pos:0,rr:0});
-  if(temHab('plan') && R.rrAno!==anoAtual()){ R.rr=Math.max(R.rr||0,1); R.rrAno=anoAtual(); }
+  if((temHab('plan')||bonV('rr')) && R.rrAno!==anoAtual()){ R.rr=Math.max(R.rr||0,1); R.rrAno=anoAtual(); }
   if(R.pend && R.pend.resta>1){ R.pend.resta--; return []; }   // mês pulado pelos dados: o dinheiro corre, sem acontecimentos
   if(R.pend){ aplicarPend(R); }
   else { if(R.v!==3){ R.v=3; } R.de=R.pos||0; lancar(R); R.mes=s.mes; R.k=1; R.alarmeEv=null; R.casaEv=null; }
@@ -3014,7 +3019,7 @@ function novaOferta(tipo){
   const w=id=>CARTAS[id].area===s.prof?2.5:1, tot=ids.reduce((a,id)=>a+w(id),0); let r=Math.random()*tot, id=ids[0];
   for(const x of ids){ r-=w(x); if(r<=0){ id=x; break; } }
   const c=CARTAS[id], f=0.85+Math.random()*0.3, idx=F2()?s.idx:1;
-  const dl=1-(s.livroDesc||0); s.livroDesc=0; const o={uid:s.uid++, id, preco:Math.round(c.preco*idx*f*dl/100)*100, renda:Math.round(c.renda*idx*(0.9+Math.random()*0.25)*(ehArea(c)?AREA.renda:1)), area:ehArea(c), expira:s.mes+4};
+  const dl=(1-(s.livroDesc||0))*(1-bonV('desc')); s.livroDesc=0; const o={uid:s.uid++, id, preco:Math.round(c.preco*idx*f*dl/100)*100, renda:Math.round(c.renda*idx*(0.9+Math.random()*0.25)*(ehArea(c)?AREA.renda:1)), area:ehArea(c), expira:s.mes+4};
   s.ofertas.push(o); s.ofertaNova=o.uid; return o;
 }
 const ofertaNova = () => (s.ofertas||[]).find(o=>o.uid===s.ofertaNova);
@@ -3023,7 +3028,7 @@ function prepararGrande(){
   const ids=Object.keys(CARTAS).filter(id=>faseOk(CARTAS[id].fases) && CARTAS[id].tipo!=='terreno').sort((a,b)=>CARTAS[a].preco-CARTAS[b].preco);
   if(!ids.length) return false;
   const top=ids.slice(Math.floor(ids.length/2)), id=top[Math.floor(Math.random()*top.length)], c=CARTAS[id], idx=F2()?s.idx:1;
-  const dl=1-(s.livroDesc||0); s.livroDesc=0; s.grande={id, preco:Math.round(c.preco*idx*0.75*dl/100)*100, renda:Math.round(c.renda*idx*1.1*(ehArea(c)?AREA.renda:1)), area:ehArea(c)};
+  const dl=(1-(s.livroDesc||0))*(1-bonV('desc')); s.livroDesc=0; s.grande={id, preco:Math.round(c.preco*idx*0.75*dl/100)*100, renda:Math.round(c.renda*idx*1.1*(ehArea(c)?AREA.renda:1)), area:ehArea(c)};
   return true;
 }
 
