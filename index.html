@@ -1224,10 +1224,10 @@ const HORAS_BASE = 72; const HM=4.33, hm=h=>Math.round(h*HM); // por dentro em h
 /* Oportunidades: ativos concretos que geram renda, como as cartas do Cashflow.
    renda = renda líquida por mês; horas = horas por semana; risco = chance mensal de evento de mercado */
 const CARTAS = {
-  vending:{fases:[1,2], tipo:'negocio', nome:'Máquina de snacks num hospital', preco:4500, renda:110, horas:4, varia:0.3, risco:0.03, pesos:{comprador:2,conserto:5,falencia:1},
-    desc:'Comprar mercadoria, abastecer, recolher o dinheiro e resolver máquina travada. Com um ajudante, cai para 4 h por mês.'},
-  bike:{fases:[1,2], tipo:'negocio', nome:'Duas bikes elétricas alugadas a entregadores', preco:6000, renda:190, horas:5, varia:0.2, risco:0.035, pesos:{comprador:1,conserto:4,falencia:3},
-    desc:'Retorno alto, mas bicicleta quebra e às vezes some.'},
+  vending:{fases:[1,2], tipo:'negocio', tyc:true, nome:'Lanche Fácil', preco:4500, renda:300, horas:4, varia:0, risco:0.03, pesos:{comprador:2,conserto:5},
+    desc:'Máquinas de snacks em pontos de grande circulação. Retorno alto sobre o valor investido, desde o primeiro mês.'},
+  bike:{fases:[1,2], tipo:'negocio', tyc:true, nome:'Bike Entrega', preco:7000, renda:450, horas:5, varia:0, risco:0.035, pesos:{comprador:1,conserto:4},
+    desc:'Bikes elétricas alugadas a entregadores. Retorno alto, mas bicicleta quebra e às vezes some.'},
   kitnet:{fases:[2,3], tipo:'imovel', nome:'Kitnet perto da faculdade', preco:140000, renda:700, horas:1, finan:true, risco:0.04, pesos:{comprador:3,vacancia:5},
     desc:'Aluguel todo mês. O imóvel e o aluguel acompanham a inflação; a parcela do financiamento não.'},
   sala:{fases:[2,3], tipo:'imovel', nome:'Sala comercial no centro', preco:260000, renda:1450, horas:1, finan:true, risco:0.04, pesos:{comprador:3,vacancia:5},
@@ -1238,17 +1238,17 @@ const CARTAS = {
     desc:'Um quiosque de açaí que pode virar rede: o verão enche, o inverno esvazia, e a fruta decide a margem.'},
   ecommerce:{fases:[1,2], tipo:'negocio', escala:true, nome:'Loja online de capinhas e acessórios', preco:8000, renda:260, horas:4, varia:0.5, risco:0.05, pesos:{comprador:1,conserto:1,falencia:3},
     desc:'Estoque pequeno e vendas pela internet. Um mês vende muito, no outro quase nada.'},
-  lavajato:{fases:[1,2,3], tipo:'negocio', nome:'Lava-jato de bairro', preco:25000, renda:600, horas:6, varia:0.3, risco:0.04, pesos:{comprador:2,conserto:4,falencia:2},
-    desc:'Movimento garantido nos fins de semana. Chuva derruba o faturamento.'},
-  foodtruck:{fases:[2,3], tipo:'negocio', dedicacao:true, nome:'Food truck de hambúrguer', preco:70000, renda:1300, horas:10, varia:0.35, risco:0.05, pesos:{comprador:1,conserto:4,falencia:3},
+  lavajato:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Lava-jato Brilho', preco:25000, renda:1100, horas:8, varia:0, risco:0.04, pesos:{comprador:2,conserto:4},
+    desc:'Movimento garantido nos fins de semana, com retorno alto desde o início. Chuva derruba o faturamento.'},
+  foodtruck:{fases:[2,3], tipo:'negocio', tyc:true, nome:'Truck do Chef', preco:55000, renda:2300, horas:12, varia:0, risco:0.05, pesos:{comprador:1,conserto:4},
     desc:'Lucro bom em eventos e feiras, mas pede muitas noites e fins de semana.'},
-  estacionamento:{fases:[2,3], tipo:'negocio', nome:'Estacionamento no centro', preco:120000, renda:1100, horas:3, varia:0.1, risco:0.03, pesos:{comprador:2,conserto:2,falencia:1},
-    desc:'Renda estável e pouco trabalho. Rende menos que outros negócios, mas quase não dá dor de cabeça.'},
+  estacionamento:{fases:[2,3], tipo:'negocio', tyc:true, nome:'Estacionamento Central', preco:70000, renda:2600, horas:4, varia:0, risco:0.03, pesos:{comprador:2,conserto:2},
+    desc:'Renda estável e pouco trabalho, com um ótimo retorno inicial. Depende do tamanho do terreno.'},
   /* ---- negócios de área: qualquer um pode comprar, mas quem é da profissão tem bônus ---- */
   lojaroupa:{fases:[2,3], tipo:'negocio', tyc:true, area:'atendente', nome:'Fio de Estilo', preco:28000, renda:750, horas:14, varia:0, risco:0.03, pesos:{comprador:2,conserto:2},
     desc:'Varejo de moda: estoque, coleção, vitrine e vendedor bom. A margem é boa, mas estoque parado é capital morto.'},
-  cursinho:{fases:[2,3], tipo:'negocio', escala:true, area:'professor', nome:'Cursinho preparatório', preco:50000, renda:1000, horas:8, varia:0.25, risco:0.04, pesos:{comprador:2,conserto:2,falencia:2},
-    desc:'Turmas para vestibular e concurso. A fama dos professores enche as salas.'},
+  cursinho:{fases:[2,3], tipo:'negocio', tyc:true, area:'professor', nome:'Cursinho Aprova', preco:50000, renda:2000, horas:8, varia:0, risco:0.04, pesos:{comprador:2,conserto:2},
+    desc:'Turmas para vestibular e concurso. A fama dos professores enche as salas, e o retorno inicial é alto.'},
   vacinas:{fases:[2,3], tipo:'negocio', escala:true, dedicacao:true, area:'enfermeiro', nome:'Clínica de vacinas e curativos', preco:120000, renda:2300, horas:10, varia:0.2, risco:0.04, pesos:{comprador:2,conserto:3,falencia:2},
     desc:'Vacinas particulares, curativos e atendimento domiciliar. Exige responsável técnico.'},
   saas:{fases:[2,3], tipo:'negocio', escala:true, area:'programador', nome:'Aplicativo por assinatura (SaaS)', preco:40000, renda:800, horas:8, varia:0.6, risco:0.05, pesos:{comprador:3,conserto:1,falencia:3},
@@ -1657,7 +1657,9 @@ const TYC_KEYS=['equip','cardapio','ambiente','equipe','mkt'];
 const TYC_NMAX=9;
 const TYC_EMP={};
 const emp = a => TYC_EMP[a&&a.id]||TYC_EMP.cafeteria;
-const tycPorteTxt = a => { const n=Math.min(...a.tyc.niv), E=emp(a); return E.porte[n<=3?0:n<=6?1:2]; };
+const tycNmax = a => emp(a).nmax||TYC_NMAX;
+const tycNP = (a,n) => tycNmax(a)>=9 ? n : n*3-1;
+const tycPorteTxt = a => { const n=tycNP(a,Math.min(...a.tyc.niv)), E=emp(a); return E.porte[n<=3?0:n<=6?1:2]; };
 TYC_EMP.cafeteria={
   arte:'cafe', ofertaImg:'cafeteria-oferta', ofertaNome:'Cafeteria de bairro', negocio:'cafeteria', porte:['Pequena','Média','Grande'], tagPorte:p=>`Empresa ${p.toLowerCase()}`,
   varc:0.49, dem:[32,42,56,74,98,130,170,225,295], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[9,11,13,15,17,19,21,23,25],
@@ -1754,6 +1756,109 @@ TYC_EMP.lojaroupa={
     niv:['Fachada e placa','Instagram da loja','Grupo de clientes no WhatsApp','Vitrine de campanhas','Parceria com influenciadoras locais','Anúncios no Instagram','Loja online','Campanha sazonal','Marca conhecida na cidade']}
   }
 };
+/* ===== leva 2 (grupo C): negócios locais, 3 níveis, sem franquia ===== */
+TYC_EMP.lavajato={
+  arte:'lavajato', ofertaImg:'lavajato-oferta', ofertaNome:'Lava-jato de bairro', negocio:'lava-jato', porte:['Pequeno', 'Médio', 'Grande'], tagPorte:p=>p, nmax:3, local:true, teto:'O lava-jato é um negócio de bairro: o freguês não atravessa a cidade para lavar o carro. Chegou no limite do que um ponto consegue render. Para crescer mais, só abrindo outro negócio.',
+  varc:0.22, dem:[5.2, 7.8, 10.0], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[38, 46, 58],
+  fixo:[3150, 5910, 9870], saz:[0.85, 0.85, 0.95, 1, 1.05, 1.1, 1.1, 1.1, 1.05, 1, 0.95, 0.9], horas:[8, 7, 6], custo:[4000, 6500], premio:null,
+  set:{
+  equip:{nome:'Equipamentos', ic:'🧽', peso:1.4, ef:'Quantos carros saem por dia.',
+    niv:['Lavadora de alta pressão e aspirador', 'Lavadora profissional e dois aspiradores', 'Cabine coberta com linha de lavagem']},
+  cardapio:{nome:'Serviços', ic:'🚗', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Lavagem simples', 'Lavagem completa e cera', 'Polimento e higienização']},
+  ambiente:{nome:'Pátio', ic:'🏠', peso:1.4, ef:'Quantos carros cabem por dia. Aluguel maior acompanha.',
+    niv:['Vaga para dois carros', 'Quatro vagas', 'Pátio coberto com seis vagas']},
+  equipe:{nome:'Equipe', ic:'🧑‍🔧', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Você e um ajudante', 'Dois lavadores', 'Lavadores e recepção']},
+  mkt:{nome:'Clientela', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Placa na calçada', 'Cartão fidelidade e WhatsApp', 'Convênio com condomínios e empresas']}
+  }
+};
+TYC_EMP.estacionamento={
+  arte:'estac', ofertaImg:'estac-oferta', ofertaNome:'Estacionamento no centro', negocio:'estacionamento', porte:['Pequeno', 'Médio', 'Grande'], tagPorte:p=>p, nmax:3, local:true, teto:'O estacionamento está limitado pelo terreno: não adianta ter mais clientes se não cabem mais carros. Para crescer, só comprando outro terreno, que é outro negócio.',
+  varc:0.05, dem:[11.6, 15.0, 18.3], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[20, 22, 24],
+  fixo:[3470, 5140, 7200], saz:[1, 0.95, 0.95, 1, 1, 1, 0.95, 1, 1, 1.05, 1.1, 1.2], horas:[4, 3, 3], custo:[9000, 14000], premio:null,
+  set:{
+  equip:{nome:'Controle de acesso', ic:'🚧', peso:1.4, ef:'Quantos carros entram e saem por dia sem fila.',
+    niv:['Cancela manual e caderno', 'Cancela automática', 'Leitor de placa e pagamento por aplicativo']},
+  cardapio:{nome:'Tarifas', ic:'🎟️', peso:0.9, ef:'Quanto cada cliente paga, em média.',
+    niv:['Preço avulso por hora', 'Mensalistas e diária', 'Convênios com lojas e empresas']},
+  ambiente:{nome:'Vagas', ic:'🅿️', peso:1.4, ef:'Quantos carros cabem. Aluguel maior acompanha.',
+    niv:['30 vagas no terreno', '45 vagas com cobertura parcial', '60 vagas e piso novo']},
+  equipe:{nome:'Equipe', ic:'🧑‍💼', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Você no caixa', 'Um funcionário', 'Dois turnos e vigia']},
+  mkt:{nome:'Divulgação', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Placa na rua', 'Parceria com o comércio vizinho', 'Reserva por aplicativo']}
+  }
+};
+TYC_EMP.bike={
+  arte:'bike', ofertaImg:'bike-oferta', ofertaNome:'Aluguel de bikes elétricas a entregadores', negocio:'aluguel de bikes', porte:['Pequeno', 'Médio', 'Grande'], tagPorte:p=>p, nmax:3, local:true, teto:'O aluguel de bikes é um negócio local: o entregador quer a bike perto de casa. Quando a frota enche o bairro, o mercado acabou. Para crescer mais, só mudando de negócio.',
+  varc:0.25, dem:[2.7, 5.0, 7.7], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[24, 26, 28],
+  fixo:[890, 1790, 2960], saz:[0.95, 0.9, 0.95, 1, 1, 0.95, 0.95, 1, 1, 1.05, 1.15, 1.2], horas:[5, 4, 3], custo:[1200, 2200], premio:null,
+  set:{
+  equip:{nome:'Frota', ic:'🚲', peso:1.4, ef:'Quantas bikes saem alugadas por dia.',
+    niv:['2 bikes elétricas', '5 bikes elétricas', '10 bikes e baterias reserva']},
+  cardapio:{nome:'Contratos', ic:'📝', peso:0.9, ef:'Quanto cada aluguel rende, em média.',
+    niv:['Diária avulsa', 'Semanal com entregadores fixos', 'Contrato com restaurantes e aplicativos']},
+  ambiente:{nome:'Oficina e ponto', ic:'🏠', peso:1.4, ef:'Quantas bikes cabem e são mantidas. Aluguel maior acompanha.',
+    niv:['Garagem de casa', 'Ponto alugado', 'Galpão com oficina']},
+  equipe:{nome:'Equipe', ic:'🧑‍🔧', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você', 'Um mecânico', 'Mecânico e atendente']},
+  mkt:{nome:'Captação', ic:'📣', peso:0.7, ef:'Quantos entregadores chegam por dia.',
+    niv:['Boca a boca', 'Grupos de entregadores', 'Parceria com restaurantes']}
+  }
+};
+TYC_EMP.vending={
+  arte:'vending', ofertaImg:'vending-oferta', ofertaNome:'Máquinas de snacks num hospital', negocio:'máquinas de snacks', porte:['Pequeno', 'Médio', 'Grande'], tagPorte:p=>p, nmax:3, local:true, teto:'As máquinas dependem de ponto cedido, e ponto bom é limitado. Chegou no teto de lugares que aceitam a sua máquina. Para crescer mais, só mudando de negócio.',
+  varc:0.55, dem:[7.2, 14.4, 23.0], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[6, 6.5, 7],
+  fixo:[240, 560, 1100], saz:[1, 0.95, 1, 1, 1, 1.05, 1.05, 1, 1, 1, 1.05, 1.1], horas:[4, 4, 3], custo:[900, 1600], premio:null,
+  set:{
+  equip:{nome:'Máquinas', ic:'🥤', peso:1.4, ef:'Quantas vendas saem por dia.',
+    niv:['1 máquina', '3 máquinas', '6 máquinas com refrigeração']},
+  cardapio:{nome:'Produtos', ic:'🍫', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Snacks e água', 'Café e refrigerante', 'Marmitas e itens fit']},
+  ambiente:{nome:'Pontos', ic:'📍', peso:1.4, ef:'Quantos clientes passam por dia. Custo de ponto acompanha.',
+    niv:['Um ponto no hospital', 'Três pontos', 'Seis pontos na região']},
+  equipe:{nome:'Reposição', ic:'🧑‍💼', peso:0.6, ef:'Quantas máquinas ficam abastecidas. Custo maior acompanha, mas você trabalha menos.',
+    niv:['Você abastece', 'Um ajudante', 'Ajudante e rota fixa']},
+  mkt:{nome:'Contratos', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Ponto cedido', 'Contrato de ponto com comissão', 'Contrato com condomínios e fábricas']}
+  }
+};
+TYC_EMP.cursinho={
+  arte:'cursinho', ofertaImg:'cursinho-oferta', ofertaNome:'Cursinho preparatório de bairro', negocio:'cursinho', porte:['Pequeno', 'Médio', 'Grande'], tagPorte:p=>p, nmax:3, local:true, teto:'O cursinho depende dos alunos que moram perto e do tempo dos professores. Chegou no limite da região. Para crescer mais, só mudando de negócio.',
+  varc:0.3, dem:[22.4, 30.9, 37.6], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[16, 18, 20],
+  fixo:[4910, 7630, 10310], saz:[1.3, 1.15, 1, 1, 1, 0.9, 1.05, 0.95, 0.95, 0.95, 0.8, 0.65], horas:[8, 7, 6], custo:[6500, 10000], premio:null,
+  set:{
+  equip:{nome:'Salas e recursos', ic:'📚', peso:1.4, ef:'Quantos alunos cabem por turma.',
+    niv:['Uma sala alugada', 'Duas salas com projetor', 'Quatro salas e plataforma online']},
+  cardapio:{nome:'Turmas', ic:'🎓', peso:0.9, ef:'Quanto cada aluno paga, em média.',
+    niv:['Só vestibular', 'Vestibular e concursos', 'Turmas intensivas e mentoria']},
+  ambiente:{nome:'Prédio', ic:'🏠', peso:1.4, ef:'Quantos alunos cabem por dia. Aluguel maior acompanha.',
+    niv:['Sobreloja alugada', 'Casa adaptada', 'Prédio próprio']},
+  equipe:{nome:'Professores', ic:'🧑‍🏫', peso:0.6, ef:'Quantos alunos são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Você e dois professores horistas', 'Professores por disciplina', 'Coordenação e plantão de dúvidas']},
+  mkt:{nome:'Matrículas', ic:'📣', peso:0.7, ef:'Quantos alunos chegam por dia.',
+    niv:['Cartazes na escola', 'Aulão gratuito e Instagram', 'Bolsas e parceria com colégios']}
+  }
+};
+TYC_EMP.foodtruck={
+  arte:'foodtruck', ofertaImg:'foodtruck-oferta', ofertaNome:'Food truck de hambúrguer', negocio:'food truck', porte:['Pequeno', 'Médio', 'Grande'], tagPorte:p=>p, nmax:3, local:true, teto:'O food truck é um negócio de dono presente: a fila, o ponto e o seu tempo são o limite. Mais trucks exigem mais donos. Para crescer mais, só mudando de negócio.',
+  varc:0.38, dem:[9.9, 14.8, 20.3], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[26, 30, 34],
+  fixo:[2100, 3990, 6790], saz:[1.05, 1.1, 1, 1, 0.9, 0.85, 0.85, 0.9, 1, 1.05, 1.1, 1.2], horas:[12, 10, 9], custo:[8000, 13000], premio:null,
+  set:{
+  equip:{nome:'Truck', ic:'🚚', peso:1.4, ef:'Quantos lanches saem por dia.',
+    niv:['Trailer usado', 'Truck novo equipado', 'Dois trucks']},
+  cardapio:{nome:'Cardápio', ic:'🍔', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Hambúrguer e batata', 'Artesanais e combos', 'Linha gourmet e sobremesas']},
+  ambiente:{nome:'Pontos e eventos', ic:'📍', peso:1.4, ef:'Quantos clientes passam por dia. Custos de ponto acompanham.',
+    niv:['Praça na sexta e sábado', 'Feiras e eventos toda semana', 'Pontos fixos e festivais']},
+  equipe:{nome:'Equipe', ic:'🧑‍🍳', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Você e um ajudante', 'Chapeiro e atendente', 'Equipe de 5 pessoas']},
+  mkt:{nome:'Divulgação', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Instagram', 'Cardápio e promoções', 'Contratos com eventos']}
+  }
+};
 const tycF = () => F2() ? (s.idx||1) : 1;
 const tycPorte = n => n<=3?'Pequena':n<=6?'Média':'Grande';
 const tycNiv = (a,k) => a.tyc.niv[TYC_KEYS.indexOf(k)];
@@ -1765,7 +1870,7 @@ function tycMes(a, saz, alea){
   const E=tycEfs(a);
   cli*=Math.pow(bonusGestao(a),0.6)*(largado(a)?0.85:1)*(saz||1)*(alea?(0.9+Math.random()*0.2):1)*E.cli;
   const rec=cli*EM.tk[L('cardapio')]*f*26*E.tk, varc=rec*EM.varc*E.vc;
-  const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(8,i0+1)]*(mn-i0))*f*(1+E.fx);
+  const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(tycNmax(a)-1,i0+1)]*(mn-i0))*f*(1+E.fx);
   return {cli:Math.round(cli), rec:Math.round(rec), varc:Math.round(varc), fixo:Math.round(fixo), lucro:Math.round(rec-varc-fixo)};
 }
 const tycPrev = a => tycMes(a,1,false);
@@ -1773,9 +1878,9 @@ function tycGargalo(a){
   const ks=['equip','ambiente','equipe','mkt'], v=ks.map(k=>tycNiv(a,k)), mn=Math.min(...v);
   return mn===Math.max(...v) ? null : ks[v.indexOf(mn)];
 }
-const tycCusto = (a,k) => { const n=tycNiv(a,k); return n>=TYC_NMAX?0:Math.round(emp(a).custo[n-1]*emp(a).set[k].peso*tycF()/100)*100; };
+const tycCusto = (a,k) => { const n=tycNiv(a,k); return n>=tycNmax(a)?0:Math.round(emp(a).custo[n-1]*emp(a).set[k].peso*tycF()/100)*100; };
 function tycBloqueio(a,k){
-  const n=tycNiv(a,k); if(n>=TYC_NMAX) return 'Nível máximo';
+  const n=tycNiv(a,k); if(n>=tycNmax(a)) return 'Nível máximo';
   const baixo=TYC_KEYS.filter(x=>x!==k && tycNiv(a,x)<n), ST=emp(a).set;
   return baixo.length ? `Antes, ${(baixo.length>1?baixo.slice(0,-1).map(x=>ST[x].nome).join(', ')+' e '+ST[baixo[baixo.length-1]].nome:ST[baixo[0]].nome)} ${baixo.length>1?'precisam':'precisa'} chegar no nível ${n}` : null;
 }
@@ -1801,9 +1906,10 @@ function tycSubir(uid, ki, fonte){
   const c=tycCusto(a,k), antes=tycPrev(a).lucro, m0=mesesLiq(); let t='';
   if(fonte==='caixa'){ if(a.tyc.caixa<c) return; a.tyc.caixa-=c; } else { if(!podeAVista(c)) return; t=pagarAVista(c); }
   a.tyc.niv[ki]++; a.custo+=c; tycAtualizar(a);
-  if(a.tyc.niv.every(n=>n>=TYC_NMAX) && !a.tyc.premio){ a.tyc.premio=true; const pf=emp(a).premio.foto; foto(pf); ui.fotoFila=(ui.fotoFila||[]).filter(x=>x!==pf); ui.premioUid=a.uid; ui.modal='premioCafe'; }
+  if(a.tyc.niv.every(n=>n>=tycNmax(a)) && !a.tyc.premio && emp(a).premio){ a.tyc.premio=true; const pf=emp(a).premio.foto; foto(pf); ui.fotoFila=(ui.fotoFila||[]).filter(x=>x!==pf); ui.premioUid=a.uid; ui.modal='premioCafe'; }
   const dep=tycPrev(a).lucro, S=emp(a).set[k];
   ui.tycMsg=`${S.ic} ${S.nome}: ${S.niv[a.tyc.niv[ki]-1]}. Lucro previsto: de ${fmt0(antes)} para ${fmt0(dep)} por mês.${dep<=antes?' Esse item ainda não rendeu: o gargalo está em outro setor.':''}${t}`;
+  if(emp(a).local && a.tyc.niv.every(n=>n>=tycNmax(a)) && !a.tyc.teto){ a.tyc.teto=true; ui.tycMsg+=' '+emp(a).teto; }
   if(fonte!=='caixa') checarDescoberto(m0);
 }
 const TYC_FRANQ_MAX=3;
@@ -1832,19 +1938,19 @@ function tycSacar(uid, modo){
 }
 function modalTyc(a){
   const T=a.tyc, pv=tycPrev(a), nMin=Math.min(...T.niv), garg=tycGargalo(a), u=T.ult;
-  const porteK=nMin<=3?'pequena':nMin<=6?'media':'grande', EM=emp(a), imgCena=ARTE.extras?.[EM.arte+'-'+porteK];
-  const estagio=n=>n>=7?4:n>=5?3:n>=3?2:1;
-  const cena=(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nMin).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
+  const nEq=tycNP(a,nMin), porteK=nEq<=3?'pequena':nEq<=6?'media':'grande', EM=emp(a), imgCena=ARTE.extras?.[EM.arte+'-'+porteK];
+  const estagio=n=>{ n=tycNP(a,n); return n>=7?4:n>=5?3:n>=3?2:1; };
+  const cena=(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nEq).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
     const itens=Array.from({length:e},(_,j)=>{ const im=ARTE.icones?.[`${EM.arte}-${nomeK}-${j+1}`]; return im?`<img class="tyc-ic-img" src="${im}" alt="">`:`<i>${S.ic}</i>`; }).join('');
     return `<div class="tyc-linha"><span class="tyc-lb">${S.nome}</span><span class="tyc-itens">${itens}</span></div>`; }).join('');
   const linhas=TYC_KEYS.map((k,i)=>{ const S=EM.set[k], n=tycNiv(a,k), bl=tycBloqueio(a,k), c=tycCusto(a,k), doCaixa=T.caixa>=c, doBolso=podeAVista(c);
     return `<div class="tyc-set${garg===k?' garg':''}"><div class="tyc-set-top"><span class="tyc-ic">${ARTE.icones?.[`${EM.arte}-${k}-${k==='equipe'?1:estagio(n)}`]?`<img class="tyc-ic-img tyc-ic-top" src="${ARTE.icones[`${EM.arte}-${k}-${k==='equipe'?1:estagio(n)}`]}" alt="">`:S.ic}</span><div><b>${S.nome}</b><span class="hint">${S.ef}</span></div><span class="tyc-nv">${n}/${TYC_NMAX}</span></div>
-      <div class="tyc-pips">${Array.from({length:TYC_NMAX},(_,j)=>`<i class="${j<n?'on':''}"></i>`).join('')}</div>
+      <div class="tyc-pips">${Array.from({length:tycNmax(a)},(_,j)=>`<i class="${j<n?'on':''}"></i>`).join('')}</div>
       <p class="hint">Agora: <b>${S.niv[n-1]}</b>${garg===k?' · <span style="color:var(--loss)">gargalo</span>':''}</p>
-      ${n>=TYC_NMAX?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Próximo: ${S.niv[n]}. ${bl}.</p>`
+      ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Próximo: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Próximo: <b>${S.niv[n]}</b> por <b>${fmt0(c)}</b></p><div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pagar com o caixa</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Do meu bolso</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nMin))===tycPorte(nMin)?EM.porte[nMin<=3?0:nMin<=6?1:2]:EM.tagPorte(tycPorte(nMin))}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nMin/3))}${'☆'.repeat(3-Math.ceil(nMin/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
@@ -1860,6 +1966,7 @@ function modalTyc(a){
     <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Sacar o excedente (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Sacar tudo</button></div>
     ${tycEfs(a).lista.length?`<p class="hint"><b>Em andamento:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?'meses':'mês'})`).join(', ')}</p>`:''}
     ${ui.tycMsg?`<p class="hint tyc-msg">${ui.tycMsg}</p>`:''}
+    ${EM.local&&nMin>=tycNmax(a)?`<div class="alerta neutro" role="note"><strong>Teto do negócio</strong><p>${EM.teto}</p></div>`:''}
     ${T.premio&&!a.franqDe?(()=>{ const v=tycCustoFranq(a), n=tycFranqs(a); return `<div class="alerta bom" role="note"><strong>🏆 ${EM.premio.titulo}</strong><p>${n>=TYC_FRANQ_MAX?`Você já abriu o máximo de ${TYC_FRANQ_MAX} unidades próprias.`:`Abra uma nova unidade própria: custa ${fmt0(v)}, o mesmo valor investido nesta loja, e ela já nasce com todos os setores no nível 9. Mas o ponto novo ainda não é conhecido: a clientela leva cerca de um ano para chegar.${n?` Unidades abertas: ${n} de ${TYC_FRANQ_MAX}.`:''}${(s.franqs||[]).length?` Franqueados: ${s.franqs.length}, com royalties previstos de ${fmt0(tycRoyTotal())} por mês.`:''}`}</p>${n>=TYC_FRANQ_MAX?'':`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Abrir unidade própria por ${fmt0(v)}</button></div>`}</div>`; })():''}
     <p class="hint">Regra: um setor só sobe para o nível N se todos os outros já estiverem no nível N-1.</p>
     ${linhas}
@@ -3134,6 +3241,244 @@ TYC_EMP.acai.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ac_'));
 TYC_EMP.lavanderia.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('lv_'));
 TYC_EMP.lojaroupa.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('rp_'));
 
+/* ===== leva 2 (grupo C): cartas ===== */
+Object.assign(TYC_DEC,{
+ /* ---- lava-jato ---- */
+ lj_chuva:tycCard('🌧️','Semana de chuva','A previsão é de chuva por vários dias. Ninguém lava carro que vai molhar de novo.',[
+  TO('Promoção "chuva grátis em 48h"',0.03,0.55,TR('bom','Cliente voltou','A garantia de relavagem trouxe gente que estava com receio.',['Garantia de chuva',3,{cli:1.1}]),TR('ruim','Deu prejuízo','Choveu de novo e você relavou carros de graça.',['Garantia usada',3,{cli:1.04}],-0.04)),
+  TO('Oferecer higienização interna',0.02,0.65,TR('bom','Serviço para dia de chuva','A higienização interna não depende do tempo e segurou o faturamento.',['Higienização interna',3,{tk:1.1}]),TR('neutro','Pouca procura','Poucos clientes pediram.')),
+  TO('Esperar o sol voltar',0,null,TR('ruim','Semana fraca','Sem movimento, o custo fixo pesou.',['Chuva',2,{cli:0.82}]))]),
+ lj_agua:tycCard('💧','A conta de água disparou','O consumo de água virou o maior custo variável. Dá para reaproveitar, mas exige obra.',[
+  TO('Instalar reuso de água',0.18,0.75,TR('bom','Conta menor','A água de reuso reduziu o consumo por anos.',['Reuso de água',36,{vc:0.9}]),TR('neutro','Retorno pequeno','A economia foi menor que a prevista.',['Reuso modesto',24,{vc:0.97}])),
+  TO('Reajustar o preço',0,null,TR('neutro','Repasse ao cliente','O preço subiu um pouco e o movimento caiu pouco.',['Preço reajustado',6,{tk:1.05,cli:0.97}])),
+  TO('Absorver o custo',0,null,TR('ruim','Margem menor','A conta mais cara reduziu o lucro.',['Água mais cara',4,{vc:1.06}]))]),
+ lj_fiscal:tycCard('📑','Fiscalização ambiental','Um fiscal visita o pátio para ver o descarte da água suja e dos produtos.',[
+  TO('Instalar caixa de decantação',0.1,null,TR('bom','Regularizado','O descarte ficou correto e a licença em dia.')),
+  TO('Resolver só quando cobrarem',0,0.45,TR('neutro','Passou','Dessa vez deu certo.'),TR('ruim','Multa','O descarte irregular gerou multa pesada.',null,-0.2)),
+  TO('Ignorar',0,null,TR('ruim','Interdição','O pátio ficou fechado até regularizar.',['Pátio fechado',2,{cli:0.7}],-0.15))]),
+ lj_carro:tycCard('🚗','Carro riscado no pátio','Um cliente diz que o carro foi riscado durante a lavagem e quer indenização.',[
+  TO('Pagar o conserto',0.06,null,TR('bom','Cliente satisfeito','Ele ficou satisfeito e continuou cliente.')),
+  TO('Negar e discutir',0,0.4,TR('neutro','Ele desistiu','Ele foi embora sem voltar.'),TR('ruim','Reclamação pública','Ele postou nas redes e a imagem da loja sofreu.',['Reclamação nas redes',6,{cli:0.9}],-0.05)),
+  TO('Acionar o seguro',0.02,null,TR('bom','Seguro cobriu','Sem seguro, você pagaria o conserto inteiro.'))]),
+ lj_plano:tycCard('🗓️','Plano mensal de lavagem','Alguns clientes pedem um pacote mensal com preço menor por lavagem.',[
+  TO('Lançar o plano',0.02,0.7,TR('bom','Receita previsível','O pacote trouxe clientes fixos e movimento nos dias fracos.',['Plano mensal',12,{cli:1.08,tk:0.95}]),TR('neutro','Poucos assinaram','Poucos assinaram e o desconto pesou.',['Plano pouco usado',4,{tk:0.97}])),
+  TO('Manter só avulso',0,null,TR('neutro','Sem mudança','Tudo igual.'))]),
+ lj_furto:tycCard('🕵️','Furto de equipamentos','Sumiram aspirador e produtos do pátio na madrugada.',[
+  TO('Câmera e alarme',0.05,null,TR('bom','Pátio protegido','Sem novos furtos.')),
+  TO('Contratar seguro',0.03,null,TR('bom','Coberto','O seguro cobriu o valor do equipamento.',null,0.05)),
+  TO('Não fazer nada',0,0.4,TR('neutro','Não aconteceu de novo','Sorte desta vez.'),TR('ruim','Furtou de novo','Dessa vez o prejuízo foi maior.',null,-0.1))]),
+ lj_conc:tycCard('🚿','Posto de gasolina instalou lavagem','Uma lavagem rápida abriu no posto da esquina, com preço baixo.',[
+  TO('Baixar o preço',0,null,TR('neutro','Segurou clientes','O movimento ficou, a margem caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Investir em serviço premium',0.07,0.65,TR('bom','Nicho premium','Quem quer carro bem cuidado não vai ao posto.',['Serviço premium',12,{tk:1.08}]),TR('ruim','Não bastou','O cliente de preço migrou.',['Clientes migraram',6,{cli:0.92}])),
+  TO('Ignorar',0,0.4,TR('neutro','Foi passageiro','Os clientes voltaram.'),TR('ruim','Perdeu clientes','O movimento caiu.',['Perdeu clientes',8,{cli:0.88}]))]),
+ lj_quebra:tycCard('🔧','A lavadora de alta pressão quebrou','O equipamento principal parou com cliente na fila.',[
+  TO('Chamar o técnico',0.05,0.75,TR('bom','Voltou a funcionar','O conserto foi rápido.'),TR('ruim','Defeito voltou','Quebrou de novo.',['Equipamento parado',2,{cli:0.92}])),
+  TO('Trocar por uma nova',0.15,null,TR('bom','Máquina nova','Mais eficiente e com garantia.',['Máquina nova',24,{vc:0.97}])),
+  TO('Lavar à mão até consertar',0,null,TR('ruim','Fila e demora','O serviço ficou lento e os clientes foram embora.',['Serviço lento',3,{cli:0.85}]))]),
+ /* ---- estacionamento ---- */
+ es_mensal:tycCard('🗓️','Empresa quer 20 vagas mensais','Uma empresa vizinha quer garantir vagas para os funcionários, com desconto no preço.',[
+  TO('Aceitar com desconto',0,0.75,TR('bom','Receita garantida','Vagas ocupadas todo dia, mesmo com preço menor.',['Contrato de vagas',12,{cli:1.12,tk:0.94}]),TR('ruim','Calote do contrato','A empresa atrasou o pagamento.',['Contrato em atraso',4,{cli:1.05}],-0.06)),
+  TO('Aceitar só com pagamento antecipado',0,null,TR('bom','Contrato seguro','Receita antes do serviço e sem risco.',['Contrato de vagas',12,{cli:1.1,tk:0.97}])),
+  TO('Recusar',0,null,TR('neutro','Sem contrato','As vagas continuam disponíveis para avulsos.'))]),
+ es_cancela:tycCard('🚧','A cancela automática quebrou','Sem a cancela, a fila cresce e o controle de entradas e saídas some.',[
+  TO('Chamar o técnico',0.04,0.75,TR('bom','Voltou a funcionar','O reparo foi rápido.'),TR('ruim','Voltou a quebrar','Defeito recorrente.',['Cancela quebrada',2,{cli:0.93}])),
+  TO('Trocar a cancela',0.1,null,TR('bom','Cancela nova','Funciona melhor e com garantia.',['Cancela nova',24,{cli:1.02}])),
+  TO('Operar manualmente',0,null,TR('ruim','Desorganização','Filas e erros de cobrança.',['Controle manual',3,{cli:0.92}]))]),
+ es_evento:tycCard('🎤','Show no centro de convenções ao lado','Haverá um grande evento. As vagas serão procuradas, e o preço pode subir.',[
+  TO('Preço de evento',0,0.65,TR('bom','Lotou','Você subiu o preço e lotou o estacionamento.',['Dia de evento',1,{tk:1.35,cli:1.1}]),TR('ruim','Poucos pagaram','O preço afastou parte dos motoristas.',['Preço alto demais',1,{cli:0.9}])),
+  TO('Manter o preço normal',0,null,TR('neutro','Dia cheio','Lotou, sem aproveitar o pico.',['Dia de evento',1,{cli:1.12}])),
+  TO('Contratar vigia para o dia',0.02,null,TR('bom','Dia tranquilo','Mais segurança e menos fila.',['Dia de evento',1,{tk:1.2,cli:1.12}]))]),
+ es_roubo:tycCard('🚨','Furto de carro no estacionamento','Um carro foi furtado do pátio e o dono cobra a loja.',[
+  TO('Pagar e contratar seguro',0.1,null,TR('bom','Resolvido','Você indenizou e assinou seguro para o futuro.')),
+  TO('Negar a responsabilidade',0,0.4,TR('neutro','Ele desistiu','Sem consequências.'),TR('ruim','Processo','O cliente foi à justiça e você pagou mais caro.',null,-0.3)),
+  TO('Instalar câmeras e vigia',0.08,null,TR('bom','Pátio seguro','Menos risco e clientes mais confiantes.',['Pátio seguro',12,{cli:1.04}]))]),
+ es_app:tycCard('📱','Aplicativo de estacionamento convida','Uma plataforma de vagas quer listar o seu pátio e cobra comissão.',[
+  TO('Entrar no aplicativo',0,0.6,TR('bom','Motoristas novos','O app trouxe motoristas que nunca passariam por ali.',['Aplicativo de vagas',8,{cli:1.1,tk:0.95}]),TR('neutro','Pouco retorno','A comissão comeu o ganho.',['Aplicativo sem retorno',4,{tk:0.95}])),
+  TO('Ficar de fora',0,null,TR('neutro','Sem mudança','Só avulsos e mensalistas.'))]),
+ es_iptu:tycCard('🏛️','IPTU e aluguel do terreno subiram','O custo fixo do terreno sobe todo ano, mesmo que o movimento fique igual.',[
+  TO('Negociar o aluguel',0,0.5,TR('bom','Conseguiu desconto','Mostrou histórico e o proprietário cedeu.',['Aluguel reduzido',12,{fx:-0.03}]),TR('neutro','Sem acordo','Ele não cedeu.')),
+  TO('Reajustar o preço da vaga',0,null,TR('neutro','Repasse','O preço subiu um pouco e o movimento caiu pouco.',['Preço reajustado',12,{tk:1.05,cli:0.97}])),
+  TO('Absorver',0,null,TR('ruim','Custo fixo maior','O terreno ficou mais caro.',['Custo fixo maior',24,{fx:0.05}]))]),
+ es_obra:tycCard('🚧','Obra na rua afasta os carros','A prefeitura bloqueou parte da rua por meses.',[
+  TO('Promoção para atrair clientes',0.03,0.5,TR('bom','Segurou o movimento','O desconto manteve alguns clientes.',['Promoção na obra',4,{cli:0.95,tk:0.95}]),TR('neutro','Pouco efeito','Sem gente passando, o desconto não adiantou.')),
+  TO('Esperar a obra acabar',0,null,TR('ruim','Movimento fraco','O fluxo caiu durante a obra.',['Obra na rua',5,{cli:0.82}]))]),
+ es_vagas:tycCard('🅿️','Vagas sobrando nos fins de semana','O estacionamento fica vazio nos sábados e domingos.',[
+  TO('Promoção de fim de semana',0.01,0.6,TR('bom','Algum movimento','O preço menor trouxe gente.',['Promoção de fim de semana',8,{cli:1.05,tk:0.97}]),TR('neutro','Sem efeito','Pouco resultado.')),
+  TO('Alugar o pátio para eventos',0.02,0.5,TR('bom','Renda extra','Feira e eventos pagam o espaço vazio.',['Aluguel para eventos',8,{tk:1.05}]),TR('neutro','Sem interessados','Ninguém quis alugar.')),
+  TO('Manter como está',0,null,TR('neutro','Sem mudança','Os dias vazios continuam.'))]),
+ /* ---- bike ---- */
+ bk_roubo:tycCard('🚲','Uma bike sumiu','O entregador diz que a bike foi roubada. Ela custava mais que um mês de aluguel.',[
+  TO('Cobrar do entregador',0,0.5,TR('neutro','Ele pagou parte','Ele pagou parte do valor e saiu do negócio.'),TR('ruim','Ele sumiu','Ele desapareceu e você ficou sem bike e sem dinheiro.',null,-0.15)),
+  TO('Repor a bike',0.15,null,TR('bom','Frota recomposta','Você recolocou a bike para rodar.')),
+  TO('Contratar seguro e rastreador',0.1,null,TR('bom','Frota protegida','Rastreador inibe roubo e seguro cobre perdas.',['Frota protegida',12,{vc:0.95}]))]),
+ bk_bateria:tycCard('🔋','As baterias estão perdendo carga','A bateria é o item mais caro da bike e dura bem menos que o previsto.',[
+  TO('Trocar as baterias',0.2,null,TR('bom','Frota nova','Bikes confiáveis e entregadores satisfeitos.',['Baterias novas',12,{cli:1.05}])),
+  TO('Trocar só as piores',0.08,0.65,TR('bom','Gastou menos','Funcionou para o resto da frota.'),TR('ruim','Outras falharam','Outras baterias pifaram depois.',['Bikes paradas',3,{cli:0.92}])),
+  TO('Esperar quebrar',0,null,TR('ruim','Bikes paradas','Cliente na rua sem bike.',['Bikes paradas',4,{cli:0.85}]))]),
+ bk_contrato:tycCard('🍔','Restaurante quer 5 bikes fixas','Um restaurante propõe contrato de frota dedicada, com preço menor.',[
+  TO('Aceitar',0,0.65,TR('bom','Frota ocupada','Receita previsível e menos tempo parado.',['Contrato com restaurante',10,{cli:1.15,tk:0.92}]),TR('ruim','Restaurante fechou','O contrato acabou em poucos meses.',['Contrato curto',4,{cli:1.05}])),
+  TO('Aceitar só com caução',0.01,null,TR('bom','Contrato seguro','A caução reduz o risco.',['Contrato com caução',10,{cli:1.1,tk:0.96}])),
+  TO('Recusar',0,null,TR('neutro','Sem contrato','Frota segue avulsa.'))]),
+ bk_acidente:tycCard('🚑','Acidente com uma bike alugada','O entregador se acidentou e a responsabilidade pode ser sua.',[
+  TO('Arcar com os custos',0.12,null,TR('bom','Resolvido','Você pagou e manteve a relação.')),
+  TO('Negar responsabilidade',0,0.4,TR('neutro','Ele aceitou','Sem consequências.'),TR('ruim','Processo','Ele foi à justiça e você perdeu.',null,-0.3)),
+  TO('Contratar seguro de responsabilidade',0.05,null,TR('bom','Protegido','Seguro cobre futuros acidentes.',['Seguro de frota',12,{vc:0.98}]))]),
+ bk_alta:tycCard('🛵','Aplicativos exigem moto no lugar de bike','Os apps começaram a dar preferência a motos para entregas longas.',[
+  TO('Focar em entregas curtas',0.02,0.55,TR('bom','Nicho curto','As bikes têm vantagem em distâncias menores.',['Foco em entregas curtas',8,{cli:1.05}]),TR('neutro','Movimento menor','A demanda caiu.',['Demanda menor',6,{cli:0.92}])),
+  TO('Ignorar',0,null,TR('ruim','Menos locações','Menos entregadores querem bike.',['Demanda menor',8,{cli:0.88}]))]),
+ bk_preco:tycCard('💰','Reajustar a diária','A manutenção subiu e a diária está defasada.',[
+  TO('Subir a diária',0,0.6,TR('bom','Margem melhor','Os entregadores aceitaram.',['Diária reajustada',12,{tk:1.08}]),TR('ruim','Perdeu entregadores','Alguns migraram para a concorrência.',['Diária reajustada',12,{tk:1.08,cli:0.9}])),
+  TO('Manter e cortar manutenção',0,null,TR('ruim','Bikes ruins','Menos manutenção, mais defeito.',['Manutenção adiada',6,{cli:0.92}])),
+  TO('Manter o preço',0,null,TR('neutro','Margem menor','O custo subiu e o preço não.',['Custo subiu',6,{vc:1.05}]))]),
+ bk_fiscal:tycCard('📜','Prefeitura exige regularização','Há uma regra nova para bikes elétricas de aluguel.',[
+  TO('Regularizar',0.04,null,TR('bom','Em dia','Frota regular e sem multa.')),
+  TO('Esperar cobrança',0,0.45,TR('neutro','Passou','Dessa vez deu certo.'),TR('ruim','Multa','Frota apreendida e multa.',['Frota parada',2,{cli:0.8}],-0.15))]),
+ bk_chuva:tycCard('🌧️','Semana de chuva','Menos entregadores na rua e menos aluguel.',[
+  TO('Oferecer diária com desconto',0.01,0.5,TR('bom','Manteve a locação','O desconto segurou parte do movimento.',['Promoção de chuva',2,{cli:0.95}]),TR('neutro','Sem efeito','A chuva venceu.',['Chuva',2,{cli:0.85}])),
+  TO('Esperar',0,null,TR('ruim','Semana fraca','Poucas bikes alugadas.',['Chuva',2,{cli:0.82}]))]),
+ /* ---- vending ---- */
+ vd_trava:tycCard('🔧','Máquina travou','A máquina engoliu dinheiro e não entregou o produto. Cliente reclama.',[
+  TO('Chamar o técnico',0.1,0.75,TR('bom','Voltou a funcionar','O técnico resolveu.'),TR('ruim','Defeito voltou','Parou de novo.',['Máquina parada',2,{cli:0.9}])),
+  TO('Reembolsar os clientes',0.02,null,TR('bom','Cliente satisfeito','Reembolso rápido gera confiança.')),
+  TO('Deixar parada',0,null,TR('ruim','Máquina parada','Sem vendas e sem reputação.',['Máquina parada',3,{cli:0.85}]))]),
+ vd_ponto:tycCard('🏥','O hospital quer aumentar a comissão','O ponto é o seu maior ativo e quem cede o ponto sabe disso.',[
+  TO('Aceitar a comissão maior',0,null,TR('neutro','Ponto garantido','Margem menor, mas você mantém o ponto.',['Comissão maior',12,{vc:1.05}])),
+  TO('Negociar',0,0.5,TR('bom','Acordo','Você manteve a comissão antiga.'),TR('ruim','Perdeu o ponto','O ponto foi para a concorrência.',['Ponto perdido',12,{cli:0.65}])),
+  TO('Recusar e procurar outro ponto',0.05,0.4,TR('bom','Ponto melhor','Achou um ponto com mais fluxo.',['Ponto novo',12,{cli:1.08}]),TR('ruim','Ficou sem ponto','Sem ponto não há venda.',['Sem ponto',6,{cli:0.7}]))]),
+ vd_vandalismo:tycCard('💥','Vandalismo na máquina','Alguém arrombou a máquina durante a noite.',[
+  TO('Reforçar a máquina e instalar câmera',0.1,null,TR('bom','Máquina protegida','Sem novos arrombamentos.')),
+  TO('Consertar e seguir',0.05,0.5,TR('neutro','Sem novos casos','Sorte desta vez.'),TR('ruim','Aconteceu de novo','Dessa vez o prejuízo foi maior.',null,-0.1))]),
+ vd_validade:tycCard('📅','Produtos vencendo','Parte do estoque vai vencer antes de vender.',[
+  TO('Promoção para girar o estoque',0.01,0.7,TR('bom','Estoque girou','As vendas ajudaram a evitar perda.',null,0.03),TR('neutro','Sobrou','Alguns produtos venceram.',null,-0.02)),
+  TO('Doar e registrar a perda',0,null,TR('neutro','Perda controlada','Perdeu o estoque, mas com imagem boa.',null,-0.03)),
+  TO('Vender vencido',0,0.3,TR('neutro','Ninguém notou','Dessa vez ninguém percebeu.'),TR('ruim','Cliente passou mal','Denúncia e multa pesada.',['Reputação arranhada',8,{cli:0.8}],-0.15))]),
+ vd_pix:tycCard('📱','Aceitar Pix e cartão na máquina','Os clientes não têm mais moedas.',[
+  TO('Instalar leitor de cartão e Pix',0.08,0.8,TR('bom','Vendas maiores','Quem não tinha dinheiro passou a comprar.',['Pagamento digital',24,{cli:1.12}]),TR('neutro','Taxa alta','A taxa do cartão pesou.',['Pagamento digital',12,{cli:1.06,vc:1.03}])),
+  TO('Manter só moedas',0,null,TR('ruim','Perde vendas','Muitos clientes sem moeda.',['Só moeda',12,{cli:0.92}]))]),
+ vd_conc:tycCard('🥤','Loja de conveniência abre no hospital','Uma loja de conveniência abre com preço e variedade melhores.',[
+  TO('Baixar o preço',0,null,TR('neutro','Segurou','O movimento ficou, a margem caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Máquina com produto fresco e fit',0.1,0.6,TR('bom','Diferenciou','Produtos que a loja não tem.',['Produtos diferenciados',12,{tk:1.08}]),TR('neutro','Pouco efeito','O público quer conveniência, não novidade.')),
+  TO('Ignorar',0,0.35,TR('neutro','Foi passageiro','Os clientes voltaram.'),TR('ruim','Perdeu clientes','O movimento caiu.',['Perdeu clientes',8,{cli:0.85}]))]),
+ vd_roubo:tycCard('🕵️','Funcionário desvia dinheiro da máquina','O dinheiro recolhido não bate com as vendas.',[
+  TO('Instalar telemetria e conferência',0.06,null,TR('bom','Controle total','Cada venda é registrada e conferida.',['Telemetria',12,{vc:0.97}])),
+  TO('Confrontar e demitir',0,0.6,TR('neutro','Resolvido','Ele saiu e a perda parou.'),TR('ruim','Sem provas','Sem provas, você perdeu o ajudante e o dinheiro.',null,-0.08)),
+  TO('Ignorar',0,null,TR('ruim','O desvio continuou','A perda continuou todo mês.',['Desvio de dinheiro',6,{vc:1.08}]))]),
+ /* ---- cursinho ---- */
+ cs_prof:tycCard('🧑‍🏫','Professor estrela quer sair','O professor mais querido recebeu proposta de outro cursinho.',[
+  TO('Dar participação nas mensalidades',0,null,TR('bom','Ele ficou','A folha subiu, mas os alunos ficam.',['Professor valorizado',24,{fx:0.03,cli:1.04}])),
+  TO('Cobrir a oferta com bônus',0.05,null,TR('bom','Meio-termo','O bônus manteve o professor por um tempo.',['Bônus ao professor',8,{cli:1.02}])),
+  TO('Deixar sair',0,0.45,TR('neutro','Substituto à altura','O substituto foi bem recebido.'),TR('ruim','Alunos saíram','Parte dos alunos foi com ele.',['Professor saiu',6,{cli:0.85}]))]),
+ cs_aprov:tycCard('🏆','Aluna aprovada em medicina','Uma aluna foi aprovada e a notícia viralizou.',[
+  TO('Divulgar o resultado',0.03,0.75,TR('bom','Matrículas subiram','Prova social forte trouxe alunos.',['Aprovação divulgada',8,{cli:1.2}]),TR('neutro','Pouco alcance','Poucos viram a divulgação.',['Divulgação fraca',3,{cli:1.04}])),
+  TO('Oferecer bolsa à aluna para fazer propaganda',0.05,0.6,TR('bom','Campanha forte','A aluna virou rosto do cursinho.',['Rosto do cursinho',10,{cli:1.18}]),TR('neutro','Sem efeito','A campanha não decolou.')),
+  TO('Não fazer nada',0,null,TR('neutro','Sem mudança','Perdeu a chance de aproveitar.'))]),
+ cs_evasao:tycCard('📉','Muitos alunos desistindo no meio do ano','A motivação cai no segundo semestre e a evasão cresce.',[
+  TO('Criar plano de acompanhamento',0.04,0.65,TR('bom','Alunos ficaram','Mentoria e simulados seguraram a turma.',['Acompanhamento',6,{cli:1.05}]),TR('neutro','Pouca mudança','A evasão continuou.')),
+  TO('Baixar a mensalidade',0,null,TR('neutro','Alguns ficaram','Menos desistência, margem menor.',['Mensalidade menor',6,{tk:0.93,cli:1.03}])),
+  TO('Ignorar',0,null,TR('ruim','Turma esvaziou','A turma encolheu.',['Evasão',6,{cli:0.88}]))]),
+ cs_mec:tycCard('🏫','Colégio concorrente abre cursinho','Um colégio tradicional lançou preparatório no próprio prédio.',[
+  TO('Focar em turmas pequenas',0.06,0.65,TR('bom','Nicho protegido','O aluno que quer atenção individual ficou.',['Turmas pequenas',12,{tk:1.06}]),TR('ruim','Não bastou','Parte dos alunos migrou.',['Alunos migraram',6,{cli:0.9}])),
+  TO('Baixar a mensalidade',0,null,TR('neutro','Segurou','Alunos ficaram, margem menor.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Ignorar',0,0.4,TR('neutro','Foi passageiro','Os alunos voltaram.'),TR('ruim','Perdeu alunos','O movimento caiu.',['Perdeu alunos',8,{cli:0.88}]))]),
+ cs_material:tycCard('📘','Apostila própria ou comprada','Material didático é o maior custo variável.',[
+  TO('Produzir apostila própria',0.12,0.6,TR('bom','Material melhor','Menos custo por aluno e diferencial.',['Apostila própria',24,{vc:0.92}]),TR('neutro','Trabalho demais','Levou meses e o resultado foi médio.',['Apostila própria',12,{vc:0.98}])),
+  TO('Comprar de editora',0,null,TR('neutro','Sem mudança','Custo previsível.')),
+  TO('Usar material grátis da internet',0,0.5,TR('neutro','Funcionou','Os alunos aceitaram.',['Material gratuito',6,{vc:0.9}]),TR('ruim','Qualidade ruim','Alunos reclamaram.',['Material fraco',6,{cli:0.92}]))]),
+ cs_online:tycCard('💻','Aulas gravadas e online','Os alunos pedem acesso às aulas fora do horário.',[
+  TO('Montar plataforma online',0.1,0.65,TR('bom','Mensalidade extra','Aulas gravadas viraram produto.',['Plataforma online',18,{cli:1.08,tk:1.05}]),TR('neutro','Pouco uso','Poucos acessaram.',['Plataforma pouco usada',6,{cli:1.02}])),
+  TO('Liberar gravações no WhatsApp',0,0.5,TR('neutro','Quase de graça','Os alunos aproveitaram, sem receita nova.'),TR('ruim','Aulas vazadas','Gravações circularam e alunos saíram.',['Aulas vazadas',6,{cli:0.92}])),
+  TO('Manter só presencial',0,null,TR('neutro','Sem mudança','Tudo igual.'))]),
+ cs_lotada:tycCard('🪑','Turma lotada','A sala está cheia e há lista de espera.',[
+  TO('Abrir segunda turma',0.08,0.7,TR('bom','Turma nova','A segunda turma encheu.',['Segunda turma',12,{cli:1.12}]),TR('neutro','Turma pequena','A turma demorou a encher.',['Segunda turma',6,{cli:1.04}])),
+  TO('Aumentar a mensalidade',0,0.6,TR('bom','Preço maior','Os alunos aceitaram.',['Mensalidade maior',12,{tk:1.08}]),TR('ruim','Perdeu alunos','Parte dos alunos desistiu.',['Mensalidade maior',12,{tk:1.08,cli:0.9}])),
+  TO('Manter como está',0,null,TR('neutro','Lista de espera','Alguns alunos foram para outro cursinho.'))]),
+ cs_mat:tycCard('📑','Matrícula antecipada com desconto','Alunos que pagam o ano inteiro recebem desconto.',[
+  TO('Oferecer o desconto',0.02,0.7,TR('bom','Caixa antecipado','Dinheiro na mão e aluno comprometido.',['Matrícula antecipada',10,{cli:1.06}],0.1),TR('neutro','Poucos aderiram','Pouco efeito.')),
+  TO('Manter mensalidade',0,null,TR('neutro','Sem mudança','Tudo igual.'))]),
+ /* ---- food truck ---- */
+ ft_chuva:tycCard('🌧️','Chuva no dia do evento','A chuva ameaça o maior evento do mês.',[
+  TO('Montar toldo e ir mesmo assim',0.03,0.55,TR('bom','Vendeu bem','Quem foi ao evento comeu.',['Evento com chuva',1,{cli:1.05}]),TR('ruim','Ninguém apareceu','Pouca gente foi.',['Evento esvaziou',1,{cli:0.7}])),
+  TO('Cancelar',0,null,TR('neutro','Evitou o prejuízo','Perdeu o dia, sem custo extra.',['Dia perdido',1,{cli:0.85}]))]),
+ ft_gas:tycCard('🔥','Preço do gás e da carne subiu','Os insumos encareceram.',[
+  TO('Repassar ao preço',0,0.65,TR('bom','Margem preservada','O cliente aceitou.',['Preço reajustado',8,{tk:1.07}]),TR('ruim','Perdeu clientes','O preço afastou parte dos fregueses.',['Preço reajustado',8,{tk:1.07,cli:0.92}])),
+  TO('Trocar o fornecedor',0.02,0.55,TR('bom','Custo menor','Novo fornecedor com preço melhor.',['Fornecedor novo',10,{vc:0.93}]),TR('ruim','Qualidade caiu','A carne piorou.',['Qualidade pior',6,{cli:0.92}])),
+  TO('Absorver',0,null,TR('ruim','Margem menor','O custo comeu o lucro.',['Insumos caros',6,{vc:1.06}]))]),
+ ft_prefeitura:tycCard('📜','Fiscal da prefeitura multa o ponto','O ponto fixo não tem autorização para comércio ambulante.',[
+  TO('Regularizar o ponto',0.06,null,TR('bom','Ponto legal','Autorização em dia.')),
+  TO('Mudar de ponto',0.03,0.55,TR('bom','Ponto bom','Achou ponto com fluxo.',['Ponto novo',8,{cli:1.05}]),TR('neutro','Ponto fraco','Menos movimento.',['Ponto novo',6,{cli:0.92}])),
+  TO('Insistir',0,0.35,TR('neutro','Não voltaram','Sorte desta vez.'),TR('ruim','Multa e apreensão','Multa e truck parado.',['Truck parado',2,{cli:0.6}],-0.15))]),
+ ft_evento:tycCard('🎉','Convite para festival','Um festival paga espaço fixo e atrai muita gente.',[
+  TO('Pagar o espaço',0.12,0.65,TR('bom','Festival bombou','Muito movimento e fregueses novos.',['Festival',2,{cli:1.35}]),TR('ruim','Pouco movimento','O público foi menor que o esperado.',['Festival fraco',2,{cli:1.05}])),
+  TO('Negociar comissão em vez de taxa',0.02,0.55,TR('bom','Acordo justo','Sem risco inicial e com participação.',['Festival',2,{cli:1.25}]),TR('neutro','Recusaram','O organizador exigiu taxa.')),
+  TO('Não participar',0,null,TR('neutro','Sem festival','Mês normal.'))]),
+ ft_quebra:tycCard('🔧','O truck quebrou','O motor falhou a caminho do ponto.',[
+  TO('Guincho e oficina',0.1,0.7,TR('bom','Truck consertado','Voltou a rodar rápido.'),TR('ruim','Conserto demorou','Ficou dias parado.',['Truck parado',2,{cli:0.8}])),
+  TO('Alugar um truck por uns dias',0.07,null,TR('bom','Manteve as vendas','Menos prejuízo no período.')),
+  TO('Ficar parado até resolver',0,null,TR('ruim','Semana perdida','Sem truck, sem vendas.',['Truck parado',3,{cli:0.7}]))]),
+ ft_inst:tycCard('📸','Influencer pede cortesia','Uma influencer local propõe divulgar em troca de lanches.',[
+  TO('Aceitar',0.02,0.6,TR('bom','Viralizou','A divulgação trouxe fila.',['Divulgação',3,{cli:1.2}]),TR('neutro','Sem retorno','Poucos viram.')),
+  TO('Pagar por campanha',0.07,0.5,TR('bom','Campanha forte','Fila grande e fregueses novos.',['Campanha paga',3,{cli:1.25}]),TR('ruim','Sem retorno','A campanha não trouxe cliente.')),
+  TO('Recusar',0,null,TR('neutro','Sem mudança','Tudo igual.'))]),
+ ft_conc:tycCard('🍔','Outro truck no mesmo ponto','Um concorrente parou ao lado.',[
+  TO('Baixar o preço',0,null,TR('neutro','Segurou','O movimento ficou, a margem caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Lançar um item exclusivo',0.04,0.65,TR('bom','Fila própria','O item novo atraiu fiéis.',['Item exclusivo',8,{tk:1.06,cli:1.05}]),TR('neutro','Pouco efeito','O item não pegou.')),
+  TO('Mudar de ponto',0.01,0.5,TR('bom','Ponto livre','Sem concorrência por perto.',['Ponto livre',8,{cli:1.05}]),TR('neutro','Perdeu fregueses','Alguns fregueses não acharam.',['Mudança de ponto',4,{cli:0.92}]))]),
+ ft_equipe:tycCard('🧑‍🍳','Ajudante pede aumento','Ele é rápido e os clientes gostam dele.',[
+  TO('Dar o aumento',0,null,TR('bom','Ele ficou','A folha subiu, mas o atendimento segue.',['Equipe valorizada',24,{fx:0.03,cli:1.03}])),
+  TO('Negar',0,0.5,TR('neutro','Ele ficou','Dessa vez ficou.'),TR('ruim','Ele saiu','Perdeu o ajudante e o ritmo.',['Ajudante saiu',4,{cli:0.9}])),
+  TO('Dar um bônus',0.04,null,TR('bom','Meio-termo','O bônus agradou sem comprometer o custo.',['Bônus pago',6,{cli:1.02}]))])
+});
+Object.assign(TYC_LIC,{
+ lj_chuva:{livro:null, ideia:'Negócio dependente do clima precisa de plano para o dia ruim: serviço que não depende do tempo ou promoção bem calculada. Garantia generosa demais vira prejuízo.'},
+ lj_agua:{livro:null, ideia:'Insumo escasso e caro justifica investir em eficiência, mas o retorno vem em anos. Antes de investir, calcule em quantos meses o investimento se paga.'},
+ lj_fiscal:{livro:null, ideia:'Licença ambiental é custo do negócio. Multa e interdição saem mais caras que regularizar, e o fiscal não negocia prazo.'},
+ lj_carro:{livro:null, ideia:'Uma reclamação bem resolvida vale mais que uma discussão ganha. Seguro e cobertura da responsabilidade protegem o negócio de erros que acontecem.'},
+ lj_plano:{livro:null, ideia:'Plano mensal transforma venda avulsa em receita previsível, ao custo de um desconto. Vale quando o movimento é irregular.'},
+ lj_furto:{livro:null, ideia:'Risco pequeno e frequente se previne com câmera e alarme. Risco grande e raro se protege com seguro. Torcer não é plano.'},
+ lj_conc:{livro:'Estratégia Competitiva, de Michael Porter (diferenciação)', ideia:'Contra preço baixo, diferencie pela qualidade. O cliente que quer carro cuidado não vai a uma lavagem rápida de posto.'},
+ lj_quebra:{livro:null, ideia:'Em negócio de equipamento, parada é receita perdida. Manutenção preventiva é mais barata que o conserto no pior dia.'},
+ es_mensal:{livro:null, ideia:'Contrato mensal dá receita previsível, mas desconto e risco de calote reduzem o ganho. Pagamento antecipado elimina o risco.'},
+ es_cancela:{livro:null, ideia:'Controle de acesso é o que garante que você cobra por todo carro. Sem ele, a perda é invisível.'},
+ es_evento:{livro:null, ideia:'Demanda alta permite preço alto, mas preço abusivo afasta o cliente e queima o relacionamento. Aproveite o pico, sem exagerar.'},
+ es_roubo:{livro:null, ideia:'Quem guarda o bem de terceiros é responsável por ele. Seguro e segurança custam menos que um processo.'},
+ es_app:{livro:null, ideia:'Plataformas trazem volume e levam comissão. Avalie se o cliente novo vale a comissão.'},
+ es_iptu:{livro:'Como Chegar ao Sim, de Roger Fisher e William Ury', ideia:'Custo fixo de local sobe todo ano. Negocie com histórico de bom pagador e com alternativa. Terreno limitado é um teto que nenhuma gestão supera.'},
+ es_obra:{livro:null, ideia:'Fatores externos derrubam o movimento sem que você possa fazer nada. Reserva de caixa é o que protege nesses meses.'},
+ es_vagas:{livro:null, ideia:'Capacidade ociosa custa o mesmo que a ocupada. Use os horários vazios para gerar receita extra, como eventos.'},
+ bk_roubo:{livro:null, ideia:'Ativo que fica na rua precisa de rastreador, seguro e contrato com caução. Perda sem proteção sai do seu bolso.'},
+ bk_bateria:{livro:null, ideia:'O componente mais caro define a vida útil do ativo. Trocar a frota de uma vez custa caro, mas parada custa mais.'},
+ bk_contrato:{livro:null, ideia:'Contrato com um cliente grande é receita previsível e concentração de risco. Se ele sair, o buraco é seu.'},
+ bk_acidente:{livro:null, ideia:'Responsabilidade civil existe mesmo quando você acha que não tem culpa. Seguro de responsabilidade é custo pequeno diante do risco.'},
+ bk_alta:{livro:null, ideia:'Plataformas mudam as regras e quem depende delas sente primeiro. Foque no nicho em que você tem vantagem.'},
+ bk_preco:{livro:null, ideia:'Preço defasado come a margem em silêncio. Reajustar com critério vale mais do que cortar manutenção.'},
+ bk_fiscal:{livro:null, ideia:'Regra nova é custo previsível. Quem regulariza cedo paga menos que quem espera a multa.'},
+ bk_chuva:{livro:null, ideia:'Clima afeta o movimento e a renda do seu cliente. Reserva de caixa para meses fracos é o que mantém o negócio vivo.'},
+ vd_trava:{livro:null, ideia:'Cliente que perde dinheiro na máquina nunca mais volta. Reembolso rápido protege a reputação e custa pouco.'},
+ vd_ponto:{livro:'Como Chegar ao Sim, de Roger Fisher e William Ury', ideia:'Quem cede o ponto tem poder: sem ponto, o negócio não existe. Tenha alternativa antes de negociar.'},
+ vd_vandalismo:{livro:null, ideia:'Ativo em local público sofre vandalismo. Proteção e seguro são parte do custo do negócio.'},
+ vd_validade:{livro:null, ideia:'Estoque perecível é dinheiro com prazo. Girar rápido é melhor que descartar, e vender vencido é risco de saúde e processo.'},
+ vd_pix:{livro:null, ideia:'O meio de pagamento define quem compra. Aceitar Pix e cartão amplia o público, com um custo de taxa.'},
+ vd_conc:{livro:null, ideia:'Comodidade é a vantagem da máquina. Contra lojas, diferencie pelo produto ou pelo lugar.'},
+ vd_roubo:{livro:null, ideia:'Dinheiro em espécie atrai desvio. Controle e conferência dos números evitam a perda e a briga.'},
+ cs_prof:{livro:null, ideia:'O professor é o produto do cursinho. Alinhar o ganho dele ao seu evita que ele leve os alunos embora.'},
+ cs_aprov:{livro:'As Armas da Persuasão, de Robert Cialdini (prova social)', ideia:'Resultado de aluno aprovado é a melhor propaganda possível. Pessoas confiam no que outras pessoas conquistaram.'},
+ cs_evasao:{livro:null, ideia:'Reter aluno custa menos que conquistar outro. Acompanhamento e metas curtas seguram a turma.'},
+ cs_mec:{livro:'Estratégia Competitiva, de Michael Porter', ideia:'Contra um concorrente grande, diferencie pela atenção individual, que ele não consegue copiar.'},
+ cs_material:{livro:null, ideia:'Material próprio reduz custo e diferencia, mas consome tempo do dono. Faça a conta do seu tempo.'},
+ cs_online:{livro:null, ideia:'Produto digital se vende muitas vezes sem custo extra, mas exige proteção do conteúdo.'},
+ cs_lotada:{livro:null, ideia:'Demanda maior que a oferta permite subir preço ou abrir outra turma. Qualquer das duas pede teste.'},
+ cs_mat:{livro:null, ideia:'Receber antes de entregar melhora o caixa e prende o aluno. O desconto é o preço dessa segurança.'},
+ ft_chuva:{livro:null, ideia:'Negócio ao ar livre sofre com o clima. Evento cancelado custa menos que o dia de prejuízo.'},
+ ft_gas:{livro:null, ideia:'Insumos mudam de preço. Repassar parte, trocar fornecedor e segurar margem são as saídas, cada uma com um risco.'},
+ ft_prefeitura:{livro:null, ideia:'Comércio de rua depende de autorização. Regularizar é custo previsível, e multa e apreensão custam mais.'},
+ ft_evento:{livro:null, ideia:'Evento concentra público, mas taxa fixa é risco. Negociar comissão divide o risco com o organizador.'},
+ ft_quebra:{livro:null, ideia:'O veículo é a loja inteira. Manutenção preventiva e plano B evitam semanas de prejuízo.'},
+ ft_inst:{livro:'As Armas da Persuasão, de Robert Cialdini (prova social)', ideia:'Recomendação de pessoa conhecida vale mais que anúncio. Teste com baixo custo antes de investir.'},
+ ft_conc:{livro:null, ideia:'Concorrente no mesmo ponto divide o público. Diferenciar o produto e o ponto é melhor que baixar o preço.'},
+ ft_equipe:{livro:null, ideia:'Trocar um bom ajudante custa mais que o aumento. Bônus por resultado alinha interesses sem aumentar o custo fixo.'}
+});
+for(const [id,p] of [['lavajato','lj_'],['estacionamento','es_'],['bike','bk_'],['vending','vd_'],['cursinho','cs_'],['foodtruck','ft_']]) TYC_EMP[id].dec=Object.keys(TYC_DEC).filter(k=>k.startsWith(p));
+
 /* ================= franqueados: interessados aleatórios, royalties e risco para a marca ================= */
 const FRANQ_ROY=0.05, FRANQ_TAXA=0.08, FRANQ_MAX=8;
 const FRANQ_NOMES=['Marcos','Juliana','Rafael','Camila','Bruno','Patrícia','Diego','Fernanda','Thiago','Larissa','Gustavo','Renata'];
@@ -3922,7 +4267,7 @@ const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
-const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
