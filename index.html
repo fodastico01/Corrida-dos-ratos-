@@ -5432,8 +5432,12 @@ function avRender(cfg){
     const rd=add(mk(false));
     rect(rd,18,25,18,41,RD); rect(rd,22,25,22,41,RD); rect(rd,9,36,12,37,uc); rect(rd,28,36,31,37,uc); rect(rd,10,38,11,38,rosa); rect(rd,29,38,30,38,rosa);
     rect(rd,12,41,17,42,RD); rect(rd,23,41,28,42,RD); rect(rd,14,25,17,25,'#f4f2ee'); rect(rd,23,25,26,25,'#f4f2ee');
+
+    const capa=mk(), capaF=mk(false); camadas.unshift(capaF); camadas.unshift(capa);
+    for(let y=25;y<=44;y++){ const w=11+(y-25)*0.28, wi=w-1.8; for(let x=Math.floor(cx-w);x<=Math.ceil(cx+w-1);x++){ const d=Math.abs(x+0.5-cx); if(d<=w) set(capa,x,y,'#15131b'); if(d<=w&&(d>wi||y>=43)) set(capaF,x,y,uc); } }
+    const fecho=add(mk(false)); set(fecho,16,26,'#e8c85a'); set(fecho,24,26,'#e8c85a'); rect(fecho,17,27,23,27,'#e8c85a');
     const esc=['BBBBB','BFWFB','BFWFB','BFFFB','.BFB.','..B..'], sc=add(mk(false));
-    esc.forEach((r,j)=>[...r].forEach((ch,i)=>{ if(ch==='B') set(sc,12+i,28+j,'#e8c85a'); else if(ch==='F') set(sc,12+i,28+j,uc); else if(ch==='W') set(sc,12+i,28+j,'#fff6d8'); }));
+    esc.forEach((r,j)=>[...r].forEach((ch,i)=>{ if(ch==='B') set(sc,22+i,28+j,'#e8c85a'); else if(ch==='F') set(sc,22+i,28+j,uc); else if(ch==='W') set(sc,22+i,28+j,'#fff6d8'); }));
     const sh=add(mk(false)); ell(sh,15.5,44,3.9,1.8,'#1d1218'); ell(sh,24.5,44,3.9,1.8,'#1d1218');
   }
   if(fan==='mago'){
