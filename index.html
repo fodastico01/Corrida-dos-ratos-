@@ -5194,7 +5194,7 @@ const AV_ROUPAS=[
 ];
 const AV_CAT={
   m:{
-    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Mago']],
+    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Mago'],['uniforme','Uniforme']],
     cabelo:[['curto','Curto'],['topete','Topete'],['moicano','Moicano'],['cacheado','Cacheado'],['lateral','Risca'],['careca','Careca']],
     cabeca:[['nenhum','Nada'],['bone','Boné'],['chapeu','Chapéu'],['gorro','Gorro'],['cartola','Cartola'],['fone','Fone'],['faixa','Faixa'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['redondo','Redondo'],['quadrado','Quadrado'],['sol','Escuros'],['aviador','Aviador'],['monoculo','Monóculo'],['tapa','Tapa-olho'],['barba','Barba']],
@@ -5203,7 +5203,7 @@ const AV_CAT={
     calcado:[['tenis','Tênis'],['sapato','Sapato'],['bota','Bota'],['chinelo','Chinelo'],['esportivo','Chuteira'],['descalco','Descalço']]
   },
   f:{
-    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Maga']],
+    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Maga'],['uniforme','Uniforme']],
     cabelo:[['longo','Longo'],['rabo','Rabo de cavalo'],['tranca','Maria-chiquinha'],['coque','Coque'],['chanel','Chanel'],['franja','Franja'],['cacheado','Cacheado'],['careca','Raspado']],
     cabeca:[['nenhum','Nada'],['laco','Laço'],['tiara','Tiara'],['coroa','Coroa'],['chapeu','Chapéu'],['gorro','Gorro'],['fone','Fone'],['flor','Flor'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['cilios','Cílios'],['maquiagem','Maquiagem'],['redondo','Redondo'],['gato','Gatinho'],['sol','Escuros'],['coracao','Coração'],['sardas','Sardas']],
@@ -5420,6 +5420,22 @@ function avRender(cfg){
     rect(ed,12,13,28,15,AV_OLHO); for(const x of [16,20,24]) rect(ed,x,13,x,15,dk); rect(ed,12,17,28,17,dk); rect(ed,19,18,21,21,dk);
     rect(ed,19,2,21,6,'#c63f46'); rect(ed,18,0,22,2,'#c63f46'); rect(ed,20,6,20,9,dk);
   }
+
+  if(fan==='uniforme'){
+    const uc=cor(cfg.camisaCor), RB='#2a2832', RD='#1b1922';
+    const sub=add(mk(false)); rect(sub,18,25,22,36,'#f4f2ee'); rect(sub,16,25,24,26,'#f4f2ee');
+    rect(sub,20,27,20,33,uc); rect(sub,19,27,21,28,uc); rect(sub,19,31,21,33,avEsc(uc));
+    const pn=add(mk()); ell(pn,cx,33,7.8,8.4,'#5a5a68',(x,y)=>y>=36&&y<=42&&!!get(corpo,x,y)); rect(pn,14,40,18,43,'#5a5a68'); rect(pn,22,40,26,43,'#5a5a68'); set(pn,20,40,null);
+    const rb=add(mk());
+    for(let y=25;y<=42;y++){ const w=y<34?7.8:7.8+(y-34)*0.45; for(let x=Math.floor(cx-w);x<=Math.ceil(cx+w-1);x++){ if(Math.abs(x+0.5-cx)<=w && !(x>=19&&x<=21&&y>=25&&y<=40)) set(rb,x,y,RB); } }
+    ell(rb,10.5,31.5,3.5,5.2,RB); ell(rb,29.5,31.5,3.5,5.2,RB);
+    const rd=add(mk(false));
+    rect(rd,18,25,18,41,RD); rect(rd,22,25,22,41,RD); rect(rd,9,36,12,37,uc); rect(rd,28,36,31,37,uc); rect(rd,10,38,11,38,rosa); rect(rd,29,38,30,38,rosa);
+    rect(rd,12,41,17,42,RD); rect(rd,23,41,28,42,RD); rect(rd,14,25,17,25,'#f4f2ee'); rect(rd,23,25,26,25,'#f4f2ee');
+    const esc=['BBBBB','BFWFB','BFWFB','BFFFB','.BFB.','..B..'], sc=add(mk(false));
+    esc.forEach((r,j)=>[...r].forEach((ch,i)=>{ if(ch==='B') set(sc,12+i,28+j,'#e8c85a'); else if(ch==='F') set(sc,12+i,28+j,uc); else if(ch==='W') set(sc,12+i,28+j,'#fff6d8'); }));
+    const sh=add(mk(false)); ell(sh,15.5,44,3.9,1.8,'#1d1218'); ell(sh,24.5,44,3.9,1.8,'#1d1218');
+  }
   if(fan==='mago'){
     const rc=cor(cfg.camisaCor), rd=avEsc(rc), rb=add(mk()), rdet=add(mk(false));
     for(let y=25;y<=42;y++){ const w=y<34?7.8:7.8+(y-34)*0.45; for(let x=Math.floor(cx-w);x<=Math.ceil(cx+w-1);x++) if(Math.abs(x+0.5-cx)<=w) set(rb,x,y,rc); }
@@ -5493,7 +5509,7 @@ function modalAvatar(){
   const c=ui.av;
   const lin=AV_LINHAS.map(([k,nome,corK])=>{
     const lista=avLista(k), i=Math.max(0,lista.findIndex(o=>o[0]===c[k])), n=lista.length;
-    const temCor=corK&&(k!=='fantasia'||['mago','armadura'].includes(c.fantasia));
+    const temCor=corK&&(k!=='fantasia'||['mago','armadura','uniforme'].includes(c.fantasia));
     let cor='';
     if(temCor){ const pal=avPaleta(k==='fantasia'?'camisa':k==='cabelo'?'cabelo':'camisa'), cur=pal.find(p=>p.id===c[corK])||pal[0];
       cor=`<div class="av-lin av-cor-lin"><span class="av-rot">Cor</span><div class="av-ctl"><button class="av-seta" data-acao="avPasso" data-alvo="${k}:-1:cor" aria-label="Cor anterior">◀</button><span class="av-val"><i class="av-bola" style="background:${cur.c}"></i></span><button class="av-seta" data-acao="avPasso" data-alvo="${k}:1:cor" aria-label="Próxima cor">▶</button></div></div>`; }
