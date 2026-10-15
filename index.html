@@ -5068,7 +5068,7 @@ document.addEventListener('click', e=>{
       checarDesbloqueio();
       ui.modal=null; ui.erro=''; salvar(); render(); break; }
     case 'titulo': ui.tela='titulo'; ui.modal=null; render(); scrollTo(0,0); break;
-    case 'continuar': ui.tela=null; render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
+    case 'continuar': if(!temAvatar()){ avAbrir('novo'); break; } ui.tela=null; render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
     case 'novoJogo': if(temJogo()){ ui.modal='novoJogo'; renderModal(); } else if(!temAvatar()){ avAbrir('novo'); } else { ui.tela=null; render(); ajustarAltura(); } break;
     case 'avAbrir': avAbrir('editar'); break;
     case 'avAba': ui.avTab=alvo; avRe(); break;
@@ -5076,7 +5076,7 @@ document.addEventListener('click', e=>{
     case 'avSexo': if(ui.av.sexo!==alvo){ ui.av=avTrocaSexo(ui.av,alvo); avRe(); } break;
     case 'avAlea': { const n=ui.av.nome; ui.av=avAleatorio(alvo); ui.av.nome=n; avRe(); break; }
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim()||'Ratinho'; avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
-    case 'novoJogoOk': ui.modal=null; ui.tela=null; novoEstado(1); salvar(); render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
+    case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); if(!temAvatar()){ avAbrir('novo'); break; } ui.tela=null; render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
     case 'config': ui.modal='config'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
