@@ -2379,15 +2379,9 @@ const ESPECIAIS = {
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?'1 mês':H.meses+' meses'} · ${hm(H.horas)} h por mês${c?' · '+fmt0(c)+(s.conta>=c?'':' (vende investimentos)'):' · grátis'}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
       out.push({label:'Agora não', sub:'Fica para a próxima visita', run:()=>s.licao});
       return out; }},
-  casaBolsa:{tipo:'opcoes', titulo:()=>quedaCart()<=-0.08?'Ações em promoção':'Dia de olhar a bolsa',
-    texto:()=>{ const q=quedaCart();
-      if(!s.acoesLib) return `Antes de pensar em ações, complete a reserva de emergência. A bolsa sobe e desce, e quem precisa vender na queda perde dinheiro.`;
-      return q<=-0.08 ? `As ações estão ${Math.round(-q*100)}% abaixo do ponto mais alto. Para quem investe todo mês, queda é promoção: o mesmo dinheiro compra mais cotas. Cota hoje: ${fmt(preco('acoes'))}.`
-        : `A bolsa está perto do topo. Ninguém acerta o melhor dia de comprar: quem investe um pouco todo mês, faça chuva ou faça sol, compra na média. Cota hoje: ${fmt(preco('acoes'))}.`; },
-    opcoes:()=>{ if(!s.acoesLib) return [{label:'Entendi', coin:true, run:()=>s.licao}];
-      const pode=Math.max(0,s.conta)>=preco('acoes');
-      return [{label:'Comprar ações', sub:pode?'Escolha quanto do saldo da conta':'Saldo da conta não compra 1 cota', coin:true, disabled:!pode, modal:'valor', run:()=>{ ui.mov={tipo:'guardar',alvo:'acoes'}; ui.valor=''; ui.erro=''; return s.licao; }},
-        {label:'Agora não', sub:'Fica para o próximo mês', run:()=>s.licao}]; }},
+  casaBolsa:{tipo:'opcoes', titulo:()=>!s.acoesLib?'Dia de olhar a bolsa':(BOL_DEC[s.bolCarta]||BOL_DEC.dica).titulo,
+    texto:()=>{ if(!s.acoesLib) return `Antes de pensar em ações, complete a reserva de emergência. A bolsa sobe e desce, e quem precisa vender na queda perde dinheiro.`; return (BOL_DEC[s.bolCarta]||BOL_DEC.dica).texto(); },
+    opcoes:()=>{ if(!s.acoesLib) return [{label:'Entendi', coin:true, run:()=>s.licao}]; return (BOL_DEC[s.bolCarta]||BOL_DEC.dica).ops(); }},
   corte:{tipo:'opcoes', titulo:'A empresa vai cortar gente', texto:()=>`${s.prof==='programador'?'O mercado de tecnologia esfriou e a empresa':'A empresa'} anunciou uma reestruturação. Na sua profissão, a chance de entrar na lista é de <b>${Math.round(pctCorte()*100)}%</b>.${(s.desempenho||0)>0||temHab('comunicacao')?' Seu desempenho e a sua comunicação já baixaram esse número.':''}`,
     opcoes:()=>[{label:'Ver se você fica', coin:true, run:()=>{ const r=s.corteR??Math.random(), p=pctCorte(); s.corteR=null;
       if(r<p){ s.demitidoEm=s.mes; s.vistos.push('demissao'); const t0=txt(ESPECIAIS.demissao.texto), res=ESPECIAIS.demissao.aplicar(); return {...res, texto:`Seu nome estava na lista. ${t0} ${res.texto}`}; }
@@ -2746,6 +2740,43 @@ function tycSortear(){
   const ids=Object.keys(TYC_DEC).filter(k=>!rec.includes(k)), id=ids[Math.floor(Math.random()*ids.length)];
   s.alvoAtivo=a.uid; s.tycCarta=id; s.tycUlt=[...rec,id].slice(-5); s.tycDecEm=s.mes; return 'tycDecisao';
 }
+
+/* ===== casa da bolsa: cartas de decisão do investidor ===== */
+const bolStake = () => Math.round(Math.max(C(1500), Math.min(C(6000), Math.max(0,s.conta)*0.25))/100)*100;
+const bolRes = (tom,titulo,escolha,texto,mud,carta) => ({tom,titulo,escolha,texto,mud,carta});
+Object.assign(TYC_LIC,{
+  dica:{livro:'O Investidor Inteligente, de Benjamin Graham (investimento x especulação)', ideia:'Investir é analisar, proteger o capital e buscar retorno razoável. O resto é especulação: pode até ser feita, mas só com dinheiro que você aceita perder. Dica quente quase nunca é dica: quem tem uma informação realmente boa não precisa contar, e se fosse informação privilegiada de verdade, usar seria crime (uso de informação privilegiada).'},
+  gestor:{livro:'O Pequeno Livro do Investimento Inteligente, de John Bogle (a tirania dos custos)', ideia:'Quem administra o fundo cobra, ganhando ou perdendo. Uma taxa de 2% ao ano parece pouco, mas em 30 anos consome cerca de 40% do patrimônio final em comparação com um índice de custo baixo. A maioria dos fundos de gestão ativa rende menos que o índice depois das taxas.'},
+  fomo:{livro:'Psicologia Financeira, de Morgan Housel (o erro de tentar acertar o momento)', ideia:'Ninguém acerta o melhor dia para entrar. Quem espera a queda perfeita costuma ficar de fora, e quem entra de uma vez com tudo no topo sente o tombo mais forte. Um aporte fixo todos os meses compra mais cotas quando o preço cai e menos quando sobe, e tira a emoção da decisão.'}
+});
+const BOL_DEC={
+  dica:{titulo:'Dica quente de um colega', texto:()=>`Um colega jura que uma empresa pequena vai dobrar de valor neste ano. "É informação de dentro, mas fica entre nós."`,
+    ops:()=>{ const X=bolStake(), pode=s.conta>=X; return [
+      {label:`Colocar ${fmt0(X)} na dica`, sub:'Dinheiro do saldo da conta', disabled:!pode, modal:'tycRes', run:()=>{
+        const r=Math.random(); let f,tom,tit,tx;
+        if(r<0.15){ f=1.4+Math.random()*0.6; tom='bom'; tit='A dica funcionou'; tx='Desta vez deu certo, e você sentiu a emoção de acertar. Só que um acerto não prova que a dica era boa: a maioria desse tipo de aposta dá errado.'; }
+        else if(r<0.40){ f=0.92+Math.random()*0.18; tom='neutro'; tit='Ficou no mesmo lugar'; tx='A empresa quase não saiu do lugar e o dinheiro ficou parado meses, sem render.'; }
+        else { f=0.1+Math.random()*0.5; tom='ruim'; tit='A dica não deu em nada'; tx='A empresa teve um mau resultado e as ações despencaram. O colega parou de falar no assunto.'; }
+        const g=Math.round(X*(f-1)); s.conta+=g;
+        return bolRes(tom,tit,`Colocar ${fmt0(X)} na dica`,tx,[[`${g>=0?'+':'−'}${fmt0(Math.abs(g))} no saldo da conta`,g>=0]],'dica'); }},
+      {label:`Comprar ${fmt0(X)} em cotas do índice`, sub:'Dinheiro do saldo da conta', disabled:!pode, modal:'tycRes', run:()=>{ aplicar('acoes',X);
+        return bolRes('bom','Sem apostar em dica',`Comprar ${fmt0(X)} em cotas do índice`,'Você preferiu o mesmo valor em centenas de empresas, sem depender de promessa de ninguém. Rende menos nos sonhos e menos nos sustos.',[[`${fmt0(X)} aplicados no índice`,true]],'dica'); }},
+      {label:'Agradecer e não fazer nada', sub:'Sem custo', modal:'tycRes', run:()=>bolRes('bom','Boa conversa, nenhum risco','Agradecer e não fazer nada','Você guardou o dinheiro para o plano e evitou apostar em palpite. Sem emoção, mas sem susto.',[['Nenhum dinheiro arriscado',true]],'dica')}]; }},
+  gestor:{titulo:'O gerente do banco liga com uma oferta', texto:()=>`Ele oferece um fundo de ações com "gestão ativa, que sempre supera o mercado". Cobra 2% ao ano de taxa de administração e 20% do que passar do índice.`,
+    ops:()=>{ const X=bolStake(), pode=s.conta>=X; return [
+      {label:`Aplicar ${fmt0(X)} no fundo dele`, sub:'Dinheiro do saldo da conta', disabled:!pode, modal:'tycRes', run:()=>{ aplicar('acoes',X); const tx=Math.round(X*0.02); const L=lotes('acoes'); const u=L[L.length-1]; if(u) u.v=Math.max(0,u.v-tx);
+        return bolRes('ruim','Você paga taxa ganhando ou perdendo',`Aplicar ${fmt0(X)} no fundo dele`,`Já no primeiro ano, ${fmt0(tx)} foram para o banco, independentemente do resultado. A "gestão ativa" precisa render mais que o índice só para empatar com ele.`,[[`−${fmt0(tx)} de taxa no primeiro ano`,false]],'gestor'); }},
+      {label:`Comprar ${fmt0(X)} em cotas do índice`, sub:'Dinheiro do saldo da conta', disabled:!pode, modal:'tycRes', run:()=>{ aplicar('acoes',X);
+        return bolRes('bom','Custo baixo, sem promessa',`Comprar ${fmt0(X)} em cotas do índice`,'Você ficou com o retorno do mercado inteiro e uma taxa quase zero. Parece sem graça, mas é o que mais ganha com o tempo.',[[`${fmt0(X)} aplicados no índice`,true]],'gestor'); }},
+      {label:'Recusar e pedir a lâmina com todas as taxas', sub:'Sem custo', modal:'tycRes', run:()=>bolRes('bom','Pergunta certa','Recusar e pedir a lâmina','Quando você pediu os números, o gerente mudou de assunto. Quem vende produto financeiro vive de comissão: quanto mais taxa, mais ele ganha.',[['Nenhum dinheiro gasto',true]],'gestor')}]; }},
+  fomo:{titulo:'Todo mundo está falando em bolsa', texto:()=>`A bolsa está batendo recordes e no trabalho só se fala em quem ganhou dinheiro. Um colega vendeu o carro para entrar.`,
+    ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round(((s.salario||0)*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
+      {label:'Colocar tudo que sobrou na conta, de uma vez', sub:livre>=X?fmt0(livre):'Não sobra dinheiro além das contas dos próximos meses', disabled:livre<X, modal:'tycRes', run:()=>{ aplicar('acoes',livre);
+        return bolRes('neutro','Entrou de uma vez no topo','Colocar tudo de uma vez',`Você comprou ${fmt0(livre)} em ações com a bolsa nas máximas. Se ela cair 20% logo depois, o tombo é grande e a vontade de vender aparece.`,[[`${fmt0(livre)} aplicados em ações de uma vez`,null]],'fomo'); }},
+      {label:jaTem?`Aumentar o aporte programado em ${fmt0(aporte)} por mês`:`Programar um aporte de ${fmt0(aporte)} por mês`, sub:jaTem?`Hoje: ${fmt0(jaTem)} por mês`:'Todo mês, só se sobrar dinheiro além das contas', disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
+        return bolRes('bom','Você criou uma regra',jaTem?'Aumentar o aporte programado':'Programar um aporte mensal',`Todo mês, ${fmt0(s.aporteAuto)} vão para ações automaticamente, desde que sobre dinheiro além de três meses de contas. Sem emoção e sem tentar adivinhar o melhor dia.`,[[`Aporte programado: ${fmt0(s.aporteAuto)} por mês`,true]],'fomo'); }},
+      {label:'Esperar a bolsa cair para entrar', sub:'Sem custo', modal:'tycRes', run:()=>bolRes('neutro','Esperando o momento perfeito','Esperar a bolsa cair','Pode cair, pode subir mais antes. Quem espera o "momento perfeito" costuma ficar de fora de boa parte da alta.',[['Nada foi investido',null]],'fomo')}]; }}
+};
 Object.assign(ESPECIAIS,{ tycDecisao:{tipo:'opcoes', titulo:()=>{ const c=TYC_DEC[s.tycCarta], a=alvoAtivo(); return c?c.titulo:'Decisão na empresa'; },
   texto:()=>{ const c=TYC_DEC[s.tycCarta], a=alvoAtivo(); return c&&a?c.texto(a)+(tycHab()>0?' Seus cursos de gestão melhoram suas chances.':''):''; },
   opcoes:()=>{ const c=TYC_DEC[s.tycCarta], a=alvoAtivo(); return c&&a&&a.tyc?c.ops(a):[{label:'Continuar',coin:true,run:()=>({tom:'neutro',titulo:'Sem novidades',texto:''})}]; } }});
@@ -2924,7 +2955,7 @@ function eventoDaCasa(t, forcar){
     case 'imo': return novaOferta('imovel') ? 'oportunidade' : null;
     case 'neg': return novaOferta('negocio') ? 'oportunidade' : null;
     case 'gop': return prepararGrande() ? 'grande' : null;
-    case 'bol': return prods().acoes ? 'casaBolsa' : null;
+    case 'bol': { if(!prods().acoes) return null; if(s.acoesLib){ const ids=Object.keys(BOL_DEC).filter(k=>k!==s.bolUlt); s.bolCarta=ids[Math.floor(Math.random()*ids.length)]; s.bolUlt=s.bolCarta; } return 'casaBolsa'; }
     case 'cre': { if(s.habEst || !candHab().length){ t='apr'; break; } return 'casaCresc'; }
     case 'est': { const L=estudosAbertos(); if(L.length && horasLivres()>=8){ s.estBolsa=Math.random()<0.35; return 'casaEstudo'; } t='apr'; break; }
     case 'tra': if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.6) return 'avaliacao'; break;
@@ -3114,6 +3145,7 @@ function iniciarMes(){
       else if(tipo==='extra') lic={tom:'bom', titulo:'Dividendo extraordinário', texto:`Lucro acima do esperado: as empresas pagaram um bônus e ${fmt(d)} caíram na sua conta.`};
       else if(tipo==='corte') lic={tom:'neutro', titulo:'Dividendos cortados pela crise', texto:'Com o lucro em queda, as empresas reduziram os pagamentos. Dividendo não é salário: ele varia com os resultados.'};
     }
+    if(s.aporteAuto && s.acoesLib){ const x=Math.min(s.aporteAuto, Math.floor(Math.max(0,s.conta-3*custoMensal())/50)*50); if(x>=50){ aplicar('acoes',x); ex.push(['Aporte programado em ações', -x]); } }
     if(s.piramide) ex.push([`App da "arbitragem": +5% (não dá para sacar)`, 0]);
     if(s.conta<0){ const j=-s.conta*T_CHEQUE; s.conta-=j; s.jp+=j; ex.push(['Juros do cheque especial', -j]); }
   }
