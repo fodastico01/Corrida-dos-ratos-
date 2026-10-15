@@ -3445,6 +3445,8 @@ const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-invest
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const fotoNeg = (id,a) => { const f=(typeof ARTE!=='undefined'&&ARTE.cards||{})[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='influencia'?' opp-foto-fach':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
+  if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
+  if(id==='franqInteresse' && C['tyc-franquia']) return C['tyc-franquia'];
   if(id==='oportunidade'){ const o=ofertaNova(); if(o&&C[o.id]) return C[o.id]; }
   if(id==='grande' && s.grande && C[s.grande.id]) return C[s.grande.id];
   if(id==='casaEstudo'){ const k=s.estudoCasa==='pos'?'pos-'+(s.prof||'professor'):s.estudoCasa; return (ARTE.cursos||{})[k]||C.workshop||''; }
