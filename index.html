@@ -6204,6 +6204,8 @@ document.addEventListener('keydown', e=>{
 
 /* ================= personagem: ratinho personalizável (pixel art desenhado por código) ================= */
 const AV_W=40, AV_H=56, AV_OY=8;
+const AV_ESCOLA=["........................................", "........................................", "............K...............K...........", "...........KKK.............KKK..........", "...........KKKYM.WW..WWW.CYKKK..........", ".............K.MOW....W..C.K............", "...........OKK.MNWOCMOWOCC.KKO..........", "..........OKKKKYMOWWNWO.CYKKKKO.........", "..........KKKKKKYOWCMMWOYKKKKKK.........", ".........KKKKKKKYOWMCCWOYKKKKKKK........", ".........KKKKKKKYOWCMMWOYKKKKKKK........", ".........KKKKKKKMOWMDCWOCKKKKKKKO.......", ".........KKKKKKKMOWWMWWOCKKKKKK.........", "..........KKKKKKMONNNNNOCKKKKKK.........", ".............KKKMONNNNNOCKKK............", "..........RRRKKMMONNNNNOCCKKRRR.........", "............O.KMONNNNNNNOCKKO.O.........", "............K.KYONNNNNNNOCK.KO.O........", "............KKY..OO.O.OO.Y.KK...........", "............KKYORRRODORRROY.K...........", "............YY..NNNODONNN..YYOD.........", ".............O.NNN..D..NNN.OOD..........", "..............ONNNN.O.NNNNODD...........", ".............OKKKNKO.OKNKKKO............", ".............K.OKKK...KKKO.K............", "..............KKKKK...KKKKK.............", "........................................"], AV_ESCOLA_Y0=21; // arte do Gemini em grade 40 x 56; M=cor principal, C=secundária, Y=detalhe
+const AV_SEC={vermelho:'amarelo',laranja:'marrom',amarelo:'preto',verde:'cinza',azul:'marrom',marinho:'cinza',roxo:'amarelo',rosa:'branco',branco:'preto',preto:'amarelo',cinza:'vermelho',marrom:'amarelo',jeans:'branco',caqui:'marrom'};
 const AV_PELOS=[
   {id:'cinza',nome:'Cinza',c:'#9a9ca8',b:'#d6d8e0'},
   {id:'branco',nome:'Branco',c:'#ece8e4',b:'#fffaf5'},
@@ -6223,7 +6225,7 @@ const AV_ROUPAS=[
 ];
 const AV_CAT={
   m:{
-    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Mago'],['uniforme','Uniforme']],
+    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Mago'],['uniforme','Uniforme'],['escola','Escola de magia']],
     cabelo:[['curto','Curto'],['topete','Topete'],['moicano','Moicano'],['cacheado','Cacheado'],['lateral','Risca'],['careca','Careca']],
     cabeca:[['nenhum','Nada'],['chapeumago','Chapéu de mago'],['bone','Boné'],['chapeu','Chapéu'],['gorro','Gorro'],['cartola','Cartola'],['fone','Fone'],['faixa','Faixa'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['redondo','Redondo'],['quadrado','Quadrado'],['sol','Escuros'],['aviador','Aviador'],['monoculo','Monóculo'],['tapa','Tapa-olho'],['barba','Barba']],
@@ -6232,7 +6234,7 @@ const AV_CAT={
     calcado:[['tenis','Tênis'],['sapato','Sapato'],['bota','Bota'],['chinelo','Chinelo'],['esportivo','Chuteira'],['descalco','Descalço']]
   },
   f:{
-    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Maga'],['uniforme','Uniforme']],
+    fantasia:[['nenhuma','Nenhuma'],['esqueleto','Esqueleto'],['armadura','Armadura'],['mago','Maga'],['uniforme','Uniforme'],['escola','Escola de magia']],
     cabelo:[['longo','Longo'],['rabo','Rabo de cavalo'],['tranca','Maria-chiquinha'],['coque','Coque'],['chanel','Chanel'],['franja','Franja'],['cacheado','Cacheado'],['careca','Raspado']],
     cabeca:[['nenhum','Nada'],['chapeumago','Chapéu de bruxa'],['laco','Laço'],['tiara','Tiara'],['coroa','Coroa'],['chapeu','Chapéu'],['gorro','Gorro'],['fone','Fone'],['flor','Flor'],['boina','Boina']],
     olhos:[['nenhum','Nada'],['cilios','Cílios'],['maquiagem','Maquiagem'],['redondo','Redondo'],['gato','Gatinho'],['sol','Escuros'],['coracao','Coração'],['sardas','Sardas']],
@@ -6483,6 +6485,13 @@ function avRender(cfg){
     const vr=add(mk(false)); for(let i=0;i<8;i++) set(vr,31+Math.round(i*0.8),37-i,'#7a5238'); set(vr,37,29,'#fff2b0'); set(vr,38,28,'#fff2b0'); set(vr,37,27,'#ffe27a'); set(vr,39,29,'#ffe27a'); set(vr,38,30,'#ffe27a');
   }
 
+  if(fan==='escola'){
+    const pm=cor(cfg.camisaCor), sc=cor(AV_SEC[cfg.camisaCor]||'branco'), tr=cfg.camisaCor==='amarelo'?'#ffffff':'#e8c85a';
+    const COL={K:'#1c1c22',O:AV_CONTORNO,W:'#f6f4ee',M:pm,C:sc,Y:tr,N:'#2a3040',R:rosa,D:rosaD};
+    const es=add(mk(false));
+    AV_ESCOLA.forEach((lin,j)=>[...lin].forEach((ch,i)=>{ if(COL[ch]) set(es,i,AV_ESCOLA_Y0+j,COL[ch]); }));
+  }
+
   // ===== composição =====
   const out=new Array(W*H).fill(null);
   const ordem=camadas.filter(l=>l);
@@ -6543,7 +6552,7 @@ function modalAvatar(){
   const c=ui.av;
   const lin=AV_LINHAS.map(([k,nome,corK])=>{
     const lista=avLista(k), i=Math.max(0,lista.findIndex(o=>o[0]===c[k])), n=lista.length;
-    const temCor=corK&&(k!=='fantasia'||['mago','armadura','uniforme'].includes(c.fantasia));
+    const temCor=corK&&(k!=='fantasia'||['mago','armadura','uniforme','escola'].includes(c.fantasia));
     let cor='';
     if(temCor){ const pal=avPaleta(k==='fantasia'?'camisa':k==='cabelo'?'cabelo':'camisa'), cur=pal.find(p=>p.id===c[corK])||pal[0];
       cor=`<div class="av-lin av-cor-lin"><span class="av-rot">Cor</span><div class="av-ctl"><button class="av-seta" data-acao="avPasso" data-alvo="${k}:-1:cor" aria-label="Cor anterior">◀</button><span class="av-val"><i class="av-bola" style="background:${cur.c}"></i></span><button class="av-seta" data-acao="avPasso" data-alvo="${k}:1:cor" aria-label="Próxima cor">▶</button></div></div>`; }
@@ -6861,7 +6870,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
