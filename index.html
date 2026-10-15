@@ -1084,6 +1084,34 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 
 .opp-foto-fach{height:190px;object-position:50% 50%}
 .opp-foto-oferta{object-position:50% 50%}
+
+/* criador de personagem */
+.im-rato.av{height:78px}
+.im-rato.av img{image-rendering:auto}
+.av-sheet{max-height:94vh;overflow-y:auto;display:grid;gap:10px;align-content:start}
+.av-topo{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:12px;align-items:start}
+.av-prev{background:radial-gradient(circle at 50% 70%,rgba(255,255,255,.55),rgba(127,140,165,.18));border:1px solid var(--line);border-radius:16px;padding:8px;display:grid;place-items:center}
+.av-prev img{height:170px;width:auto;image-rendering:pixelated}
+.av-lado{display:grid;gap:8px;min-width:0}
+.av-nome{width:100%;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;box-sizing:border-box}
+.av-alea{display:grid;gap:6px}
+.av-alea .btn{font-size:13px;padding:8px 6px}
+.av-abas{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.av-abas::-webkit-scrollbar{display:none}
+.av-aba{flex:0 0 auto;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:700}
+.av-aba.on{background:var(--coin);color:var(--coin-ink);border-color:var(--coin)}
+.av-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.av-opt{border:2px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:12px;padding:4px 2px 6px;display:grid;justify-items:center;gap:2px;font:inherit}
+.av-opt img{width:100%;max-width:64px;height:auto;image-rendering:pixelated}
+.av-opt span{font-size:11px;line-height:1.1;text-align:center}
+.av-opt.on{border-color:var(--coin);box-shadow:0 0 0 1px var(--coin)}
+.av-cores{display:flex;flex-wrap:wrap;gap:10px}
+.av-cor{width:34px;height:34px;border-radius:50%;border:3px solid var(--sunk);box-shadow:0 0 0 1px var(--line)}
+.av-cor.on{border-color:var(--ink)}
+.av-card-lin{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.av-card-img{width:56px;height:auto;image-rendering:pixelated;flex:0 0 auto}
+.av-card-img.sem{font-size:40px;text-align:center}
+.av-card-lin p{margin:2px 0 0}
 </style>
 
 <div class="app" id="app"></div>
@@ -3571,7 +3599,7 @@ function mundoHTML(){
       +(ini?`<div class="cs-mes${mi+1===m?' atual':''}" style="left:${x}px;top:${y-24}px">${MESES[mi].toUpperCase()}</div>`:''); }).join('');
   const {x:px,y:py}=casaXY(pos);
   const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Sua casa" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${s.aposentado?176:morN()>=3?170:150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">SUA CASA</em>`;
-  const rato=`<div class="mp-rato im-rato" id="peao" style="left:${px}px;top:${py+8}px"><img src="${mpImg('rato-fp')}" alt=""></div>`;
+  const rato=`<div class="mp-rato im-rato${avPeao()?' av':''}" id="peao" style="left:${px}px;top:${py+8}px"><img src="${avPeao()||mpImg('rato-fp')}" alt=""></div>`;
   // transição suave: a imagem anterior fica por cima e se dissolve, com um brilho rápido
   const mEsc = (()=>{ let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; })(); // a cena segue a casa onde o rato está: meses pulados pelos dados e a caminhada não adiantam a festa
   const ch=imgCena(mEsc), agora=Date.now();
@@ -3957,7 +3985,7 @@ function telaTitulo(){
 }
 function render(){
   if(window.__corridaMudo) return;
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=cfg().total;
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -4260,7 +4288,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${arvoreCard()}`,
+    vida: `${avCardVida()}${barrasVida}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${albumCard()}`,
     carreira: `${evoCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
@@ -4395,6 +4423,7 @@ function renderModal0(){
       <h3 id="m-t">Sua conta está no vermelho</h3><p>Você está devendo <b>${fmt0(-s.conta)}</b> no cheque especial, que cobra 8% ao mês. Se passar de ${fmt0(limCheque())}, o banco executa a dívida. Você tem <b>${fmt0(d)}</b> na ${prod(id).curto}.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="negCobrir"><b>${tudo?'Cobrir com a reserva e avançar':`Cobrir ${fmt0(d)} com a reserva e avançar`}</b><span>${tudo?'A conta volta para zero, sem juros.':'Reduz a dívida o quanto der.'}</span></button><button class="opcao" data-acao="negSeguir"><b>Avançar mesmo assim</b><span>Juros de ${fmt0(-s.conta*T_CHEQUE)} no mês que vem.</span></button></div></div></div>`;
     return; }
+  if(ui.modal==='avatar'){ modal.innerHTML=modalAvatar(); return; }
   if(ui.modal==='novoJogo'){
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Começar um jogo novo?</h3><p>O jogo atual (${s.fase?'Fase '+s.fase+' · '+rotulo(s.mes):''}) será apagado e você volta para a Fase 1. Recordes, finais descobertos e o álbum de outras vidas ficam guardados.</p>
@@ -5033,7 +5062,13 @@ document.addEventListener('click', e=>{
       ui.modal=null; ui.erro=''; salvar(); render(); break; }
     case 'titulo': ui.tela='titulo'; ui.modal=null; render(); scrollTo(0,0); break;
     case 'continuar': ui.tela=null; render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
-    case 'novoJogo': if(temJogo()){ ui.modal='novoJogo'; renderModal(); } else { ui.tela=null; render(); ajustarAltura(); } break;
+    case 'novoJogo': if(temJogo()){ ui.modal='novoJogo'; renderModal(); } else if(!temAvatar()){ avAbrir('novo'); } else { ui.tela=null; render(); ajustarAltura(); } break;
+    case 'avAbrir': avAbrir('editar'); break;
+    case 'avAba': ui.avTab=alvo; avRe(); break;
+    case 'avSet': { const [k,v]=alvo.split(':'); ui.av[k]=v; avRe(); break; }
+    case 'avSexo': if(ui.av.sexo!==alvo){ ui.av=avTrocaSexo(ui.av,alvo); avRe(); } break;
+    case 'avAlea': { const n=ui.av.nome; ui.av=avAleatorio(alvo); ui.av.nome=n; avRe(); break; }
+    case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim()||'Ratinho'; avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; ui.tela=null; novoEstado(1); salvar(); render(); scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); break;
     case 'config': ui.modal='config'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
@@ -5100,7 +5135,9 @@ document.addEventListener('click', e=>{
       ui.resetArmado=false; ui.modal=null; novoEstado(1); salvar(); render(); break;
   }
 });
+function avRe(){ const sc=document.querySelector('.av-sheet'); const y=sc?sc.scrollTop:0, ab=document.querySelector('.av-abas'); const x=ab?ab.scrollLeft:0; renderModal(); const n=document.querySelector('.av-sheet'); if(n) n.scrollTop=y; const ab2=document.querySelector('.av-abas'); if(ab2) ab2.scrollLeft=x; }
 document.addEventListener('input', e=>{
+  if(e.target.matches&&e.target.matches('[data-av-nome]')){ ui.av.nome=e.target.value; return; }
   if(e.target.id==='valorAmort'){ previewAmort(); return; }
   if(e.target.id!=='valor') return;
   if(ui.erro){ ui.erro=''; const el=document.getElementById('erro'); if(el) el.textContent=''; }
@@ -5109,6 +5146,301 @@ document.addEventListener('input', e=>{
 document.addEventListener('keydown', e=>{
   if(e.key==='Enter' && ui.modal==='valor' && !e.repeat){ e.preventDefault(); document.querySelector('[data-acao="confirmar"]')?.click(); }
 });
+
+/* ================= personagem: ratinho personalizável (pixel art desenhado por código) ================= */
+const AV_W=40, AV_H=52, AV_OY=4;
+const AV_PELOS=[
+  {id:'cinza',nome:'Cinza',c:'#9a9ca8',b:'#d6d8e0'},
+  {id:'branco',nome:'Branco',c:'#ece8e4',b:'#fffaf5'},
+  {id:'marrom',nome:'Marrom',c:'#8a6446',b:'#cfa985'},
+  {id:'preto',nome:'Preto',c:'#5d5b68',b:'#9a97a6'},
+  {id:'caramelo',nome:'Caramelo',c:'#d09a56',b:'#f2d3a2'},
+  {id:'azulado',nome:'Azulado',c:'#7d90ac',b:'#c3cfe2'}
+];
+const AV_CABELOS=[
+  {id:'preto',c:'#2a2024'},{id:'castanho',c:'#5a3a26'},{id:'claro',c:'#a8764a'},{id:'loiro',c:'#e3c36a'},
+  {id:'ruivo',c:'#b8501f'},{id:'grisalho',c:'#c4c4cc'},{id:'azul',c:'#3f6fd1'},{id:'rosa',c:'#e870a8'},{id:'roxo',c:'#8452c8'},{id:'verde',c:'#3fae6a'}
+];
+const AV_ROUPAS=[
+  {id:'branco',c:'#f2f0ea'},{id:'preto',c:'#2f2f38'},{id:'cinza',c:'#8a8d98'},{id:'vermelho',c:'#d6483f'},{id:'laranja',c:'#ee8a2e'},
+  {id:'amarelo',c:'#f0cb3d'},{id:'verde',c:'#3fa660'},{id:'azul',c:'#3f78d4'},{id:'marinho',c:'#273c74'},{id:'roxo',c:'#8a5acb'},
+  {id:'rosa',c:'#ee7fb0'},{id:'marrom',c:'#7a5238'},{id:'jeans',c:'#4c6ea8'},{id:'caqui',c:'#c2a977'}
+];
+const AV_CAT={
+  m:{
+    cabelo:[['curto','Curto'],['topete','Topete'],['moicano','Moicano'],['cacheado','Cacheado'],['lateral','Risca'],['careca','Careca']],
+    cabeca:[['nenhum','Nada'],['bone','Boné'],['chapeu','Chapéu'],['gorro','Gorro'],['cartola','Cartola'],['fone','Fone'],['faixa','Faixa'],['boina','Boina']],
+    olhos:[['nenhum','Nada'],['redondo','Redondo'],['quadrado','Quadrado'],['sol','Escuros'],['aviador','Aviador'],['monoculo','Monóculo'],['tapa','Tapa-olho'],['barba','Barba']],
+    camisa:[['camiseta','Camiseta'],['regata','Regata'],['polo','Polo'],['social','Social'],['moletom','Moletom'],['listras','Listrada'],['manga','Manga longa'],['colete','Colete']],
+    calca:[['calca','Calça'],['bermuda','Bermuda'],['shorts','Shorts'],['social','Social'],['jardineira','Jardineira'],['larga','Larga'],['listra','Esportiva']],
+    calcado:[['tenis','Tênis'],['sapato','Sapato'],['bota','Bota'],['chinelo','Chinelo'],['esportivo','Chuteira'],['descalco','Descalço']]
+  },
+  f:{
+    cabelo:[['longo','Longo'],['rabo','Rabo de cavalo'],['tranca','Maria-chiquinha'],['coque','Coque'],['chanel','Chanel'],['franja','Franja'],['cacheado','Cacheado'],['careca','Raspado']],
+    cabeca:[['nenhum','Nada'],['laco','Laço'],['tiara','Tiara'],['coroa','Coroa'],['chapeu','Chapéu'],['gorro','Gorro'],['fone','Fone'],['flor','Flor'],['boina','Boina']],
+    olhos:[['nenhum','Nada'],['cilios','Cílios'],['maquiagem','Maquiagem'],['redondo','Redondo'],['gato','Gatinho'],['sol','Escuros'],['coracao','Coração'],['sardas','Sardas']],
+    camisa:[['camiseta','Camiseta'],['cropped','Cropped'],['blusa','Blusa'],['regata','Regata'],['vestido','Vestido'],['social','Social'],['moletom','Moletom'],['listras','Listrada']],
+    calca:[['calca','Calça'],['saia','Saia'],['saialonga','Saia longa'],['shorts','Shorts'],['legging','Legging'],['bermuda','Bermuda'],['jardineira','Jardineira']],
+    calcado:[['tenis','Tênis'],['sapatilha','Sapatilha'],['salto','Salto'],['bota','Bota'],['sandalia','Sandália'],['esportivo','Tênis cano alto'],['descalco','Descalço']]
+  }
+};
+const AV_PADRAO={nome:'',sexo:'m',pelo:'cinza',cabelo:'curto',cabeloCor:'castanho',cabeca:'nenhum',olhos:'nenhum',camisa:'camiseta',camisaCor:'azul',cabecaCor:'vermelho',calca:'calca',calcaCor:'jeans',calcado:'tenis',calcadoCor:'branco'};
+
+function avHex(c){ return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]; }
+function avMix(c,t,k){ const a=avHex(c), b=avHex(t); return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*k).toString(16).padStart(2,'0')).join(''); }
+const avEsc=c=>avMix(c,'#1a1020',0.28), avCla=c=>avMix(c,'#ffffff',0.22);
+const AV_CONTORNO='#2a1c24', AV_ROSA='#f2a0a8', AV_ROSA2='#d77a86', AV_OLHO='#1c1424';
+
+function avRender(cfg){
+  const W=AV_W, H=AV_H, cx=20;
+  const pelo=AV_PELOS.find(x=>x.id===cfg.pelo)||AV_PELOS[0];
+  const corCab=(AV_CABELOS.find(x=>x.id===cfg.cabeloCor)||AV_CABELOS[1]).c;
+  const cor=id=>(AV_ROUPAS.find(x=>x.id===id)||AV_ROUPAS[0]).c;
+  const mk=(sombra=true)=>({p:new Array(W*H).fill(null),sombra});
+  const set=(L,x,y,c)=>{ x=Math.round(x); y=Math.round(y)+AV_OY; if(x>=0&&y>=0&&x<W&&y<H) L.p[y*W+x]=c; };
+  const get=(L,x,y)=>{ y+=AV_OY; return (x<0||y<0||x>=W||y>=H)?null:L.p[y*W+x]; };
+  const rect=(L,x0,y0,x1,y1,c)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) set(L,x,y,c); };
+  const ell=(L,ex,ey,rx,ry,c,clip)=>{ for(let y=Math.floor(ey-ry);y<=Math.ceil(ey+ry);y++) for(let x=Math.floor(ex-rx);x<=Math.ceil(ex+rx);x++){ const dx=(x-ex)/rx, dy=(y-ey)/ry; if(dx*dx+dy*dy<=1.02 && (!clip||clip(x,y))) set(L,x,y,c); } };
+  const copiaForma=(L,Mx)=>{ const o=mk(); for(let i=0;i<W*H;i++) if(Mx.p[i]) o.p[i]=L; return o; };
+  const dentro=(L)=>(x,y)=>!!get(L,x,y);
+  const camadas=[];
+  const add=L=>{ camadas.push(L); return L; };
+  const pele=pelo.c, barriga=pelo.b;
+
+  // rabo
+  const rabo=add(mk(false));
+  [[27,41],[28,41],[29,40],[30,39],[31,38],[32,36],[32,34],[32,32],[31,30],[30,29]].forEach(([x,y])=>{ set(rabo,x,y,AV_ROSA2); set(rabo,x,y+1,AV_ROSA2); });
+  // pernas (pelo) e corpo
+  const pernas=add(mk()); rect(pernas,15,39,17,44,pele); rect(pernas,23,39,25,44,pele);
+  const corpo=add(mk()); ell(corpo,cx,33,7.8,8.4,pele);
+  const bar=add(mk(false)); ell(bar,cx,34.5,4.6,5.8,barriga);
+  const braE=add(mk()), braD=add(mk()); ell(braE,11.5,31,2.7,4.6,pele); ell(braD,28.5,31,2.7,4.6,pele);
+  const maos=add(mk(false)); rect(maos,10,34,12,35,AV_ROSA); rect(maos,28,34,30,35,AV_ROSA);
+
+  // ===== calça / saia =====
+  const cal=cfg.calca, cc=cor(cfg.calcaCor);
+  const calL=add(mk()), calDet=add(mk(false));
+  const corpoY=(y0,y1)=>(x,y)=>y>=y0&&y<=y1&&!!get(corpo,x,y);
+  const pern=(yf)=>{ rect(calL,14,40,18,yf,cc); rect(calL,22,40,26,yf,cc); };
+  if(cal==='calca'||cal==='social'||cal==='larga'||cal==='listra'||cal==='legging'||cal==='jardineira'){
+    ell(calL,cx,33,7.8,8.4,cc,corpoY(34,42));
+    const larg=cal==='larga'?[13,18,22,27]:cal==='legging'?[15,17,23,25]:[14,18,22,26];
+    rect(calL,larg[0],40,larg[1],42,cc); rect(calL,larg[2],40,larg[3],42,cc);
+    if(cal==='larga'){ rect(calL,12,41,19,43,cc); rect(calL,21,41,28,43,cc); }
+    set(calL,20,40,null); set(calL,20,41,null); set(calL,20,42,null);
+    if(cal==='social'){ rect(calDet,13,34,27,34,avEsc(cc)); rect(calDet,19,34,21,34,'#d9b04a'); }
+    if(cal==='listra'){ for(let y=35;y<=42;y++){ set(calDet,13,y,'#f2f0ea'); set(calDet,27,y,'#f2f0ea'); } }
+    if(cal==='legging'){ for(let y=36;y<=42;y++) set(calDet,20,y,avEsc(cc)); }
+  } else if(cal==='bermuda'||cal==='shorts'){
+    const fim=cal==='bermuda'?40:38;
+    ell(calL,cx,33,7.8,8.4,cc,corpoY(34,fim));
+    rect(calL,14,fim-1,18,fim,cc); rect(calL,22,fim-1,26,fim,cc); set(calL,20,fim,null);
+    if(cal==='shorts'){ for(let y=35;y<=38;y++){ set(calDet,13,y,'#f2f0ea'); set(calDet,27,y,'#f2f0ea'); } }
+  } else if(cal==='saia'||cal==='saialonga'){
+    const fim=cal==='saia'?39:42;
+    for(let y=34;y<=fim;y++){ const w=7.8+(y-34)*(cal==='saia'?0.55:0.45); for(let x=Math.floor(cx-w);x<=Math.ceil(cx+w-1);x++) if(Math.abs(x+0.5-cx)<=w) set(calL,x,y,cc); }
+    for(let x=10;x<=30;x+=3) set(calDet,x,fim,avEsc(cc));
+  }
+  if(cal==='jardineira'){ rect(calL,14,29,26,34,cc); rect(calL,14,27,15,28,cc); rect(calL,25,27,26,28,cc); set(calDet,16,31,'#e8c85a'); set(calDet,24,31,'#e8c85a'); }
+
+  // ===== camisa =====
+  const cam=cfg.camisa, cs=cor(cfg.camisaCor);
+  const camL=add(mk()), camDet=add(mk(false)), manga=add(mk());
+  const torso=(yf)=>ell(camL,cx,33,7.8,8.4,cs,(x,y)=>y>=25&&y<=yf&&!!get(corpo,x,y));
+  const fimCam={camiseta:35,regata:35,polo:35,social:36,moletom:37,listras:35,manga:36,colete:35,cropped:31,blusa:36,vestido:41}[cam]||35;
+  torso(fimCam);
+  if(cam==='vestido'){ for(let y=36;y<=41;y++){ const w=7.8+(y-36)*0.7; for(let x=Math.floor(cx-w);x<=Math.ceil(cx+w-1);x++) if(Math.abs(x+0.5-cx)<=w) set(camL,x,y,cs); } for(let x=11;x<=29;x+=3) set(camDet,x,41,avEsc(cs)); rect(camDet,14,35,26,35,avEsc(cs)); }
+  const sem=['regata','colete','vestido','cropped'].includes(cam)===false;
+  if(cam==='regata'||cam==='colete'||cam==='vestido'||cam==='cropped'){
+    if(cam!=='cropped'||true){ set(camL,15,25,null); set(camL,16,25,null); set(camL,24,25,null); set(camL,25,25,null); set(camL,15,26,null); set(camL,25,26,null); }
+    rect(camL,15,24,16,27,cs); rect(camL,24,24,25,27,cs);
+    rect(camL,17,25,23,26,null);
+    if(cam==='cropped') { rect(camL,17,25,23,27,null); }
+  }
+  const mangaLonga=['manga','social','moletom','listras','blusa'].includes(cam);
+  const mangaCurta=['camiseta','polo'].includes(cam);
+  if(mangaLonga){ ell(manga,11.5,31,2.9,4.7,cs); ell(manga,28.5,31,2.9,4.7,cs); rect(camDet,10,34,12,35,null); }
+  if(mangaCurta){ ell(manga,11.5,29,2.9,2.9,cs); ell(manga,28.5,29,2.9,2.9,cs); }
+  if(cam==='social'){ rect(camDet,18,25,22,26,'#f4f2ee'); set(camDet,20,27,'#c63f46'); rect(camDet,20,28,20,30,'#c63f46'); rect(camDet,19,31,21,32,'#a83038'); }
+  if(cam==='polo'){ rect(camDet,17,25,23,25,'#f4f2ee'); rect(camDet,20,26,20,29,avEsc(cs)); set(camDet,19,26,avCla(cs)); }
+  if(cam==='moletom'){ rect(camDet,15,25,25,25,avEsc(cs)); rect(camDet,16,34,24,36,avEsc(cs)); set(camDet,18,26,'#e8e4dc'); set(camDet,22,26,'#e8e4dc'); set(camDet,18,27,'#e8e4dc'); set(camDet,22,27,'#e8e4dc'); }
+  if(cam==='listras'||cam==='camiseta'&&false){ for(let y=27;y<=35;y+=3) rect(camDet,13,y,27,y,avEsc(cs)); }
+  if(cam==='listras'){ for(let y=27;y<=35;y+=3) rect(camDet,13,y,27,y,'#f2f0ea'); }
+  if(cam==='colete'){ rect(camDet,20,26,20,35,avEsc(cs)); set(camDet,18,30,'#e8c85a'); set(camDet,22,30,'#e8c85a'); rect(camDet,17,25,23,25,'#f4f2ee'); }
+  if(cam==='blusa'){ rect(camDet,16,25,24,25,avCla(cs)); for(let x=14;x<=26;x+=2) set(camDet,x,36,avEsc(cs)); }
+
+  // ===== calçados =====
+  const sap=cfg.calcado, cp=cor(cfg.calcadoCor);
+  const calcL=add(mk()), calcDet=add(mk(false));
+  const pe=(x0,x1,y0,y1,c)=>{ ell(calcL,(x0+x1)/2,(y0+y1)/2,(x1-x0)/2+0.6,(y1-y0)/2+0.5,c); };
+  if(sap==='descalco'){ ell(calcL,16,44,3.4,1.8,AV_ROSA); ell(calcL,24,44,3.4,1.8,AV_ROSA); }
+  else if(sap==='tenis'||sap==='esportivo'||sap==='sapatilha'){
+    const alto=sap==='esportivo'; const y0=alto?40:42;
+    ell(calcL,15.5,43.4,3.8,2.2,cp); ell(calcL,24.5,43.4,3.8,2.2,cp);
+    if(alto){ rect(calcL,14,y0,17,43,cp); rect(calcL,23,y0,26,43,cp); }
+    rect(calcDet,12,45,19,45,sap==='sapatilha'?avEsc(cp):'#f2f0ea'); rect(calcDet,21,45,28,45,sap==='sapatilha'?avEsc(cp):'#f2f0ea');
+    if(sap!=='sapatilha'){ rect(calcDet,15,42,17,42,'#f2f0ea'); rect(calcDet,23,42,25,42,'#f2f0ea'); }
+    if(sap==='sapatilha'){ set(calcDet,14,43,avCla(cp)); set(calcDet,26,43,avCla(cp)); }
+  } else if(sap==='sapato'){
+    ell(calcL,15.5,43.5,3.9,2.0,cp); ell(calcL,24.5,43.5,3.9,2.0,cp); rect(calcDet,12,45,19,45,'#1d1218'); rect(calcDet,21,45,28,45,'#1d1218'); set(calcDet,14,43,avCla(cp)); set(calcDet,25,43,avCla(cp));
+  } else if(sap==='bota'){
+    rect(calcL,13,40,18,44,cp); rect(calcL,22,40,27,44,cp); ell(calcL,15.5,44,4,1.6,cp); ell(calcL,24.5,44,4,1.6,cp); rect(calcDet,13,40,18,40,avEsc(cp)); rect(calcDet,22,40,27,40,avEsc(cp)); rect(calcDet,12,45,19,45,'#1d1218'); rect(calcDet,21,45,28,45,'#1d1218');
+  } else if(sap==='salto'){
+    ell(calcL,15.5,43.3,3.6,1.9,cp); ell(calcL,24.5,43.3,3.6,1.9,cp); rect(calcDet,12,44,13,46,'#1d1218'); rect(calcDet,26,44,27,46,'#1d1218'); rect(calcDet,14,45,17,45,'#1d1218'); rect(calcDet,23,45,26,45,'#1d1218'); set(calcDet,15,42,avCla(cp)); set(calcDet,25,42,avCla(cp));
+  } else if(sap==='sandalia'||sap==='chinelo'){
+    ell(calcL,15.5,44,3.8,1.6,AV_ROSA); ell(calcL,24.5,44,3.8,1.6,AV_ROSA);
+    rect(calcDet,12,45,19,45,cp); rect(calcDet,21,45,28,45,cp); rect(calcDet,14,43,17,43,cp); rect(calcDet,23,43,26,43,cp);
+  }
+  if(sap==='esportivo'&&cfg.sexo==='m'){ rect(calcDet,12,45,19,46,'#e8e4dc'); rect(calcDet,21,45,28,46,'#e8e4dc'); for(let x=12;x<=19;x+=2) set(calcDet,x,46,'#1d1218'); for(let x=21;x<=28;x+=2) set(calcDet,x,46,'#1d1218'); }
+
+  // ===== cabeça =====
+  const orelhas=add(mk()), orInt=add(mk(false));
+  ell(orelhas,9.5,8.5,4.6,4.6,pele); ell(orelhas,30.5,8.5,4.6,4.6,pele); ell(orInt,9.5,8.5,2.5,2.5,AV_ROSA); ell(orInt,30.5,8.5,2.5,2.5,AV_ROSA);
+  // cabelo atrás (longo)
+  const cabAtras=add(mk());
+  const cabTipo=cfg.cabelo;
+  if(cabTipo==='longo'){ ell(cabAtras,cx,18,11.5,10,corCab); rect(cabAtras,9,18,13,32,corCab); rect(cabAtras,27,18,31,32,corCab); }
+  if(cabTipo==='chanel'){ ell(cabAtras,cx,17,11.5,9.5,corCab); rect(cabAtras,9,17,13,25,corCab); rect(cabAtras,27,17,31,25,corCab); }
+  if(cabTipo==='rabo'){ rect(cabAtras,31,13,34,18,corCab); rect(cabAtras,32,19,35,27,corCab); rect(cabAtras,31,28,34,30,corCab); }
+  if(cabTipo==='tranca'){ rect(cabAtras,7,15,10,17,corCab); rect(cabAtras,6,18,9,29,corCab); rect(cabAtras,30,15,33,17,corCab); rect(cabAtras,31,18,34,29,corCab); }
+  const cabeca=add(mk());
+  ell(cabeca,cx,16,10.2,8.8,pele);
+  const foc=add(mk(false)); ell(foc,cx,20.6,4.7,3.4,barriga);
+  const rosto=add(mk(false));
+  // olhos
+  rect(rosto,14,13,16,16,AV_OLHO); rect(rosto,24,13,26,16,AV_OLHO); set(rosto,15,13,'#ffffff'); set(rosto,25,13,'#ffffff'); set(rosto,16,15,'#8a86a8'); set(rosto,26,15,'#8a86a8'); set(rosto,16,12,null);
+  rect(rosto,19,18,21,18,AV_ROSA2); set(rosto,20,19,AV_ROSA2); set(rosto,19,22,AV_ROSA2); set(rosto,20,22,AV_ROSA2); set(rosto,21,22,AV_ROSA2);
+  // bigodes
+  [[11,19],[10,20],[9,20],[29,19],[30,20],[31,20],[11,21],[10,22],[29,21],[30,22]].forEach(([x,y])=>set(rosto,x,y,avCla(barriga)));
+  const olhosL=add(mk(false));
+  const ol=cfg.olhos;
+  if(ol==='redondo'){ [[15,14.5],[25,14.5]].forEach(([x,y])=>{ ell(olhosL,x,y,3.3,3.3,'#3a2c30'); ell(olhosL,x,y,2.1,2.1,null); rect(olhosL,x,y,x,y,null); }); rect(olhosL,18,14,22,14,'#3a2c30'); ell(rosto,15,14.5,1,1.5,AV_OLHO); ell(rosto,25,14.5,1,1.5,AV_OLHO); }
+  if(ol==='quadrado'){ rect(olhosL,12,12,18,17,'#2f2f38'); rect(olhosL,22,12,28,17,'#2f2f38'); rect(olhosL,13,13,17,16,null); rect(olhosL,23,13,27,16,null); rect(olhosL,19,14,21,14,'#2f2f38'); }
+  if(ol==='sol'||ol==='aviador'||ol==='coracao'||ol==='gato'){
+    const lc=ol==='aviador'?'#2d2518':'#1a1620';
+    if(ol==='coracao'){ [15,25].forEach(x=>{ rect(olhosL,x-2,12,x-1,13,'#e8508a'); rect(olhosL,x+1,12,x+2,13,'#e8508a'); rect(olhosL,x-2,14,x+2,15,'#e8508a'); rect(olhosL,x-1,16,x+1,16,'#e8508a'); set(olhosL,x,17,'#e8508a'); }); rect(olhosL,18,13,22,13,'#e8508a'); }
+    else if(ol==='gato'){ rect(olhosL,11,14,18,17,lc); rect(olhosL,22,14,29,17,lc); set(olhosL,11,13,lc); set(olhosL,29,13,lc); set(olhosL,12,12,lc); set(olhosL,28,12,lc); rect(olhosL,19,14,21,14,lc); set(olhosL,14,15,'#9a8ae8'); set(olhosL,26,15,'#9a8ae8'); }
+    else { rect(olhosL,12,12,18,17,lc); rect(olhosL,22,12,28,17,lc); rect(olhosL,19,13,21,13,lc); set(olhosL,13,13,'#6c6678'); set(olhosL,23,13,'#6c6678'); if(ol==='aviador'){ rect(olhosL,12,12,18,12,'#d9b04a'); rect(olhosL,22,12,28,12,'#d9b04a'); } }
+  }
+  if(ol==='monoculo'){ ell(olhosL,25,14.5,3.4,3.4,'#d9b04a'); ell(olhosL,25,14.5,2.2,2.2,null); for(let y=18;y<=26;y++) set(olhosL,28+Math.round((y-18)/3),y,'#d9b04a'); }
+  if(ol==='tapa'){ rect(olhosL,12,13,17,17,'#1d1820'); rect(olhosL,10,10,30,11,'#1d1820'); rect(olhosL,11,12,13,13,'#1d1820'); rect(olhosL,17,12,24,12,'#1d1820'); }
+  if(ol==='cilios'){ set(olhosL,13,13,AV_OLHO); set(olhosL,13,12,AV_OLHO); set(olhosL,27,13,AV_OLHO); set(olhosL,27,12,AV_OLHO); set(olhosL,14,12,AV_OLHO); set(olhosL,26,12,AV_OLHO); set(olhosL,14,17,AV_OLHO); set(olhosL,26,17,AV_OLHO); }
+  if(ol==='maquiagem'){ rect(olhosL,12,12,17,12,'#b265c4'); rect(olhosL,23,12,28,12,'#b265c4'); rect(olhosL,12,19,14,20,'#f28ab0'); rect(olhosL,26,19,28,20,'#f28ab0'); rect(olhosL,19,22,21,22,'#d6304f'); set(olhosL,20,23,'#d6304f'); set(olhosL,13,13,AV_OLHO); set(olhosL,27,13,AV_OLHO); }
+  if(ol==='sardas'){ [[12,18],[14,19],[16,18],[24,18],[26,19],[28,18]].forEach(([x,y])=>set(olhosL,x,y,'#9a5a3a')); }
+  if(ol==='barba'){ rect(olhosL,13,21,27,24,corCab); rect(olhosL,17,19,23,20,corCab); rect(olhosL,18,22,22,22,AV_ROSA2); rect(olhosL,16,25,24,25,corCab); }
+
+  // cabelo à frente
+  const cabF=add(mk()), cabDet=add(mk(false));
+  const topo=(y1)=>ell(cabF,cx,16,10.4,9,corCab,(x,y)=>y<=y1);
+  if(cabTipo==='curto'){ topo(11); rect(cabF,11,12,12,13,corCab); rect(cabF,28,12,29,13,corCab); }
+  if(cabTipo==='topete'){ topo(10); ell(cabF,cx+1,6,5,3.4,corCab); ell(cabF,cx-2,4,3,2.4,corCab); }
+  if(cabTipo==='moicano'){ topo(8); rect(cabF,18,0,22,11,corCab); rect(cabF,19,-1,21,0,corCab); }
+  if(cabTipo==='cacheado'){ [[12,9],[16,6],[20,5],[24,6],[28,9],[13,12],[27,12]].forEach(([x,y])=>ell(cabF,x,y,3.4,3.2,corCab)); topo(10); }
+  if(cabTipo==='lateral'){ topo(10); rect(cabF,11,9,22,13,corCab); rect(cabF,23,9,29,11,corCab); }
+  if(cabTipo==='longo'){ topo(10); rect(cabF,10,9,12,24,corCab); rect(cabF,28,9,30,24,corCab); rect(cabF,13,10,16,11,corCab); rect(cabF,24,10,27,11,corCab); }
+  if(cabTipo==='chanel'){ topo(10); rect(cabF,10,9,12,21,corCab); rect(cabF,28,9,30,21,corCab); rect(cabF,13,10,27,11,corCab); }
+  if(cabTipo==='rabo'){ topo(10); rect(cabF,11,11,13,13,corCab); rect(cabF,27,11,29,13,corCab); ell(cabF,31,12,3.2,2.4,corCab); }
+  if(cabTipo==='tranca'){ topo(10); rect(cabF,10,11,12,15,corCab); rect(cabF,28,11,30,15,corCab); rect(cabDet,7,16,9,16,'#ee7fb0'); rect(cabDet,31,16,33,16,'#ee7fb0'); }
+  if(cabTipo==='coque'){ topo(10); ell(cabF,cx,3.5,4.2,3.4,corCab); rect(cabF,11,11,13,12,corCab); rect(cabF,27,11,29,12,corCab); }
+  if(cabTipo==='franja'){ topo(10); rect(cabF,11,10,29,12,corCab); rect(cabF,10,11,12,17,corCab); rect(cabF,28,11,30,17,corCab); for(let x=14;x<=26;x+=3) set(cabF,x,13,corCab); }
+  if(cabTipo==='cacheado'&&cfg.sexo==='f'){ rect(cabF,9,12,12,18,corCab); rect(cabF,28,12,31,18,corCab); }
+
+  // acessórios de cabeça
+  const topL=add(mk()), topDet=add(mk(false));
+  const ch=cfg.cabeca, ca=cor(cfg.camisaCor);
+  const corAcc=cor(cfg.cabecaCor||'vermelho');
+  if(ch==='bone'){ ell(topL,cx,10,9.8,5.6,corAcc,(x,y)=>y<=12); rect(topL,10,11,32,13,corAcc); rect(topDet,10,13,32,13,avEsc(corAcc)); set(topDet,cx,5,'#f2f0ea'); }
+  if(ch==='chapeu'){ ell(topL,cx,12,14,2.4,corAcc); ell(topL,cx,7.5,7,5.5,corAcc,(x,y)=>y<=11); rect(topDet,13,10,27,11,avEsc(corAcc)); }
+  if(ch==='gorro'){ ell(topL,cx,10,10.6,6.8,corAcc,(x,y)=>y<=13); rect(topDet,10,12,30,14,avEsc(corAcc)); for(let x=10;x<=30;x+=2) rect(topDet,x,12,x,14,avCla(corAcc)); ell(topL,cx,2.5,2.4,2.4,'#f2f0ea'); }
+  if(ch==='cartola'){ rect(topL,12,-2,28,9,'#2a2430'); ell(topL,cx,10,13,2.2,'#2a2430'); rect(topDet,12,6,28,8,'#b03a42'); }
+  if(ch==='fone'){ for(let x=9;x<=31;x++){ const y=Math.round(10-Math.sqrt(Math.max(0,1-((x-20)/12)**2))*8); set(topL,x,y,'#2f2f38'); set(topL,x,y+1,'#2f2f38'); } rect(topL,6,13,10,19,corAcc); rect(topL,30,13,34,19,corAcc); rect(topDet,7,14,9,18,avEsc(corAcc)); rect(topDet,31,14,33,18,avEsc(corAcc)); }
+  if(ch==='faixa'){ rect(topL,10,9,30,11,corAcc); rect(topDet,10,11,30,11,avEsc(corAcc)); }
+  if(ch==='boina'){ ell(topL,cx-1,8,10.5,3.8,corAcc); set(topDet,cx-1,3,avEsc(corAcc)); set(topDet,cx-1,4,avEsc(corAcc)); }
+  if(ch==='laco'){ [[8,6],[34,6]].slice(0,1).forEach(([x,y])=>{ ell(topL,x-3,y,3.2,3,corAcc); ell(topL,x+3,y,3.2,3,corAcc); rect(topL,x-1,y-1,x+1,y+1,avEsc(corAcc)); }); }
+  if(ch==='tiara'){ for(let x=11;x<=29;x++){ const y=Math.round(9.5-Math.sqrt(Math.max(0,1-((x-20)/10)**2))*3.5); set(topL,x,y,'#e8c85a'); } rect(topDet,19,5,21,6,'#e84a8a'); }
+  if(ch==='coroa'){ rect(topL,12,6,28,9,'#e8c85a'); [12,16,20,24,28].forEach(x=>{ rect(topL,x-1,3,x+1,6,'#e8c85a'); }); set(topDet,20,7,'#d63f4a'); set(topDet,15,8,'#4a8ae8'); set(topDet,25,8,'#4a8ae8'); }
+  if(ch==='flor'){ [[14,7],[16,5],[18,7],[16,9],[16,7]].forEach(([x,y],i)=>ell(topL,x+6,y,1.8,1.8,i<4?'#ee7fb0':'#f0cb3d')); rect(topL,20,10,22,11,'#3fa660'); }
+
+  // ===== composição =====
+  const out=new Array(W*H).fill(null);
+  const ordem=camadas.filter(l=>l);
+  // sombreamento por camada (borda inferior/direita mais escura, superior/esquerda mais clara)
+  const vistos=[];
+  for(const L of ordem){
+    const base=L.p;
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      const c=base[y*W+x]; if(!c) continue;
+      let col=c;
+      if(L.sombra){ const vz=(dx,dy)=>!get(L,x+dx,y+dy-AV_OY);
+        if(vz(0,1)||vz(1,0)&&vz(0,1)) col=avEsc(c); else if(vz(1,0)) col=avMix(c,'#1a1020',0.14); else if(vz(0,-1)||vz(-1,0)) col=avCla(c); }
+      out[y*W+x]=col;
+    }
+  }
+  // buracos explícitos (null definidos depois) já foram tratados por não pintar; recorte final de contorno
+  const fim=new Array(W*H).fill(null);
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const c=out[y*W+x]; if(c) fim[y*W+x]=c; }
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ if(fim[y*W+x]) continue; if([[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{ const nx=x+dx,ny=y+dy; return nx>=0&&ny>=0&&nx<W&&ny<H&&out[ny*W+nx]; })) fim[y*W+x]=AV_CONTORNO; }
+  return fim;
+}
+const _avCache={};
+function avCfg(c){ const o=Object.assign({},AV_PADRAO,c||{}); return o; }
+function avURL(c,esc=4){
+  const cfg=avCfg(c), k=JSON.stringify(cfg)+esc; if(_avCache[k]) return _avCache[k];
+  try{
+    const px=avRender(cfg), cv=document.createElement('canvas'); cv.width=AV_W*esc; cv.height=AV_H*esc; const g=cv.getContext('2d');
+    for(let y=0;y<AV_H;y++) for(let x=0;x<AV_W;x++){ const c1=px[y*AV_W+x]; if(c1){ g.fillStyle=c1; g.fillRect(x*esc,y*esc,esc,esc); } }
+    return _avCache[k]=cv.toDataURL('image/png');
+  }catch(e){ return ''; }
+}
+function avAleatorio(sexo){
+  const C=AV_CAT[sexo], pick=a=>a[Math.floor(Math.random()*a.length)];
+  const nome=(AV_CFG_SALVO().nome)||'';
+  return {nome, sexo, pelo:pick(AV_PELOS).id, cabelo:pick(C.cabelo)[0], cabeloCor:pick(AV_CABELOS).id, cabeca:Math.random()<0.45?'nenhum':pick(C.cabeca)[0], olhos:Math.random()<0.4?'nenhum':pick(C.olhos)[0],
+    camisa:pick(C.camisa)[0], camisaCor:pick(AV_ROUPAS).id, calca:pick(C.calca)[0], calcaCor:pick(AV_ROUPAS).id, calcado:pick(C.calcado)[0], calcadoCor:pick(AV_ROUPAS).id};
+}
+
+/* ----- criador de personagem: tela, estado e integração ----- */
+function AV_CFG_SALVO(){ return lerCamp().avatar||{}; }
+const temAvatar=()=>!!lerCamp().avatar;
+function avSalvar(c){ const k=lerCamp(); k.avatar=avCfg(c); gravarCamp(k); }
+const AV_ABAS=[['pelo','Ratinho'],['cabelo','Cabelo'],['cabeca','Cabeça'],['olhos','Olhos'],['camisa','Camisa'],['calca','Calça'],['calcado','Calçado']];
+const AV_COR_DE={pelo:'pelo',cabelo:'cabeloCor',cabeca:'cabecaCor',camisa:'camisaCor',calca:'calcaCor',calcado:'calcadoCor'};
+function avPaleta(aba){ return aba==='pelo'?AV_PELOS:aba==='cabelo'?AV_CABELOS:AV_ROUPAS; }
+function avAbrir(origem){ ui.av=avCfg(AV_CFG_SALVO()); ui.avTab=ui.avTab||'pelo'; ui.avOrigem=origem||'editar'; ui.modal='avatar'; renderModal(); }
+function avTrocaSexo(c,sx){ const C=AV_CAT[sx], ok=(k)=>C[k].some(o=>o[0]===c[k]); const n=Object.assign({},c,{sexo:sx}); ['cabelo','cabeca','olhos','camisa','calca','calcado'].forEach(k=>{ if(!ok(k)) n[k]=C[k][0][0]; }); return n; }
+function modalAvatar(){
+  const c=ui.av, C=AV_CAT[c.sexo], aba=ui.avTab||'pelo';
+  const opcoes=aba==='pelo'?AV_PELOS.map(p=>[p.id,p.nome]):C[aba];
+  const campo=aba==='pelo'?'pelo':aba;
+  const grade=aba==='pelo'
+    ?`<div class="av-grid">${AV_PELOS.map(p=>`<button class="av-opt${c.pelo===p.id?' on':''}" data-acao="avSet" data-alvo="pelo:${p.id}" aria-pressed="${c.pelo===p.id}"><img src="${avURL(Object.assign({},c,{pelo:p.id}),2)}" alt=""><span>${p.nome}</span></button>`).join('')}</div>`
+    :`<div class="av-grid">${opcoes.map(([id,nm])=>`<button class="av-opt${c[campo]===id?' on':''}" data-acao="avSet" data-alvo="${campo}:${id}" aria-pressed="${c[campo]===id}"><img src="${avURL(Object.assign({},c,{[campo]:id}),2)}" alt=""><span>${nm}</span></button>`).join('')}</div>`;
+  const corK=AV_COR_DE[aba], pal=avPaleta(aba);
+  const cores=aba==='olhos'?'':(aba==='pelo'?'':`<span class="label-c">Cor</span><div class="av-cores">${pal.map(p=>`<button class="av-cor${c[corK]===p.id?' on':''}" style="background:${p.c}" data-acao="avSet" data-alvo="${corK}:${p.id}" aria-label="${p.id}" aria-pressed="${c[corK]===p.id}"></button>`).join('')}</div>`);
+  const corPelo='';
+  return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet av-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <h3 id="m-t">${ui.avOrigem==='novo'?'Crie o seu ratinho':'Aparência do ratinho'}</h3>
+    <div class="av-topo">
+      <div class="av-prev"><img src="${avURL(c,5)}" alt="Seu ratinho"></div>
+      <div class="av-lado">
+        <label class="label-c" for="av-nome">Nome</label>
+        <input id="av-nome" class="av-nome" type="text" maxlength="14" placeholder="Como ele se chama?" value="${(c.nome||'').replace(/"/g,'&quot;')}" autocomplete="off" data-av-nome>
+        <div class="seg"><button data-acao="avSexo" data-alvo="m" aria-pressed="${c.sexo==='m'}">Masculino</button><button data-acao="avSexo" data-alvo="f" aria-pressed="${c.sexo==='f'}">Feminino</button></div>
+        <div class="av-alea"><button class="btn" data-acao="avAlea" data-alvo="m">🎲 Aleatório masculino</button><button class="btn" data-acao="avAlea" data-alvo="f">🎲 Aleatório feminino</button></div>
+      </div>
+    </div>
+    <div class="av-abas" role="tablist">${AV_ABAS.map(([k,n])=>`<button role="tab" class="av-aba${aba===k?' on':''}" aria-selected="${aba===k}" data-acao="avAba" data-alvo="${k}">${n}</button>`).join('')}</div>
+    ${grade}
+    ${cores}
+    <div class="opcoes"><button class="opcao coin" data-acao="avOk"><b>${ui.avOrigem==='novo'?'Pronto, vamos jogar':'Salvar'}</b></button>${ui.avOrigem==='novo'?'':'<button class="opcao" data-acao="fechar"><b>Cancelar</b></button>'}</div>
+  </div></div>`;
+}
+function avCardVida(){
+  const c=lerCamp().avatar;
+  if(!c) return `<section class="card av-card"><div class="av-card-lin"><span class="av-card-img sem">🐭</span><div><b>Seu ratinho</b><p class="hint">Crie o seu personagem: nome, pelo, cabelo, roupa e mais.</p></div></div><button class="btn coin" data-acao="avAbrir">Criar meu ratinho</button></section>`;
+  return `<section class="card av-card"><div class="av-card-lin"><img class="av-card-img" src="${avURL(c,3)}" alt=""><div><b>${c.nome||'Meu ratinho'}</b><p class="hint">É assim que você aparece no tabuleiro.</p></div></div><button class="btn" data-acao="avAbrir">Mudar aparência</button></section>`;
+}
+function avPeao(){ const c=lerCamp().avatar; return c?avURL(c,4):''; }
 
 /* ================= início ================= */
 function migrar(x){
