@@ -1232,10 +1232,10 @@ const CARTAS = {
     desc:'Aluguel todo mês. O imóvel e o aluguel acompanham a inflação; a parcela do financiamento não.'},
   sala:{fases:[2,3], tipo:'imovel', nome:'Sala comercial no centro', preco:260000, renda:1450, horas:1, finan:true, risco:0.04, pesos:{comprador:3,vacancia:5},
     desc:'Aluga melhor que residencial, mas fica vazia mais tempo. Valor e aluguel sobem com a inflação.'},
-  lavanderia:{fases:[2,3], tipo:'negocio', nome:'Lavanderia self-service', preco:90000, renda:1500, horas:6, varia:0.25, risco:0.04, pesos:{comprador:2,conserto:5,falencia:2},
-    desc:'Rende bem mais que aluguel, mas pede tempo e máquinas quebram.'},
-  acai:{fases:[3], tipo:'negocio', escala:true, dedicacao:true, nome:'Franquia de açaí num shopping', preco:160000, renda:3000, horas:14, varia:0.35, risco:0.05, pesos:{comprador:2,conserto:3,falencia:4},
-    desc:'Lucro alto e muito trabalho. Franquias também quebram.'},
+  lavanderia:{fases:[2,3], tipo:'negocio', tyc:true, nome:'Lava & Leva', preco:45000, renda:1000, horas:8, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
+    desc:'Uma lavanderia self-service para administrar: máquinas, serviços, espaço, equipe e clientela. Muito capital em máquina, pouca mão de obra.'},
+  acai:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Ponto do Açaí', preco:22000, renda:700, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
+    desc:'Um quiosque de açaí que pode virar rede: o verão enche, o inverno esvazia, e a fruta decide a margem.'},
   ecommerce:{fases:[1,2], tipo:'negocio', escala:true, nome:'Loja online de capinhas e acessórios', preco:8000, renda:260, horas:4, varia:0.5, risco:0.05, pesos:{comprador:1,conserto:1,falencia:3},
     desc:'Estoque pequeno e vendas pela internet. Um mês vende muito, no outro quase nada.'},
   lavajato:{fases:[1,2,3], tipo:'negocio', nome:'Lava-jato de bairro', preco:25000, renda:600, horas:6, varia:0.3, risco:0.04, pesos:{comprador:2,conserto:4,falencia:2},
@@ -1245,8 +1245,8 @@ const CARTAS = {
   estacionamento:{fases:[2,3], tipo:'negocio', nome:'Estacionamento no centro', preco:120000, renda:1100, horas:3, varia:0.1, risco:0.03, pesos:{comprador:2,conserto:2,falencia:1},
     desc:'Renda estável e pouco trabalho. Rende menos que outros negócios, mas quase não dá dor de cabeça.'},
   /* ---- negócios de área: qualquer um pode comprar, mas quem é da profissão tem bônus ---- */
-  lojaroupa:{fases:[2,3], tipo:'negocio', escala:true, dedicacao:true, area:'atendente', nome:'Loja de roupas no centro', preco:60000, renda:1150, horas:8, varia:0.3, risco:0.05, pesos:{comprador:2,conserto:2,falencia:3},
-    desc:'Varejo puro: vitrine, estoque e vendedor bom faz toda a diferença.'},
+  lojaroupa:{fases:[2,3], tipo:'negocio', tyc:true, area:'atendente', nome:'Fio de Estilo', preco:28000, renda:750, horas:14, varia:0, risco:0.03, pesos:{comprador:2,conserto:2},
+    desc:'Varejo de moda: estoque, coleção, vitrine e vendedor bom. A margem é boa, mas estoque parado é capital morto.'},
   cursinho:{fases:[2,3], tipo:'negocio', escala:true, area:'professor', nome:'Cursinho preparatório', preco:50000, renda:1000, horas:8, varia:0.25, risco:0.04, pesos:{comprador:2,conserto:2,falencia:2},
     desc:'Turmas para vestibular e concurso. A fama dos professores enche as salas.'},
   vacinas:{fases:[2,3], tipo:'negocio', escala:true, dedicacao:true, area:'enfermeiro', nome:'Clínica de vacinas e curativos', preco:120000, renda:2300, horas:10, varia:0.2, risco:0.04, pesos:{comprador:2,conserto:3,falencia:2},
@@ -1694,6 +1694,64 @@ TYC_EMP.geek={
     niv:['Só você','Um amigo nos fins de semana','Um vendedor','Vendedor e caixa','Juiz de torneios','Gerente de loja','Estoquista','Equipe de 8 pessoas','Equipe de 20 pessoas treinada']},
   mkt:{nome:'Comunidade', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
     niv:['Grupo de WhatsApp','Instagram e Discord','Noite de jogo toda semana','Torneios semanais','Parceria com distribuidoras','Campeonato regional','Influenciadores geek','Evento de lançamento','Referência nacional']}
+  }
+};
+/* ===== leva 1: açaí, lavanderia, loja de roupa ===== */
+TYC_EMP.acai={
+  arte:'acai', ofertaImg:'acai-oferta', ofertaNome:'Quiosque de açaí de bairro', negocio:'açaiteria', porte:['Quiosque','Loja de rua','Rede local'], tagPorte:p=>p,
+  varc:0.40, dem:[10,15,21,29,40,55,75,101,136], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[15,17,19,22,25,28,31,35,39],
+  fixo:[1780,2920,4400,6950,10940,16970,25950,40450,61710], saz:[1.25,1.2,1.1,0.95,0.8,0.75,0.75,0.8,0.9,1,1.05,1.2], horas:[12,11,10,9,8,7,6,5,4], custo:[2450,4400,6250,8200,9500,13650,16600,19150],
+  premio:{foto:'premio-acai', titulo:'Melhor açaí da cidade', texto:a=>`${a?a.nome:'Seu açaí'} foi eleito o melhor açaí da cidade pelos clientes, com nota 5,0 nas avaliações.`, aval:'"Cremoso e farto, o melhor que já tomei." · "Fruta de verdade, sem enrolação." · "Fila no verão e vale a pena."'},
+  franq:{sabe:'Já trabalhou em açaiteria.', nao:'Nunca trabalhou com açaí.', conheceu:'conheceu o seu açaí premiado'},
+  set:{
+  equip:{nome:'Freezers e máquinas', ic:'🧊', peso:1.4, ef:'Quantos copos saem por dia, sem faltar açaí gelado.',
+    niv:['Freezer horizontal e batedeira','Dois freezers','Freezer vertical com vitrine','Máquina de açaí na hora','Câmara fria pequena','Linha de produção de polpa','Câmara fria e envase','Central de produção','Fábrica de polpa própria']},
+  cardapio:{nome:'Cardápio', ic:'🍇', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Só açaí no copo','Complementos básicos','Complementos premium','Marmita e tigela grande','Milk-shake e sorvetes','Bowls e saladas de frutas','Linha fit e proteica','Potes para revenda e kits','Marca própria de polpas']},
+  ambiente:{nome:'Loja', ic:'🏪', peso:1.4, ef:'Quantos clientes cabem por dia. Aluguel maior acompanha.',
+    niv:['Quiosque de calçada','Balcão com 2 mesas','Loja pequena','Loja com área climatizada','Ponto em rua movimentada','Loja de esquina','Ponto de shopping','Duas lojas na cidade','Loja conceito com delivery central']},
+  equipe:{nome:'Equipe', ic:'🧑‍🍳', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você','Um ajudante no verão','Um atendente','Atendente e caixa','Líder de turno','Gerente de loja','Gerente e estoquista','Equipe de 12 pessoas','Equipe de 25 pessoas treinada']},
+  mkt:{nome:'Marketing', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Placa de calçada','Instagram e WhatsApp','Cartão fidelidade','Delivery por aplicativo','Parceria com academias','Panfleto e carro de som','Influenciadores fitness','Campanha de verão','Marca conhecida na cidade']}
+  }
+};
+TYC_EMP.lavanderia={
+  arte:'lavanderia', ofertaImg:'lavanderia-oferta', ofertaNome:'Lavanderia self-service de bairro', negocio:'lavanderia', porte:['Pequena','Média','Rede local'], tagPorte:p=>p,
+  varc:0.30, dem:[16,23,32,45,62,85,115,155,205], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[16,18,20,23,26,29,33,37,42],
+  fixo:[3940,6290,9650,15770,24800,38250,59710,91640,139100], saz:[0.9,0.95,0.95,1,1.05,1.15,1.2,1.1,1,0.95,0.95,1.05], horas:[8,7,6,6,5,5,4,4,3], custo:[4900,8800,12500,16400,19000,27300,33200,38300],
+  premio:{foto:'premio-lavanderia', titulo:'Melhor lavanderia da cidade', texto:a=>`${a?a.nome:'Sua lavanderia'} foi eleita a melhor lavanderia da cidade pelos clientes, com nota 5,0 nas avaliações.`, aval:'"Roupa cheirosa e pronta no prazo." · "Máquinas sempre funcionando." · "Salvou a minha semana."'},
+  franq:{sabe:'Já trabalhou com lavanderia.', nao:'Nunca trabalhou com lavanderia.', conheceu:'conheceu a sua lavanderia premiada'},
+  set:{
+  equip:{nome:'Máquinas', ic:'🫧', peso:1.4, ef:'Quantas lavagens saem por dia.',
+    niv:['Duas lavadoras e uma secadora','Quatro lavadoras e duas secadoras','Máquinas industriais','Lavadoras de alta capacidade','Linha de passadoria','Ozônio e lavagem a seco','Túnel de lavagem','Central de lavagem','Planta industrial para hotéis']},
+  cardapio:{nome:'Serviços', ic:'👕', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Lavar e secar','Dobrar e embalar','Lavagem por quilo','Edredons e cobertores','Passadoria','Lavagem a seco','Coleta e entrega','Contratos com pousadas','Serviço corporativo e hotelaria']},
+  ambiente:{nome:'Espaço', ic:'🏠', peso:1.4, ef:'Quantos clientes cabem por dia. Aluguel maior acompanha.',
+    niv:['Sala de 20 m²','Loja de 40 m²','Loja com área de espera','Wi-fi, café e bancada','Ponto de esquina','Segunda unidade na cidade','Três lojas pela região','Central de produção','Rede com seis unidades']},
+  equipe:{nome:'Equipe', ic:'🧑‍💼', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você','Um atendente meio período','Um atendente integral','Atendente e passadeira','Líder de turno','Gerente da loja','Equipe de motoristas','Equipe de 15 pessoas','Equipe de 30 pessoas treinada']},
+  mkt:{nome:'Clientela', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Placa na porta','WhatsApp e Instagram','Parceria com condomínios','Cartão fidelidade','Entrega por aplicativo','Convênio com empresas','Anúncios locais','Campanha regional','Marca conhecida na cidade']}
+  }
+};
+TYC_EMP.lojaroupa={
+  arte:'roupa', ofertaImg:'roupa-oferta', ofertaNome:'Loja de roupas de bairro', negocio:'loja de roupas', porte:['Pequena','Média','Grande'], tagPorte:p=>`Loja ${p.toLowerCase()}`,
+  varc:0.52, dem:[5,7,10,14,20,28,39,55,76], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[60,68,77,87,98,110,124,140,158],
+  fixo:[3220,5000,8090,12710,20530,32440,51470,83360,131850], saz:[0.85,0.8,0.9,0.95,1.15,0.95,0.95,0.95,1,1.05,1.25,1.45], horas:[14,13,12,11,10,8,7,6,5], custo:[2600,4700,6700,8800,10200,14600,17800,20500],
+  premio:{foto:'premio-roupa', titulo:'Melhor loja de roupas da cidade', texto:a=>`${a?a.nome:'Sua loja'} foi eleita a melhor loja de roupas da cidade pelos clientes, com nota 5,0 nas avaliações.`, aval:'"Peças lindas e atendimento atencioso." · "Sempre acho meu tamanho." · "Minha loja preferida."'},
+  franq:{sabe:'Já trabalhou em loja de roupas.', nao:'Nunca trabalhou com moda.', conheceu:'conheceu a sua loja premiada'},
+  set:{
+  equip:{nome:'Estoque', ic:'📦', peso:1.4, ef:'Quantos clientes você atende por dia com a peça certa na arara.',
+    niv:['Araras e algumas peças','Estoque de uma estação','Grades completas de tamanhos','Duas coleções por ano','Reposição semanal','Marca própria em pequena escala','Coleção própria','Centro de distribuição','Estoque inteligente e giro rápido']},
+  cardapio:{nome:'Coleção', ic:'👗', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Básicos e camisetas','Jeans e moda casual','Moda feminina','Moda masculina e acessórios','Linha praia e fitness','Linha festa e social','Marca própria','Coleção assinada por estilista','Marca com identidade forte']},
+  ambiente:{nome:'Loja', ic:'🏬', peso:1.4, ef:'Quantos clientes cabem por dia. Aluguel maior acompanha.',
+    niv:['Sala pequena','Loja de rua','Vitrine e provadores','Loja com decoração nova','Loja de esquina','Duas lojas na cidade','Ponto de shopping','Loja âncora de shopping','Flagship store de dois andares']},
+  equipe:{nome:'Equipe', ic:'🧑‍💼', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você','Uma vendedora meio período','Uma vendedora integral','Vendedoras e caixa','Vendedora sênior','Gerente de loja','Equipe com comissão','Equipe de 15 pessoas','Equipe de 30 pessoas treinada']},
+  mkt:{nome:'Marketing', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Fachada e placa','Instagram da loja','Grupo de clientes no WhatsApp','Vitrine de campanhas','Parceria com influenciadoras locais','Anúncios no Instagram','Loja online','Campanha sazonal','Marca conhecida na cidade']}
   }
 };
 const tycF = () => F2() ? (s.idx||1) : 1;
@@ -2888,6 +2946,194 @@ Object.assign(TYC_LIC,{
 });
 TYC_EMP.geek.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('g_'));
 
+/* ===== leva 1: cartas de decisão (construtor compacto) ===== */
+const tycCard=(ic,titulo,texto,ops)=>({ic,titulo,texto:()=>texto,ops:a=>{ const pv=tycPrev(a); return ops.map(o=>tycOp(a,o.l,'',o.c?tycR(pv.rec*o.c):0,()=>{ const r=(o.p==null||tycSorte(o.p))?o.w:(o.f||o.w); if(r.ef) tycEf(a,r.ef[0],r.ef[1],r.ef[2]); if(r.cx) a.tyc.caixa+=tycR(pv.rec*r.cx); return {tom:r.tom,titulo:r.t,texto:r.x}; })); }});
+const TO=(l,c,p,w,f)=>({l,c,p,w,f}), TR=(tom,t,x,ef,cx)=>({tom,t,x,ef,cx});
+Object.assign(TYC_DEC,{
+ /* ---- açaí ---- */
+ ac_fruta:tycCard('🍇','Açaí encarece na entressafra','O preço da polpa subiu bastante com a entressafra. O fornecedor oferece travar um lote grande agora, mas o preço pode cair mais para frente.',[
+  TO('Comprar lote grande congelado',0.12,0.55,TR('bom','Travou o preço certo','A polpa subiu ainda mais e o seu estoque barato segurou a margem por meses.',['Polpa mais barata',6,{vc:0.93}]),TR('ruim','O preço caiu depois','O mercado normalizou e você ficou com polpa cara parada no freezer.',['Estoque caro',4,{vc:1.03}])),
+  TO('Repassar uma parte ao preço',0,null,TR('neutro','Ticket maior, menos copos','Você repassou parte do aumento. A margem ficou mais saudável, mas alguns clientes reduziram o consumo.',['Preço reajustado',5,{tk:1.05,cli:0.97}])),
+  TO('Absorver o custo e esperar',0,null,TR('ruim','Margem espremida','Sem repassar nem estocar, o custo comeu o lucro por alguns meses.',['Margem espremida',4,{vc:1.06}]))]),
+ ac_verao:tycCard('☀️','Onda de calor chegando','A previsão é de semanas de calor forte. O açaí é o produto mais procurado nessa época, mas é preciso se preparar.',[
+  TO('Reforçar estoque e equipe',0.08,0.7,TR('bom','Fila na porta','Com estoque e gente suficiente, você vendeu muito mais sem perder cliente.',['Verão aquecido',3,{cli:1.2}]),TR('neutro','Calor passou rápido','O calor durou menos que o previsto e parte do estoque sobrou.',['Verão fraco',2,{cli:1.05}])),
+  TO('Promoção de combo gelado',0.04,0.65,TR('bom','Combo bombou','O combo aumentou o consumo e o ticket subiu um pouco.',['Combo de verão',3,{cli:1.12,tk:1.04}]),TR('neutro','Pouca gente notou','A divulgação ficou fraca e o desconto pesou na margem.',['Combo sem alcance',2,{cli:1.02,tk:0.97}])),
+  TO('Manter como está',0,null,TR('neutro','Verão normal','Sem preparo extra, você atendeu o que deu.'))]),
+ ac_app:tycCard('🛵','Aplicativo de entrega convida a loja','Uma plataforma de delivery quer listar o seu açaí. Vem muito pedido, mas com comissão alta e briga por preço.',[
+  TO('Entrar no aplicativo',0,0.6,TR('bom','Pedidos novos','O delivery trouxe clientes que nunca passariam na porta, mesmo com a comissão.',['Delivery por aplicativo',8,{cli:1.14,tk:0.95}]),TR('ruim','A comissão engoliu o lucro','Entre comissão, embalagem e entregas atrasadas, o ganho foi pequeno.',['Delivery sem margem',6,{cli:1.06,tk:0.9}])),
+  TO('Montar delivery próprio',0.07,0.6,TR('bom','Entrega no seu padrão','Sem comissão, a margem é melhor. Dá mais trabalho, mas o cliente fica seu.',['Delivery próprio',10,{cli:1.1}]),TR('neutro','Poucos pedidos','Faltou público conhecido e a entrega ficou parada.',['Delivery próprio parado',3,{cli:1.02}])),
+  TO('Ficar só no balcão',0,null,TR('neutro','Sem delivery','Você manteve a operação enxuta e o cliente do bairro.'))]),
+ ac_compl:tycCard('🍓','Complementos premium','Os clientes pedem mais opções de fruta, castanha e cremes. Cada adicional aumenta o ticket, mas exige estoque variado.',[
+  TO('Cardápio de complementos amplo',0.06,0.7,TR('bom','Ticket maior','O cliente personalizou o copo e gastou mais. Fruta fresca vende bem.',['Complementos premium',12,{tk:1.12}]),TR('ruim','Desperdício','Muita variedade estragou no estoque e o lucro não compensou.',['Perdas no estoque',6,{vc:1.05}])),
+  TO('Só três complementos campeões',0.02,null,TR('bom','Simples e eficiente','Poucos itens com giro alto: pouca perda e ticket um pouco maior.',['Combo enxuto',12,{tk:1.05}])),
+  TO('Manter o básico',0,null,TR('neutro','Sem mudança','O cardápio simples segue funcionando.'))]),
+ ac_freezer:tycCard('🔧','O freezer principal pifou','Ele está perdendo temperatura e o açaí começa a derreter. Cada hora sem resolver é polpa estragada.',[
+  TO('Chamar o técnico',0.05,0.75,TR('bom','Voltou a gelar','O conserto resolveu e você perdeu pouca coisa.'),TR('ruim','Defeito voltou','O conserto durou pouco e o freezer parou de novo.',null,-0.05)),
+  TO('Trocar por um novo',0.18,null,TR('bom','Freezer novo','Gasto alto, mas sem surpresa por anos e menos energia.',['Freezer eficiente',24,{fx:-0.02}])),
+  TO('Improvisar no freezer de casa',0,0.35,TR('neutro','Deu para segurar','Você improvisou e perdeu pouco.'),TR('ruim','Perdeu o estoque','O açaí derreteu e você jogou fora boa parte da polpa.',['Falta de produto',2,{cli:0.9}],-0.08))]),
+ ac_conc:tycCard('🏪','Rede de açaí abre a duas quadras','Uma rede com marca forte abriu perto. Os clientes vão experimentar.',[
+  TO('Baixar o preço',0,null,TR('neutro','Segurou o movimento','Você manteve o movimento, mas o ticket médio caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Reforçar o que a rede não tem',0.08,0.65,TR('bom','Cliente fiel','Atendimento próximo, fruta fresca e cartão de fidelidade seguraram a clientela.'),TR('ruim','Não bastou','A marca forte levou parte dos clientes.',['Rede levou clientes',6,{cli:0.92}])),
+  TO('Ignorar',0,0.4,TR('neutro','Foi passageiro','A curiosidade passou.'),TR('ruim','Perdeu clientes','Sem reação, o movimento caiu.',['Perdeu clientes',8,{cli:0.88}]))]),
+ ac_frio:tycCard('🌧️','Semana fria e chuvosa','O movimento despenca quando esfria. Dá para tentar vender outra coisa, mas isso exige estrutura.',[
+  TO('Lançar cardápio quente',0.05,0.6,TR('bom','Vendeu no frio','Caldos, café e tapioca seguraram o movimento no inverno.',['Cardápio de inverno',8,{cli:1.12}]),TR('neutro','Pouco interesse','O público do açaí não foi atrás do cardápio quente.',['Cardápio de inverno fraco',4,{cli:1.02}])),
+  TO('Promoção para dias frios',0.03,0.5,TR('bom','Algum movimento','O desconto trouxe gente, com margem menor.',['Promoção de frio',3,{cli:1.1,tk:0.96}]),TR('neutro','Sem efeito','Frio é frio. Desconto não resolveu.',['Promoção sem efeito',2,{tk:0.97}])),
+  TO('Reduzir custos e esperar',0,null,TR('neutro','Passou o frio','Você cortou estoque e horas e atravessou a semana sem prejuízo grande.',null,0.02))]),
+ ac_visa:tycCard('📑','Vigilância sanitária visita a loja','A fiscal vai olhar câmara fria, higiene e validade. Pode ou não encontrar problema.',[
+  TO('Regularizar tudo antes',0.04,null,TR('bom','Passou limpo','Documentação em dia e rotina de higiene seguida. Zero problema.')),
+  TO('Arrumar o que der hoje',0,0.55,TR('neutro','Passou','Dessa vez deu certo, mas havia pontos de atenção.'),TR('ruim','Multa leve','A fiscal encontrou irregularidades e aplicou multa.',null,-0.07)),
+  TO('Deixar como está',0,0.35,TR('neutro','Sem problema','Sorte desta vez.'),TR('ruim','Multa e interdição','A loja ficou fechada alguns dias e o cliente notou.',['Loja fechada',2,{cli:0.85}],-0.12))]),
+ ac_escola:tycCard('🏫','Escola pede 200 copos para uma festa','Uma escola quer comprar em volume, com desconto, para a festa do fim de ano.',[
+  TO('Aceitar com desconto',0.04,0.75,TR('bom','Festa de sucesso','O pedido entrou limpo e a escola indicou a loja para outras famílias.',['Indicação da escola',3,{cli:1.08}]),TR('ruim','Atrasou','O volume atropelou a operação do dia e o atendimento sofreu.',['Atendimento prejudicado',2,{cli:0.95}])),
+  TO('Aceitar só com sinal pago',0,null,TR('bom','Negócio seguro','Com sinal, o risco é zero e o lucro é certo.',['Pedido grande',2,{cli:1.05}])),
+  TO('Recusar',0,null,TR('neutro','Sem a venda','O volume foi para outro fornecedor.'))]),
+ ac_fiel:tycCard('🎟️','Cartão fidelidade do copo grátis','Você pode criar um cartão em que o décimo copo sai de graça.',[
+  TO('Lançar o cartão',0.02,0.75,TR('bom','Cliente volta','O cliente quer completar o cartão e volta mais vezes.',['Cartão fidelidade',12,{cli:1.08}]),TR('neutro','Pouca adesão','Poucos usaram e o custo dos brindes pesou.',['Cartão pouco usado',6,{cli:1.02}])),
+  TO('Dar desconto no copo seguinte',0.01,null,TR('neutro','Pequeno efeito','Um desconto simples gera pouca fidelidade.',['Desconto simples',4,{cli:1.03}])),
+  TO('Não fazer',0,null,TR('neutro','Sem mudança','Tudo igual.'))]),
+ ac_ponto:tycCard('📍','Ponto de shopping ficou vago','Um quiosque num shopping tem muito fluxo, aluguel alto e contrato longo.',[
+  TO('Abrir no shopping',0.20,0.55,TR('bom','Fluxo de gente','O shopping lota nos fins de semana e o faturamento subiu.',['Quiosque no shopping',18,{cli:1.18,fx:0.06}]),TR('ruim','Aluguel pesado','O fluxo foi menor que o previsto e o aluguel pesou.',['Aluguel de shopping',12,{fx:0.06}])),
+  TO('Negociar redução do aluguel atual',0,0.5,TR('bom','Conseguiu desconto','O proprietário prefere ficar com você a perder o inquilino.',['Aluguel reduzido',12,{fx:-0.04}]),TR('neutro','Sem acordo','Ele não cedeu.')),
+  TO('Ficar onde está',0,null,TR('neutro','Tudo igual','Você manteve o ponto que já conhece.'))]),
+ ac_polpa:tycCard('🧪','Fornecedor oferece polpa "mais barata"','O preço está muito abaixo do mercado. Pode ser promoção, pode ser polpa diluída com outros ingredientes.',[
+  TO('Comprar sem verificar',0,0.35,TR('neutro','Era promoção mesmo','Dessa vez deu certo, mas foi aposta.',['Polpa barata',6,{vc:0.9}]),TR('ruim','Polpa adulterada','O cliente percebeu o gosto e a reputação sofreu.',['Reputação arranhada',8,{cli:0.9}],-0.06)),
+  TO('Pedir amostra e laudo',0.02,null,TR('bom','Conferido','Você testou antes de comprar e fechou com quem entrega o que promete.',['Fornecedor testado',8,{vc:0.97}])),
+  TO('Recusar',0,null,TR('neutro','Manteve o atual','Preço baixo demais costuma esconder algum problema.'))]),
+ /* ---- lavanderia ---- */
+ lv_quebra:tycCard('🔧','Uma lavadora quebrou','Uma das máquinas mais usadas parou com cliente esperando. Cada dia parada é faturamento perdido.',[
+  TO('Chamar o técnico',0.05,0.75,TR('bom','Voltou a funcionar','O conserto foi rápido e o prejuízo, pequeno.'),TR('ruim','Defeito voltou','Quebrou de novo e você perdeu mais dias.',['Máquina parada',2,{cli:0.93}])),
+  TO('Trocar por uma nova',0.2,null,TR('bom','Máquina nova','Mais eficiente, com garantia e menos consumo.',['Máquina eficiente',24,{fx:-0.02}])),
+  TO('Deixar parada e usar as outras',0,null,TR('ruim','Fila de espera','A fila afastou clientes enquanto a máquina ficou parada.',['Capacidade reduzida',4,{cli:0.92}]))]),
+ lv_conta:tycCard('💡','Conta de água e energia disparou','A tarifa subiu e a conta virou o maior custo depois do aluguel.',[
+  TO('Instalar reuso de água e energia solar',0.25,0.7,TR('bom','Conta menor','O investimento reduziu o custo fixo por anos.',['Água e energia mais baratas',36,{fx:-0.05}]),TR('neutro','Retorno lento','A economia foi menor que a prevista.',['Economia pequena',24,{fx:-0.02}])),
+  TO('Reajustar o preço da lavagem',0,null,TR('neutro','Repasse ao cliente','O preço subiu um pouco e o movimento caiu pouco.',['Preço reajustado',6,{tk:1.06,cli:0.97}])),
+  TO('Absorver o custo',0,null,TR('ruim','Margem menor','A conta mais cara reduziu o lucro.',['Conta mais cara',4,{fx:0.04}]))]),
+ lv_hotel:tycCard('🏨','Pousada quer lavar toda a roupa de cama','Contrato fixo, volume alto e preço negociado para baixo.',[
+  TO('Aceitar com desconto',0,0.7,TR('bom','Volume garantido','Receita previsível e máquinas sempre ocupadas.',['Contrato com pousada',8,{cli:1.12,tk:0.94}]),TR('ruim','Atrasos na entrega','O prazo apertou e a pousada reclamou.',['Contrato problemático',4,{cli:1.05}])),
+  TO('Aceitar com contrato de preço mínimo',0.02,null,TR('bom','Contrato justo','Você segurou a margem com cláusula de preço.',['Contrato com pousada',8,{cli:1.1,tk:0.98}])),
+  TO('Recusar',0,null,TR('neutro','Sem contrato','Seguiu só com o balcão.'))]),
+ lv_coleta:tycCard('🚚','Coleta e entrega em domicílio','Os clientes pedem para buscar e entregar a roupa em casa.',[
+  TO('Contratar motoboy e lançar o serviço',0.08,0.65,TR('bom','Serviço bem aceito','O cliente paga mais pela comodidade e volta.',['Coleta e entrega',12,{cli:1.12,tk:1.08}]),TR('neutro','Poucos pedidos','O custo da entrega pesou.',['Entrega pouco usada',4,{tk:0.98}])),
+  TO('Fazer você mesmo',0,0.5,TR('bom','Deu certo','Você aceitou poucos pedidos e conseguiu atender.',['Coleta própria',6,{cli:1.05}]),TR('ruim','Falta de tempo','A loja ficou desatendida enquanto você entregava.',['Loja sem dono',3,{cli:0.95}])),
+  TO('Não oferecer',0,null,TR('neutro','Sem entrega','Você manteve o serviço de balcão.'))]),
+ lv_furto:tycCard('🪙','Furto de moedas das máquinas','Alguém abriu o cofre de uma máquina durante a madrugada.',[
+  TO('Instalar câmeras e alarme',0.06,null,TR('bom','Loja protegida','Sem novos furtos e clientes mais seguros.')),
+  TO('Contratar seguro',0.03,null,TR('bom','Coberto','O seguro cobriu o prejuízo.',null,0.04)),
+  TO('Não fazer nada',0,0.4,TR('neutro','Não aconteceu de novo','Sorte desta vez.'),TR('ruim','Furtou de novo','Dessa vez o prejuízo foi maior.',null,-0.1))]),
+ lv_inverno:tycCard('🛏️','Inverno chegando: edredons','É a época em que as pessoas lavam cobertores e edredons. Dá para ganhar mais por peça.',[
+  TO('Campanha de edredons',0.04,0.7,TR('bom','Edredons lotaram','A campanha lotou as máquinas grandes e o ticket subiu.',['Edredons no inverno',3,{cli:1.12,tk:1.1}]),TR('neutro','Pouca procura','O inverno foi curto e a procura, fraca.')),
+  TO('Comprar secadora extra',0.15,null,TR('bom','Capacidade maior','Mais secadoras evitam fila no inverno.',['Secagem mais rápida',12,{cli:1.06}])),
+  TO('Não fazer',0,null,TR('neutro','Inverno normal','Sem preparo, a procura foi a do dia a dia.'))]),
+ lv_cond:tycCard('🏢','Condomínio instalou lavanderia compartilhada','Um prédio vizinho colocou duas lavadoras no térreo. Parte dos moradores deixou de vir.',[
+  TO('Oferecer plano para condomínios',0.03,0.6,TR('bom','Fechou parceria','Você assinou com o síndico e passou a atender vários prédios.',['Contrato com condomínios',10,{cli:1.08}]),TR('neutro','Sem resposta','Os síndicos não responderam.')),
+  TO('Baixar o preço',0,null,TR('neutro','Perdeu margem','O cliente ficou, mas o ticket caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Ignorar',0,0.45,TR('neutro','Foi passageiro','Os moradores voltaram.'),TR('ruim','Perdeu clientes','O movimento caiu.',['Clientes migraram',8,{cli:0.9}]))]),
+ lv_pix:tycCard('📱','Trocar fichas por pagamento por aplicativo','As máquinas usam fichas. Um sistema de pagamento por Pix permite controle e promoções.',[
+  TO('Instalar o sistema',0.12,0.8,TR('bom','Controle total','Menos ficha perdida, dados de uso e promoções fáceis.',['Pagamento digital',24,{cli:1.05,fx:-0.01}]),TR('neutro','Clientes estranharam','Parte dos clientes demorou a se acostumar.',['Transição lenta',4,{cli:0.97}])),
+  TO('Manter as fichas',0,null,TR('neutro','Sem mudança','O sistema antigo segue funcionando.'))]),
+ lv_cliente:tycCard('🧺','Cliente reclama de roupa manchada','A cliente diz que a máquina manchou uma peça cara.',[
+  TO('Ressarcir sem discussão',0.03,null,TR('bom','Cliente conquistado','Ela voltou e indicou a loja para amigas.',['Cliente fiel',4,{cli:1.03}])),
+  TO('Negar a responsabilidade',0,0.45,TR('neutro','Ela desistiu','Ela foi embora sem voltar.'),TR('ruim','Reclamação pública','Ela postou nas redes e a imagem da loja sofreu.',['Reclamação nas redes',6,{cli:0.92}])),
+  TO('Oferecer crédito em lavagens',0.01,null,TR('bom','Acordo justo','Ela aceitou e continuou cliente.'))]),
+ lv_24h:tycCard('🌙','Abrir 24 horas?','Alguns clientes pedem para lavar de madrugada. É mais energia, mais risco e menos descanso.',[
+  TO('Abrir 24 horas',0.06,0.55,TR('bom','Movimento extra','Quem trabalha à noite passou a usar a loja.',['Aberto 24 horas',12,{cli:1.12,fx:0.03}]),TR('ruim','Pouca gente de madrugada','O custo extra não compensou.',['Custo noturno',6,{fx:0.04}])),
+  TO('Estender o horário até as 22h',0.02,null,TR('bom','Meio-termo','Alguns clientes a mais, sem risco grande.',['Horário estendido',12,{cli:1.05}])),
+  TO('Manter o horário',0,null,TR('neutro','Tudo igual','Sem mudança.'))]),
+ lv_licenca:tycCard('📑','Licença ambiental e descarte de água','O órgão ambiental cobra regularização do descarte de efluentes.',[
+  TO('Contratar consultoria e regularizar',0.07,null,TR('bom','Tudo em ordem','Documentos em dia e sem risco.')),
+  TO('Resolver sozinho',0,0.5,TR('neutro','Passou','Dessa vez deu certo.'),TR('ruim','Multa','A documentação estava incompleta e a multa saiu cara.',null,-0.12)),
+  TO('Ignorar o aviso',0,null,TR('ruim','Multa pesada','Ignorar prazo só aumentou o valor.',null,-0.25))]),
+ /* ---- loja de roupa ---- */
+ rp_colecao:tycCard('👗','Coleção da nova estação','O representante oferece a coleção de verão com pedido mínimo alto. Se vender, a margem é ótima; se não, vira estoque parado.',[
+  TO('Pedido grande',0.16,0.55,TR('bom','Coleção esgotou','As peças saíram rápido e você teve margem boa.',['Coleção esgotada',3,{cli:1.18,tk:1.1}]),TR('ruim','Sobrou estoque','Boa parte ficou na arara e o caixa ficou travado.',['Estoque parado',6,{cli:0.97,tk:0.96}])),
+  TO('Pedido pequeno e reposição',0.07,null,TR('bom','Compra segura','Menos risco e menos sobra, com margem menor.',['Coleção enxuta',3,{cli:1.08,tk:1.05}])),
+  TO('Não renovar a coleção',0,null,TR('ruim','Vitrine parada','A vitrine perdeu atrativo e os clientes sentiram.',['Vitrine sem novidade',4,{cli:0.94}]))]),
+ rp_encalhe:tycCard('🏷️','Estoque encalhado','Peças da estação passada ocupam espaço e capital.',[
+  TO('Liquidação forte',0.03,0.75,TR('bom','Estoque virou caixa','A liquidação liberou espaço e capital.',null,0.12),TR('neutro','Vendeu pouco','O público esperava mais desconto.',null,0.05)),
+  TO('Vender pelo Instagram',0.01,0.6,TR('bom','Saída online','A vitrine digital escoou parte do estoque com margem melhor.',null,0.09),TR('neutro','Poucas vendas','O alcance foi pequeno.',null,0.02)),
+  TO('Manter na arara',0,null,TR('ruim','Mais estoque parado','O dinheiro continua preso na arara.',['Estoque parado',6,{cli:0.97}]))]),
+ rp_vendedora:tycCard('🧑‍💼','Vendedora estrela pede comissão maior','Ela vende mais que todos e recebeu proposta da concorrência.',[
+  TO('Aumentar a comissão',0,null,TR('bom','Ela ficou','A folha subiu um pouco, mas as vendas continuam altas.',['Equipe valorizada',24,{fx:0.03,cli:1.04}])),
+  TO('Dar bônus por meta',0.04,null,TR('bom','Meio-termo','O bônus por meta alinhou o interesse dela ao seu.',['Bônus por meta',12,{cli:1.04}])),
+  TO('Negar',0,0.5,TR('neutro','Ela ficou','Dessa vez aceitou.'),TR('ruim','Ela saiu','A vendedora levou clientes fiéis.',['Vendedora saiu',5,{cli:0.9}],-0.05))]),
+ rp_black:tycCard('🛍️','Black Friday','A concorrência vai fazer promoção. Você pode entrar de verdade, ou subir o preço antes e "dar desconto".',[
+  TO('Desconto real em poucas peças',0.04,0.7,TR('bom','Movimento forte','Peças atrativas puxaram gente e as vendas casadas ajudaram.',['Black Friday',2,{cli:1.25}]),TR('neutro','Sem destaque','A concorrência fez mais barulho.',['Black Friday fraca',2,{cli:1.05}])),
+  TO('Maquiar o desconto',0,0.35,TR('neutro','Passou batido','Dessa vez ninguém percebeu.',['Black Friday',2,{cli:1.15}]),TR('ruim','Cliente descobriu','O cliente comparou os preços e a reputação sofreu.',['Reputação arranhada',8,{cli:0.9}])),
+  TO('Não participar',0,null,TR('neutro','Mês normal','Você preservou o preço e a margem.'))]),
+ rp_loja:tycCard('🪞','Reformar a vitrine e os provadores','A loja está com cara antiga. Uma reforma melhora a experiência, mas fecha a loja por uns dias.',[
+  TO('Reforma completa',0.2,0.75,TR('bom','Loja nova','A loja ficou mais bonita e o ticket subiu.',['Loja reformada',18,{cli:1.1,tk:1.06}]),TR('ruim','Obra atrasou','A obra passou do prazo e a loja ficou fechada mais tempo.',['Loja fechada',2,{cli:0.85}])),
+  TO('Só vitrine nova',0.05,null,TR('bom','Vitrine atrativa','Uma vitrine bem montada atrai quem passa na rua.',['Vitrine nova',10,{cli:1.06}])),
+  TO('Manter como está',0,null,TR('neutro','Tudo igual','A loja segue funcionando.'))]),
+ rp_credi:tycCard('💳','Crediário próprio','Muitos clientes pedem para pagar em prestações direto com a loja.',[
+  TO('Abrir crediário',0,0.65,TR('bom','Vendas maiores','O cliente comprou mais e pagou em dia.',['Crediário próprio',12,{cli:1.1,tk:1.1}]),TR('ruim','Inadimplência','Parte dos clientes não pagou e o caixa sofreu.',['Crediário',12,{cli:1.08,tk:1.08}],-0.12)),
+  TO('Parcelar no cartão',0.02,null,TR('bom','Venda segura','A taxa do cartão é pequena e você recebe sem risco.',['Parcelado no cartão',12,{cli:1.05,tk:1.06}])),
+  TO('Só à vista',0,null,TR('neutro','Sem parcelamento','Segurança com menos vendas.'))]),
+ rp_fast:tycCard('🏪','Rede de fast fashion abre na rua','Uma loja grande com preço muito baixo abriu no quarteirão.',[
+  TO('Competir no preço',0,null,TR('neutro','Segurou clientes','Você manteve o movimento, mas a margem caiu.',['Guerra de preços',6,{tk:0.93}])),
+  TO('Apostar em atendimento e peças exclusivas',0.08,0.65,TR('bom','Nicho protegido','Quem busca peças únicas e atendimento personalizado ficou.',['Atendimento diferenciado',12,{tk:1.05}]),TR('ruim','Não bastou','Parte dos clientes migrou.',['Clientes migraram',6,{cli:0.92}])),
+  TO('Ignorar',0,0.4,TR('neutro','Foi passageiro','Os clientes voltaram.'),TR('ruim','Perdeu clientes','O movimento caiu.',['Perdeu clientes',8,{cli:0.88}]))]),
+ rp_insta:tycCard('📱','Vender pelo Instagram e WhatsApp','Seus clientes pedem peças por mensagem. Dá para vender sem sair da loja.',[
+  TO('Montar catálogo e atendimento online',0.05,0.7,TR('bom','Vendas extras','As vendas por mensagem somaram clientes que não passariam na loja.',['Vendas online',12,{cli:1.12}]),TR('neutro','Pouco retorno','Faltou tempo para responder e vender.',['Online pouco ativo',4,{cli:1.02}])),
+  TO('Parceria com influenciadora local',0.07,0.5,TR('bom','Viralizou','A postagem trouxe clientes novos.',['Influenciadora local',4,{cli:1.2}]),TR('neutro','Não decolou','A influenciadora não trouxe retorno.')),
+  TO('Ficar só na loja',0,null,TR('neutro','Sem mudança','Foco no balcão.'))]),
+ rp_troca:tycCard('🔁','Política de troca','Cliente pede troca de peça sem etiqueta. Uma regra clara evita discussões.',[
+  TO('Troca fácil em 30 dias',0.01,null,TR('bom','Cliente confia','A troca fácil aumenta a confiança de quem compra.',['Troca fácil',12,{cli:1.06}])),
+  TO('Só crédito na loja',0,null,TR('neutro','Meio-termo','O cliente aceita e o dinheiro fica na loja.',['Crédito de troca',12,{cli:1.02}])),
+  TO('Sem troca',0,0.4,TR('neutro','Ninguém reclamou','Dessa vez não houve reação.'),TR('ruim','Reclamações','Clientes foram embora e falaram mal.',['Reclamações',6,{cli:0.92}]))]),
+ rp_maes:tycCard('💐','Dia das Mães','É a data de maior movimento do semestre. Dá para se preparar.',[
+  TO('Kit presente e campanha',0.1,0.7,TR('bom','Campanha lotou','O kit aumentou o ticket e a loja encheu.',['Dia das Mães',2,{cli:1.2,tk:1.12}]),TR('neutro','Meio movimento','A campanha teve pouco alcance.',['Dia das Mães',2,{cli:1.05}])),
+  TO('Só promoção de vitrine',0.03,null,TR('neutro','Movimento razoável','Algumas vendas a mais, sem muito esforço.',['Promoção de vitrine',2,{cli:1.08}])),
+  TO('Não fazer nada',0,null,TR('neutro','Mês normal','A data passou sem ação.'))]),
+ rp_furto:tycCard('🕵️','Furtos na loja','Algumas peças sumiram sem pagamento.',[
+  TO('Câmeras e etiquetas antifurto',0.07,null,TR('bom','Loja protegida','Os furtos pararam.')),
+  TO('Contratar segurança no fim de semana',0.04,0.7,TR('bom','Furtos diminuíram','A presença de segurança inibe.'),TR('neutro','Ainda houve furto','A presença ajudou só em parte.')),
+  TO('Não fazer nada',0,0.4,TR('neutro','Parou sozinho','Sorte desta vez.'),TR('ruim','Furtos continuaram','O prejuízo foi maior.',null,-0.08))]),
+ rp_aluguel:tycCard('🏠','Proprietário reajusta o aluguel','O aluguel subiu bem acima da inflação.',[
+  TO('Negociar o reajuste',0,0.55,TR('bom','Conseguiu um acordo','Você mostrou histórico de bom pagador e o proprietário cedeu.',['Aluguel reduzido',12,{fx:-0.03}]),TR('neutro','Sem acordo','Ele não cedeu.')),
+  TO('Mudar de ponto',0.15,0.5,TR('bom','Ponto melhor','Menos aluguel e mais movimento.',['Ponto novo',12,{cli:1.1,fx:-0.03}]),TR('ruim','Clientes se perderam','A mudança confundiu os clientes.',['Mudança de ponto',6,{cli:0.9}])),
+  TO('Aceitar o reajuste',0,null,TR('ruim','Aluguel mais caro','O custo fixo subiu.',['Aluguel maior',24,{fx:0.05}]))])
+});
+Object.assign(TYC_LIC,{
+ ac_fruta:{livro:null, ideia:'Matéria-prima sazonal tem preço que sobe e desce. Estocar é uma aposta no preço futuro, e quem estoca demais troca risco de margem por risco de caixa parado.'},
+ ac_verao:{livro:null, ideia:'Demanda sazonal pede preparo antes da onda: estoque, equipe e divulgação. Quem se prepara depois da onda chega atrasado.'},
+ ac_app:{livro:null, ideia:'Aplicativo de entrega traz volume e retira margem. Conte a comissão, a embalagem e o atraso antes de aceitar. Cliente que vem do app é do app, não seu.'},
+ ac_compl:{livro:'Previsivelmente Irracional, de Dan Ariely (personalização)', ideia:'Quando o cliente monta o próprio produto, ele se sente dono do resultado e paga mais por isso. Mas variedade demais gera desperdício: poucos itens de alto giro vencem muitos itens parados.'},
+ ac_freezer:{livro:null, ideia:'Equipamento de frio é o coração do negócio. A manutenção preventiva é mais barata que a perda de estoque, e o pior dia para quebrar é o de maior movimento.'},
+ ac_conc:{livro:'Estratégia Competitiva, de Michael Porter (diferenciação)', ideia:'Contra uma marca grande, preço é a pior arma. Diferencie pelo que ela não tem: proximidade, frescor e relacionamento.'},
+ ac_frio:{livro:null, ideia:'Negócio sazonal precisa de plano para a baixa temporada: diversificar o cardápio ou cortar custos. O erro é tratar o mês fraco como se fosse o normal.'},
+ ac_visa:{livro:null, ideia:'A fiscalização sanitária é regra do jogo em alimento. Documentação e higiene em dia custam menos que multa e fechamento.'},
+ ac_escola:{livro:null, ideia:'Venda em volume dá previsibilidade, mas sem sinal você financia o cliente. Peça entrada para pedido grande.'},
+ ac_fiel:{livro:'As Armas da Persuasão, de Robert Cialdini (compromisso e coerência)', ideia:'Quem começa a completar um cartão quer terminar. A recompensa vem depois da compra e prende o cliente ao hábito.'},
+ ac_ponto:{livro:null, ideia:'Ponto melhor tem aluguel melhor, e o fluxo precisa pagar a diferença. Compare o aumento de clientes com o aumento do custo fixo antes de mudar.'},
+ ac_polpa:{livro:null, ideia:'Preço muito abaixo do mercado costuma ter explicação. Testar antes de comprar protege a marca, que é o seu maior ativo.'},
+ lv_quebra:{livro:null, ideia:'Em negócio de máquinas, parada é receita perdida. Manutenção em dia e reserva para reposição evitam fila e cliente que não volta.'},
+ lv_conta:{livro:null, ideia:'Água e energia são custos fixos que pesam no resultado. Investir em eficiência reduz o custo por anos, mas o retorno vem devagar.'},
+ lv_hotel:{livro:null, ideia:'Contrato corporativo dá volume e previsibilidade, mas desconto em excesso come a margem. Preço mínimo em contrato protege o seu lucro.'},
+ lv_coleta:{livro:null, ideia:'Conveniência tem valor. O cliente paga mais para não sair de casa, desde que o serviço funcione. Fazer tudo sozinho tira o dono do negócio de dentro do negócio.'},
+ lv_furto:{livro:null, ideia:'Risco pequeno e frequente se protege com prevenção. Risco grande e raro se protege com seguro. O erro é não fazer nada e torcer.'},
+ lv_inverno:{livro:null, ideia:'A sazonalidade cria picos de serviço mais rentável. Quem se prepara com capacidade e campanha captura o pico inteiro.'},
+ lv_cond:{livro:null, ideia:'Novos concorrentes substitutos aparecem em formas inesperadas. Transforme-os em parceiros quando possível.'},
+ lv_pix:{livro:null, ideia:'Meio de pagamento digital reduz perdas, gera dados e permite promoção. O custo é a resistência inicial de parte dos clientes.'},
+ lv_cliente:{livro:null, ideia:'Uma reclamação bem resolvida cria cliente fiel. Uma reclamação mal resolvida vira propaganda negativa. O custo do ressarcimento é barato perto da imagem da loja.'},
+ lv_24h:{livro:null, ideia:'Horário maior significa custo maior. Só faz sentido se a demanda extra pagar a energia, a segurança e o seu descanso.'},
+ lv_licenca:{livro:null, ideia:'Licença é custo previsível. Multa e interdição saem mais caras que a consultoria, e ignorar prazo só agrava o problema.'},
+ rp_colecao:{livro:null, ideia:'Moda tem prazo de validade. Pedido grande rende margem, mas estoque parado é capital morto e o produto perde valor a cada semana.'},
+ rp_encalhe:{livro:null, ideia:'Estoque parado custa espaço e capital. Liquidar cedo recupera caixa para a próxima coleção, e esperar só aumenta a perda.'},
+ rp_vendedora:{livro:null, ideia:'Trocar um bom vendedor custa clientes e treinamento. Comissão por meta alinha o interesse dele com o seu.'},
+ rp_black:{livro:'As Armas da Persuasão, de Robert Cialdini (escassez)', ideia:'Desconto real e limitado cria urgência. Desconto falso destrói a confiança no momento em que o cliente descobre.'},
+ rp_loja:{livro:null, ideia:'A loja é parte do produto. Reforma melhora a experiência, mas obra mal planejada fecha a porta e custa vendas.'},
+ rp_credi:{livro:null, ideia:'Crediário aumenta venda e traz inadimplência. Parcelar no cartão transfere o risco a quem sabe cobrar.'},
+ rp_fast:{livro:'Estratégia Competitiva, de Michael Porter', ideia:'Não dá para vencer uma rede grande no preço. Foque em atendimento, curadoria e peças que ela não oferece.'},
+ rp_insta:{livro:'As Armas da Persuasão, de Robert Cialdini (prova social)', ideia:'Recomendação de alguém próximo vale mais que anúncio. Canal online amplia o mercado, mas exige tempo para responder.'},
+ rp_troca:{livro:null, ideia:'Política de troca clara reduz atrito e aumenta a confiança. Facilitar a troca costuma gerar mais vendas do que perdas.'},
+ rp_maes:{livro:null, ideia:'Datas comemorativas concentram a demanda. Produto de presente tem ticket maior que desconto no mesmo produto.'},
+ rp_furto:{livro:null, ideia:'Perda por furto é custo escondido. Prevenção é mais barata que reposição, e câmera visível já inibe boa parte.'},
+ rp_aluguel:{livro:'Como Chegar ao Sim, de Roger Fisher e William Ury', ideia:'Quem negocia com alternativa tem poder. Mostrar histórico de bom pagador e ter um plano B muda o resultado da conversa.'}
+});
+TYC_EMP.acai.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ac_'));
+TYC_EMP.lavanderia.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('lv_'));
+TYC_EMP.lojaroupa.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('rp_'));
+
 /* ================= franqueados: interessados aleatórios, royalties e risco para a marca ================= */
 const FRANQ_ROY=0.05, FRANQ_TAXA=0.08, FRANQ_MAX=8;
 const FRANQ_NOMES=['Marcos','Juliana','Rafael','Camila','Bruno','Patrícia','Diego','Fernanda','Thiago','Larissa','Gustavo','Renata'];
@@ -3676,7 +3922,7 @@ const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
-const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
@@ -3888,7 +4134,7 @@ const FOTOS = {
   formatura:{t:'Formatura', ic:'🎓'},
   vitoria:{t:'Livres! Fora da corrida dos ratos', ic:'🎉'},
   'topo-atendente':{t:'Gerente regional: o topo da carreira', ic:'🏆'}, 'topo-professor':{t:'Diretor(a) de escola: o topo da carreira', ic:'🏆'}, 'topo-enfermeiro':{t:'Gerente de enfermagem: o topo da carreira', ic:'🏆'}, 'topo-programador':{t:'Tech lead: o topo da carreira', ic:'🏆'},
-  'premio-cafeteria':{t:'Melhor cafeteria da cidade', ic:'🏆'}, 'premio-geek':{t:'Melhor loja geek do estado', ic:'🏆'}, 'sonho-viagem':{t:'A volta ao mundo em família', ic:'🌍'}, 'sonho-escola':{t:'A escolinha de futebol', ic:'⚽'}, 'sonho-veleiro':{t:'A vida no veleiro', ic:'⛵'}, 'sonho-praia':{t:'A casa de frente para o mar', ic:'🌊'}
+  'premio-cafeteria':{t:'Melhor cafeteria da cidade', ic:'🏆'}, 'premio-geek':{t:'Melhor loja geek do estado', ic:'🏆'}, 'premio-acai':{t:'Melhor açaí da cidade', ic:'🏆'}, 'premio-lavanderia':{t:'Melhor lavanderia da cidade', ic:'🏆'}, 'premio-roupa':{t:'Melhor loja de roupas da cidade', ic:'🏆'}, 'sonho-viagem':{t:'A volta ao mundo em família', ic:'🌍'}, 'sonho-escola':{t:'A escolinha de futebol', ic:'⚽'}, 'sonho-veleiro':{t:'A vida no veleiro', ic:'⛵'}, 'sonho-praia':{t:'A casa de frente para o mar', ic:'🌊'}
 };
 // as fotos de férias mudam com a família: sem sufixo = casal com dois filhos; -s sozinho(a), -c casal, -1 casal com um filho
 ['praia','tropical','esqui','exterior'].forEach(b=>['-s','-c','-1'].forEach(x=>{ FOTOS[b+x]=FOTOS[b]; }));
