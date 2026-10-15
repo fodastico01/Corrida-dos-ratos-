@@ -1690,6 +1690,14 @@ function tycRetirada(uid, pct){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return;
   a.tyc.ret=clamp(Number(pct)||0,0,100); tycAtualizar(a); ui.tycMsg='';
 }
+function tycReserva(a){ const pv=tycPrev(a); return Math.max(0,Math.round(Math.max(0,pv.rec-pv.lucro)*3/100)*100); }
+function tycSacar(uid, modo){
+  const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
+  const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
+  if(v<=0){ ui.tycMsg='Não há excedente para retirar: o caixa está no nível da reserva.'; return; }
+  T.caixa-=v; s.conta+=v; tycAtualizar(a);
+  ui.tycMsg=`💸 ${fmt0(v)} saíram do caixa para a sua conta.${modo==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Ficou uma reserva de cerca de 3 meses de custos.'}`;
+}
 function modalTyc(a){
   const T=a.tyc, pv=tycPrev(a), nMin=Math.min(...T.niv), garg=tycGargalo(a), u=T.ult;
   const porteK=nMin<=3?'pequena':nMin<=6?'media':'grande', imgCena=ARTE.extras?.['cafe-'+porteK];
@@ -1716,6 +1724,8 @@ function modalTyc(a){
     <p class="hint">Quanto do lucro vai para o seu bolso todo mês? O resto fica no caixa para você reinvestir. Se o caixa não cobrir um mês ruim, o prejuízo sai do seu bolso.</p>
     <div class="tyc-ret">${[0,25,50,75,100].map(p=>`<button class="btn${T.ret===p?' coin':''}" data-acao="tycRet" data-alvo="${a.uid}:${p}">${p}%</button>`).join('')}</div>
     <p class="hint">Retirada prevista: <b>${fmt0(a.renda)}</b> por mês.</p>
+    <p class="hint">Dinheiro que já está no caixa só sai se você sacar aqui. A reserva sugerida é de ${fmt0(tycReserva(a))} (cerca de 3 meses de custos).</p>
+    <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Sacar o excedente (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Sacar tudo</button></div>
     ${tycEfs(a).lista.length?`<p class="hint"><b>Em andamento:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?'meses':'mês'})`).join(', ')}</p>`:''}
     ${ui.tycMsg?`<p class="hint tyc-msg">${ui.tycMsg}</p>`:''}
     ${T.premio&&!a.franqDe?(()=>{ const v=tycCustoFranq(a), n=tycFranqs(a); return `<div class="alerta bom" role="note"><strong>🏆 Melhor cafeteria da cidade</strong><p>${n>=TYC_FRANQ_MAX?`Você já abriu o máximo de ${TYC_FRANQ_MAX} unidades próprias.`:`Abra uma nova unidade própria: custa ${fmt0(v)}, o mesmo valor investido nesta loja, e ela já nasce com todos os setores no nível 9. Mas o ponto novo ainda não é conhecido: a clientela leva cerca de um ano para chegar.${n?` Unidades abertas: ${n} de ${TYC_FRANQ_MAX}.`:''}${(s.franqs||[]).length?` Franqueados: ${s.franqs.length}, com royalties previstos de ${fmt0(tycRoyTotal())} por mês.`:''}`}</p>${n>=TYC_FRANQ_MAX?'':`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Abrir unidade própria por ${fmt0(v)}</button></div>`}</div>`; })():''}
@@ -5029,6 +5039,7 @@ document.addEventListener('click', e=>{
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
+    case 'tycSacar': { const [u,m]=alvo.split(':'); tycSacar(Number(u),m); salvar(); render(); break; }
     case 'tycRet': { const [u,pc]=alvo.split(':'); tycRetirada(Number(u),pc); salvar(); render(); break; }
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
