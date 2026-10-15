@@ -1255,6 +1255,8 @@ const CARTAS = {
     desc:'Um sistema vendido por mensalidade. Pode morrer em meses ou ser comprado por uma empresa grande.'},
   cafeteria:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Toca do Café', preco:30000, renda:800, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
     desc:'Uma cafeteria de verdade para administrar: você melhora equipamento, cardápio, ambiente, equipe e marketing, e vê o negócio crescer.'},
+  geek:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Baú do Jogador', preco:10000, renda:550, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:1},
+    desc:'Cartas colecionáveis e board games, vendidos da garagem de casa. Melhore estoque, produtos, espaço, equipe e comunidade, e veja a loja crescer até virar a referência geek da região.'},
   terreno:{fases:[2,3], tipo:'terreno', nome:'Terreno no caminho da nova avenida', preco:45000, renda:0, horas:0, risco:0.03, pesos:{obra:1,cancelada:1},
     desc:'Não rende nada. Se a avenida sair, pode valer o triplo. Se não sair, encalha.'}
 };
@@ -1653,7 +1655,16 @@ function expandir(uid){
 /* ================= tycoon: cafeteria (setores, travas de nível, caixa próprio) ================= */
 const TYC_KEYS=['equip','cardapio','ambiente','equipe','mkt'];
 const TYC_NMAX=9;
-const TYC_SET={
+const TYC_EMP={};
+const emp = a => TYC_EMP[a&&a.id]||TYC_EMP.cafeteria;
+const tycPorteTxt = a => { const n=Math.min(...a.tyc.niv), E=emp(a); return E.porte[n<=3?0:n<=6?1:2]; };
+TYC_EMP.cafeteria={
+  arte:'cafe', ofertaImg:'cafeteria-oferta', ofertaNome:'Cafeteria de bairro', negocio:'cafeteria', porte:['Pequena','Média','Grande'], tagPorte:p=>`Empresa ${p.toLowerCase()}`,
+  varc:0.49, dem:[32,42,56,74,98,130,170,225,295], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[9,11,13,15,17,19,21,23,25],
+  fixo:[3083,4610,7043,10660,16254,24735,36758,55179,81226], saz:[0.9,0.9,1,1,1.05,1.15,1.15,1.1,1,1,1.05,1.15], horas:[12,11,10,9,8,7,6,5,4], custo:[3250,5850,8300,10900,12700,18200,22100,25500],
+  premio:{foto:'premio-cafeteria', titulo:'Melhor cafeteria da cidade', texto:a=>`${a?a.nome:'Sua cafeteria'} foi eleita a melhor cafeteria da cidade pelos clientes, com nota 5,0 nas avaliações.`, aval:'"Café perfeito, atendimento de primeira." · "Melhor da cidade, volto sempre." · "Vale a fila."'},
+  franq:{sabe:'Já trabalhou em cafeteria.', nao:'Nunca trabalhou com cafeteria.', conheceu:'conheceu a sua cafeteria premiada'},
+  set:{
   equip:{nome:'Equipamento', ic:'☕', peso:1.4, ef:'Quantas xícaras saem por dia.',
     niv:['Cafeteira simples','Máquina expressa','Expressa dupla com vapor','Moedor profissional','Torrefação própria','Torrefadora média','Duas torrefadoras e embalagem','Central de torra e envase','Planta de cafés especiais']},
   cardapio:{nome:'Cardápio', ic:'🥐', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
@@ -1664,26 +1675,39 @@ const TYC_SET={
     niv:['Você e um ajudante meio período','Um balconista','Barista treinado','Turnos de manhã e tarde','Cozinha e caixa separados','Líder de turno','Coordenação de loja','Equipe completa com treinamento','Equipe de 25 pessoas treinada']},
   mkt:{nome:'Marketing', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
     niv:['Placa na porta','Instagram da cafeteria','Cartão fidelidade','Delivery por aplicativo','Parcerias com empresas vizinhas','Campanha no bairro e rádio','Anúncios pagos e influenciadores','Campanha regional','Marca conhecida na cidade']}
+  }
 };
-const TYC_DEM=[32,42,56,74,98,130,170,225,295];            // clientes por dia que cada nível sustenta
-const TYC_CAP={equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0};
-const TYC_TK=[9,11,13,15,17,19,21,23,25];                    // ticket médio por nível de cardápio
-const TYC_FIXO=[3083,4610,7043,10660,16254,24735,36758,55179,81226]; // custo fixo mensal se tudo estiver naquele nível
-const TYC_SAZ=[0.9,0.9,1,1,1.05,1.15,1.15,1.1,1,1,1.05,1.15];     // jan a dez: frio vende mais café
-const TYC_HORAS=[12,11,10,9,8,7,6,5,4];                      // horas por semana, conforme a equipe
-const TYC_CUSTO=[3250,5850,8300,10900,12700,18200,22100,25500]; // preço médio de subir do nível n para n+1
+TYC_EMP.geek={
+  arte:'geek', ofertaImg:'geek-oferta', ofertaNome:'Loja de TCG e board games na garagem', negocio:'loja geek', porte:['Garagem','Loja de rua','Megastore'], tagPorte:p=>p,
+  varc:0.64, dem:[4,7,10,15,22,31,43,58,78], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[30,35,41,47,54,62,71,81,92],
+  fixo:[650,1500,2800,4800,7800,12500,19500,29000,42000], saz:[0.95,0.85,0.9,0.95,0.95,1,1.15,0.95,0.95,1,1.1,1.25], horas:[12,11,10,9,8,7,6,5,4], custo:[1800,3200,5200,8000,11500,16000,22000,30000],
+  premio:{foto:'premio-geek', titulo:'Melhor loja geek do estado', texto:a=>`${a?a.nome:'Sua loja'} foi eleita a melhor loja geek do estado pela comunidade de jogadores, com nota 5,0 nas avaliações.`, aval:'"O maior acervo que já vi." · "Torneio organizado e gente legal." · "Minha segunda casa."'},
+  franq:{sabe:'Já trabalhou em loja de jogos.', nao:'Nunca trabalhou com loja de jogos.', conheceu:'conheceu a sua loja geek premiada'},
+  set:{
+  equip:{nome:'Estoque', ic:'📦', peso:1.4, ef:'Quantos clientes você atende por dia com o produto certo na prateleira.',
+    niv:['Caixa de sapato com cartas','Estante com boosters e decks','Vitrine com cartas avulsas','Board games de entrada','Pré-venda de lançamentos','Importados sob encomenda','Cartas graduadas e raridades','Catálogo de milhares de itens','Maior acervo da região']},
+  cardapio:{nome:'Linha de produtos', ic:'🎲', peso:0.9, ef:'Quanto cada cliente gasta, em média.',
+    niv:['Só cartas avulsas','Boosters e decks prontos','Sleeves e acessórios','Board games populares','Board games importados','Miniaturas e colecionáveis','Edições limitadas e raridades','Cartas graduadas e itens de coleção','Marca própria de jogos']},
+  ambiente:{nome:'Espaço', ic:'🏠', peso:1.4, ef:'Quantos clientes cabem e jogam por dia. Aluguel maior acompanha.',
+    niv:['Garagem de casa','Garagem organizada com mesas','Sala comercial alugada','Loja de rua com 4 mesas','Loja com área de jogo','Salão para torneios','Loja de shopping com arena','Dois andares com cafeteria','Arena geek com palco']},
+  equipe:{nome:'Equipe', ic:'🧑‍💼', peso:0.6, ef:'Quantos clientes são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você','Um amigo nos fins de semana','Um vendedor','Vendedor e caixa','Juiz de torneios','Gerente de loja','Estoquista','Equipe de 8 pessoas','Equipe de 20 pessoas treinada']},
+  mkt:{nome:'Comunidade', ic:'📣', peso:0.7, ef:'Quantos clientes chegam por dia.',
+    niv:['Grupo de WhatsApp','Instagram e Discord','Noite de jogo toda semana','Torneios semanais','Parceria com distribuidoras','Campeonato regional','Influenciadores geek','Evento de lançamento','Referência nacional']}
+  }
+};
 const tycF = () => F2() ? (s.idx||1) : 1;
 const tycPorte = n => n<=3?'Pequena':n<=6?'Média':'Grande';
 const tycNiv = (a,k) => a.tyc.niv[TYC_KEYS.indexOf(k)];
 const tycEfs = a => { const L=((a.tyc&&a.tyc.efs)||[]).filter(e=>s.mes<=e.ate); return {cli:L.reduce((x,e)=>x*(e.cli||1),1), tk:L.reduce((x,e)=>x*(e.tk||1),1), vc:L.reduce((x,e)=>x*(e.vc||1),1), fx:L.reduce((x,e)=>x+(e.fx||0),0), lista:L}; };
 function tycMes(a, saz, alea){
-  const L=k=>tycNiv(a,k)-1, f=tycF();
-  const caps=['equip','ambiente','equipe','mkt'].map(k=>TYC_DEM[L(k)]*TYC_CAP[k]);
+  const EM=emp(a), L=k=>tycNiv(a,k)-1, f=tycF();
+  const caps=['equip','ambiente','equipe','mkt'].map(k=>EM.dem[L(k)]*EM.cap[k]);
   let cli=0.2*Math.min(...caps)+0.8*caps.reduce((x,y)=>x+y,0)/caps.length;
   const E=tycEfs(a);
   cli*=Math.pow(bonusGestao(a),0.6)*(largado(a)?0.85:1)*(saz||1)*(alea?(0.9+Math.random()*0.2):1)*E.cli;
-  const rec=cli*TYC_TK[L('cardapio')]*f*26*E.tk, varc=rec*0.49*E.vc;
-  const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(TYC_FIXO[i0]*(1-(mn-i0))+TYC_FIXO[Math.min(8,i0+1)]*(mn-i0))*f*(1+E.fx);
+  const rec=cli*EM.tk[L('cardapio')]*f*26*E.tk, varc=rec*EM.varc*E.vc;
+  const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(8,i0+1)]*(mn-i0))*f*(1+E.fx);
   return {cli:Math.round(cli), rec:Math.round(rec), varc:Math.round(varc), fixo:Math.round(fixo), lucro:Math.round(rec-varc-fixo)};
 }
 const tycPrev = a => tycMes(a,1,false);
@@ -1691,20 +1715,20 @@ function tycGargalo(a){
   const ks=['equip','ambiente','equipe','mkt'], v=ks.map(k=>tycNiv(a,k)), mn=Math.min(...v);
   return mn===Math.max(...v) ? null : ks[v.indexOf(mn)];
 }
-const tycCusto = (a,k) => { const n=tycNiv(a,k); return n>=TYC_NMAX?0:Math.round(TYC_CUSTO[n-1]*TYC_SET[k].peso*tycF()/100)*100; };
+const tycCusto = (a,k) => { const n=tycNiv(a,k); return n>=TYC_NMAX?0:Math.round(emp(a).custo[n-1]*emp(a).set[k].peso*tycF()/100)*100; };
 function tycBloqueio(a,k){
   const n=tycNiv(a,k); if(n>=TYC_NMAX) return 'Nível máximo';
-  const baixo=TYC_KEYS.filter(x=>x!==k && tycNiv(a,x)<n);
-  return baixo.length ? `Antes, ${(baixo.length>1?baixo.slice(0,-1).map(x=>TYC_SET[x].nome).join(', ')+' e '+TYC_SET[baixo[baixo.length-1]].nome:TYC_SET[baixo[0]].nome)} ${baixo.length>1?'precisam':'precisa'} chegar no nível ${n}` : null;
+  const baixo=TYC_KEYS.filter(x=>x!==k && tycNiv(a,x)<n), ST=emp(a).set;
+  return baixo.length ? `Antes, ${(baixo.length>1?baixo.slice(0,-1).map(x=>ST[x].nome).join(', ')+' e '+ST[baixo[baixo.length-1]].nome:ST[baixo[0]].nome)} ${baixo.length>1?'precisam':'precisa'} chegar no nível ${n}` : null;
 }
 function tycAtualizar(a){
   const T=a.tyc, pv=tycPrev(a); T.med=T.med==null?pv.lucro:T.med;
   a.renda=Math.max(0,Math.round(pv.lucro*T.ret/100));
   a.valor=Math.round((Math.max(a.custo*0.6, Math.max(0,T.med)*MULT_VALOR)+T.caixa)/100)*100; a.mercado=a.valor;
-  a.horas=TYC_HORAS[tycNiv(a,'equipe')-1];
+  a.horas=emp(a).horas[tycNiv(a,'equipe')-1];
 }
 function tycFecharMes(a, ex){
-  const T=a.tyc, m=tycMes(a, TYC_SAZ[mesCal()-1], true);
+  const T=a.tyc, m=tycMes(a, emp(a).saz[mesCal()-1], true);
   T.ult=m; T.meses=(T.meses||0)+1; T.caixa+=m.lucro; if(T.efs) T.efs=T.efs.filter(e=>s.mes<e.ate);
   let ret=0; if(m.lucro>0 && T.caixa>0) ret=Math.min(T.caixa, Math.round(m.lucro*T.ret/100));
   T.caixa-=ret; s.conta+=ret; s.rendaAtivosTot=(s.rendaAtivosTot||0)+ret;
@@ -1719,8 +1743,8 @@ function tycSubir(uid, ki, fonte){
   const c=tycCusto(a,k), antes=tycPrev(a).lucro, m0=mesesLiq(); let t='';
   if(fonte==='caixa'){ if(a.tyc.caixa<c) return; a.tyc.caixa-=c; } else { if(!podeAVista(c)) return; t=pagarAVista(c); }
   a.tyc.niv[ki]++; a.custo+=c; tycAtualizar(a);
-  if(a.tyc.niv.every(n=>n>=TYC_NMAX) && !a.tyc.premio){ a.tyc.premio=true; foto('premio-cafeteria'); ui.fotoFila=(ui.fotoFila||[]).filter(x=>x!=='premio-cafeteria'); ui.premioUid=a.uid; ui.modal='premioCafe'; }
-  const dep=tycPrev(a).lucro, S=TYC_SET[k];
+  if(a.tyc.niv.every(n=>n>=TYC_NMAX) && !a.tyc.premio){ a.tyc.premio=true; const pf=emp(a).premio.foto; foto(pf); ui.fotoFila=(ui.fotoFila||[]).filter(x=>x!==pf); ui.premioUid=a.uid; ui.modal='premioCafe'; }
+  const dep=tycPrev(a).lucro, S=emp(a).set[k];
   ui.tycMsg=`${S.ic} ${S.nome}: ${S.niv[a.tyc.niv[ki]-1]}. Lucro previsto: de ${fmt0(antes)} para ${fmt0(dep)} por mês.${dep<=antes?' Esse item ainda não rendeu: o gargalo está em outro setor.':''}${t}`;
   if(fonte!=='caixa') checarDescoberto(m0);
 }
@@ -1750,19 +1774,19 @@ function tycSacar(uid, modo){
 }
 function modalTyc(a){
   const T=a.tyc, pv=tycPrev(a), nMin=Math.min(...T.niv), garg=tycGargalo(a), u=T.ult;
-  const porteK=nMin<=3?'pequena':nMin<=6?'media':'grande', imgCena=ARTE.extras?.['cafe-'+porteK];
+  const porteK=nMin<=3?'pequena':nMin<=6?'media':'grande', EM=emp(a), imgCena=ARTE.extras?.[EM.arte+'-'+porteK];
   const estagio=n=>n>=7?4:n>=5?3:n>=3?2:1;
-  const cena=(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="Cafeteria ${tycPorte(nMin).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=TYC_SET[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
-    const itens=Array.from({length:e},(_,j)=>{ const im=ARTE.icones?.[`cafe-${nomeK}-${j+1}`]; return im?`<img class="tyc-ic-img" src="${im}" alt="">`:`<i>${S.ic}</i>`; }).join('');
+  const cena=(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nMin).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
+    const itens=Array.from({length:e},(_,j)=>{ const im=ARTE.icones?.[`${EM.arte}-${nomeK}-${j+1}`]; return im?`<img class="tyc-ic-img" src="${im}" alt="">`:`<i>${S.ic}</i>`; }).join('');
     return `<div class="tyc-linha"><span class="tyc-lb">${S.nome}</span><span class="tyc-itens">${itens}</span></div>`; }).join('');
-  const linhas=TYC_KEYS.map((k,i)=>{ const S=TYC_SET[k], n=tycNiv(a,k), bl=tycBloqueio(a,k), c=tycCusto(a,k), doCaixa=T.caixa>=c, doBolso=podeAVista(c);
-    return `<div class="tyc-set${garg===k?' garg':''}"><div class="tyc-set-top"><span class="tyc-ic">${ARTE.icones?.[`cafe-${k}-${k==='equipe'?1:estagio(n)}`]?`<img class="tyc-ic-img tyc-ic-top" src="${ARTE.icones[`cafe-${k}-${k==='equipe'?1:estagio(n)}`]}" alt="">`:S.ic}</span><div><b>${S.nome}</b><span class="hint">${S.ef}</span></div><span class="tyc-nv">${n}/${TYC_NMAX}</span></div>
+  const linhas=TYC_KEYS.map((k,i)=>{ const S=EM.set[k], n=tycNiv(a,k), bl=tycBloqueio(a,k), c=tycCusto(a,k), doCaixa=T.caixa>=c, doBolso=podeAVista(c);
+    return `<div class="tyc-set${garg===k?' garg':''}"><div class="tyc-set-top"><span class="tyc-ic">${ARTE.icones?.[`${EM.arte}-${k}-${k==='equipe'?1:estagio(n)}`]?`<img class="tyc-ic-img tyc-ic-top" src="${ARTE.icones[`${EM.arte}-${k}-${k==='equipe'?1:estagio(n)}`]}" alt="">`:S.ic}</span><div><b>${S.nome}</b><span class="hint">${S.ef}</span></div><span class="tyc-nv">${n}/${TYC_NMAX}</span></div>
       <div class="tyc-pips">${Array.from({length:TYC_NMAX},(_,j)=>`<i class="${j<n?'on':''}"></i>`).join('')}</div>
       <p class="hint">Agora: <b>${S.niv[n-1]}</b>${garg===k?' · <span style="color:var(--loss)">gargalo</span>':''}</p>
       ${n>=TYC_NMAX?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Próximo: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Próximo: <b>${S.niv[n]}</b> por <b>${fmt0(c)}</b></p><div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pagar com o caixa</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Do meu bolso</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">Empresa ${tycPorte(nMin).toLowerCase()}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nMin/3))}${'☆'.repeat(3-Math.ceil(nMin/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nMin))===tycPorte(nMin)?EM.porte[nMin<=3?0:nMin<=6?1:2]:EM.tagPorte(tycPorte(nMin))}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nMin/3))}${'☆'.repeat(3-Math.ceil(nMin/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
@@ -1778,7 +1802,7 @@ function modalTyc(a){
     <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Sacar o excedente (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Sacar tudo</button></div>
     ${tycEfs(a).lista.length?`<p class="hint"><b>Em andamento:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?'meses':'mês'})`).join(', ')}</p>`:''}
     ${ui.tycMsg?`<p class="hint tyc-msg">${ui.tycMsg}</p>`:''}
-    ${T.premio&&!a.franqDe?(()=>{ const v=tycCustoFranq(a), n=tycFranqs(a); return `<div class="alerta bom" role="note"><strong>🏆 Melhor cafeteria da cidade</strong><p>${n>=TYC_FRANQ_MAX?`Você já abriu o máximo de ${TYC_FRANQ_MAX} unidades próprias.`:`Abra uma nova unidade própria: custa ${fmt0(v)}, o mesmo valor investido nesta loja, e ela já nasce com todos os setores no nível 9. Mas o ponto novo ainda não é conhecido: a clientela leva cerca de um ano para chegar.${n?` Unidades abertas: ${n} de ${TYC_FRANQ_MAX}.`:''}${(s.franqs||[]).length?` Franqueados: ${s.franqs.length}, com royalties previstos de ${fmt0(tycRoyTotal())} por mês.`:''}`}</p>${n>=TYC_FRANQ_MAX?'':`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Abrir unidade própria por ${fmt0(v)}</button></div>`}</div>`; })():''}
+    ${T.premio&&!a.franqDe?(()=>{ const v=tycCustoFranq(a), n=tycFranqs(a); return `<div class="alerta bom" role="note"><strong>🏆 ${EM.premio.titulo}</strong><p>${n>=TYC_FRANQ_MAX?`Você já abriu o máximo de ${TYC_FRANQ_MAX} unidades próprias.`:`Abra uma nova unidade própria: custa ${fmt0(v)}, o mesmo valor investido nesta loja, e ela já nasce com todos os setores no nível 9. Mas o ponto novo ainda não é conhecido: a clientela leva cerca de um ano para chegar.${n?` Unidades abertas: ${n} de ${TYC_FRANQ_MAX}.`:''}${(s.franqs||[]).length?` Franqueados: ${s.franqs.length}, com royalties previstos de ${fmt0(tycRoyTotal())} por mês.`:''}`}</p>${n>=TYC_FRANQ_MAX?'':`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Abrir unidade própria por ${fmt0(v)}</button></div>`}</div>`; })():''}
     <p class="hint">Regra: um setor só sobe para o nível N se todos os outros já estiverem no nível N-1.</p>
     ${linhas}
     <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fechar</b></button></div></div></div>`;
@@ -2754,6 +2778,116 @@ const TYC_LIC={
   prazo:{livro:null, ideia:'Venda só vira dinheiro quando o cliente paga. Vender com prazo longo aumenta o faturamento, mas esgota o capital de giro e traz risco de calote. Peça sinal ou pague menos prazo.'}
 };
 
+/* ===== loja geek: baralho de decisões ===== */
+TYC_EMP.cafeteria.dec=Object.keys(TYC_DEC);
+Object.assign(TYC_DEC,{
+  g_lancamento:{ic:'🃏', titulo:'Lançamento de coleção nova', texto:a=>`A distribuidora anunciou a próxima coleção de cartas. A clientela já pergunta pela pré-venda. Quanto estoque você compra antes de saber a demanda?`,
+    ops:a=>{ const pv=tycPrev(a), v1=tycR(pv.rec*0.10), v2=tycR(pv.rec*0.22); return [
+      tycOp(a,'Pré-venda enxuta','pouco estoque, pouco risco',v1,()=>(tycEf(a,'Pré-venda da coleção',2,{cli:1.10,tk:1.08}),{tom:'bom',titulo:'Vendeu o que comprou',texto:'Estoque pequeno, quase sem sobra. Você ganhou menos que podia, mas sem encalhe.'})),
+      tycOp(a,'Apostar pesado no lançamento','pode lotar, pode encalhar',v2,()=>tycSorte(0.55)
+        ?(tycEf(a,'Coleção esgotou',2,{cli:1.25,tk:1.12}),{tom:'bom',titulo:'Esgotou no fim de semana',texto:'A coleção estourou e você tinha estoque para atender. Quem aposta certo no lançamento lucra alto.'})
+        :(tycEf(a,'Estoque parado',6,{cli:0.97,tk:0.97}),{tom:'ruim',titulo:'Sobrou caixa de carta',texto:'A coleção não empolgou e o dinheiro ficou parado em estoque. Comprar muito de uma vez trava o capital de giro.'})),
+      tycOp(a,'Não entrar nessa','sem custo',0,()=>({tom:'neutro',titulo:'Passou batido',texto:'Você deixou o lançamento para os concorrentes. Sem risco, mas também sem a onda de clientes.'}))]; }},
+  g_colecao:{ic:'🎴', titulo:'Colecionador quer vender o acervo', texto:a=>`Um colecionador oferece uma coleção grande de cartas antigas de uma vez. O preço parece bom, mas você não sabe quanto vale de verdade.`,
+    ops:a=>{ const pv=tycPrev(a), v=tycR(pv.rec*0.25); return [
+      tycOp(a,'Comprar tudo','pode ter raridades, pode ter lixo',v,()=>tycSorte(0.5)
+        ?(a.tyc.caixa+=tycR(v*1.9),{tom:'bom',titulo:'Havia raridades',texto:'Entre as cartas tinha peças que valem bem mais que o preço pago. Você revendeu com bom lucro.'})
+        :(a.tyc.caixa+=tycR(v*0.5),{tom:'ruim',titulo:'Maioria era comum',texto:'A coleção tinha pouca coisa valiosa e você revendeu só parte do que pagou. Sem avaliar item por item, comprar no atacado é aposta.'})),
+      tycOp(a,'Pedir lista e comprar só o que presta','mais trabalho, risco menor',tycR(v*0.4),()=>(a.tyc.caixa+=tycR(v*0.4*1.5),{tom:'bom',titulo:'Compra seletiva',texto:'Você escolheu o que sabia revender e saiu com lucro seguro. Conhecer o produto é a sua vantagem.'})),
+      tycOp(a,'Recusar','sem custo',0,()=>({tom:'neutro',titulo:'Sem negócio',texto:'Você deixou passar. Se não sabe precificar, não comprar também é decisão.'}))]; }},
+  g_falsa:{ic:'🕵️', titulo:'Carta falsificada no balcão', texto:a=>`Um cliente trouxe uma carta rara para vender e algo parece estranho no acabamento. Se for falsa e você revender, o problema é seu.`,
+    ops:a=>{ const pv=tycPrev(a), v=tycR(pv.rec*0.08); return [
+      tycOp(a,'Comprar sem checar','barato, mas e se for falsa?',v,()=>tycSorte(0.5)
+        ?(a.tyc.caixa+=tycR(v*2.2),{tom:'bom',titulo:'Era verdadeira',texto:'Deu sorte: a carta era legítima e rendeu bom lucro. Sorte não é método.'})
+        :(tycEf(a,'Reputação arranhada',6,{cli:0.94}),{tom:'ruim',titulo:'Era falsa',texto:'Você pagou e ainda vendeu o problema para um cliente, que espalhou. Em coleção, confiança é o seu maior ativo.'})),
+      tycOp(a,'Mandar avaliar antes','demora, mas é seguro',tycR(v*0.15),()=>tycSorte(0.55)
+        ?(a.tyc.caixa+=tycR(v*2),{tom:'bom',titulo:'Autenticada e vendida',texto:'A avaliação confirmou e você ainda ganhou fama de loja séria.'})
+        :{tom:'neutro',titulo:'Falsa, você não comprou',texto:'A checagem evitou prejuízo. O custo da avaliação foi barato perto do erro.'}),
+      tycOp(a,'Recusar a compra','sem risco',0,()=>({tom:'neutro',titulo:'Dispensou',texto:'Na dúvida você não comprou. Perdeu a chance, mas manteve o nome limpo.'}))]; }},
+  g_torneio:{ic:'🏆', titulo:'Noite de torneio', texto:a=>`A comunidade pede um torneio semanal na loja. Dá movimento, mas custa premiação e organização.`,
+    ops:a=>{ const pv=tycPrev(a), v=tycR(pv.rec*0.08); return [
+      tycOp(a,'Torneio com premiação em produto','a loja ganha e o jogador volta',v,()=>tycSorte(0.7)
+        ?(tycEf(a,'Torneios semanais',10,{cli:1.14}),{tom:'bom',titulo:'Casa cheia',texto:'O torneio criou um ponto de encontro e o público compra mais na loja. Comunidade fideliza melhor que anúncio.'})
+        :(tycEf(a,'Torneio fraco',3,{cli:1.03}),{tom:'neutro',titulo:'Veio pouca gente',texto:'Faltou divulgação e a casa ficou vazia. Evento novo costuma levar um tempo até pegar.'})),
+      tycOp(a,'Torneio gratuito e simples','custo baixo, pouco brilho',tycR(v*0.3),()=>(tycEf(a,'Torneio de balcão',6,{cli:1.06}),{tom:'bom',titulo:'Reunião de amigos',texto:'Algumas mesas cheias, sem grande retorno, mas sem risco.'})),
+      tycOp(a,'Não fazer','sem custo',0,()=>({tom:'neutro',titulo:'Sem evento',texto:'Nada muda. A concorrência pode aproveitar o público.'}))]; }},
+  g_singles:{ic:'💳', titulo:'Vender cartas avulsas pela internet', texto:a=>`Seus clientes pedem cartas avulsas e há demanda de todo o país. Uma vitrine online exige tempo e gera envio e taxas.`,
+    ops:a=>{ const pv=tycPrev(a), v=tycR(pv.rec*0.10); return [
+      tycOp(a,'Montar a vitrine online','mais alcance, mais trabalho',v,()=>tycSorte(0.65)
+        ?(tycEf(a,'Vendas online de avulsas',12,{cli:1.12,tk:1.04}),{tom:'bom',titulo:'Vendas fora do bairro',texto:'A loja passou a vender para o país todo. O espaço físico deixou de ser o limite.'})
+        :(tycEf(a,'Online com custo alto',6,{fx:0.05}),{tom:'ruim',titulo:'Taxas e fretes comeram a margem',texto:'Comissão da plataforma, embalagem e extravios reduziram o ganho. Canal novo precisa de conta feita antes.'})),
+      tycOp(a,'Vender só por redes sociais','barato, alcance menor',tycR(v*0.2),()=>(tycEf(a,'Vendas por rede social',8,{cli:1.05}),{tom:'bom',titulo:'Alguns pedidos extras',texto:'Retorno modesto e sem estrutura nova.'})),
+      tycOp(a,'Ficar só na loja','sem custo',0,()=>({tom:'neutro',titulo:'Tudo igual',texto:'Você manteve o foco na clientela local.'}))]; }},
+  g_marketplace:{ic:'🛒', titulo:'Marketplace grande oferece espaço', texto:a=>`Uma plataforma grande convida a loja a vender nela, com milhões de visitas, mas cobra comissão e compara preços.`,
+    ops:a=>{ const pv=tycPrev(a); return [
+      tycOp(a,'Entrar no marketplace','volume alto, margem menor',0,()=>(tycEf(a,'Marketplace',8,{cli:1.18,tk:0.92}),{tom:'neutro',titulo:'Volume com margem apertada',texto:'As vendas dispararam, mas a comissão e a guerra de preços reduziram o lucro por item.'})),
+      tycOp(a,'Entrar só com produtos exclusivos','menos comparação',tycR(pv.rec*0.04),()=>tycSorte(0.6)
+        ?(tycEf(a,'Exclusivos no marketplace',10,{cli:1.10,tk:1.04}),{tom:'bom',titulo:'Nicho protegido',texto:'Produto que só você tem não entra em guerra de preço.'})
+        :(tycEf(a,'Exclusivos pouco procurados',4,{cli:1.02}),{tom:'neutro',titulo:'Procura baixa',texto:'Os exclusivos não decolaram e o cadastro virou custo.'})),
+      tycOp(a,'Recusar','sem custo',0,()=>({tom:'neutro',titulo:'Sem marketplace',texto:'Você manteve o controle do preço e da marca.'}))]; }},
+  g_importacao:{ic:'📦', titulo:'Importar jogos de tabuleiro direto', texto:a=>`Um fornecedor lá fora vende jogos de tabuleiro muito mais baratos. Mas o dólar, o frete e a alfândega podem estragar a conta.`,
+    ops:a=>{ const pv=tycPrev(a), v=tycR(pv.rec*0.18); return [
+      tycOp(a,'Importar um lote grande','margem alta se tudo der certo',v,()=>tycSorte(0.5)
+        ?(tycEf(a,'Importados com margem boa',10,{vc:0.88}),{tom:'bom',titulo:'Chegou sem susto',texto:'O lote passou na alfândega e você vende com margem muito melhor.'})
+        :(a.tyc.caixa-=tycR(v*0.25),tycEf(a,'Importação encareceu',6,{vc:1.04}),{tom:'ruim',titulo:'Dólar e imposto comeram a margem',texto:'O câmbio subiu e a alfândega cobrou mais que o previsto. Importação exige colchão para imprevistos.'})),
+      tycOp(a,'Comprar de distribuidor nacional','preço maior, sem susto',0,()=>(tycEf(a,'Distribuidor nacional',12,{vc:0.97}),{tom:'bom',titulo:'Previsibilidade',texto:'Prazo e preço conhecidos. Menos margem, nenhuma dor de cabeça.'})),
+      tycOp(a,'Manter o mix atual','sem risco',0,()=>({tom:'neutro',titulo:'Sem mudança',texto:'O catálogo continua o mesmo.'}))]; }},
+  g_fiado:{ic:'🧾', titulo:'Cliente fiel pede fiado', texto:a=>`Um cliente antigo, que gasta bastante, quer levar um jogo caro e pagar só no mês que vem.`,
+    ops:a=>{ const pv=tycPrev(a); return [
+      tycOp(a,'Vender fiado','fideliza, mas pode não pagar',0,()=>tycSorte(0.7)
+        ?(tycEf(a,'Cliente fiel',6,{cli:1.04}),{tom:'bom',titulo:'Pagou certinho',texto:'Ele pagou no combinado e continuou comprando. Confiança tem valor.'})
+        :(a.tyc.caixa-=tycR(pv.rec*0.10),{tom:'ruim',titulo:'Não pagou',texto:'O cliente sumiu e o prejuízo ficou com a loja. Fiado sem garantia é empréstimo sem juros.'})),
+      tycOp(a,'Parcelar no cartão dele','sem risco para você',tycR(pv.rec*0.01),()=>({tom:'neutro',titulo:'Venda segura',texto:'Você pagou uma pequena taxa e recebeu a venda sem risco.'})),
+      tycOp(a,'Recusar o fiado','sem custo',0,()=>({tom:'neutro',titulo:'Venda à vista',texto:'Ele comprou um jogo mais barato. Segurança custa um pouco de venda.'}))]; }},
+  g_concorrente:{ic:'🏪', titulo:'Loja grande abre na região', texto:a=>`Uma rede de livraria começou a vender jogos e cartas com preço agressivo e boa estrutura.`,
+    ops:a=>{ const pv=tycPrev(a); return [
+      tycOp(a,'Entrar em guerra de preços','ticket menor por um tempo',0,()=>(tycEf(a,'Guerra de preços',6,{tk:0.92}),{tom:'neutro',titulo:'Segurou a clientela',texto:'O preço protegeu o movimento, mas a margem encolheu.'})),
+      tycOp(a,'Reforçar o que a rede não tem','comunidade, torneios, atendimento',tycR(pv.rec*0.08),()=>tycSorte(0.7)
+        ?{tom:'bom',titulo:'Nicho protegido',texto:'A rede vende produto. Você vende pertencimento. O jogador fiel ficou.'}
+        :(tycEf(a,'Concorrente levou clientes',6,{cli:0.92}),{tom:'ruim',titulo:'Não bastou',texto:'A rede levou os clientes mais sensíveis a preço.'})),
+      tycOp(a,'Ignorar','aposta que o efeito passa',0,()=>tycSorte(0.4)
+        ?{tom:'neutro',titulo:'Foi passageiro',texto:'A novidade passou e os clientes voltaram.'}
+        :(tycEf(a,'Perdeu clientes',8,{cli:0.88}),{tom:'ruim',titulo:'Perdeu clientes',texto:'Sem reação, a clientela migrou.'}))]; }},
+  g_ponto:{ic:'📍', titulo:'Ponto melhor ficou vago', texto:a=>`Um imóvel com muito mais movimento ficou vago na região. O aluguel é maior e a mudança dá trabalho.`,
+    ops:a=>{ const pv=tycPrev(a), v=tycR(pv.rec*0.15); return [
+      tycOp(a,'Mudar para o ponto novo','aluguel maior, mais fluxo',v,()=>tycSorte(0.65)
+        ?(tycEf(a,'Ponto melhor',18,{cli:1.15,fx:0.05}),{tom:'bom',titulo:'Fluxo bem maior',texto:'A localização trouxe clientes novos e compensou o aluguel mais caro.'})
+        :(tycEf(a,'Mudança difícil',6,{cli:0.92,fx:0.05}),{tom:'ruim',titulo:'Cliente não achou a loja',texto:'A mudança confundiu os fiéis e o ponto não rendeu o esperado.'})),
+      tycOp(a,'Negociar redução no aluguel atual','usa o ponto como argumento',0,()=>tycSorte(0.5)
+        ?(tycEf(a,'Aluguel reduzido',12,{fx:-0.04}),{tom:'bom',titulo:'Conseguiu desconto',texto:'O proprietário preferiu manter você a ficar com o imóvel vazio.'})
+        :{tom:'neutro',titulo:'Sem acordo',texto:'O proprietário não cedeu, mas a conversa não custou nada.'}),
+      tycOp(a,'Ficar onde está','sem custo',0,()=>({tom:'neutro',titulo:'Tudo igual',texto:'Você manteve o ponto que já conhece.'}))]; }},
+  g_mesa:{ic:'🪑', titulo:'Cobrar pela mesa de jogo', texto:a=>`Muita gente joga na loja sem comprar nada. Você pode cobrar uma taxa de mesa, descontada nas compras.`,
+    ops:a=>{ const pv=tycPrev(a); return [
+      tycOp(a,'Cobrar taxa abatida na compra','vira desconto, filtra quem só ocupa',0,()=>tycSorte(0.7)
+        ?(tycEf(a,'Taxa de mesa',12,{cli:0.98,tk:1.08}),{tom:'bom',titulo:'Quem joga, compra',texto:'Menos gente só ocupando espaço e ticket maior. Espaço limitado precisa render.'})
+        :(tycEf(a,'Jogadores foram embora',6,{cli:0.92}),{tom:'ruim',titulo:'Comunidade reclamou',texto:'Parte dos frequentes foi jogar em casa de amigos. Cobrar sem criar valor afasta.'})),
+      tycOp(a,'Manter mesas livres','comunidade primeiro',0,()=>(tycEf(a,'Mesas livres',12,{cli:1.03}),{tom:'neutro',titulo:'Casa aberta',texto:'A loja segue acolhedora. A margem não muda.'})),
+      tycOp(a,'Mesas pagas por hora','renda extra com o espaço',tycR(pv.rec*0.03),()=>(tycEf(a,'Mesas por hora',12,{tk:1.05}),{tom:'bom',titulo:'Espaço rendendo',texto:'Quem fica muito tempo paga o espaço que usa.'}))]; }},
+  g_fisco:{ic:'📑', titulo:'Fiscalização pede notas das importações', texto:a=>`O fisco quer ver a origem dos produtos importados e a nota de venda das cartas avulsas.`,
+    ops:a=>{ const pv=tycPrev(a); return [
+      tycOp(a,'Contratar contador para regularizar','custa agora, evita multa',tycR(pv.rec*0.05),()=>({tom:'bom',titulo:'Tudo em ordem',texto:'Com a papelada em dia, a fiscalização passou sem problema.'})),
+      tycOp(a,'Resolver sozinho','mais barato, mais arriscado',0,()=>tycSorte(0.5)
+        ?{tom:'neutro',titulo:'Passou',texto:'Dessa vez deu certo, mas o risco seguiu ali.'}
+        :(a.tyc.caixa-=tycR(pv.rec*0.18),{tom:'ruim',titulo:'Multa',texto:'Faltou nota de parte dos produtos e a multa saiu cara.'})),
+      tycOp(a,'Ignorar a notificação','pior opção',0,()=>(a.tyc.caixa-=tycR(pv.rec*0.30),{tom:'ruim',titulo:'Multa pesada',texto:'Ignorar prazo de fiscalização só aumenta o valor devido.'}))]; }}
+});
+Object.assign(TYC_LIC,{
+  g_lancamento:{livro:null, ideia:'Estoque é dinheiro parado. Comprar demais de um item incerto trava o capital de giro; comprar de menos perde a venda. Giro de estoque é o que paga as contas.'},
+  g_colecao:{livro:null, ideia:'Comprar lote sem avaliar item por item é apostar na média. Quem conhece o produto escolhe o que sabe vender e deixa o resto passar.'},
+  g_falsa:{livro:null, ideia:'Reputação leva anos para construir e um episódio para perder. Verificar autenticidade custa pouco perto do dano de vender uma falsificação.'},
+  g_torneio:{livro:'As Armas da Persuasão, de Robert Cialdini (prova social)', ideia:'Pessoas voltam onde outras pessoas estão. Evento que cria hábito e comunidade fideliza mais do que desconto, e o jogador que se sente em casa compra mais.'},
+  g_singles:{livro:null, ideia:'Novo canal de venda amplia o mercado, mas traz custos de comissão, frete e atendimento. Faça a conta da margem líquida antes de expandir.'},
+  g_marketplace:{livro:null, ideia:'No marketplace o cliente compara preço em segundos. Para não entrar em guerra de margem, venda o que ninguém mais tem.'},
+  g_importacao:{livro:null, ideia:'Importar exige contar câmbio, frete, imposto e prazo. A margem bonita no papel pode virar prejuízo quando o dólar sobe. Reserve folga.'},
+  g_fiado:{livro:null, ideia:'Fiado é crédito sem análise. Venda só vira dinheiro quando o cliente paga. Se o risco existir, repasse-o ao cartão ou peça sinal.'},
+  g_concorrente:{livro:'Estratégia Competitiva, de Michael Porter (diferenciação)', ideia:'Não dá para vencer um gigante no preço. A saída é oferecer algo que ele não consegue: comunidade, curadoria e atendimento.'},
+  g_ponto:{livro:null, ideia:'Localização vale dinheiro, mas custa aluguel. Compare o aumento de fluxo com o aumento do custo fixo antes de mudar, e lembre que a clientela fiel precisa te achar.'},
+  g_mesa:{livro:null, ideia:'Espaço físico tem custo por metro quadrado. Mesa ocupada sem consumo é custo sem retorno; cobrar abatendo na compra alinha o interesse de quem usa e de quem vende.'},
+  g_fisco:{livro:null, ideia:'Papelada em dia é custo previsível. Multa e regularização atrasada saem mais caras que o contador, e importação sem nota é risco dobrado.'}
+});
+TYC_EMP.geek.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('g_'));
+
 /* ================= franqueados: interessados aleatórios, royalties e risco para a marca ================= */
 const FRANQ_ROY=0.05, FRANQ_TAXA=0.08, FRANQ_MAX=8;
 const FRANQ_NOMES=['Marcos','Juliana','Rafael','Camila','Bruno','Patrícia','Diego','Fernanda','Thiago','Larissa','Gustavo','Renata'];
@@ -2778,10 +2912,10 @@ function tycFranqSortear(){
   if(!(s.ativos||[]).some(a=>a.tyc&&a.tyc.premio&&!a.franqDe) || (s.franqs||[]).length>=FRANQ_MAX || (s.franqEm!=null && s.mes-s.franqEm<6)) return null;
   const exp=Math.random()<0.5, r=Math.random(), perfil=exp?(r<0.55?'bom':r<0.9?'medio':'ruim'):(r<0.2?'bom':r<0.65?'medio':'ruim');
   const ap=Math.random()<clamp(0.6+tycHab(),0,0.95)?perfil:['bom','medio','ruim'][Math.floor(Math.random()*3)];
-  s.franqCand={nome:FRANQ_NOMES[Math.floor(Math.random()*FRANQ_NOMES.length)], exp, perfil, ap}; s.franqEm=s.mes; return 'franqInteresse';
+  const ref0=(s.ativos||[]).find(a=>a.tyc&&a.tyc.premio&&!a.franqDe); s.franqCand={nome:FRANQ_NOMES[Math.floor(Math.random()*FRANQ_NOMES.length)], exp, perfil, ap, emp:ref0?ref0.id:'cafeteria'}; s.franqEm=s.mes; return 'franqInteresse';
 }
 Object.assign(ESPECIAIS,{ franqInteresse:{tipo:'opcoes', titulo:()=>`${s.franqCand?s.franqCand.nome:'Alguém'} quer abrir uma franquia`,
-  texto:()=>{ const c=s.franqCand; if(!c) return ''; return `${c.nome} conheceu a sua cafeteria premiada e quer abrir uma franquia da marca. ${c.exp?'Já trabalhou em cafeteria.':'Nunca trabalhou com cafeteria.'} Na entrevista: ${PERF_TXT[c.ap]}`; },
+  texto:()=>{ const c=s.franqCand; if(!c) return ''; const FQ=(TYC_EMP[c.emp]||TYC_EMP.cafeteria).franq; return `${c.nome} ${FQ.conheceu} e quer abrir uma franquia da marca. ${c.exp?FQ.sabe:FQ.nao} Na entrevista: ${PERF_TXT[c.ap]}`; },
   opcoes:()=>{ const c=s.franqCand, taxa=tycTaxaFranq(), ref=tycRefRec(), treino=Math.max(1000,Math.round(ref*0.04/1000)*1000);
     const fim=(r)=>{ s.franqCand=null; return r; };
     const aprova=(tr)=>{ const f={uid:s.uid++, nome:`Franquia de ${c.nome}`, desde:s.mes, perfil:c.perfil, treino:tr}; (s.franqs||(s.franqs=[])).push(f);
@@ -2797,7 +2931,7 @@ Object.assign(ESPECIAIS,{ franqInteresse:{tipo:'opcoes', titulo:()=>`${s.franqCa
 function tycSortear(){
   const L=(s.ativos||[]).filter(a=>a.tyc && !(a.vagoAte>=s.mes)); if(!L.length) return null;
   const a=L[Math.floor(Math.random()*L.length)], rec=s.tycUlt||[];
-  const ids=Object.keys(TYC_DEC).filter(k=>!rec.includes(k)), id=ids[Math.floor(Math.random()*ids.length)];
+  const deck=emp(a).dec||Object.keys(TYC_DEC), ids=deck.filter(k=>!rec.includes(k)&&TYC_DEC[k]), id=(ids.length?ids:deck)[Math.floor(Math.random()*(ids.length?ids.length:deck.length))];
   s.alvoAtivo=a.uid; s.tycCarta=id; s.tycUlt=[...rec,id].slice(-5); s.tycDecEm=s.mes; return 'tycDecisao';
 }
 
@@ -3541,13 +3675,13 @@ const pixK = (k, alt, cls='') => { const s=pxSrc(k); return s?`<img class="ic-px
 const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
-const nomeOferta = id => CARTAS[id]?.tyc ? 'Cafeteria de bairro' : CARTAS[id].nome;
-const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0['cafeteria-oferta']||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
+const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
   if(id==='franqInteresse' && C['tyc-franquia']) return C['tyc-franquia'];
-  if(id==='oportunidade'){ const o=ofertaNova(); if(o&&CARTAS[o.id]?.tyc){ const f=C['cafeteria-oferta']||C.negocio; if(f) return f; } if(o&&C[o.id]) return C[o.id]; }
+  if(id==='oportunidade'){ const o=ofertaNova(); if(o&&CARTAS[o.id]?.tyc){ const f=C[(TYC_EMP[o.id]||TYC_EMP.cafeteria).ofertaImg]||C.negocio; if(f) return f; } if(o&&C[o.id]) return C[o.id]; }
   if(id==='grande' && s.grande && C[s.grande.id]) return C[s.grande.id];
   if(id==='casaEstudo'){ const k=s.estudoCasa==='pos'?'pos-'+(s.prof||'professor'):s.estudoCasa; return (ARTE.cursos||{})[k]||C.workshop||''; }
   if(id==='casaBolsa') return quedaCart()<=-0.08 ? (C.crise||'') : '';
@@ -3754,7 +3888,7 @@ const FOTOS = {
   formatura:{t:'Formatura', ic:'🎓'},
   vitoria:{t:'Livres! Fora da corrida dos ratos', ic:'🎉'},
   'topo-atendente':{t:'Gerente regional: o topo da carreira', ic:'🏆'}, 'topo-professor':{t:'Diretor(a) de escola: o topo da carreira', ic:'🏆'}, 'topo-enfermeiro':{t:'Gerente de enfermagem: o topo da carreira', ic:'🏆'}, 'topo-programador':{t:'Tech lead: o topo da carreira', ic:'🏆'},
-  'premio-cafeteria':{t:'Melhor cafeteria da cidade', ic:'🏆'}, 'sonho-viagem':{t:'A volta ao mundo em família', ic:'🌍'}, 'sonho-escola':{t:'A escolinha de futebol', ic:'⚽'}, 'sonho-veleiro':{t:'A vida no veleiro', ic:'⛵'}, 'sonho-praia':{t:'A casa de frente para o mar', ic:'🌊'}
+  'premio-cafeteria':{t:'Melhor cafeteria da cidade', ic:'🏆'}, 'premio-geek':{t:'Melhor loja geek do estado', ic:'🏆'}, 'sonho-viagem':{t:'A volta ao mundo em família', ic:'🌍'}, 'sonho-escola':{t:'A escolinha de futebol', ic:'⚽'}, 'sonho-veleiro':{t:'A vida no veleiro', ic:'⛵'}, 'sonho-praia':{t:'A casa de frente para o mar', ic:'🌊'}
 };
 // as fotos de férias mudam com a família: sem sufixo = casal com dois filhos; -s sozinho(a), -c casal, -1 casal com um filho
 ['praia','tropical','esqui','exterior'].forEach(b=>['-s','-c','-1'].forEach(x=>{ FOTOS[b+x]=FOTOS[b]; }));
@@ -4422,13 +4556,13 @@ function renderModal(){
 function renderModal0(){
   if(ui.modal==='confirmOperacao'){ renderConfirmOperacao(); return; }
   if(ui.modal==='hab' && HABS[ui.hab]){ modal.innerHTML=modalHab(ui.hab); return; }
-  if(ui.modal==='premioCafe'){ const a=(s.ativos||[]).find(x=>x.uid===ui.premioUid), img=ARTE.fotos?.['premio-cafeteria'];
+  if(ui.modal==='premioCafe'){ const a=(s.ativos||[]).find(x=>x.uid===ui.premioUid), EM=emp(a), img=ARTE.fotos?.[EM.premio.foto];
     modal.innerHTML=`<div class="overlay"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t" style="text-align:center">
       ${img?`<img src="${img}" alt="" style="width:100%;border-radius:14px">`:`<div style="font-size:72px;line-height:1.1">🏆</div>`}
-      <span class="tag neutro">Prêmio</span><h3 id="m-t">Melhor cafeteria da cidade</h3>
+      <span class="tag neutro">Prêmio</span><h3 id="m-t">${EM.premio.titulo}</h3>
       <div style="font-size:26px;color:#d9a43a;letter-spacing:4px">★★★★★</div>
-      <p>${a?a.nome:'Sua cafeteria'} foi eleita a melhor cafeteria da cidade pelos clientes, com nota 5,0 nas avaliações.</p>
-      <p class="hint">"Café perfeito, atendimento de primeira." · "Melhor da cidade, volto sempre." · "Vale a fila."</p>
+      <p>${EM.premio.texto(a)}</p>
+      <p class="hint">${EM.premio.aval}</p>
       <p>Uma marca reconhecida pode se repetir. Agora você pode abrir novas unidades próprias, já no mesmo padrão de qualidade. E marcas assim atraem gente querendo uma franquia.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="premioFechar"><b>Continuar</b></button></div></div></div>`; return; }
   if(ui.modal==='tycRes' && s.licao){ const L=s.licao, P=TYC_LIC[L.carta]||{}, cor={bom:'#2f8f5b',ruim:'#c4513f',neutro:'#8a7a52'}[L.tom]||'#8a7a52';
