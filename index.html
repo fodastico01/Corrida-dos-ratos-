@@ -1479,7 +1479,8 @@ function felFamilia(){
   const L=[];
   if(s.casado) L.push(['casamento', 3]);
   if(nFilhos()) L.push([nFilhos()>1?'filhos':'filho', 2*nFilhos()]);
-  const falta=morMin()-morN(); if(falta>0) L.push(['casa apertada para a família', -6*falta]);
+  const falta=morMin()-morN(), q=expectativa(); if(falta>0) L.push(['casa apertada para a família', -Math.round(6*falta*(1+0.4*q))]);
+  { const des=q>=2.5?3:q>=1.5?2:q>=0.7?1:0, ex=des-morN()-Math.max(0,falta); if(ex>0) L.push(['mora abaixo do que ganha', -3*ex]); }
   if(!s.casado && (s.recusouCasar||0)>=2 && F3()) L.push(['solidão', -2]);
   return L;
 }
@@ -2442,6 +2443,7 @@ function efeitosFel(hl=horasLivres()){
   const nDed=nDedicacao(); if(nDed && !s.empresario && !s.aposentado && s.desemp===0) L.push(['emprego + negócio' + (nDed>1?'s':''), -3*nDed]);
   if(cansacoFel()>=1) L.push([`cansaço acumulado${esgotado()?' (afastado, recuperando)':''}`, -cansacoFel()]);
   if(esgotado()) L.push(['esgotamento', -4]);
+  { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>5?5+(P-5)*0.5:P; if(P-Pe>=1) L.push(['adaptação: o bom vira normal', -Math.round(P-Pe)]); }
   const r=Math.round((FEL_BASE-s.fel)*FEL_VOLTA); if(r) L.push(['rotina', r]);
   return L;
 }
