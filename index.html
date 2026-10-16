@@ -1454,7 +1454,7 @@ function carregar(){ try{ const t=localStorage.getItem(CHAVE); return t?JSON.par
 /* ================= cálculos ================= */
 const somaFixos = () => Object.values(s.fixos).reduce((a,b)=>a+b,0);
 const somaParcelas = () => s.parcelas.reduce((a,p)=>a+p.valor,0);
-const lazer = () => Math.round(ESTILOS[s.estilo].valor*s.idx*(s.escL||1));
+const lazer = () => Math.round(ESTILOS[s.estilo].valor*s.idx*(s.escL||1)*(1+(s.estilo==='economico'?0.25:0.5)*expectativa()));
 /* ================= moradia em níveis ================= */
 // ganhos de bem-estar decrescentes: do quarto para o apê muda muito; da casa para a mansão quase nada (regra do suficiente)
 const MORADIAS = [
@@ -1574,7 +1574,7 @@ function trocarCarro(n, pag){
       t+=` Financiado em 48x de ${fmt0(pm)}: no fim, ${fmt0(pm*48-fin)} só de juros.`; }
     s.fixos[CK]=custoCarro(n); s.carro={n, valor:preco};
   }
-  if(n>cur){ addConforto('Carro novo',3,0,8); foto('carro'); } else if(n<cur) s.fel=clamp(s.fel-3,0,100);
+  if(n>cur){ addConforto('Carro novo',3,0,8); foto('carro'); } else if(n<cur) s.fel=clamp(s.fel-negar(3),0,100);
   const c=lerCamp(); c.carro=s.carro; gravarCamp(c);
   const cabe=n===0||cabeCarro();
   s.licao={tom:n===0||cabe?'bom':'neutro', titulo:n===0?'Agora sem carro':`Carro novo: ${CARROS[n].nome.toLowerCase()}`,
@@ -2399,7 +2399,11 @@ const efeitoTempo = (hl=horasLivres()) => hl>=28?2:hl>=18?0:hl>=10?-3:-7;
 const confortoVal = c => Math.round(c.p + (c.m0-c.p)*Math.max(0, 1-(s.mes-c.ini)/c.n));
 const conforto = () => (s.confortos||[]).reduce((x,c)=>x+confortoVal(c),0);
 // bem-estar: soma de fatores do mês + a rotina, que puxa de volta para 60 (o que é bom vira normal, o que é ruim a gente se acostuma)
-const FEL_BASE=60, FEL_VOLTA=0.12;
+const FEL_BASE=60, FEL_VOLTA=0.18;
+// padrão de vida esperado: quanto mais você ganha, mais o corpo e a cabeça pedem. Nega o desejo quando está rico e o bem-estar cobra mais
+const expectativa = () => { const r=Math.max(s.salario||0, typeof rendaPassiva==='function'?rendaPassiva():0); const q=Math.log2(Math.max(1,r/(5000*(s.idx||1)))); return Math.max(0,Math.min(3,q)); };
+const felEstilo = () => { const q=expectativa(), b=ESTILOS[s.estilo].fel; return s.estilo==='economico' ? b-Math.round(4*q) : s.estilo==='normal' ? b-Math.round(1.5*q) : b; };
+const negar = n => Math.round(n*(1+0.8*expectativa())+(s.mes>24?1:0));
 // cansaço: pouco tempo livre por muitos meses vai se acumulando; descansar devolve aos poucos
 const esgotado = () => (s.esgotAte||0)>=s.mes;
 const cansacoFel = () => Math.round(Math.min(s.cansaco||0, 20));
@@ -2411,7 +2415,7 @@ function atualizarCansaco(){
   s.cansaco=clamp(c,0,30);
 }
 function efeitosFel(hl=horasLivres()){
-  const L=[['lazer', ESTILOS[s.estilo].fel], [`tempo livre (${hm(hl)} h/mês)`, efeitoTempo(hl)]];
+  const L=[['lazer', felEstilo()], [`tempo livre (${hm(hl)} h/mês)`, efeitoTempo(hl)]];
   L.push(...felFamilia());
   { const fm=felMoradia(); if(fm) L.push([`moradia${fm>0&&!cabeMoradia()?' (apertado no bolso)':''}`, fm]); if(morPropria()) L.push(['casa própria', 2]); }
   { const fc=felCarro(); if(fc) L.push([`carro${fc>0&&!cabeCarro()?' (apertado no bolso)':''}`, fc]); }
@@ -2494,7 +2498,7 @@ const EVENTOS = {
         const cabe=v<=1.2*Math.max(1,rendaTotal()); const tx=pagarAVista(v); const ok=cabe && mesesReserva()>=3, g=ok?f:Math.ceil(f/2);
         s.fel=clamp(s.fel+g,0,100); foto({litoral:'praia',nordeste:'tropical',esqui:'esqui',exterior:'exterior'}[id]+famSufixo()); addConforto(`Lembranças: ${id==='exterior'?'viagem internacional':id==='esqui'?'férias na neve':id==='nordeste'?'Nordeste':'litoral'}`, Math.ceil(g/3), 0, 6); (s.viagens||(s.viagens=[])).push({ano:anoAtual(), id});
         return {tom:ok?'bom':'neutro', titulo:ok?'Férias que cabem no bolso':'Boas férias, conta apertada', texto:`${ok?'A viagem coube na renda e a reserva continua de pé.':'A viagem custou mais que um mês de renda ou a reserva ficou abaixo de 3 meses: a preocupação com a conta foi junto na mala, e a alegria rendeu metade.'} Pesquisas sobre felicidade mostram que experiências costumam render alegria mais duradoura do que objetos: a lembrança da viagem melhora com o tempo, o carro novo só envelhece.${tx}`}; }}; }),
-      {label:'Ficar em casa este ano', sub:'Sem gasto', run:()=>{ s.feriasAno=anoAtual(); s.fel=clamp(s.fel-3,0,100);
+      {label:'Ficar em casa este ano', sub:'Sem gasto', run:()=>{ s.feriasAno=anoAtual(); s.fel=clamp(s.fel-negar(4),0,100);
         return {tom:'neutro', titulo:'Férias no sofá', texto:'Economizar um ano tudo bem. Mas descanso e memórias também fazem parte de uma vida que vale a pena: o dinheiro é ferramenta, não o fim.'}; }}]; }},
   tentacao:{fases:[2,3], peso:0, tipo:'opcoes', titulo:()=>TENTACOES[(s.tentN||0)%TENTACOES.length].titulo, texto:()=>{ const T=TENTACOES[(s.tentN||0)%TENTACOES.length]; if((s.tentN||0)%TENTACOES.length===0) return `A concessionária ofereceu um ${CARROS[Math.min(CARROS.length-1,Math.max(3,carN()+1))].nome.toLowerCase()}. Confira o preço, o valor do carro atual na troca e as formas de pagamento antes de decidir. Nenhum valor será cobrado sem confirmar a compra.`; return `${T.texto} Fica em ${fmt0(valorTentacao())}, e o dinheiro está ali, parado na conta.`; },
     opcoes:()=>{ const T=TENTACOES[(s.tentN||0)%TENTACOES.length], v=valorTentacao();
@@ -2534,7 +2538,7 @@ const EVENTOS = {
         return {tom:'ruim', titulo:'"Sem juros" tinha juros', texto:`Você vai pagar ${fmt0(C(249)*12-C(2590))} a mais que o preço à vista. Quando a loja dá desconto à vista, o parcelado esconde juros no preço.`}; }},
       {label:`Comprar à vista por ${fmt0(C(2590))}`, sub:'Sai da conta corrente agora', run:()=>{ s.conta-=C(2590); s.fel=clamp(s.fel+12,0,100);
         return s.conta<0 ? chequeLicao('A TV foi paga, mas a conta ficou negativa.') : {tom:'neutro', titulo:'Comprou com o próprio dinheiro', texto:'Sem juros, sem parcela. Só confira se não usou o dinheiro que seria da reserva.'}; }},
-      {label:'Deixar passar', sub:'Bem-estar cai um pouco', run:()=>{ s.fel=clamp(s.fel-3,0,100);
+      {label:'Deixar passar', sub:'Bem-estar cai', run:()=>{ s.fel=clamp(s.fel-negar(3),0,100);
         return {tom:'bom', titulo:'Desejo não é necessidade', texto:'A TV continua sendo vendida no ano que vem. O dinheiro continua rendendo.'}; }}
     ]},
   casamento:{peso:2, tipo:'opcoes', once:true, titulo:'Casamento do melhor amigo', texto:()=>`É em outra cidade. Passagem, hotel e presente: ${fmt0(C(1100))}.`,
@@ -2581,7 +2585,7 @@ const EVENTOS = {
     opcoes:()=>[
       {label:`Emprestar ${fmt0(C(1500))}`, sub:'Sai da conta corrente · pode voltar ou não', run:()=>{ const v=C(1500); s.conta-=v; s.amigoDeve=v; if(Math.random()<0.55) s.agenda.push({mes:s.mes+3+Math.floor(Math.random()*4), id:'amigo_paga'});
         return s.conta<0 ? chequeLicao('Você ajudou, mas a conta ficou negativa.') : {tom:'neutro', titulo:'Ajudou um amigo', texto:'Só empreste o valor que você aceitaria perder. Assim, se ele não pagar, você perde o dinheiro mas não a amizade.'}; }},
-      {label:'Recusar com jeito', sub:'Bem-estar cai um pouco', run:()=>{ s.fel=clamp(s.fel-3,0,100); return {tom:'neutro', titulo:'Dinheiro e amizade', texto:'Dizer não é difícil, mas emprestar o dinheiro da reserva é ainda pior.'}; }}
+      {label:'Recusar com jeito', sub:'Bem-estar cai um pouco', run:()=>{ s.fel=clamp(s.fel-negar(3),0,100); return {tom:'neutro', titulo:'Dinheiro e amizade', texto:'Dizer não é difícil, mas emprestar o dinheiro da reserva é ainda pior.'}; }}
     ]},
   aniversario:{peso:2, cd:12, tipo:'opcoes', titulo:'Aniversário da sua mãe', texto:'A família vai fazer uma festa e todo mundo está dividindo um presente.',
     opcoes:()=>[
@@ -2623,7 +2627,7 @@ const EVENTOS = {
     opcoes:()=>[
       {label:`Parcelar em 12x de ${fmt0(NB()/12)}`, sub:'+ bem-estar por um tempo', run:()=>{ const v=NB(); s.parcelas.push({nome:'Notebook novo', valor:v/12, restante:12, total:12, juros:0}); s.fel=clamp(s.fel+4,0,100); addConforto('Notebook novo',3,0,6);
         return {tom:'ruim', titulo:'Salário alto, sobra pouca', texto:'É assim que quem ganha bem continua sem patrimônio: cada aumento vira um gadget novo.'}; }},
-      {label:'Ficar com o atual', sub:'Bem-estar cai um pouco', run:()=>{ s.fel=clamp(s.fel-2,0,100); return {tom:'bom', titulo:'Ferramenta boa é a que funciona', texto:`Os ${fmt0(NB())} investidos rendem uns ${fmt0(NB()*TAXA_RENDA)} por mês para sempre.`}; }}
+      {label:'Ficar com o atual', sub:'Bem-estar cai', run:()=>{ s.fel=clamp(s.fel-negar(2),0,100); return {tom:'bom', titulo:'Ferramenta boa é a que funciona', texto:`Os ${fmt0(NB())} investidos rendem uns ${fmt0(NB()*TAXA_RENDA)} por mês para sempre.`}; }}
     ]},
   blackfriday:{profs:['atendente'], peso:4, cd:11, tipo:'ganho', ganho:500, cond:()=>mesCal()===11 && !s.aposentado && s.desemp===0, titulo:'Meta de Black Friday batida!', texto:'A loja vendeu como nunca e você levou o prêmio de melhor vendedor(a) do mês.'},
   projeto:{trab:true, peso:4, cd:8, tipo:'opcoes', titulo:'Projeto urgente no trabalho', texto:()=>({atendente:'O gerente precisa de alguém para montar a vitrine de fim de ano em uma semana.',professor:'A escola precisa de alguém para organizar a feira de ciências.',enfermeiro:'O hospital vai passar por uma acreditação e precisa de alguém para revisar os protocolos.',programador:'O sistema principal caiu e o time precisa de alguém para liderar a correção.'})[s.prof]+' É trabalho a mais, sem pagamento extra.',
@@ -2657,7 +2661,7 @@ const EVENTOS = {
     opcoes:()=>[
       {label:`Casar no cartório e viajar (${fmt0(C(8000))})`, sub:subAVista(C(8000)), disabled:!podeAVista(C(8000)), run:()=>{ const t=pagarAVista(C(8000)); const r=casar(10); r.texto+=t; return r; }},
       {label:`Festa grande para 200 convidados (${fmt0(C(45000))})`, sub:subAVista(C(45000)), disabled:!podeAVista(C(45000)), run:()=>{ const t=pagarAVista(C(45000)); s.infl=clamp((s.infl||0)+15,0,100); const r=casar(16); r.texto+=' A festa ainda rendeu contatos.'+t; return r; }},
-      {label:'Continuar solteiro(a)', run:()=>{ s.recusouCasar=(s.recusouCasar||0)+1; s.fel=clamp(s.fel-3,0,100); const c=lerCamp(); c.recusouCasar=s.recusouCasar; gravarCamp(c); return {tom:'neutro', titulo:'Ainda não', texto:'Tudo bem: a vida é sua. Só que tempo sozinho demais também pesa com os anos.'}; }}
+      {label:'Continuar solteiro(a)', run:()=>{ s.recusouCasar=(s.recusouCasar||0)+1; s.fel=clamp(s.fel-negar(3),0,100); const c=lerCamp(); c.recusouCasar=s.recusouCasar; gravarCamp(c); return {tom:'neutro', titulo:'Ainda não', texto:'Tudo bem: a vida é sua. Só que tempo sozinho demais também pesa com os anos.'}; }}
     ]},
   filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?'Um irmãozinho?':'Vamos ter um filho?', texto:()=>`Um filho muda tudo: com a sua renda de hoje, ${padraoFilho()} somam uns ${fmt0(custoFilho())} por mês (cerca de ${Math.round(PCT_FILHO*100)}% do que você ganha), e a família vai precisar de pelo menos um apê${nFilhos()?' de 2 quartos':''}. Em troca, uma alegria que dinheiro nenhum compra.`,
     opcoes:()=>[
@@ -2675,7 +2679,7 @@ const EVENTOS = {
     opcoes:()=>{ const n=nivelLar(), v=precoN(n); return [
       {label:`Comprar a casa da família à vista (${fmt0(v)})`, sub:subAVista(v), coin:true, disabled:!podeAVista(v), run:()=>{ moverPara(n,'comprar','alugar','avista'); addConforto('Lar da família',4,4,1); s.larFamilia=s.mes;
         return {tom:'bom', titulo:'Lar, doce lar', texto:`Na planilha, alugar e investir renderia mais. Mas Morgan Housel conta em A Psicologia Financeira que quitou a própria casa justamente por isso: a tranquilidade de ter onde morar vale mais do que a diferença de rendimento. Ter o suficiente inclui um lar.${s.licao?.texto?' '+s.licao.texto:''}`}; }},
-      {label:'Continuar no aluguel e investir', run:()=>{ s.fel=clamp(s.fel-3,0,100); return {tom:'neutro', titulo:'Mais um tempo de aluguel', texto:'O dinheiro continua rendendo mais investido. A família entende, mas o assunto vai voltar.'}; }}
+      {label:'Continuar no aluguel e investir', run:()=>{ s.fel=clamp(s.fel-negar(3),0,100); return {tom:'neutro', titulo:'Mais um tempo de aluguel', texto:'O dinheiro continua rendendo mais investido. A família entende, mas o assunto vai voltar.'}; }}
     ]; }},
   /* ---- Fase 2 ---- */
   piramide:{fases:[2], peso:2, tipo:'opcoes', once:true, minMes:4, titulo:'"Rendimento garantido de 5% ao mês"', texto:()=>`Um amigo da academia mostra o app: ele colocou dinheiro há 4 meses e todo mês aparece 5% de lucro. Mínimo de ${fmt0(C(3000))}. "É arbitragem de cripto, não tem risco."`,
@@ -2710,7 +2714,7 @@ const EVENTOS = {
   vitrine:{peso:3, cd:3, tipo:'opcoes', titulo:'Promoção relâmpago', texto:()=>{ const it=['um fone sem fio','um tênis de corrida','uma air fryer nova','um kit de skincare','uma jaqueta nova'][s.mes%5]; return `"Só hoje!" O aplicativo mandou ${it} por ${fmt0(vVitrine())}. O carrinho já está pronto, falta só um toque.`; },
     opcoes:()=>{ const v=vVitrine(); return [
       {label:`Comprar (${fmt0(v)})`, sub:'Alegria na hora', run:()=>{ s.conta-=v; s.fel=clamp(s.fel+3,0,100); return s.conta<0?chequeLicao('A compra deixou a conta negativa.'):{tom:'neutro', titulo:'Comprado', texto:'A alegria de uma compra por impulso dura poucos dias, e o dinheiro não volta. Gastar não é proibido: o problema é quando o "só hoje" decide por você.'}; }},
-      {label:'Esperar 7 dias', sub:'Se ainda quiser, compra depois', run:()=>{ s.fel=clamp(s.fel-1,0,100); return {tom:'bom', titulo:'A vontade passou', texto:'A regra dos 7 dias funciona porque a pressa é criada pela loja. Passada a semana, quase sempre a vontade some e o dinheiro fica.'}; }}]; }},
+      {label:'Esperar 7 dias', sub:'Se ainda quiser, compra depois', run:()=>{ s.fel=clamp(s.fel-negar(2),0,100); return {tom:'bom', titulo:'A vontade passou', texto:'A regra dos 7 dias funciona porque a pressa é criada pela loja. Passada a semana, quase sempre a vontade some e o dinheiro fica.'}; }}]; }},
   workshop:{peso:3, cd:6, cond:()=>!s.aposentado, tipo:'opcoes', titulo:()=>s.desemp>0?'Curso rápido de recolocação':'Workshop com 50% de desconto', texto:()=>s.desemp>0?`Um curso de fim de semana sobre currículo, entrevista e LinkedIn, por ${fmt0(vWorkshop())}.`:`Um workshop prático da sua área, num sábado, por ${fmt0(vWorkshop())}. Quem fez diz que muda o jeito de trabalhar.`,
     opcoes:()=>{ const v=vWorkshop(); return [
       {label:`Fazer (${fmt0(v)})`, sub:s.desemp>0?'Pode encurtar a busca por emprego':((s.workshops||0)<10?'+1% de salário, para sempre':'+1 de desempenho'), coin:true, run:()=>{ s.conta-=v;
@@ -2784,7 +2788,7 @@ const ESPECIAIS = {
         return {tom:'bom', titulo:'Tempo de volta', texto:'Menos dinheiro, mais vida. O cansaço começa a baixar nos próximos meses se você mantiver tempo livre.'}; }}] : []),
       {label:'Seguir em frente', sub:'Arriscado', run:()=>({tom:'ruim', titulo:'No limite', texto:'Você decidiu aguentar. Se o bem-estar não subir, o corpo vai decidir por você.'})}
     ]; }},
-  esgotamento:{tipo:'aviso', titulo:'Esgotamento: afastado(a) pelo médico', texto:()=>{ const n=duracaoEsgot(); return `Você não conseguiu levantar da cama. O médico afastou você por ${n} meses: salário reduzido a 70%, sem comissão, sem renda extra e sem chance de promoção nesse período.${temMente()?' A terapia ajudou a encurtar o tempo pela metade.':''}`; },
+  esgotamento:{tipo:'aviso', titulo:'Esgotamento: afastado(a) pelo médico', texto:()=>{ const n=duracaoEsgot(); return `Você não conseguiu levantar da cama. O médico afastou você por ${n} meses: salário reduzido a 55% (auxílio do INSS não paga o salário inteiro), tratamento caro, sem comissão, sem renda extra e sem chance de promoção nesse período.${temMente()?' A terapia ajudou a encurtar o tempo pela metade.':''}`; },
     aplicar:()=>{ const n=duracaoEsgot(); s.esgotAte=s.mes+n-1; s.esgotN=(s.esgotN||0)+1; s.mesesBaixo=0; s.fel=Math.min(s.fel,40);
       return {tom:'ruim', titulo:'O corpo cobrou', texto:`São ${n} meses de recuperação. Sem reserva, a diferença do salário vai para o cheque especial. Tempo livre, férias e terapia ajudam a não voltar para cá.`}; }},
   demissao:{tipo:'aviso', titulo:()=>s.prof==='programador'?'Onda de demissões na tecnologia':'A empresa cortou o seu setor', texto:()=>`Você recebe a rescisão (${fmt0(Math.round(s.salario*1.5))}) e tem direito a ${Math.min(3,prof().recoloca||4)} parcelas de seguro-desemprego de ${fmt0(C(SEGURO))}. A recolocação deve levar ${prof().recoloca||4} meses${prof().recoloca?': no comércio sempre tem vaga':''}${(prof().recoloca||4)>3?', então haverá um mês sem nenhuma entrada':''}.`,
@@ -4162,7 +4166,7 @@ function checarDescoberto(m0){
 }
 const pctCorte = () => { const d=prof().demissao||1;
   let p = !F2() ? clamp(0.55*d+0.2,0.25,0.85) : clamp(0.3*d*(F3()?0.75:1),0.05,0.55);
-  p*=1-0.1*Math.min(3,s.desempenho||0); if(temHab('comunicacao')) p*=0.85;
+  p*=1-0.1*Math.min(3,s.desempenho||0); if(temHab('comunicacao')) p*=0.85; if(s.esgotN) p*=1+0.25*Math.min(3,s.esgotN);
   return Math.round(p*100)/100; };
 let tiqueAC=null;
 // Jingle Bells em sinos com guizos de trenó por baixo: toca quando a cidade vira Natal
@@ -4266,7 +4270,7 @@ function iniciarMes(){
   } else if((s.greveAte||0)>=s.mes){
     s.greveDevido=(s.greveDevido||0)+s.salario; ex.push(['Salário retido pela greve', 0]);
   } else if(esgotado()){
-    const v=Math.round(s.salario*0.7); s.conta+=v; ex.push(['Afastado por esgotamento: 70% do salário, sem comissão', v]);
+    const v=Math.round(s.salario*0.55); s.conta+=v; ex.push(['Afastado por esgotamento: 55% do salário, sem comissão', v]); const tr=C(900); s.conta-=tr; ex.push(['Tratamento (consultas, remédios e terapia)', -tr]);
   } else {
     s.conta+=s.salario; ex.push(['Salário líquido', s.salario]);
     if(s.greveDevido){ s.conta+=s.greveDevido; ex.push(['Salários atrasados da greve', s.greveDevido]); s.greveDevido=0; }
@@ -4302,7 +4306,8 @@ function iniciarMes(){
   s.mesesBaixo = s.fel<20 ? (s.mesesBaixo||0)+1 : 0;
   if(s.esgotAte && s.esgotAte===s.mes-1){ s.fel=clamp(s.fel+20,0,100); ex.push(['Fim do afastamento: recomeço (+20 de bem-estar)',0]);
     if(Math.random()<0.25){ s.aprendeuLimite=true; lic={tom:'bom', titulo:'Recomeço: você aprendeu o seu limite', texto:'Voltou ao trabalho mais leve. A partir de agora o cansaço acumula 25% mais devagar: você percebe antes quando está passando do ponto.'}; }
-    else lic={tom:'bom', titulo:'Recomeço', texto:'O afastamento acabou e você voltou com energia. Cuidado para não repetir o ritmo que levou ao esgotamento.'}; }
+    else lic={tom:'bom', titulo:'Recomeço', texto:'O afastamento acabou e você voltou com energia. Cuidado para não repetir o ritmo que levou ao esgotamento.'};
+    if(empregado() && Math.random()<(s.prof==='professor'||s.prof==='enfermeiro'?0.15:0.4)){ s.agenda.push({mes:s.mes+1, id:'demissao'}); lic={tom:'ruim', titulo:'Voltou, mas o cargo já tinha dono', texto:'Quem fica meses afastado perde espaço na equipe. A empresa já está se movendo para cortar a sua vaga.'}; } }
   s.felSum=(s.felSum||0)+s.fel; s.felN=(s.felN||0)+1;
   if(s.aposentado && s.conta<custoMensal()*0.5){
     let alvo=custoMensal()*1.0 - s.conta, tirou=0, protegeu=false;
@@ -5052,7 +5057,7 @@ function render(){
       ${limiteEmp('pessoal')>=Math.min(-s.conta,100)?`<p class="hint" style="margin-top:6px">${fontes.length?'Ou troque':'Você pode trocar'} a dívida de 8% por um empréstimo pessoal de 3% ao mês:</p><div class="cobrir"><button class="btn" data-acao="empCobrir"><b>Empréstimo de ${fmt0(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100))}</b><span>24x de ${fmt(pmt(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100),0.03,24))}</span></button></div>`:''}
       ${fontes.length?`<div class="cobrir">${fontes.map(([id,p])=>{ const d=disponivel(id), tudo=d>=-s.conta; return `<button class="btn ${p.reserva?'coin':''}" data-acao="cobrir" data-alvo="${id}"><b>Cobrir com ${p.curto}</b><span>${tudo?`zera a conta · tem ${fmt0(d)}`:`cobre ${fmt0(d)} de ${fmt0(-s.conta)}`}</span></button>`; }).join('')}</div>`:''}</div>`;
   }
-  if(esgotado()) alerta+=`<div class="alerta ruim"><strong>Afastado(a) por esgotamento</strong><p>Faltam ${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?'mês':'meses'}. Salário a 70%, sem renda extra e sem promoção. O bem-estar não passa de 40 até você se recuperar.</p></div>`;
+  if(esgotado()) alerta+=`<div class="alerta ruim"><strong>Afastado(a) por esgotamento</strong><p>Faltam ${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?'mês':'meses'}. Salário a 55%, R$ de tratamento todo mês, sem renda extra e sem promoção. Ao voltar, o risco de demissão é alto. O bem-estar não passa de 40 até você se recuperar.</p></div>`;
   else if((s.cansaco||0)>=8) alerta+=`<div class="alerta neutro"><strong>Cansaço acumulado: ${cansacoFel()}</strong><p>Pouco tempo livre por meses seguidos. Ele tira ${cansacoFel()} de bem-estar todo mês e só baixa com 78 h livres por mês ou mais.</p></div>`;
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Desempregado</strong><p>Faltam ${s.desemp} ${s.desemp===1?'mês':'meses'} até o novo emprego. ${s.seguro>0?`Ainda ${s.seguro===1?'resta 1 parcela':'restam '+s.seguro+' parcelas'} do seguro.`:'O seguro-desemprego acabou.'}</p></div>`;
 
@@ -6884,7 +6889,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
