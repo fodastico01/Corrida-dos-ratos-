@@ -872,7 +872,7 @@ html[data-paleta="noite"] .k-cor{background:#6E2F2A!important}html[data-paleta="
 .risco i{position:absolute;inset:0 auto 0 0;background:var(--loss-bg);border-right:2px solid var(--loss)}
 .risco b{position:absolute;top:-3px;width:4px;height:22px;margin-left:-2px;background:var(--ink);border-radius:2px;transition:left 1.6s cubic-bezier(.2,.8,.2,1)}
 .risco-leg{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}
-.alerta-forcada{background:var(--loss-bg);color:var(--loss);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;margin:8px 0}
+.alerta-forcada{background:#fde8e3;color:#8c1d10;border:1px solid #e8a79b;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;line-height:1.35;margin:8px 0}
 .res-bar{overflow:hidden}
 .res-em{position:absolute;inset:0 auto 0 0;background:var(--gain);transition:width .5s ease}
 .res-op{position:absolute;top:0;bottom:0;background:var(--coin);transition:width .5s ease,left .5s ease}
@@ -2060,7 +2060,7 @@ function tycRetirada(uid, pct){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return;
   a.tyc.ret=clamp(Number(pct)||0,0,100); tycAtualizar(a); ui.tycMsg='';
 }
-function tycReserva(a){ const pv=tycPrev(a); return Math.max(0,Math.round(Math.max(0,pv.rec-pv.lucro)*3/100)*100); }
+function tycReserva(a){ const pv=tycPrev(a); return Math.max(0,Math.round(pv.fixo*3/100)*100); }
 function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
@@ -2087,6 +2087,9 @@ function modalTyc(a){
     <div class="info-lista">
       <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
       <div class="fl"><span>Lucro do último mês</span><b>${u?fmt0(u.lucro):'ainda sem dados'}</b></div>
+      <div class="fl"><span>Receita prevista (mês comum)</span><b>${fmt0(pv.rec)}</b></div>
+      <div class="fl"><span>(−) Mercadoria e custos que variam com as vendas</span><b>${fmt0(pv.varc)}</b></div>
+      <div class="fl"><span>(−) Custos fixos (salários, aluguel, contas)</span><b>${fmt0(pv.fixo)}</b></div>
       <div class="fl"><span>Lucro previsto (mês comum)</span><b>${fmt0(pv.lucro)}</b></div>
       <div class="fl"><span>${EM.cliRot||'Clientes por dia'}</span><b>${EM.cliMul?Math.round(pv.cli*EM.cliMul):pv.cli}</b></div>
       <div class="fl"><span>Tempo seu</span><b>${hm(horasAtivo(a))} h por mês</b></div>
@@ -2094,7 +2097,7 @@ function modalTyc(a){
     <p class="hint">Quanto do lucro vai para o seu bolso todo mês? O resto fica no caixa para você reinvestir. Se o caixa não cobrir um mês ruim, o prejuízo sai do seu bolso.</p>
     <div class="tyc-ret">${[0,25,50,75,100].map(p=>`<button class="btn${T.ret===p?' coin':''}" data-acao="tycRet" data-alvo="${a.uid}:${p}">${p}%</button>`).join('')}</div>
     <p class="hint">Retirada prevista: <b>${fmt0(a.renda)}</b> por mês.</p>
-    <p class="hint">Dinheiro que já está no caixa só sai se você sacar aqui. A reserva sugerida é de ${fmt0(tycReserva(a))} (cerca de 3 meses de custos).</p>
+    <p class="hint">Dinheiro que já está no caixa só sai se você sacar aqui. A reserva sugerida é de ${fmt0(tycReserva(a))} (3 meses de custos fixos: o que o caixa precisa cobrir se as vendas caírem).</p>
     <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Sacar o excedente (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Sacar tudo</button></div>
     ${tycEfs(a).lista.length?`<p class="hint"><b>Em andamento:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?'meses':'mês'})`).join(', ')}</p>`:''}
     ${ui.tycMsg?`<p class="hint tyc-msg">${ui.tycMsg}</p>`:''}
@@ -3835,10 +3838,17 @@ Object.assign(ESPECIAIS,{ franqInteresse:{tipo:'opcoes', titulo:()=>`${s.franqCa
       {label:'Aprovar e exigir treinamento', sub:`Custa ${fmt0(treino)} e você recebe a taxa de ${fmt0(taxa)}`, disabled:s.conta+taxa<treino, modal:'tycRes', run:()=>aprova(true)},
       {label:'Recusar', sub:'Sem custo', modal:'tycRes', run:()=>fim({tom:'neutro', titulo:'Candidato recusado', texto:`Você agradeceu e disse não. A marca continua só sua.`, escolha:'Recusar', carta:'franquia', modal:'tycRes', mud:[['Nada muda na empresa',null]]})}
     ]; } }});
+/* decisões únicas por empresa: crediário, app, Pix, plano mensal etc. Depois de decididas, não voltam a ser oferecidas */
+const TYC_UNICAS=new Set(['ac_app','ac_compl','ac_fiel','ac_ponto','lv_coleta','lv_pix','lv_24h','lv_hotel','lv_licenca','rp_credi','rp_insta','rp_troca','rp_loja','lj_plano','es_mensal','es_app','bk_contrato','bk_fiscal','vd_pix','cs_online','cs_material','ec_market','sa_freem','sa_invest','sa_lgpd','sa_dev','cl_dom','cl_conv','cl_fam','cl_viag']);
 function tycSortear(){
   const L=(s.ativos||[]).filter(a=>a.tyc && !(a.vagoAte>=s.mes)); if(!L.length) return null;
-  const a=L[Math.floor(Math.random()*L.length)], rec=s.tycUlt||[];
-  const deck=emp(a).dec||Object.keys(TYC_DEC), ids=deck.filter(k=>!rec.includes(k)&&TYC_DEC[k]), id=(ids.length?ids:deck)[Math.floor(Math.random()*(ids.length?ids.length:deck.length))];
+  const a=L[Math.floor(Math.random()*L.length)], rec=s.tycUlt||[], feitas=a.decFeitas||[];
+  const deck=emp(a).dec||Object.keys(TYC_DEC);
+  let ids=deck.filter(k=>TYC_DEC[k]&&!rec.includes(k)&&!feitas.includes(k));
+  if(!ids.length) ids=deck.filter(k=>TYC_DEC[k]&&!feitas.includes(k));
+  if(!ids.length) ids=deck.filter(k=>TYC_DEC[k]);
+  const id=ids[Math.floor(Math.random()*ids.length)];
+  if(TYC_UNICAS.has(id)){ a.decFeitas=[...feitas,id]; } // decisão de política/estratégia: depois de decidida, não volta para esta empresa
   s.alvoAtivo=a.uid; s.tycCarta=id; s.tycUlt=[...rec,id].slice(-5); s.tycDecEm=s.mes; return 'tycDecisao';
 }
 
