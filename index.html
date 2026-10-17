@@ -4673,7 +4673,8 @@ const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
-const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?(C0[(TYC_EMP[id]||TYC_EMP.cafeteria).ofertaImg]||C0.negocio):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='ecommerce'||id==='saas'||id==='vacinas'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
+function ofertaCena(id,C){ const T=TYC_EMP[id]||TYC_EMP.cafeteria, X=(typeof ARTE!=='undefined'&&ARTE.extras)||{}; return C[T.ofertaImg]||X[T.arte+'-pequena']||C.negocio; }
+const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?ofertaCena(id,C0):C0[id]; return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='ecommerce'||id==='saas'||id==='vacinas'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 /* carta de decisão no estilo board game: moldura única (arte) + textos por código */
 const MOLD={"titulo": [7.595, 92.468, 5.519, 11.532], "cena": [10.0, 90.063, 16.227, 42.226], "texto": [7.595, 92.405, 45.356, 71.911], "op1": [7.595, 92.405, 73.682, 79.201], "op2": [7.595, 92.405, 81.466, 87.026], "op3": [7.595, 92.405, 89.292, 94.811], "ratio": 0.6507};
 function cenaDecisao(){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{}, X=(typeof ARTE!=='undefined'&&ARTE.extras)||{};
@@ -4727,7 +4728,7 @@ function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
   if(id==='franqInteresse' && C['tyc-franquia']) return C['tyc-franquia'];
-  if(id==='oportunidade'){ const o=ofertaNova(); if(o&&CARTAS[o.id]?.tyc){ const f=C[(TYC_EMP[o.id]||TYC_EMP.cafeteria).ofertaImg]||C.negocio; if(f) return f; } if(o&&C[o.id]) return C[o.id]; }
+  if(id==='oportunidade'){ const o=ofertaNova(); if(o&&CARTAS[o.id]?.tyc){ const f=ofertaCena(o.id,C); if(f) return f; } if(o&&C[o.id]) return C[o.id]; }
   if(id==='grande' && s.grande && C[s.grande.id]) return C[s.grande.id];
   if(id==='casaEstudo'){ const k=s.estudoCasa==='pos'?'pos-'+(s.prof||'professor'):s.estudoCasa; return (ARTE.cursos||{})[k]||C.workshop||''; }
   if(id==='casaBolsa') return quedaCart()<=-0.08 ? (C.crise||'') : '';
