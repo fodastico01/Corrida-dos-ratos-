@@ -5208,7 +5208,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v307</p>
+    <p class="titulo-versao">versão v308</p>
   </div>`;
 }
 function render(){
@@ -6778,7 +6778,7 @@ function avPeao(){ const c=lerCamp().avatar; return c?avURL(c,4):''; }
 function migrar(x){
   if(!x || !x.mes) return null;
   if(x.habitos && Object.keys(x.habitos).length) x.habitos={}; // hábitos viraram a árvore de crescimento
-  (x.ativos||[]).forEach(v=>{ if(v.tyc&&v.tyc.obra){ const o=v.tyc.obra, lim=x.mes+(o.reforma?TYC_REFORMA_MESES:TYC_OBRA_MESES); if(o.ate>lim) o.ate=lim; } }); // saves antigos tinham obras mais longas
+  (x.ativos||[]).forEach(v=>{ if(v.tyc&&v.tyc.obra){ const o=v.tyc.obra, lim=x.mes+(o.reforma?TYC_REFORMA_MESES:TYC_OBRA_MESES); if(o.ate>lim) o.ate=lim; } if(v.tyc&&v.tyc.obraLoja&&v.tyc.obraLoja.ate>x.mes+TYC_LOJA_MESES[TYC_LOJA_MESES.length-1]) v.tyc.obraLoja.ate=x.mes+TYC_LOJA_MESES[TYC_LOJA_MESES.length-1]; }); // saves antigos tinham obras mais longas
   if(x.at){
     if(x.fase===2){ const a=x.at;
       if(a.ipca){ a.ouro=[...(a.ouro||[]), ...a.ipca]; delete a.ipca; }
