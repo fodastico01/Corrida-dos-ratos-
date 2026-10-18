@@ -2277,7 +2277,8 @@ const HABS = {
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
-const horasGanhas = () => Object.keys(s.habs||{}).reduce((x,id)=>x+(HABS[id]?.ganha||0),0) + (s.livroHoras||0);
+const horasCond = () => Math.round(Math.max(0,(s.corr&&s.corr.cond)||0)/100*3*2)/2; // condicionamento devolve até 3 h/semana (disposição + gestão de tempo)
+const horasGanhas = () => Object.keys(s.habs||{}).reduce((x,id)=>x+(HABS[id]?.ganha||0),0) + (s.livroHoras||0) + horasCond();
 const reqHabOk = id => HABS[id].req.every(temHab);
 const candHab = () => Object.keys(HABS).filter(id=>!temHab(id) && reqHabOk(id) && !(HABS[id].fase && s.fase<HABS[id].fase));
 const estadoHab = id => temHab(id) ? 'feito' : s.habEst?.id===id ? 'andando' : reqHabOk(id) ? 'disp' : 'bloq';
@@ -2600,6 +2601,7 @@ function lazerCard(){
   const u=c.ult;
   return `<section class="card lazer-card" aria-labelledby="t-lazer"><h2 id="t-lazer">🏃 Lazer e saúde</h2>
     <div class="humor-hud" role="meter" aria-label="Condicionamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Condicionamento</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
+    <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
     <p class="hint">Treinar usa tempo livre e faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
     ${livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':''}<h3 class="lazer-sub">Provas de corrida</h3>
@@ -5293,7 +5295,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v312</p>
+    <p class="titulo-versao">versão v313</p>
   </div>`;
 }
 function render(){
