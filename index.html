@@ -1549,11 +1549,20 @@ function novoEstado(fase){
   e.habitos={};
   s=e; ui.modal=null; iniciarMes(); return s;
 }
+/* ao mudar de fase o calendário volta ao mês 1: prazos das empresas herdadas (obras, efeitos, vaga, atraso) precisam andar junto, senão viram "58 meses" */
+function rebaseAtivo(a, off){
+  const R=t=>(typeof t==='number') ? Math.max(1, t-off) : t;
+  if(a.vagoAte!=null) a.vagoAte=R(a.vagoAte); if(a.atrasoAte!=null) a.atrasoAte=R(a.atrasoAte);
+  a.mesesAntes=(a.mesesAntes||0)+off;
+  const T=a.tyc; if(!T) return;
+  if(T.obra) T.obra.ate=R(T.obra.ate); if(T.obraLoja) T.obraLoja.ate=R(T.obraLoja.ate);
+  if(T.efs) T.efs.forEach(e=>{ e.ate=R(e.ate); });
+}
 function herdar(e,f){
   const c=lerCamp();
   e.prof=f.prof||c.prof||'professor'; e.sonho=f.sonho||c.sonho||'viagem';
   const P=PROFISSOES[e.prof]||PROFISSOES.professor; e.escL=f.escL||P.salario/3500; e.escC=Math.sqrt(e.escL);
-  e.ativos=(f.ativos||[]).map(a=>({...a})); e.uid=f.uid||100; if(f.corr) e.corr=JSON.parse(JSON.stringify(f.corr));
+  e.ativos=(f.ativos||[]).map(a=>JSON.parse(JSON.stringify(a))); e.uid=f.uid||100; { const off=f.mes!=null?f.mes:(e.fase===2?24:e.fase===3?60:0); if(off) e.ativos.forEach(a=>rebaseAtivo(a,off)); } if(f.corr) e.corr=JSON.parse(JSON.stringify(f.corr));
   e.inicioPatr+= e.ativos.reduce((x,a)=>x+a.valor,0);
 }
 function lerCamp(){ try{ return JSON.parse(localStorage.getItem(CHAVE_CAMP))||{}; }catch(e){ return {}; } }
@@ -5275,7 +5284,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v309</p>
+    <p class="titulo-versao">versão v310</p>
   </div>`;
 }
 function render(){
@@ -6081,8 +6090,8 @@ function renderFim(){
   if(passou){ camp[k+'Liberou']=true;
     camp.mor=s.mor; camp.casa=s.casa||0;
     camp.cargo=s.cargo||0; camp.cargoMeses=s.mes-(s.cargoDesde||0)+(s.cargoMesesAntes||0); camp.desempenho=s.desempenho||0; camp.cursosOk=s.cursosOk||[]; camp.habs=s.habs||{}; camp.vicios=s.vicios||[]; camp.habEst=s.habEst?{id:s.habEst.id, falta:Math.max(1,s.habEst.ate-s.mes)}:null;
-    if(s.fase===2) camp.f2Fim={corr:s.corr, pxA:s.mk.pxA, pxO:s.mk.pxO, prof:s.prof, sonho:s.sonho, escL:s.escL, ativos:s.ativos, uid:s.uid, h:s.mk.h, conta:Math.max(0,s.conta), cdb:valor('cdb'), ouro:valor('ouro'), ouroCusto:custoDe('ouro'), acoes:valor('acoes'), acoesCusto:custoDe('acoes'), salario:s.salario, fixos:s.fixos, estilo:s.estilo, fel:s.fel, parcelas:s.parcelas, estudo:(s.estudoAte||0)>s.mes?{r:s.estudoAte-s.mes, horas:s.estudoHoras, nome:s.estudoNome, pct:s.estudoAumPct}:null, idx:s.idx, selic:s.mk.selic};
-    if(s.fase===1) camp.f1Fim={corr:s.corr, pxA:s.mk.pxA, pxO:s.mk.pxO, prof:s.prof, sonho:s.sonho, escL:s.escL, ativos:s.ativos, uid:s.uid, h:s.mk.h, conta:Math.max(0,s.conta), cdb:valor('cdb'), acoes:valor('acoes'), acoesCusto:custoDe('acoes'), salario:s.salario, fixos:s.fixos, estilo:s.estilo, fel:s.fel, parcelas:s.parcelas, estudo:(s.estudoAte||0)>s.mes?{r:s.estudoAte-s.mes, horas:s.estudoHoras, nome:s.estudoNome, pct:s.estudoAumPct}:null};
+    if(s.fase===2) camp.f2Fim={mes:s.mes, corr:s.corr, pxA:s.mk.pxA, pxO:s.mk.pxO, prof:s.prof, sonho:s.sonho, escL:s.escL, ativos:s.ativos, uid:s.uid, h:s.mk.h, conta:Math.max(0,s.conta), cdb:valor('cdb'), ouro:valor('ouro'), ouroCusto:custoDe('ouro'), acoes:valor('acoes'), acoesCusto:custoDe('acoes'), salario:s.salario, fixos:s.fixos, estilo:s.estilo, fel:s.fel, parcelas:s.parcelas, estudo:(s.estudoAte||0)>s.mes?{r:s.estudoAte-s.mes, horas:s.estudoHoras, nome:s.estudoNome, pct:s.estudoAumPct}:null, idx:s.idx, selic:s.mk.selic};
+    if(s.fase===1) camp.f1Fim={mes:s.mes, corr:s.corr, pxA:s.mk.pxA, pxO:s.mk.pxO, prof:s.prof, sonho:s.sonho, escL:s.escL, ativos:s.ativos, uid:s.uid, h:s.mk.h, conta:Math.max(0,s.conta), cdb:valor('cdb'), acoes:valor('acoes'), acoesCusto:custoDe('acoes'), salario:s.salario, fixos:s.fixos, estilo:s.estilo, fel:s.fel, parcelas:s.parcelas, estudo:(s.estudoAte||0)>s.mes?{r:s.estudoAte-s.mes, horas:s.estudoHoras, nome:s.estudoNome, pct:s.estudoAumPct}:null};
   }
   const P=s.ptsFinal||(s.ptsFinal=pontuacao()), G=gravarPontos(camp, P.total), info=s.ptsInfo||G;
   gravarCamp(camp);
@@ -6850,6 +6859,11 @@ function avPeao(){ const c=lerCamp().avatar; return c?avURL(c,4):''; }
 function migrar(x){
   if(!x || !x.mes) return null;
   if(x.habitos && Object.keys(x.habitos).length) x.habitos={}; // hábitos viraram a árvore de crescimento
+  (x.ativos||[]).forEach(v=>{ // prazos herdados da fase anterior sem ajuste (ex.: "58 meses"): volta para o calendário desta fase
+    const off=x.fase===3?60:x.fase===2?24:0; if(!off) return;
+    const T=v.tyc; if(v.vagoAte>x.mes+12) v.vagoAte=Math.max(1,v.vagoAte-off); if(v.atrasoAte>x.mes+6) v.atrasoAte=Math.max(1,v.atrasoAte-off);
+    if(T&&T.efs) T.efs=T.efs.filter(e=>{ if(e.ate>x.mes+36) e.ate-=off; return e.ate>x.mes; });
+    if(T&&T.obra&&T.obra.ate>x.mes+9) T.obra.ate=Math.max(1,T.obra.ate-off); });
   (x.ativos||[]).forEach(v=>{ if(v.tyc&&v.tyc.obra){ const o=v.tyc.obra, lim=x.mes+(o.reforma?TYC_REFORMA_MESES:TYC_OBRA_MESES); if(o.ate>lim) o.ate=lim; } if(v.tyc&&v.tyc.obraLoja&&v.tyc.obraLoja.ate>x.mes+TYC_LOJA_MESES[TYC_LOJA_MESES.length-1]) v.tyc.obraLoja.ate=x.mes+TYC_LOJA_MESES[TYC_LOJA_MESES.length-1]; }); // saves antigos tinham obras mais longas
   if(x.at){
     if(x.fase===2){ const a=x.at;
