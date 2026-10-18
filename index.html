@@ -2590,7 +2590,7 @@ function modalCorrida(){ const c=corr(), cfg={cond:c.cond/100, total:ui.corrida.
   modal.querySelector('iframe.ritmo').srcdoc=html; }
 function lazerCard(){
   const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
-  const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<18, f=h?TREINO_FEL[h]:0;
+  const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<9, f=h?TREINO_FEL[h]:0;
     return `<button data-acao="treino" data-alvo="${h}" aria-pressed="${c.h===h}" ${dis?'disabled':''}>${h?h+' h':'Parado'}<small>${h?'por semana':'sem treino'}</small><small class="efeito">${h?`${hm(h)} h/mês · bem-estar +${f}`:'cai devagar'}</small></button>`; }).join('');
   const usada=c.ultMes===s.mes;
   const provas=PROVAS.map(p=>{ const v=custoProva(p), lib=provaLiberada(p), m=c.melhor[p.km], ab=provaAberta(p), pode=lib&&ab&&!usada&&podeAVista(v), k=provaEm(p);
@@ -2602,7 +2602,7 @@ function lazerCard(){
     <div class="humor-hud" role="meter" aria-label="Condicionamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Condicionamento</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
     <p class="hint">Treinar usa tempo livre e faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
-    <h3 class="lazer-sub">Provas de corrida</h3>
+    ${livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':''}<h3 class="lazer-sub">Provas de corrida</h3>
     <div class="provas">${provas}</div>
     ${usada?'<p class="hint">Você já correu neste mês.</p>':''}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
@@ -5293,7 +5293,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v311</p>
+    <p class="titulo-versao">versão v312</p>
   </div>`;
 }
 function render(){
