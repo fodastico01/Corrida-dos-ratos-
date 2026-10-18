@@ -1217,6 +1217,17 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 .cx-frente,.cx-frente *{color-scheme:only light}.mold.foil .mold-tx p,.mold.foil .mold-tx .valor-evento,.mold.foil .mold-tx b{color:#1F2A33!important}.mold.foil .mold-nota{color:#6B5528!important}
 .mold.foil .mold-tx{background:#F5E8CC!important;background-image:none!important}
 .titulo-versao{margin:2px 0 0;text-align:center;font-size:10.5px;letter-spacing:.06em;opacity:.65}
+/* v307: todas as cartas do mesmo tamanho, maiores, com a foto grande; carta curta (1 opção) centra o texto e prende o botão embaixo */
+.cx-area:has(.mc){width:min(94vw,400px);zoom:1}
+.cx-frente.mc{display:flex;flex-direction:column;min-height:min(600px,calc(100svh - 200px))}
+.cx-frente.mc .mc-meio{flex:1;display:grid;grid-template-rows:1fr auto;align-content:stretch}
+.cx-frente.mc .mc-tx{min-height:96px;align-content:center;align-self:stretch;display:grid}
+.cx-frente.mc .mc-tx p{font-size:clamp(13px,4.2vw,16.5px);line-height:1.4}
+.cx-frente.mc .mc-op b{font-size:clamp(12px,3.9vw,15px)}
+.cx-frente.mc .mc-op span{font-size:clamp(10.5px,3.2vw,12.5px)}
+.cx-frente.mc .mc-op{min-height:38px}
+.cx-frente.mc .mc-topo{aspect-ratio:1000/830}
+.cx-frente.mc .mc-cena{object-position:center}
 </style>
 
 <div class="app" id="app"></div>
@@ -2508,7 +2519,7 @@ const esgotado = () => (s.esgotAte||0)>=s.mes;
 const cansacoFel = () => Math.round(Math.min(s.cansaco||0, 20));
 function atualizarCansaco(){
   const hl=horasLivres(); let c=s.cansaco||0;
-  if(esgotado()) c-=4;
+  if(esgotado()) c-=8; // afastado de verdade descansa: o cansaço some em poucos meses
   else if(hl<18) c+=(18-hl)/3*(s.aprendeuLimite?0.75:1)*(temHab('sono')?0.7:1)*(vicAtivos().includes('series')?1.3:1);
   else c-= hl>=28?3:1.5;
   s.cansaco=clamp(c,0,30);
@@ -3010,10 +3021,13 @@ function tycEf(a, nome, dur, o){ const T=a.tyc; (T.efs||(T.efs=[])).push({nome, 
 // opção padrão: a carta só mostra o custo; o que acontece é revelado depois, numa janela de resultado
 const tycPct = v => (v>=1?'+':'−')+Math.round(Math.abs(v-1)*100)+'%';
 function tycOp(a, label, _dica, custo, run){
-  const T=a.tyc, falta=custo>0 && custo>Math.max(0,T.caixa)+Math.max(0,s.conta);
-  return {label, sub: custo>0?`${fmt0(custo)} do caixa da empresa`:'Sem custo imediato', disabled:falta, modal:'tycRes', run:()=>{
+  const T=a.tyc, falta=custo>0 && custo>Math.max(0,T.caixa)+Math.max(0,s.conta)+liquidoPronto()+0.005;
+  const usaInv=custo>0 && custo>Math.max(0,T.caixa)+Math.max(0,s.conta);
+  return {label, sub: custo>0?`${fmt0(custo)} do caixa da empresa${usaInv?' (o que faltar sai dos seus investimentos)':''}`:'Sem custo imediato', disabled:falta, modal:'tycRes', run:()=>{
     const n0=(T.efs||[]).length, cx0=T.caixa, l0=tycPrev(a).lucro, card=s.tycCarta;
-    if(custo>0) T.caixa-=custo; const r=run(); tycAtualizar(a);
+    let vend=''; if(custo>0){ const dentro=Math.min(Math.max(0,T.caixa),custo), resto=custo-dentro; T.caixa-=dentro;
+      if(resto>0.005){ const cx=Math.max(0,s.conta); vend=pagarAVista(resto); } }
+    const r=run(); if(vend && r && r.texto) r.texto+=vend; tycAtualizar(a);
     const mud=[]; (T.efs||[]).slice(n0).forEach(e=>{ const d=Math.max(1,e.ate-s.mes), dur=` por ${d} ${d>1?'meses':'mês'}`;
       if(e.cli&&e.cli!==1) mud.push([`${tycPct(e.cli)} de clientes${dur}`, e.cli>1]); if(e.tk&&e.tk!==1) mud.push([`${tycPct(e.tk)} no ticket médio${dur}`, e.tk>1]);
       if(e.vc&&e.vc!==1) mud.push([`${tycPct(e.vc)} no custo dos insumos${dur}`, e.vc<1]); if(e.fx) mud.push([`${e.fx>0?'+':'−'}${Math.round(Math.abs(e.fx)*100)}% no custo fixo${dur}`, e.fx<0]); });
@@ -4411,7 +4425,7 @@ function iniciarMes(){
   atualizarCansaco();
   s.fel=clamp(s.fel+efeitosFel().reduce((x,[,v])=>x+v,0),0,esgotado()?40:100);
   s.mesesBaixo = s.fel<20 ? (s.mesesBaixo||0)+1 : 0;
-  if(s.esgotAte && s.esgotAte===s.mes-1){ s.fel=clamp(s.fel+20,0,100); ex.push(['Fim do afastamento: recomeço (+20 de bem-estar)',0]);
+  if(s.esgotAte && s.esgotAte===s.mes-1){ s.cansaco=Math.min(s.cansaco||0,3); s.fel=clamp(s.fel+20,0,100); ex.push(['Fim do afastamento: recomeço (+20 de bem-estar)',0]);
     if(Math.random()<0.25){ s.aprendeuLimite=true; lic={tom:'bom', titulo:'Recomeço: você aprendeu o seu limite', texto:'Voltou ao trabalho mais leve. A partir de agora o cansaço acumula 25% mais devagar: você percebe antes quando está passando do ponto.'}; }
     else lic={tom:'bom', titulo:'Recomeço', texto:'O afastamento acabou e você voltou com energia. Cuidado para não repetir o ritmo que levou ao esgotamento.'};
     if(empregado() && Math.random()<(s.prof==='professor'||s.prof==='enfermeiro'?0.15:0.4)){ s.agenda.push({mes:s.mes+1, id:'demissao'}); lic={tom:'ruim', titulo:'Voltou, mas o cargo já tinha dono', texto:'Quem fica meses afastado perde espaço na equipe. A empresa já está se movendo para cortar a sua vaga.'}; } }
@@ -5194,7 +5208,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v306</p>
+    <p class="titulo-versao">versão v307</p>
   </div>`;
 }
 function render(){
@@ -6764,6 +6778,7 @@ function avPeao(){ const c=lerCamp().avatar; return c?avURL(c,4):''; }
 function migrar(x){
   if(!x || !x.mes) return null;
   if(x.habitos && Object.keys(x.habitos).length) x.habitos={}; // hábitos viraram a árvore de crescimento
+  (x.ativos||[]).forEach(v=>{ if(v.tyc&&v.tyc.obra){ const o=v.tyc.obra, lim=x.mes+(o.reforma?TYC_REFORMA_MESES:TYC_OBRA_MESES); if(o.ate>lim) o.ate=lim; } }); // saves antigos tinham obras mais longas
   if(x.at){
     if(x.fase===2){ const a=x.at;
       if(a.ipca){ a.ouro=[...(a.ouro||[]), ...a.ipca]; delete a.ipca; }
