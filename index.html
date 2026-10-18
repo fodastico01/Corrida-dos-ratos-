@@ -4499,6 +4499,7 @@ function iniciarMes(){
     s.conta+=v; s.rendaAtivosTot=(s.rendaAtivosTot||0)+v; ex.push([`${a.nome}${a.gerente?' (com gerente)':''}`, v]);
   }
   tycFranqMes(ex);
+  ceoMes(ex);
   checarMarcosPatr();
   crescerNegocios();
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
@@ -5295,7 +5296,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v313</p>
+    <p class="titulo-versao">versão v314</p>
   </div>`;
 }
 function render(){
@@ -5602,7 +5603,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="aba" data-alvo="vida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' e ')}</b><p class="hint">Inscrições abertas só neste mês. Toque para ver na aba Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
     dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
-    renda: `${ofertas}${ativos}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
+    renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCard()}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
@@ -5658,6 +5659,69 @@ function mapaFases(){
 }
 
 
+/* ================= CEO: cuida das melhorias de rotina das empresas ================= */
+const CEO_PAT=5000000, CEO_PCT=0.05, CEO_MIN_EMP=3;
+const ceo = () => s.ceo || (s.ceo={on:false, auto:false, teto:0, pago:0, feitas:0, gm:0, gv:0, pausa:0});
+const ceoSal = () => C(25000);
+const ceoEmps = () => (s.ativos||[]).filter(a=>a.tyc && !a.franqDe && !(a.vagoAte>=s.mes));
+const ceoLiberado = () => patrimonio()>=CEO_PAT && ceoEmps().length>=CEO_MIN_EMP;
+const ceoTetos = () => [C(1000000), C(5000000), 0];
+function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata para a mais cara
+  const L=[];
+  for(const a of ceoEmps()){ if(a.tyc.obra) continue; const T=a.tyc;
+    for(let ki=0;ki<TYC_KEYS.length;ki++){ const k=TYC_KEYS[ki]; if(tycBloqueio(a,k)) continue;
+      const c=tycCustoTot(a,k); if(!(c>0)) continue;
+      const res=tycReserva(a), pessoal=Math.max(c*2, C(200000));
+      const fonte = (T.caixa-c>=res) ? 'caixa' : (s.conta-c>=pessoal ? 'conta' : null);
+      if(fonte) L.push({a,ki,k,c,fonte}); } }
+  return L.sort((x,y)=>x.c-y.c);
+}
+function ceoMes(ex){
+  const c=ceo(); if(!c.on) return;
+  const emps=ceoEmps(); if(!emps.length){ c.on=false; c.auto=false; return; }
+  const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
+  s.conta-=v; c.pago=(c.pago||0)+v; ex.push(['CEO: salário e participação nos lucros',-v]);
+  const ops=ceoOpcoes();
+  if(c.auto){
+    if(c.gm!==s.mes){ c.gm=s.mes; c.gv=0; }
+    const usadas=new Set();
+    for(const o of ops){ if(usadas.has(o.a.uid)) continue; if(o.a.tyc.obra) continue;
+      if(c.teto && c.gv+o.c>c.teto) continue;
+      if(o.fonte==='conta' && s.conta-o.c<Math.max(o.c*2,C(200000))) continue;
+      if(o.fonte==='caixa' && o.a.tyc.caixa-o.c<tycReserva(o.a)) continue;
+      const S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
+      tycSubir(o.a.uid,o.ki,o.fonte); if(!o.a.tyc.obra) continue;
+      usadas.add(o.a.uid); c.gv+=o.c; c.feitas=(c.feitas||0)+1;
+      ex.push([`CEO: ${o.a.nome}, ${S.nome} (${S.niv[n]})${o.fonte==='caixa'?'':' · do seu capital'}`, o.fonte==='caixa'?0:-o.c]);
+    }
+  } else if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausa||0) && ops.length){
+    const o=ops[0], S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
+    (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', titulo:'🧑‍💼 Quer que eu suba?', nome:o.a.nome, uid:o.a.uid, ki:o.ki, fonte:o.fonte, c:o.c, mes:s.mes,
+      texto:`${S.ic} ${S.nome}: ${S.niv[n]} por ${fmt0(o.c)}. ${o.fonte==='caixa'?'Sai do caixa da empresa.':'A empresa está sem caixa porque está crescendo, então sairia do seu capital.'}`});
+  }
+}
+function ceoResponder(sim){
+  const av=(s.avisosEvolucao||[]).shift(); if(!av||av.tipo!=='ceo') return; const c=ceo();
+  if(!sim){ c.pausa=s.mes+3; return; }
+  const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra) return;
+  const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)) return;
+  const cu=tycCustoTot(a,k), fonte=(a.tyc.caixa>=cu)?'caixa':(s.conta>=cu?'conta':null); if(!fonte) return;
+  tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
+}
+function ceoCard(){
+  const c=ceo(), emps=ceoEmps(), pat=patrimonio(), lib=ceoLiberado();
+  if(!c.on && !lib && !(emps.length||s.fase>=3)) return '';
+  const tt=ceoTetos(), lab=v=>v?fmt0(v)+'/mês':'Sem limite';
+  if(!c.on){
+    if(!lib) return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO</h2><p class="hint">Um gestor profissional cuida das melhorias de rotina das suas empresas. Libera com patrimônio de ${fmt0(CEO_PAT)} e pelo menos ${CEO_MIN_EMP} empresas operacionais. Você tem ${fmt0(pat)} e ${emps.length} ${emps.length===1?'empresa':'empresas'}.</p></section>`;
+    return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO</h2><p class="hint">Contrate um CEO para evoluir as empresas por você. Ele cobra ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas e te pergunta antes de cada melhoria. Se a empresa estiver sem caixa, ele pode usar o seu capital. Compras, vendas e crises continuam com você.</p><button class="btn coin" data-acao="ceoContratar">Contratar CEO</button></section>`;
+  }
+  return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO contratado</h2>
+    <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
+    <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
+    ${c.auto?`<p class="hint">Limite de gasto por mês no automático:</p><div class="seg seg-hud" role="group" aria-label="Limite">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
+    <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
+}
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
 function avisarEvolucao(tipo,nome,texto,titulo,uid){ s.avisosEvolucao=s.avisosEvolucao||[]; s.avisosEvolucao.push({tipo,nome,texto,titulo,mes:s.mes,uid}); }
 const escHtml = v => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5666,6 +5730,7 @@ function renderAvisoEvolucao(){
   const aviso=s?.avisosEvolucao?.[0];
   box.hidden=!aviso||!!ui.modal||!!ui.girando||ui.tela==='titulo';
   if(box.hidden){ box.innerHTML=''; return; }
+  if(aviso.tipo==='ceo'){ box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Agora não">×</button><strong>${aviso.titulo}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p><button class="btn coin" data-acao="ceoSim">Sim, evoluir</button> <button class="btn" data-acao="ceoNao">Agora não</button></div>`; return; }
   box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite" aria-atomic="true"><button class="evolucao-fechar" data-acao="evolucaoFechar" aria-label="Fechar aviso de conclusão">×</button><strong>${aviso.titulo?aviso.titulo:aviso.tipo==='obra'?'🏗️ Obra concluída!':aviso.tipo==='estudo'?pix('🎓','mini')+' Estudo concluído!':pixK('aba-voce','🌱','mini')+' Habilidade concluída!'}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p>${aviso.tipo==='obra'||aviso.tipo==='marco'?`<small>${aviso.tipo==='marco'?(s.avisosEvolucao.length>1?`Mais ${s.avisosEvolucao.length-1} aviso(s).`:'Continue crescendo.'):s.avisosEvolucao.length>1?`Mais ${s.avisosEvolucao.length-1} aviso(s).`:'Abra a empresa para começar a próxima obra.'}</small>${aviso.tipo==='obra'&&aviso.uid?`<button class="btn coin" data-acao="evolucaoConferir" data-alvo="${aviso.uid}">Conferir →</button>`:''}`:`<small>Seu tempo foi liberado. ${aviso.tipo==='habilidade'?'Veja a próxima habilidade na aba Vida.':'Confira a próxima evolução na aba Você.'}${s.avisosEvolucao.length>1?` Mais ${s.avisosEvolucao.length-1} aviso(s).`:''}</small><button class="btn coin" data-acao="evolucaoVer">${pixK('aba-voce','🌱','mini')} ${aviso.tipo==='habilidade'?'Ver habilidades':'Ver estudos'} →</button>`}</div>`;
 }
 /* ================= confirmação antes de vender ou pegar empréstimo ================= */
@@ -6436,6 +6501,12 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
+    case 'ceoContratar': if(ceoLiberado()){ const c=ceo(); c.on=true; c.auto=false; c.pausa=0; } salvar(); render(); break;
+    case 'ceoDispensar': { const c=ceo(); c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); } salvar(); render(); break;
+    case 'ceoAuto': ceo().auto=alvo==='1'; salvar(); render(); break;
+    case 'ceoTeto': ceo().teto=Number(alvo)||0; salvar(); render(); break;
+    case 'ceoSim': ceoResponder(true); salvar(); render(); break;
+    case 'ceoNao': ceoResponder(false); salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
     case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
@@ -7163,7 +7234,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
