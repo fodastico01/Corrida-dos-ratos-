@@ -5295,7 +5295,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v315</p>
+    <p class="titulo-versao">versão v316</p>
   </div>`;
 }
 function render(){
@@ -5658,6 +5658,23 @@ function mapaFases(){
 }
 
 
+/* ================= backup do progresso (exportar e restaurar) ================= */
+const BK_PREF='CDR1:';
+function bkGerar(){ const k={}; try{ for(let i=0;i<localStorage.length;i++){ const n=localStorage.key(i); if(n && (n.indexOf('corrida-dos-ratos')===0 || n==='linhaFrac2' || n===PREF_KEY)) k[n]=localStorage.getItem(n); } }catch(e){}
+  salvar(); try{ k[CHAVE]=localStorage.getItem(CHAVE); }catch(e){}
+  return BK_PREF+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,quando:new Date().toISOString(),k})))); }
+function bkMsg(t){ const e=document.getElementById('bkMsg'); if(e) e.textContent=t; }
+function bkBaixar(){ try{ const b=new Blob([bkGerar()],{type:'text/plain'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='corrida-dos-ratos-backup-'+new Date().toISOString().slice(0,10)+'.txt'; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); bkMsg('Backup baixado. Guarde o arquivo em um lugar seguro.'); }catch(e){ bkMsg('Não consegui baixar. Use "Copiar código".'); } }
+function bkCopiar(){ const c=bkGerar(); const ok=()=>bkMsg('Código copiado. Cole em um lugar seguro (notas, e-mail para você).');
+  const fb=()=>{ const t=document.getElementById('bkTxt'); if(t){ t.value=c; t.select(); try{ document.execCommand('copy'); ok(); }catch(e){ bkMsg('Copie o código que apareceu na caixa abaixo.'); } } };
+  try{ navigator.clipboard.writeText(c).then(ok,fb); }catch(e){ fb(); } }
+function bkRestaurarTexto(txt){ try{ txt=(txt||'').trim(); if(txt.indexOf(BK_PREF)!==0) return bkMsg('Código inválido: ele deve começar com '+BK_PREF);
+    const o=JSON.parse(decodeURIComponent(escape(atob(txt.slice(BK_PREF.length))))); if(!o||o.v!==1||!o.k||!o.k[CHAVE]) return bkMsg('Backup incompleto ou de outra versão.');
+    if(!confirm('Restaurar este backup vai substituir o progresso atual neste aparelho. Continuar?')) return;
+    for(const n of Object.keys(o.k)){ if(o.k[n]!=null) localStorage.setItem(n,o.k[n]); }
+    bkMsg('Backup restaurado. Reiniciando…'); setTimeout(()=>location.reload(),600);
+  }catch(e){ bkMsg('Não consegui ler esse backup.'); } }
+document.addEventListener('change',e=>{ if(e.target&&e.target.id==='bkArq'&&e.target.files&&e.target.files[0]){ const r=new FileReader(); r.onload=()=>bkRestaurarTexto(String(r.result)); r.readAsText(e.target.files[0]); } });
 /* ================= CEO: cuida das melhorias de rotina das empresas ================= */
 const CEO_PAT=5000000, CEO_PCT=0.05, CEO_MIN_EMP=3;
 const ceo = () => s.ceo || (s.ceo={on:false, auto:false, teto:0, pago:0, feitas:0, gm:0, gv:0, pausa:0});
@@ -5819,6 +5836,11 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Som da roleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tique-taque</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silêncio</button></div></div>
       <div class="cfg"><span class="label-c">Tamanho da letra</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grande</button></div></div>
       <div class="cfg"><span class="label-c">Eventos</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cartas</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Janela simples</button></div></div>
+      <div class="cfg"><span class="label-c">Backup do progresso</span><p class="hint">O jogo salva só neste aparelho. Guarde uma cópia para não perder tudo se limpar o navegador ou trocar de celular.</p>
+        <div class="row"><button class="btn" data-acao="bkBaixar">Baixar backup</button><button class="btn" data-acao="bkCopiar">Copiar código</button></div>
+        <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código do backup para restaurar" style="width:100%;margin-top:8px;font:12px monospace"></textarea>
+        <div class="row"><button class="btn" data-acao="bkRestaurar">Restaurar do código</button><label class="btn" for="bkArq" style="cursor:pointer">Restaurar de arquivo</label><input id="bkArq" type="file" accept=".json,.txt,application/json,text/plain" hidden></div>
+        <p class="hint" id="bkMsg" role="status"></p></div>
       <div class="row"><button class="btn coin" data-acao="fechar">Pronto</button></div></div></div>`;
     return; }
   if(!ui.modal && !s.evento && (ui.fotoFila||[]).length){ ui.foto=ui.fotoFila.shift(); ui.modal='foto'; ui.fotoNova=true; ui.fotoFlash=true; }
@@ -6500,6 +6522,9 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
+    case 'bkBaixar': bkBaixar(); break;
+    case 'bkCopiar': bkCopiar(); break;
+    case 'bkRestaurar': bkRestaurarTexto((document.getElementById('bkTxt')||{}).value); break;
     case 'ceoContratar': if(ceoLiberado()){ const c=ceo(); c.on=true; c.auto=false; c.pausa=0; } salvar(); render(); break;
     case 'ceoDispensar': { const c=ceo(); c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); } salvar(); render(); break;
     case 'ceoAuto': ceo().auto=alvo==='1'; salvar(); render(); break;
