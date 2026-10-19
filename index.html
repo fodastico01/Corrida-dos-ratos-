@@ -2568,6 +2568,9 @@ const corr = () => s.corr || (s.corr={h:0, cond:15, melhor:{}, ultMes:-9, persp:
 const horasTreino = () => esgotado() ? 0 : corr().h; // em horas por semana, como o resto do tempo livre
 const nivelCond = c => c<45?0:c<75?1:2;
 const NOME_COND = ['Iniciante','Treinado','Atleta'];
+// treinar custa: academia, tênis, roupa, suplemento e deslocamento (por mês, na moeda da fase)
+const custoTreinoH = h => h ? Math.round(C({3:70,6:130,9:190}[h])/10)*10 : 0;
+const custoTreino = () => { const c=corr(); return (c.h && !esgotado()) ? custoTreinoH(c.h) : 0; };
 const felTreino = () => { const c=corr(); return (c.h&&!esgotado()) ? TREINO_FEL[c.h]+(c.cond>=60?1:0) : 0; };
 function atualizarCond(){ const c=corr();
   if(c.h && !esgotado()){ const g={3:3.5,6:5.5,9:7}[c.h]*(1-c.cond/115); c.cond=clamp(c.cond+g,0,100); }
@@ -2596,7 +2599,7 @@ function modalCorrida(){ const c=corr(), cfg={cond:c.cond/100, total:ui.corrida.
 function lazerCard(){
   const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
   const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<9, f=h?TREINO_FEL[h]:0;
-    return `<button data-acao="treino" data-alvo="${h}" aria-pressed="${c.h===h}" ${dis?'disabled':''}>${h?h+' h':'Parado'}<small>${h?'por semana':'sem treino'}</small><small class="efeito">${h?`${hm(h)} h/mês · bem-estar +${f}`:'cai devagar'}</small></button>`; }).join('');
+    return `<button data-acao="treino" data-alvo="${h}" aria-pressed="${c.h===h}" ${dis?'disabled':''}>${h?h+' h':'Parado'}<small>${h?'por semana':'sem treino'}</small><small class="efeito">${h?`${hm(h)} h/mês · bem-estar +${f} · ${fmt0(custoTreinoH(h))}/mês`:'cai devagar'}</small></button>`; }).join('');
   const usada=c.ultMes===s.mes;
   const provas=PROVAS.map(p=>{ const v=custoProva(p), lib=provaLiberada(p), m=c.melhor[p.km], ab=provaAberta(p), pode=lib&&ab&&!usada&&podeAVista(v), k=provaEm(p);
     const quando=ab?'Inscrições abertas neste mês':`Próxima em ${k} ${k===1?'mês':'meses'} (${rotulo(s.mes+k)})`;
@@ -2606,7 +2609,7 @@ function lazerCard(){
   return `<section class="card lazer-card" aria-labelledby="t-lazer"><h2 id="t-lazer">🏃 Lazer e saúde</h2>
     <div class="humor-hud" role="meter" aria-label="Condicionamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Condicionamento</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
     <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
-    <p class="hint">Treinar usa tempo livre e faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
+    <p class="hint">Treinar custa dinheiro (academia, tênis, roupa e transporte) e usa tempo livre, mas faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
     ${livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':''}<h3 class="lazer-sub">Provas de corrida</h3>
     <div class="provas">${provas}</div>
@@ -4545,6 +4548,7 @@ function iniciarMes(){
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Lazer (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
+  { const ct=custoTreino(); if(ct>0){ s.conta-=ct; ex.push(['Treino (academia, tênis e transporte)', -ct]); } }
   atualizarCansaco(); atualizarCond();
   s.fel=clamp(s.fel+efeitosFel().reduce((x,[,v])=>x+v,0),0,esgotado()?40:100);
   s.mesesBaixo = s.fel<20 ? (s.mesesBaixo||0)+1 : 0;
@@ -5332,7 +5336,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v317</p>
+    <p class="titulo-versao">versão v318</p>
   </div>`;
 }
 function render(){
