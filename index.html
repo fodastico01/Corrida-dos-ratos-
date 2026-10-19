@@ -1242,6 +1242,8 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 .ritmo-box{position:relative;width:100%;height:100%;max-width:520px;margin:0 auto}
 iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 .ritmo-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;z-index:5;width:38px;height:38px;border-radius:50%;border:0;background:rgba(23,27,46,.8);color:#eef0f7;font-size:18px;cursor:pointer}
+
+.sobre{max-height:60vh;overflow:auto}.sobre h4{margin:14px 0 2px;font-size:15px}.sobre p{margin:0;font-size:14px;line-height:1.5}
 </style>
 
 <div class="app" id="app"></div>
@@ -1280,7 +1282,7 @@ const centavos = v => Math.floor(v*100+1e-6)/100;
 const brl = v => v.toFixed(2).replace('.',',');
 
 /* ================= regras gerais ================= */
-const T_CHEQUE = 0.08, T_CARTAO = 0.0399, N_CARTAO = 10, LIMITE_BASE = 5000, SEGURO = 2100, META_LIB = 3;
+const T_CHEQUE = 0.08, T_CARTAO = 0.0399, N_CARTAO = 10, LIMITE_BASE = 5000, SEGURO = 2300, SEGURO_PCT = 0.75, META_LIB = 3;
 const CHAVE = 'corrida-dos-ratos-v1', CHAVE_CAMP = 'corrida-dos-ratos-campanha';
 const ESTILOS = {
   economico:{nome:'Econômico', valor:150, fel:-8},
@@ -1295,7 +1297,7 @@ const FASES = [
 ];
 const CAP_LIVRE = {zero:['Do zero',3000,'Só o salário e a vontade'], ajuda:['Com uma ajuda',50000,'Uma economia da família para começar'], heranca:['Herança',250000,'Um bom capital: o desafio é não desperdiçar']};
 const PROFISSOES = {
-  atendente:{nome:'Atendente de loja', dif:'Difícil', salario:1800, escRef:2200, horas:44, demissao:1.3, recoloca:2, comissao:0.2,
+  atendente:{nome:'Atendente de loja', dif:'Difícil', salario:1800, escRef:2200, horas:44, demissao:1.3, recoloca:3, comissao:0.2,
     fixos:{'Aluguel':650,'Mercado':550,'Transporte':220,'Luz, água e internet':180},
     extra:{nome:'Bico de entregas no fim de semana', valor:600, horas:10, desc:'Moto ou bike de aplicativo nos sábados e domingos.'},
     promo1:{titulo:'Promovido(a) a gerente da loja', pct:0.35}, promo2:{titulo:'Gerente regional da rede', pct:0.25}, curso:'Curso técnico em gestão',
@@ -2346,7 +2348,7 @@ const fatorSaude = () => Math.min(habAtivos().reduce((x,id)=>Math.min(x, HABITOS
 const temMente = () => habAtivos().some(id=>HABITOS[id].mente) || temHab('meditacao') || temHab('emocional');
 const temExtra = () => !!s.extra && !!prof().extra && !s.aposentado && !((s.extraBloq||0)>s.mes) && !esgotado();
 const horasExtra = () => temExtra() ? prof().extra.horas : 0;
-const valorExtra = () => Math.round(prof().extra.valor*(s.idx||1));
+const valorExtra = () => Math.round(prof().extra.valor*(s.idx||1)*fatorFel());
 const comissaoMedia = () => prof().comissao ? Math.round(s.salario*prof().comissao*1.08) : 0;
 const SAZ_COM = {1:0.5, 2:0.6, 11:1.7, 12:2.2};
 const custoMensal = () => somaFixos() + somaParcelas() + lazer() + custoHabitos();
@@ -2372,7 +2374,7 @@ function fluxo(){
   const prox=mesCal()%12+1, NM=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][prox-1];
   const trabalha=!s.aposentado && !s.empresario && s.desemp===0 && !((s.greveAte||0)>s.mes);
   const ent=[];
-  if(s.desemp>0) ent.push(['Seguro-desemprego', s.seguro>0?C(SEGURO):0]);
+  if(s.desemp>0) ent.push(['Seguro-desemprego', s.seguro>0?valSeguro():0]);
   else if(trabalha){ ent.push(['Salário', s.salario]);
     if(prof().comissao){ const sz=SAZ_COM[prox]||1; ent.push([`Comissão prevista em ${NM}${sz<1?' (mês fraco)':sz>1?' (fim de ano)':''}`, Math.round(s.salario*prof().comissao*sz)]); }
     if(prox===12) ent.push(['13º salário', s.salario]); }
@@ -2499,7 +2501,7 @@ function reqProx(){
   const n=cargoN()+1, R=REQ_CARGO[n]; if(!R) return null;
   const meses=s.mes-(s.cargoDesde||0)+(s.cargoMesesAntes||0), pts=s.desempenho||0, Rm=Math.ceil(R.meses*(temHab('foco')?0.75:1));
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
-  const recOk = pts>=R.desemp && (!R.mentor || s.mentorou);
+  const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} meses no cargo`, Math.min(meses,Rm)+' de '+Rm, meses>=Rm],
     ['Reconhecimento no trabalho', recOk?'conquistado':'ainda não', recOk]];
   if(R.curso) itens.push([`Concluir ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'feito':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'cursando':'pendente'), cursoFeito(R.curso)]);
@@ -2527,9 +2529,12 @@ const horasAtivo = a => { const h = a.gerente ? Math.max(1, Math.round(a.horas*(
 const horasAtivos = () => (s.ativos||[]).reduce((x,a)=>x+horasAtivo(a),0);
 const ehArea = c => !!c.area && c.area===s.prof;
 const AREA = {renda:1.3, risco:0.6, horas:2};
-const horasLivres = () => Math.round((HORAS_BASE - horasTrab() - horasMentoria() - horasEstudo() - horasAtivos() - horasHabitos() - horasExtra() - horasHabEst() - horasVicios() - horasTreino() + horasGanhas())*10)/10;
+const fatorFel = () => s.fel<15 ? 0.8 : s.fel<30 ? 0.9 : 1; // quem está esgotado rende menos no trabalho
+const valSeguro = () => s.seguroVal || Math.round(Math.min(C(SEGURO), (s.salario||0)*SEGURO_PCT)/10)*10; // 70% do salário, com teto
+const horasBusca = () => s.desemp>0 ? 12 : 0; // procurar vaga, enviar currículo e fazer entrevistas toma tempo
+const horasLivres = () => Math.round((HORAS_BASE - horasTrab() - horasMentoria() - horasEstudo() - horasAtivos() - horasHabitos() - horasExtra() - horasHabEst() - horasVicios() - horasTreino() - horasBusca() + horasGanhas())*10)/10;
 const sobrecarga = () => horasLivres() < 10;
-const efeitoTempo = (hl=horasLivres()) => hl>=28?2:hl>=18?0:hl>=10?-3:-7;
+const efeitoTempo = (hl=horasLivres()) => { const v=hl>=28?2:hl>=18?0:hl>=10?-3:-7; return s.desemp>0 ? Math.min(0,v) : v; }; // sem emprego, o tempo sobrando não descansa
 // padrão de vida: a melhoria dá bem-estar todo mês, mas a novidade passa (adaptação hedônica) até um nível permanente
 const confortoVal = c => Math.round(c.p + (c.m0-c.p)*Math.max(0, 1-(s.mes-c.ini)/c.n));
 const conforto = () => (s.confortos||[]).reduce((x,c)=>x+confortoVal(c),0);
@@ -2622,7 +2627,7 @@ function efeitosFel(hl=horasLivres()){
   else { const m=mesesReserva(), v=m>=6?2:m>=3?1:m<1?-2:0; if(v) L.push([v>0?'reserva tranquila':'sem reserva', v]); }
   const renda = s.aposentado ? rendaPassiva() : s.desemp>0 ? 0 : s.salario, pr=somaParcelas();
   if(pr>0 && (renda<=0 || pr/renda>0.3)) L.push(['parcelas pesando', -2]);
-  if(s.desemp>0) L.push(['desemprego', -5]); else if(s.aposentado) L.push(['liberdade', 3]); else if(s.empresario) L.push(['dono do próprio negócio', 2]);
+  if(s.desemp>0) L.push(['desemprego', -7]); else if(s.aposentado) L.push(['liberdade', 3]); else if(s.empresario) L.push(['dono do próprio negócio', 2]);
   const nDed=nDedicacao(); if(nDed && !s.empresario && !s.aposentado && s.desemp===0) L.push(['emprego + negócio' + (nDed>1?'s':''), -3*nDed]);
   if(cansacoFel()>=1) L.push([`cansaço acumulado${esgotado()?' (afastado, recuperando)':''}`, -cansacoFel()]);
   if(esgotado()) L.push(['esgotamento', -4]);
@@ -2985,16 +2990,21 @@ const ESPECIAIS = {
         return {tom:'bom', titulo:'Tempo de volta', texto:'Menos dinheiro, mais vida. O cansaço começa a baixar nos próximos meses se você mantiver tempo livre.'}; }}] : []),
       {label:'Seguir em frente', sub:'Arriscado', run:()=>({tom:'ruim', titulo:'No limite', texto:'Você decidiu aguentar. Se o bem-estar não subir, o corpo vai decidir por você.'})}
     ]; }},
-  esgotamento:{tipo:'aviso', titulo:'Esgotamento: afastado(a) pelo médico', texto:()=>{ const n=duracaoEsgot(); return `Você não conseguiu levantar da cama. O médico afastou você por ${n} meses: salário reduzido a 55% (auxílio do INSS não paga o salário inteiro), tratamento caro, sem comissão, sem renda extra e sem chance de promoção nesse período.${temMente()?' A terapia ajudou a encurtar o tempo pela metade.':''}`; },
+  esgotamento:{tipo:'aviso', titulo:'Esgotamento: afastado(a) pelo médico', texto:()=>{ const n=duracaoEsgot(); return `Você não conseguiu levantar da cama. O médico afastou você por ${n} meses: salário reduzido a 50% (o auxílio do INSS paga bem menos que o salário), tratamento caro, sem comissão, sem renda extra e sem chance de promoção nesse período.${temMente()?' A terapia ajudou a encurtar o tempo pela metade.':''}`; },
     aplicar:()=>{ const n=duracaoEsgot(); s.esgotAte=s.mes+n-1; s.esgotN=(s.esgotN||0)+1; s.mesesBaixo=0; s.fel=Math.min(s.fel,40);
       return {tom:'ruim', titulo:'O corpo cobrou', texto:`São ${n} meses de recuperação. Sem reserva, a diferença do salário vai para o cheque especial. Tempo livre, férias e terapia ajudam a não voltar para cá.`}; }},
-  demissao:{tipo:'aviso', titulo:()=>s.prof==='programador'?'Onda de demissões na tecnologia':'A empresa cortou o seu setor', texto:()=>`Você recebe a rescisão (${fmt0(Math.round(s.salario*1.5))}) e tem direito a ${Math.min(3,prof().recoloca||4)} parcelas de seguro-desemprego de ${fmt0(C(SEGURO))}. A recolocação deve levar ${prof().recoloca||4} meses${prof().recoloca?': no comércio sempre tem vaga':''}${(prof().recoloca||4)>3?', então haverá um mês sem nenhuma entrada':''}.`,
-    aplicar:()=>{ s.conta+=Math.round(s.salario*1.5); s.desemp=prof().recoloca||4; s.seguro=Math.min(3,s.desemp);
+  demissao:{tipo:'aviso', titulo:()=>s.prof==='programador'?'Onda de demissões na tecnologia':'A empresa cortou o seu setor', texto:()=>`Você recebe a rescisão (${fmt0(Math.round(s.salario*1.2))}) e tem direito a ${Math.min((s.mes-(s.empDesde||1))>=12?3:2,prof().recoloca||4)} parcelas de seguro-desemprego de ${fmt0(valSeguro())}. A recolocação deve levar ${prof().recoloca||4} meses${prof().recoloca?': no comércio sempre tem vaga':''}${(prof().recoloca||4)>3?', então haverá um mês sem nenhuma entrada':''}.`,
+    aplicar:()=>{ s.conta+=Math.round(s.salario*1.2); s.desemp=prof().recoloca||4; s.seguro=Math.min((s.mes-(s.empDesde||1))>=12?3:2,s.desemp); s.seguroVal=valSeguro();
       const m=mesesReserva();
       return m>=3 ? {tom:'bom', titulo:'A reserva segura a queda', texto:`Sua reserva cobre ${dec1(m)} meses de custo. O seguro não paga tudo, mas você tem como atravessar sem dívida.`}
         : {tom:'ruim', titulo:'Quatro meses no aperto', texto:'O seguro-desemprego não cobre o seu custo de vida. Sem reserva, a diferença vai para o cheque especial. Corte o estilo de vida agora.'}; }},
-  impulso:{tipo:'aviso', titulo:'Você estourou', texto:()=>`Meses sem nenhum respiro. No sábado, entre delivery, roupa e um fone novo, foram ${fmt0(C(650))} no débito.`,
-    aplicar:()=>{ s.conta-=C(650); s.fel=clamp(s.fel+25,0,100);
+  avalAnual:{tipo:'aviso', titulo:()=>{ const r=s.avalRes||{}; return r.n>=3?'Avaliação anual: destaque do ano':r.n===2?'Avaliação anual: tudo em ordem':r.alerta?'Avaliação anual: último aviso':'Avaliação anual: abaixo do esperado'; },
+    texto:()=>{ const r=s.avalRes||{n:0,itens:[]}; const l=r.itens.map(([n,ok,d])=>`${ok?'✓':'✗'} ${n}: ${d}`).join(' · ');
+      return `${l}. ${r.n>=3?'Você bateu as três metas: ganhou um ponto de desempenho e o seu nome é lembrado nos cortes.':r.n===2?'Duas de três metas bastam: o seu emprego está seguro por mais um ano.':r.alerta?'Foi a segunda avaliação seguida abaixo do esperado, e a empresa não vai esperar uma terceira.':'Só uma meta (ou nenhuma) não basta. Se a próxima avaliação também vier abaixo, o cargo fica em risco. Conversa franca com o chefe: é hora de ajustar a rotina.'}`; },
+    aplicar:()=>{ const r=s.avalRes||{n:0};
+      return {tom:r.n>=2?'bom':'ruim', titulo:r.n>=3?'Reconhecimento':r.n===2?'Aprovado(a)':r.alerta?'Sem uma terceira chance':'Sinal amarelo', texto:r.n>=2?'As metas do próximo ano já começaram a contar. Elas aparecem na aba Carreira.':r.alerta?'A empresa vai reestruturar e o seu cargo entra na lista.':'As metas do próximo ano já começaram a contar. Elas aparecem na aba Carreira.'}; }},
+  impulso:{tipo:'aviso', titulo:'Você estourou', texto:()=>`Meses sem nenhum respiro. No sábado, entre delivery, roupa e um fone novo, foram ${fmt0(C(1500))} no débito, no cartão e no parcelado.`,
+    aplicar:()=>{ s.conta-=C(1500); s.impulsoEm=s.mes; s.fel=clamp(s.fel+12,0,100);
       return {tom:'neutro', titulo:'Cortar tudo também custa', texto:'Orçamento apertado demais não se sustenta. Um valor fixo de lazer sai mais barato que o gasto por impulso.'}; }},
   crise:{tipo:'opcoes', titulo:'A bolsa despenca', texto:()=>`Desde que você entrou, as ações já caíram ${Math.round(-quedaCart()*100)}% do ponto mais alto. Ninguém sabe se a queda acabou ou se vem mais por aí. O noticiário só fala em pânico e todo mundo pergunta se é hora de vender.`,
     antes:()=>{ s.criseEm=s.mes; s.crises=(s.crises||0)+1; (s.crisesDatas||(s.crisesDatas=[])).push(`${mesReal(s.mk.h)} (−${Math.round(-quedaCart()*100)}%)`); },
@@ -3040,7 +3050,7 @@ const ESPECIAIS = {
       ...(!morPropria() && morN()<4 ? [{label:`Aceitar e mudar para ${MORADIAS[morN()+1].nome.toLowerCase()}`, sub:`Aluguel de ${fmt0(aluguelN(morN()+1))}`, run:()=>{ sobe(); moverPara(morN()+1,'alugar'); return s.licao; }}] : [])
     ]; }},
   curso_fim:{tipo:'aviso', titulo:()=>`${s.estudoNome||'Pós-graduação'} concluído(a)`, texto:()=>{ const idE=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome); if(idE && ESTUDOS[idE].emp) return `Certificado na mão. ${ESTUDOS[idE].desc}`; const p=s.estudoAumPct||0.1; return `Com o certificado na mão, seu salário sobe ${Math.round(p*100)}%: de ${fmt0(s.salario)} para ${fmt0(Math.round(s.salario*(1+p)))}.${prof().comissao?' Como a comissão é calculada sobre o salário, ela sobe junto.':''}`; },
-    aplicar:()=>{ avisarEvolucao('estudo', s.estudoNome||'Pós-graduação', 'Certificado conquistado! Os benefícios do estudo já foram aplicados.');  const idE=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome);
+    aplicar:()=>{ s.cursoFimMes=s.mes; avisarEvolucao('estudo', s.estudoNome||'Pós-graduação', 'Certificado conquistado! Os benefícios do estudo já foram aplicados.');  const idE=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome);
       if(idE && ESTUDOS[idE].emp){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idE])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); s.estudoAumPct=0;
         return {tom:'bom', titulo:'Dono que estuda, empresa que dura', texto:'A maioria dos pequenos negócios quebra nos primeiros anos por falta de gestão, não de vontade. O que você aprendeu vale para todos os negócios que tem e para os que ainda vai ter.'}; }
       const p=s.estudoAumPct||0.1; s.salario=Math.round(s.salario*(1+p)); s.estudoAumPct=0; const idC=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome); if(idC==='pos'||idC==='mba') foto('formatura'); if(idC){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idC])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); } return {tom:'bom', titulo:'O melhor investimento foi em você', texto:'O aumento é em porcentagem e passa a fazer parte do salário: todo ano ele é reajustado pela inflação junto com o resto. O curso custou caro no começo, mas o aumento se paga em menos de um ano e continua para sempre.'}; }}
@@ -4220,12 +4230,13 @@ function eventoForcado(){
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
-  if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado) return 'esgotamento';
-  if(s.fel<=(temMente()||s.casado?8:15)) return 'impulso';
+  if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
+  if(s.fel<=(temMente()||s.casado?8:15) && (!s.impulsoEm || s.mes-s.impulsoEm>=6)) return 'impulso';
   if(!esgotado() && s.fel<28 && (s.cansaco||0)>=6 && (!s.beiraEm || s.mes-s.beiraEm>=8)){ s.beiraEm=s.mes; return 'beira'; }
+  if(!esgotado() && empregado() && s.mes>=(s.avalProx||12)){ avalCalc(); return 'avalAnual'; }
   if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.25) return 'avaliacao';
   if(valor('acoes')>0 && quedaCart()<=-0.15 && (!s.criseEm || s.mes-s.criseEm>=24)) return 'crise';
-  if(!F2() && s.mes===12 && empregado() && !visto('corte') && !visto('demissao')) return 'corte';
+  if(!F2() && s.mes===15 && empregado() && !visto('corte') && !visto('demissao')) return 'corte';
   if(F2() && mesCal()===12 && s.feriasAno!==anoAtual() && s.mes>=6) return 'ferias';
   if(Math.random()<0.12){ const fq=tycFranqSortear(); if(fq) return fq; }
   if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=3) && Math.random()<0.3) return tycSortear();
@@ -4371,9 +4382,32 @@ function checarDescoberto(m0){
   if(m1<3 && m0-m1>=0.5){ s.emergForcada=true;
     if(s.licao) s.licao={...s.licao, texto:s.licao.texto+` ⚠️ Sua reserva caiu para ${dec1(Math.floor(m1*10)/10)} ${m1>=0.95&&m1<1.05?'mês':'meses'} de custo de vida: você ficou descoberto(a). O próximo acontecimento vai ser um imprevisto.`}; }
 }
+// metas do trabalho: avaliação anual (2 de 3 bastam). O curso só entra no começo da carreira, num emprego novo, ou a cada 2 anos
+function avalItens(){
+  const early=cargoN()<=1 || !!s.novoEmprego, jan=early?12:24;
+  const ganho=(s.desempenho||0)-(s.desempAval||0), n=s.felN||0, media=n?s.felAcum/n:s.fel;
+  const estudando=(s.estudoAte||0)>s.mes, aberto=estudosAbertos().length>0;
+  const recente=s.cursoFimMes!=null && s.mes-s.cursoFimMes<=jan;
+  const cursoOk=estudando || recente || !aberto || (!early && s.mes<24);
+  return [
+    ['Entregas do ano', ganho>=1 || (s.desempenho||0)>=2, ganho>=1?'desempenho subiu':(s.desempenho||0)>=2?'desempenho já é alto':'sem destaque no ano'],
+    ['Equilíbrio', media>=25, media>=25?'bem-estar saudável':'bem-estar baixo o ano todo'],
+    [early?'Qualificação (primeiro ano)':'Qualificação (a cada 2 anos)', cursoOk, estudando?'cursando':recente?'concluída':!aberto?'nada a fazer agora':'nenhum curso feito']
+  ];
+}
+function avalCalc(){
+  const itens=avalItens(), n=itens.filter(i=>i[1]).length; s.avG=(s.avG||[0,0,0]).map((x,i)=>x+(itens[i][1]?1:0));
+  s.avalOk=(s.avalOk||0)+(n>=2?1:0);
+  let alerta=false;
+  if(n>=2) s.avalFalhas=0; else { s.avalFalhas=(s.avalFalhas||0)+1; if(s.avalFalhas>=2){ alerta=true; s.avalFalhas=0; s.agenda.push({mes:s.mes+1, id:'demissao'}); } }
+  if(n>=3) s.desempenho=(s.desempenho||0)+1;
+  s.avalStand=n>=3?'destaque':n===2?'ok':'alerta';
+  s.avalRes={n, itens, alerta}; s.avalN=(s.avalN||0)+1;
+  s.desempAval=s.desempenho||0; s.felAcum=0; s.felN=0; s.avalProx=s.mes+12; s.novoEmprego=false;
+}
 const pctCorte = () => { const d=prof().demissao||1;
   let p = !F2() ? clamp(0.55*d+0.2,0.25,0.85) : clamp(0.3*d*(F3()?0.75:1),0.05,0.55);
-  p*=1-0.1*Math.min(3,s.desempenho||0); if(temHab('comunicacao')) p*=0.85; if(s.esgotN) p*=1+0.25*Math.min(3,s.esgotN);
+  p*=1-0.1*Math.min(3,s.desempenho||0); p*=s.avalStand==='destaque'?0.8:s.avalStand==='alerta'?1.5:1; if(temHab('comunicacao')) p*=0.85; if(s.esgotN) p*=1+0.2*Math.min(2,s.esgotN);
   return Math.round(p*100)/100; };
 let tiqueAC=null;
 // Jingle Bells em sinos com guizos de trenó por baixo: toca quando a cidade vira Natal
@@ -4465,11 +4499,13 @@ function iniciarMes(){
     if(perda>=1){ s.perdaInfl=(s.perdaInfl||0)+perda; ex.push([`Inflação: o dinheiro parado na conta perdeu ${fmt0(perda)} de poder de compra`, 0]); }
   }
   if(s.desemp>0){
-    if(s.seguro>0){ const sg=C(SEGURO); s.conta+=sg; s.seguro--; ex.push(['Seguro-desemprego', sg]); }
+    if(s.seguro>0){ const sg=valSeguro(); s.conta+=sg; s.seguro--; ex.push(['Seguro-desemprego', sg]); }
     else { ex.push(['Sem renda: o seguro acabou e o emprego novo ainda não pagou', 0]);
       if(!lic) lic={tom:'ruim', titulo:'Um mês sem nenhuma entrada', texto:`O seguro-desemprego acabou e o salário do emprego novo ainda não caiu. Todas as contas (${fmt0(custoMensal())}) saíram da sua conta sem nada entrando. É exatamente para este mês que serve a reserva de emergência.`}; }
     s.desemp--;
-    if(s.desemp===0) ex.push(['Contratado(a)! O primeiro salário cai no mês que vem', 0]);
+    if(s.desemp===0){ ex.push(['Contratado(a)! O primeiro salário cai no mês que vem', 0]);
+      s.empDesde=s.mes+1; s.avalProx=s.mes+13; s.avalFalhas=0; s.novoEmprego=true; s.desempAval=s.desempenho||0; s.felAcum=0; s.felN=0; s.avalStand=null;
+      if(!s.licaoDesemp && !lic){ s.licaoDesemp=true; lic={tom:'neutro', titulo:'O que o desemprego ensinou', texto:'Sem salário, o seguro dura pouco e o custo de vida não pára. Quem tem emprego estável e reserva atravessa a crise; quem não tem, sofre. Por isso as metas do trabalho contam, e por isso a reserva de emergência e uma renda própria dão tanta tranquilidade. Um emprego novo pede um recomeço: as metas do primeiro ano voltam.'}; } }
   } else if(s.aposentado){
     ex.push(['Sem salário: você vive de renda', 0]);
   } else if(s.empresario){
@@ -4477,9 +4513,9 @@ function iniciarMes(){
   } else if((s.greveAte||0)>=s.mes){
     s.greveDevido=(s.greveDevido||0)+s.salario; ex.push(['Salário retido pela greve', 0]);
   } else if(esgotado()){
-    const v=Math.round(s.salario*0.55); s.conta+=v; ex.push(['Afastado por esgotamento: 55% do salário, sem comissão', v]); const tr=C(900); s.conta-=tr; ex.push(['Tratamento (consultas, remédios e terapia)', -tr]);
+    const v=Math.round(s.salario*0.5); s.conta+=v; ex.push(['Afastado por esgotamento: 50% do salário, sem comissão', v]); const tr=C(1000); s.conta-=tr; ex.push(['Tratamento (consultas, remédios e terapia)', -tr]);
   } else {
-    s.conta+=s.salario; ex.push(['Salário líquido', s.salario]);
+    { const sv=Math.round(s.salario*fatorFel()); s.conta+=sv; ex.push([sv<s.salario?'Salário líquido (rendimento menor: bem-estar baixo)':'Salário líquido', sv]); }
     if(s.greveDevido){ s.conta+=s.greveDevido; ex.push(['Salários atrasados da greve', s.greveDevido]); s.greveDevido=0; }
     if(mesCal()===12){ s.conta+=s.salario; ex.push(['13º salário', s.salario]); }
     if(prof().comissao){ const c=Math.round(s.salario*prof().comissao*(SAZ_COM[mesCal()]||1)*(0.7+Math.random()*0.6)); s.conta+=c; ex.push([`Comissão de vendas${mesCal()>=11?' (fim de ano)':mesCal()<=2?' (mês fraco)':''}`, c]); }
@@ -4512,7 +4548,8 @@ function iniciarMes(){
   atualizarCansaco(); atualizarCond();
   s.fel=clamp(s.fel+efeitosFel().reduce((x,[,v])=>x+v,0),0,esgotado()?40:100);
   s.mesesBaixo = s.fel<20 ? (s.mesesBaixo||0)+1 : 0;
-  if(s.esgotAte && s.esgotAte===s.mes-1){ s.cansaco=Math.min(s.cansaco||0,3); s.fel=clamp(s.fel+20,0,100); ex.push(['Fim do afastamento: recomeço (+20 de bem-estar)',0]);
+  if(empregado()){ s.felAcum=(s.felAcum||0)+s.fel; s.felN=(s.felN||0)+1; }
+  if(s.esgotAte && s.esgotAte===s.mes-1){ s.cansaco=Math.min(s.cansaco||0,3); s.fel=clamp(s.fel+10,0,100); ex.push(['Fim do afastamento: recomeço (+10 de bem-estar)',0]);
     if(Math.random()<0.25){ s.aprendeuLimite=true; lic={tom:'bom', titulo:'Recomeço: você aprendeu o seu limite', texto:'Voltou ao trabalho mais leve. A partir de agora o cansaço acumula 25% mais devagar: você percebe antes quando está passando do ponto.'}; }
     else lic={tom:'bom', titulo:'Recomeço', texto:'O afastamento acabou e você voltou com energia. Cuidado para não repetir o ritmo que levou ao esgotamento.'};
     if(empregado() && Math.random()<(s.prof==='professor'||s.prof==='enfermeiro'?0.15:0.4)){ s.agenda.push({mes:s.mes+1, id:'demissao'}); lic={tom:'ruim', titulo:'Voltou, mas o cargo já tinha dono', texto:'Quem fica meses afastado perde espaço na equipe. A empresa já está se movendo para cortar a sua vaga.'}; } }
@@ -4845,7 +4882,7 @@ function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
 function iconeEvento(id){
   const e=evento(id); if(!e) return '📌';
   const IC={casaCresc:'🌱',casaEstudo:'🎓',casaBolsa:'📈',corte:'✂️',grande:'⭐',oportunidade:'💼',bemmes:'🏪',checkup:'🩺',resistiu:'💡',vitrine:'🛍️',workshop:'🎓',livro:'📚',mentor:'🤝'}; if(id==='franqInteresse') return '🤝'; if(id==='tycDecisao'){ const c=TYC_DEC[s.tycCarta]; return c?c.ic:'☕'; } if(IC[id]) return IC[id];
-  if(id==='avaliacao'||id==='curso_fim') return '⭐';
+  if(id==='avaliacao'||id==='curso_fim'||id==='avalAnual') return '⭐';
   if(id==='crise') return '📉';
   if(id==='demissao') return '📦';
   if(id==='tentacao') return '🛍️';
@@ -5295,7 +5332,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v316</p>
+    <p class="titulo-versao">versão v317</p>
   </div>`;
 }
 function render(){
@@ -5320,7 +5357,7 @@ function render(){
       ${limiteEmp('pessoal')>=Math.min(-s.conta,100)?`<p class="hint" style="margin-top:6px">${fontes.length?'Ou troque':'Você pode trocar'} a dívida de 8% por um empréstimo pessoal de 3% ao mês:</p><div class="cobrir"><button class="btn" data-acao="empCobrir"><b>Empréstimo de ${fmt0(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100))}</b><span>24x de ${fmt(pmt(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100),0.03,24))}</span></button></div>`:''}
       ${fontes.length?`<div class="cobrir">${fontes.map(([id,p])=>{ const d=disponivel(id), tudo=d>=-s.conta; return `<button class="btn ${p.reserva?'coin':''}" data-acao="cobrir" data-alvo="${id}"><b>Cobrir com ${p.curto}</b><span>${tudo?`zera a conta · tem ${fmt0(d)}`:`cobre ${fmt0(d)} de ${fmt0(-s.conta)}`}</span></button>`; }).join('')}</div>`:''}</div>`;
   }
-  if(esgotado()) alerta+=`<div class="alerta ruim"><strong>Afastado(a) por esgotamento</strong><p>Faltam ${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?'mês':'meses'}. Salário a 55%, R$ de tratamento todo mês, sem renda extra e sem promoção. Ao voltar, o risco de demissão é alto. O bem-estar não passa de 40 até você se recuperar.</p></div>`;
+  if(esgotado()) alerta+=`<div class="alerta ruim"><strong>Afastado(a) por esgotamento</strong><p>Faltam ${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?'mês':'meses'}. Salário a 50%, R$ de tratamento todo mês, sem renda extra e sem promoção. Ao voltar, o risco de demissão é alto. O bem-estar não passa de 40 até você se recuperar.</p></div>`;
   else if((s.cansaco||0)>=8) alerta+=`<div class="alerta neutro"><strong>Cansaço acumulado: ${cansacoFel()}</strong><p>Pouco tempo livre por meses seguidos. Ele tira ${cansacoFel()} de bem-estar todo mês e só baixa com 78 h livres por mês ou mais.</p></div>`;
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Desempregado</strong><p>Faltam ${s.desemp} ${s.desemp===1?'mês':'meses'} até o novo emprego. ${s.seguro>0?`Ainda ${s.seguro===1?'resta 1 parcela':'restam '+s.seguro+' parcelas'} do seguro.`:'O seguro-desemprego acabou.'}</p></div>`;
 
@@ -5401,7 +5438,7 @@ function render(){
     ${parado()>=custoMensal()?`<p class="hint parado" data-info="mesesPatr">${pix('💤','mini')} ${fmt0(parado())} parados na conta não contam para a meta. Invista para valer.</p>`:''}`;
 
   const cobT=cobertura(), hl=horasLivres(), corHl=hl>=28?'var(--gain)':hl>=18?'var(--warn)':'var(--loss)';
-  const entradaTrab = s.aposentado||s.empresario?0:s.desemp>0?(s.seguro>0?C(SEGURO):0):s.salario+comissaoMedia();
+  const entradaTrab = s.aposentado||s.empresario?0:s.desemp>0?(s.seguro>0?valSeguro():0):s.salario+comissaoMedia();
   const ps=precoSonho(), podeSonho=F3() && s.livreEm && !s.sonhoFeito && s.conta+investido()>=ps;
   const E=prof().extra, extraCard = E && !s.aposentado ? `<section class="card" aria-labelledby="t-extra"><h2 id="t-extra">Renda extra · ${prof().nome}</h2>
     <div class="opp">${ARTE.extras?.[s.prof]?`<img class="opp-foto" src="${ARTE.extras[s.prof]}" alt="">`:''}<div class="opp-top"><b>${E.nome}</b><span class="num">${E.varia?'~':''}${fmt0(valorExtra())}/mês</span></div>
@@ -5474,6 +5511,11 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       <div class="eixo"><span>${pix('❤️','mini')} Vida</span><div class="prog"><i style="width:${v}%;background:var(--gain)"></i></div><b class="num">${v}</b></div>
     </section>`; })();
   const RQ=reqProx(), lad=CARREIRAS[s.prof]||CARREIRAS.professor;
+  const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,(s.avalProx||12)-s.mes), ult=s.avalRes;
+    return `<section class="card" aria-labelledby="t-met"><h2 id="t-met">Metas do ano</h2>
+      <p class="hint">Avaliação anual em ${falta<=0?'breve':falta===1?'1 mês':falta+' meses'}. Cumprir 2 das 3 metas garante o emprego; 3 de 3 rende desempenho.${s.avalFalhas?' <b>Atenção: a última avaliação veio abaixo do esperado.</b>':''}</p>
+      <div class="reqs">${it.map(([n,ok,d])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?'color:var(--gain)':''}">${d}</b></div>`).join('')}</div>
+      ${ult?`<p class="hint">Última avaliação: ${ult.n} de 3 metas.</p>`:''}</section>`; })();
   const evoCard=`<section class="card" aria-labelledby="t-evo"><h2 id="t-evo" data-info="carreira">Sua carreira ${ii}</h2>
     <div class="cargo-atual"><span class="label-c">Cargo atual</span><b>${nomeCargo()}</b></div>
     <div class="escada" aria-hidden="true">${lad.map((n,i)=>`<i class="${i<cargoN()?'feito':i===cargoN()?(cargoN()>=lad.length-1?'topo':'atual'):''}" title="${n}"></i>`).join('')}</div>
@@ -5605,7 +5647,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCard()}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
+    carreira: `${evoCard}${metasCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -5954,8 +5996,8 @@ function renderModal0(){
 
   if(ui.modal==='evento' && s.evento){
     const ev=evento(s.evento), ops=opcoesDe(s.evento);
-    const ruins=['demissao','impulso','crise','piramide_fim','falencia','cancelada','vacancia','conserto'];
-    const tom = ev.tipo==='ganho' || ['curso_fim','obra','comprador','avaliacao','bemmes','checkup','resistiu','oportunidade','grande'].includes(s.evento) ? 'bom' : (ev.tipo==='custo'||ruins.includes(s.evento)) ? 'ruim' : 'neutro';
+    const ruins=[(s.avalRes&&s.avalRes.n<2?'avalAnual':'_'),'demissao','impulso','crise','piramide_fim','falencia','cancelada','vacancia','conserto'];
+    const tom = ev.tipo==='ganho' || ['curso_fim','obra','comprador','avaliacao',(s.avalRes&&s.avalRes.n>=2?'avalAnual':'_'),'bemmes','checkup','resistiu','oportunidade','grande'].includes(s.evento) ? 'bom' : (ev.tipo==='custo'||ruins.includes(s.evento)) ? 'ruim' : 'neutro';
     const tagTxt = ev.tipo==='ganho' ? 'Boa notícia' : ev.tipo==='custo' ? 'Imprevisto' : ev.tipo==='opcoes' ? 'Decisão' : 'Aconteceu';
     let extra='';
     if(s.evento==='crise'){ const cA=custoDe('acoes'), vA=valor('acoes');
