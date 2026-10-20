@@ -4035,15 +4035,98 @@ Object.assign(ESPECIAIS,{ franqInteresse:{tipo:'opcoes', titulo:()=>`${s.franqCa
       {label:'Recusar', sub:'Sem custo', modal:'tycRes', run:()=>fim({tom:'neutro', titulo:'Candidato recusado', texto:`Você agradeceu e disse não. A marca continua só sua.`, escolha:'Recusar', carta:'franquia', modal:'tycRes', mud:[['Nada muda na empresa',null]]})}
     ]; } }});
 /* decisões únicas por empresa: crediário, app, Pix, plano mensal etc. Depois de decididas, não voltam a ser oferecidas */
-const TYC_UNICAS=new Set(['ac_app','ac_compl','ac_fiel','ac_ponto','lv_coleta','lv_pix','lv_24h','lv_hotel','lv_licenca','rp_credi','rp_insta','rp_troca','rp_loja','lj_plano','es_mensal','es_app','bk_contrato','bk_fiscal','vd_pix','cs_online','cs_material','ec_market','sa_freem','sa_invest','sa_lgpd','sa_dev','cl_dom','cl_conv','cl_fam','cl_viag']);
+// decisões criativas que servem para qualquer empresa (entram no baralho de todas, ao lado das específicas)
+Object.assign(TYC_DEC,{
+ gl_avaliacao:tycCard('⭐','Avaliação ruim viralizou','Um cliente postou uma crítica dura e o comentário está sendo compartilhado no bairro.',[
+  TO('Responder com educação e compensar',0.03,0.75,TR('bom','Virou a página','Você respondeu sem brigar e o cliente atualizou a nota. Muita gente viu o cuidado.',['Boa reputação',6,{cli:1.06}]),TR('neutro','Ele não voltou atrás','Pelo menos os outros clientes viram que você respondeu bem.')),
+  TO('Ignorar e esperar passar',0,0.4,TR('neutro','Esfriou sozinho','O assunto morreu rápido, dessa vez.'),TR('ruim','A crítica pegou','Sem resposta, a fama de descaso se espalhou.',['Reputação arranhada',4,{cli:0.94}])),
+  TO('Contratar uma agência de reputação',0.08,0.6,TR('bom','Imagem recuperada','A agência limpou o estrago, mas custou caro.',['Reputação recuperada',6,{cli:1.05}]),TR('neutro','Pouco resultado','Gastou e o efeito foi pequeno.'))]),
+ gl_influ:tycCard('📸','Influenciadora local quer divulgar','Uma criadora de conteúdo do bairro propõe mostrar o seu negócio para os seguidores dela.',[
+  TO('Pagar o pacote de divulgação',0.06,0.6,TR('bom','Fila na porta','A divulgação trouxe gente nova por algumas semanas.',['Divulgação',3,{cli:1.14}]),TR('neutro','Muita curtida, pouca venda','O público dela não era o seu público.')),
+  TO('Trocar por produtos ou serviço',0.02,0.5,TR('bom','Parceria barata','Custou pouco e rendeu bons posts.',['Divulgação',3,{cli:1.07}]),TR('neutro','Post discreto','Quase ninguém reparou.')),
+  TO('Recusar',0,null,TR('neutro','Sem mudança','Você segue só com a clientela de sempre.'))]),
+ gl_obra:tycCard('🚧','Obra na rua por vários meses','A prefeitura vai trocar a tubulação da sua rua e o acesso ao ponto vai ficar ruim.',[
+  TO('Avisar os clientes e oferecer entrega',0.03,0.65,TR('bom','Vendas seguraram','Os clientes entenderam e continuaram comprando.',['Obra na rua',4,{cli:0.97}]),TR('neutro','Só parte seguiu','Parte dos clientes desistiu mesmo assim.',['Obra na rua',4,{cli:0.93}])),
+  TO('Fazer promoção de reabertura depois da obra',0.02,null,TR('neutro','Meses fracos, volta forte','O movimento caiu, mas a promoção trouxe todo mundo de volta.',['Obra na rua',4,{cli:0.9}],0)),
+  TO('Esperar passar',0,null,TR('ruim','Movimento caiu','Sem plano, o caixa sentiu a obra.',['Obra na rua',5,{cli:0.88}]))]),
+ gl_energia:tycCard('🔌','Queda de energia no fim de semana','A luz caiu por horas no dia mais movimentado. Equipamentos e estoque corriam risco.',[
+  TO('Comprar um gerador',0.09,null,TR('bom','Preparado','O gerador paga a si mesmo na próxima queda.',['Gerador',24,{fx:0.01}])),
+  TO('Contratar seguro contra danos elétricos',0.02,null,TR('bom','Protegido','O seguro cobre o prejuízo que um raio ou queda pode causar.',['Seguro elétrico',12,{fx:0.005}])),
+  TO('Aceitar o risco',0,0.5,TR('neutro','Sem dano dessa vez','Nada estragou. Foi sorte.'),TR('ruim','Equipamento queimou','Faltou proteção e o conserto saiu caro.',null,-0.12))]),
+ gl_equipe:tycCard('🍕','A equipe pede um ambiente melhor','O time está cansado. Pedem uma confraternização e algum reconhecimento pelas metas.',[
+  TO('Confraternização e bônus por metas',0.06,null,TR('bom','Time unido','A equipe rendeu mais e atendeu melhor.',['Equipe motivada',8,{cli:1.05}])),
+  TO('Só uma confraternização simples',0.02,null,TR('bom','Clima melhor','Pouco dinheiro, bom humor.',['Equipe motivada',4,{cli:1.02}])),
+  TO('Dizer que não há verba',0,0.5,TR('neutro','Seguiram sem reclamar','Dessa vez ninguém saiu.'),TR('ruim','Rotatividade','Dois funcionários pediram demissão e treinar outros custou.',['Equipe desfalcada',4,{cli:0.95}],-0.04))]),
+ gl_credito:tycCard('🏦','O banco oferece crédito para a empresa','O gerente liga com uma linha de capital de giro, parcelada em 24 meses.',[
+  TO('Pegar um crédito pequeno e investir no negócio',0,0.65,TR('bom','O dinheiro rendeu mais que o juro','Você usou o crédito em melhoria que trouxe clientes.',['Capital de giro',24,{cli:1.08,fx:0.03}],0.2),TR('neutro','Pesou nas parcelas','A melhoria rendeu menos do que as parcelas custam.',['Capital de giro',24,{fx:0.03}],0.2)),
+  TO('Recusar e crescer com o caixa que tem',0,null,TR('neutro','Crescimento mais lento, sem dívida','Você manteve o controle do caixa.')),
+  TO('Pegar o máximo oferecido',0,0.35,TR('bom','Apostou e acertou','A expansão deu certo.',['Capital de giro',24,{cli:1.15,fx:0.06}],0.4),TR('ruim','Dívida demais','As parcelas apertaram o caixa por muito tempo.',['Capital de giro',24,{fx:0.06}],0.4))]),
+ gl_escola:tycCard('⚽','A escolinha do bairro pede patrocínio','O time infantil quer o nome do seu negócio no uniforme.',[
+  TO('Patrocinar o uniforme',0.03,null,TR('bom','Nome na vizinhança','As famílias passaram a preferir quem apoia o bairro.',['Patrocínio local',8,{cli:1.05}])),
+  TO('Doar produtos ou serviços',0.01,null,TR('bom','Gesto simpático','Custou pouco e gerou boa vontade.',['Patrocínio local',4,{cli:1.02}])),
+  TO('Recusar',0,null,TR('neutro','Sem mudança','Você guardou a verba.'))]),
+ gl_nota:tycCard('📑','Erro na nota fiscal gera multa','A contabilidade cometeu um erro e a empresa foi notificada.',[
+  TO('Pagar a multa e regularizar',0.04,null,TR('bom','Em dia','Você corrigiu e não teve mais problema.')),
+  TO('Trocar de contador',0.02,0.7,TR('bom','Contabilidade melhor','O novo contador organizou tudo e reduziu o imposto pago.',['Contabilidade organizada',12,{fx:-0.01}]),TR('neutro','Troca trabalhosa','A mudança deu trabalho e o ganho foi pequeno.')),
+  TO('Contestar sem ajuda',0,0.3,TR('bom','Multa cancelada','Você conseguiu provar o erro.'),TR('ruim','Multa maior','Perdeu o prazo e a multa dobrou.',null,-0.1))]),
+ gl_vizinho:tycCard('🏚️','O concorrente do lado vai fechar','O vizinho desistiu e oferece vender o estoque e passar os contatos dos clientes.',[
+  TO('Comprar o estoque com desconto',0.06,0.7,TR('bom','Bom negócio','Você revendeu com boa margem.',null,0.12),TR('neutro','Estoque que não girou','Parte do estoque encalhou.')),
+  TO('Conquistar os clientes dele com uma promoção',0.02,null,TR('bom','Clientela nova','Muita gente do vizinho passou a vir até você.',['Clientes do vizinho',4,{cli:1.1}])),
+  TO('Ignorar',0,null,TR('neutro','Sem mudança','Os clientes foram para outro lugar.'))]),
+ gl_transporte:tycCard('🚌','Greve de transporte','Parte da equipe não consegue chegar e o dia promete ser difícil.',[
+  TO('Pagar transporte por aplicativo',0.03,null,TR('bom','Time completo','Custou um pouco, mas o atendimento não caiu.')),
+  TO('Reduzir o horário de funcionamento',0,null,TR('neutro','Dia mais curto','Você perdeu parte das vendas, mas não gastou.',['Greve',1,{cli:0.93}])),
+  TO('Tocar com quem chegou',0,0.5,TR('neutro','Deu conta','A equipe reduzida segurou o dia.'),TR('ruim','Atendimento ruim','Fila grande e cliente irritado.',['Atendimento ruim',2,{cli:0.92}]))]),
+ gl_parceria:tycCard('🤝','Empresa vizinha propõe parceria','O dono do negócio ao lado propõe trocar cupons de desconto entre os clientes.',[
+  TO('Aceitar a troca de cupons',0.01,0.7,TR('bom','Clientes novos para os dois','Cada lado indicou o outro.',['Parceria local',6,{cli:1.06}]),TR('neutro','Poucos cupons usados','A parceria não pegou.')),
+  TO('Propor exclusividade na rua',0.02,0.5,TR('bom','Parceria forte','Vocês viraram referência do quarteirão.',['Parceria local',8,{cli:1.1}]),TR('neutro','Ele não aceitou','Sem acordo.')),
+  TO('Recusar',0,null,TR('neutro','Sem mudança','Você segue sozinho.'))]),
+ gl_clima:tycCard('🌡️','Onda de calor ou frio muda os hábitos','O clima mudou e os clientes estão comprando diferente.',[
+  TO('Adaptar a oferta para o clima',0.03,0.65,TR('bom','Acertou o momento','O ticket subiu com a oferta certa.',['Oferta de estação',3,{tk:1.06}]),TR('neutro','Não pegou','A mudança não animou os clientes.')),
+  TO('Fazer promoção para atrair gente',0.02,null,TR('bom','Movimento segurado','A promoção manteve o fluxo, com margem menor.',['Promoção de clima',2,{cli:1.05,tk:0.95}])),
+  TO('Manter tudo igual',0,null,TR('neutro','Sem mudança','Você manteve o que sempre funcionou.',['Clima',2,{cli:0.97}]))]),
+ gl_curso:tycCard('🎓','Curso gratuito de gestão para pequenos negócios','Uma entidade de apoio oferece um curso à noite, que ocupa suas semanas.',[
+  TO('Fazer o curso',0.01,null,TR('bom','Gestão melhor','Você aprendeu a calcular margem e controlar o estoque.',['Gestão melhor',12,{vc:0.97}])),
+  TO('Mandar o gerente ou um funcionário de confiança',0.01,0.7,TR('bom','Funcionário valorizado','Ele voltou com ideias boas e mais motivado.',['Gestão melhor',8,{vc:0.98,cli:1.02}]),TR('neutro','Pouca mudança','Ele aprendeu, mas o negócio não mudou.')),
+  TO('Passar',0,null,TR('neutro','Sem mudança','O tempo valeu mais do que o curso.'))]),
+ gl_golpe:tycCard('📞','Boleto suspeito de um "fornecedor"','Chegou um boleto de um fornecedor com os dados bancários trocados, com pedido de pagamento urgente.',[
+  TO('Ligar para o fornecedor e conferir',0,0.9,TR('bom','Golpe evitado','O fornecedor confirmou que era falso. Conferir sempre protege o caixa.'),TR('neutro','Era verdadeiro','Você perdeu um tempo, mas o pagamento saiu certo.')),
+  TO('Pagar rápido para não atrasar',0,0.15,TR('neutro','Era verdadeiro','Deu sorte desta vez.'),TR('ruim','Caiu no golpe','O dinheiro foi para a conta do golpista e não volta.',null,-0.12)),
+  TO('Treinar a equipe e definir regra de dupla checagem',0.01,null,TR('bom','Processo mais seguro','Toda mudança de conta agora passa por duas pessoas.',['Dupla checagem',24,{vc:0.995}]))]),
+ gl_data:tycCard('🎉','Data comemorativa no bairro','Vai ter feira e festa na rua principal no fim de semana, com muita gente passando.',[
+  TO('Montar uma barraca ou ação especial',0.04,0.7,TR('bom','Casa cheia','A ação aproveitou o fluxo e trouxe clientes novos.',['Festa no bairro',2,{cli:1.15}]),TR('neutro','Pouco retorno','A ação saiu cara para o movimento que trouxe.')),
+  TO('Só ampliar o horário',0.01,null,TR('bom','Vendas extras','O horário maior pegou a clientela da festa.',['Festa no bairro',1,{cli:1.07}])),
+  TO('Não fazer nada',0,null,TR('neutro','Dia comum','Sem custo, sem ganho extra.'))])
+});
+Object.assign(TYC_LIC,{
+ gl_avaliacao:{livro:null, ideia:'Reputação é patrimônio. Responder com calma custa pouco e vale mais que qualquer propaganda.'},
+ gl_influ:{livro:null, ideia:'Divulgação paga só vale se o público de quem divulga é o seu público.'},
+ gl_obra:{livro:null, ideia:'Risco previsível pede plano: avisar e dar alternativa segura o caixa nos meses fracos.'},
+ gl_energia:{livro:null, ideia:'Seguro e gerador são o preço de dormir tranquilo. Risco raro e caro justifica proteção.'},
+ gl_equipe:{livro:null, ideia:'Equipe motivada rende mais. Rotatividade custa caro: demitir e treinar outro sai mais caro que um bom reconhecimento.'},
+ gl_credito:{livro:null, ideia:'Crédito é ferramenta, não vilão: vale pegar quando o retorno do investimento supera os juros.'},
+ gl_escola:{livro:null, ideia:'Marca local se constrói com presença na comunidade, a custo baixo.'},
+ gl_nota:{livro:null, ideia:'Impostos e notas são um custo de fazer negócio. Contabilidade organizada evita multa e pode reduzir o imposto.'},
+ gl_vizinho:{livro:null, ideia:'A crise do concorrente é uma oportunidade, mas estoque comprado sem saber o giro vira prejuízo.'},
+ gl_transporte:{livro:null, ideia:'Imprevisto operacional: ter um plano B barato é melhor que improvisar na hora.'},
+ gl_parceria:{livro:null, ideia:'Parcerias locais multiplicam o alcance sem gastar com anúncio.'},
+ gl_clima:{livro:null, ideia:'Quem se adapta à demanda do momento vende mais, mas adaptar tem custo.'},
+ gl_curso:{livro:null, ideia:'Aprender gestão é o investimento com maior retorno no pequeno negócio.'},
+ gl_golpe:{livro:null, ideia:'Golpes de boleto são comuns. A regra de ouro: conferir por outro canal antes de pagar qualquer mudança de conta.'},
+ gl_data:{livro:null, ideia:'Datas e eventos concentram movimento. Quem se prepara aproveita, quem ignora perde.'}
+});
+const TYC_UNICAS=new Set(['rp_furto','lv_furto','lj_furto','gl_nota','gl_curso','gl_credito','ac_app','ac_compl','ac_fiel','ac_ponto','lv_coleta','lv_pix','lv_24h','lv_hotel','lv_licenca','rp_credi','rp_insta','rp_troca','rp_loja','lj_plano','es_mensal','es_app','bk_contrato','bk_fiscal','vd_pix','cs_online','cs_material','ec_market','sa_freem','sa_invest','sa_lgpd','sa_dev','cl_dom','cl_conv','cl_fam','cl_viag']);
 function tycSortear(){
   const L=(s.ativos||[]).filter(a=>a.tyc && !(a.vagoAte>=s.mes)); if(!L.length) return null;
-  const a=L[Math.floor(Math.random()*L.length)], rec=s.tycUlt||[], feitas=a.decFeitas||[];
-  const deck=emp(a).dec||Object.keys(TYC_DEC);
-  let ids=deck.filter(k=>TYC_DEC[k]&&!rec.includes(k)&&!feitas.includes(k));
-  if(!ids.length) ids=deck.filter(k=>TYC_DEC[k]&&!feitas.includes(k));
-  if(!ids.length) ids=deck.filter(k=>TYC_DEC[k]);
-  const id=ids[Math.floor(Math.random()*ids.length)];
+  const a=L[Math.floor(Math.random()*L.length)], rec=s.tycUlt||[], feitas=a.decFeitas||[], vez=a.decVez||(a.decVez={});
+  const esp=(emp(a).dec||Object.keys(TYC_DEC)).filter(k=>!k.startsWith('gl_')), ger=Object.keys(TYC_DEC).filter(k=>k.startsWith('gl_'));
+  // 40% das decisões vêm do baralho geral (serve a qualquer empresa); nenhuma carta volta antes de 3 anos
+  const pools=Math.random()<0.4?[ger,esp]:[esp,ger];
+  let ids=[];
+  for(const gap of [36,24,12,0]){ for(const pool of pools){ ids=pool.filter(k=>TYC_DEC[k]&&!rec.includes(k)&&!feitas.includes(k)&&(vez[k]==null||vez[k]>s.mes||s.mes-vez[k]>=gap)); if(ids.length) break; } if(ids.length) break; }
+  if(!ids.length) ids=[...esp,...ger].filter(k=>TYC_DEC[k]&&!feitas.includes(k));
+  if(!ids.length) ids=[...esp,...ger].filter(k=>TYC_DEC[k]);
+  const id=ids[Math.floor(Math.random()*ids.length)]; vez[id]=s.mes;
   if(TYC_UNICAS.has(id)){ a.decFeitas=[...feitas,id]; } // decisão de política/estratégia: depois de decidida, não volta para esta empresa
   s.alvoAtivo=a.uid; s.tycCarta=id; s.tycUlt=[...rec,id].slice(-5); s.tycDecEm=s.mes; return 'tycDecisao';
 }
@@ -5336,7 +5419,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v318</p>
+    <p class="titulo-versao">versão v319</p>
   </div>`;
 }
 function render(){
@@ -5730,8 +5813,10 @@ const ceoLiberado = () => patrimonio()>=CEO_PAT && ceoEmps().length>=CEO_MIN_EMP
 const ceoTetos = () => [C(1000000), C(5000000), 0];
 function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata para a mais cara
   const L=[];
+  const emRef=ceoEmps().some(tycEmReforma); // reforma de porte para a empresa de vender por meses: o CEO faz uma de cada vez, para a renda não zerar
   for(const a of ceoEmps()){ if(a.tyc.obra) continue; const T=a.tyc;
     for(let ki=0;ki<TYC_KEYS.length;ki++){ const k=TYC_KEYS[ki]; if(tycBloqueio(a,k)) continue;
+      if(emRef && tycReforma(a,ki)) continue;
       const c=tycCustoTot(a,k); if(!(c>0)) continue;
       const res=tycReserva(a), pessoal=Math.max(c*2, C(200000));
       const fonte = (T.caixa-c>=res) ? 'caixa' : (s.conta-c>=pessoal ? 'conta' : null);
@@ -5749,6 +5834,7 @@ function ceoMes(ex){
     const usadas=new Set();
     for(const o of ops){ if(usadas.has(o.a.uid)) continue; if(o.a.tyc.obra) continue;
       if(c.teto && c.gv+o.c>c.teto) continue;
+      if(tycReforma(o.a,o.ki) && ceoEmps().some(tycEmReforma)) continue;
       if(o.fonte==='conta' && s.conta-o.c<Math.max(o.c*2,C(200000))) continue;
       if(o.fonte==='caixa' && o.a.tyc.caixa-o.c<tycReserva(o.a)) continue;
       const S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
