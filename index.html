@@ -5440,7 +5440,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v323</p>
+    <p class="titulo-versao">versão v324</p>
   </div>`;
 }
 function render(){
@@ -5847,7 +5847,7 @@ function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata pa
 }
 function ceoMes(ex){
   const c=ceo(); if(!c.on) return;
-  const emps=ceoEmps(); if(!emps.length){ c.on=false; c.auto=false; return; }
+  const emps=ceoEmps(); if(!emps.length) return;
   const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
   if(s.conta<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(['CEO: dispensado por falta de caixa para pagar o salário',0]); s.licao={tom:'ruim', titulo:'O CEO foi embora', texto:'A sua conta não tinha folga para pagar o salário dele. Gestor profissional só compensa quando a conta aguenta o custo dele e as despesas do mês. Você pode contratar de novo na aba Renda quando houver caixa.'}; return; }
   s.conta-=v; c.pago=(c.pago||0)+v; ex.push(['CEO: salário e participação nos lucros',-v]);
@@ -5872,10 +5872,10 @@ function ceoMes(ex){
   }
 }
 function ceoResponder(sim){
-  const av=(s.avisosEvolucao||[]).shift(); if(!av||av.tipo!=='ceo') return; const c=ceo();
+  const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
   if(!sim){ c.pausa=s.mes+3; return; }
-  const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra) return;
-  const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)) return;
+  const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg='O CEO não pôde evoluir: a empresa está em obra ou não existe mais.'; return; }
+  const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg='O CEO não pôde evoluir agora: '+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):'a empresa está bloqueada para melhorias.'); return; }
   const cu=tycCustoTot(a,k), fonte=(a.tyc.caixa-cu>=tycReserva(a))?'caixa':(s.conta-cu>=Math.max(cu*2,C(200000))?'conta':null); if(!fonte){ ui.tycMsg='O CEO esperou: o caixa da empresa e a sua conta ficariam sem folga para pagar as despesas.'; return; }
   tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
 }
