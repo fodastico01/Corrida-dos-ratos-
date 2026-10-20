@@ -1292,6 +1292,7 @@ const brl = v => v.toFixed(2).replace('.',',');
 /* ================= regras gerais ================= */
 const T_CHEQUE = 0.08, T_CARTAO = 0.0399, N_CARTAO = 10, LIMITE_BASE = 5000, SEGURO = 2300, SEGURO_PCT = 0.75, META_LIB = 3;
 const CHAVE = 'corrida-dos-ratos-v1', CHAVE_CAMP = 'corrida-dos-ratos-campanha';
+let ultSnapMes=null; // cópias automáticas do jogo (uma por mês, guarda as duas últimas) para voltar atrás se algo quebrar
 const ESTILOS = {
   economico:{nome:'Econômico', valor:150, fel:-8},
   normal:{nome:'Normal', valor:400, fel:2},
@@ -1576,7 +1577,18 @@ function herdar(e,f){
 }
 function lerCamp(){ try{ return JSON.parse(localStorage.getItem(CHAVE_CAMP))||{}; }catch(e){ return {}; } }
 function gravarCamp(c){ try{ localStorage.setItem(CHAVE_CAMP, JSON.stringify(c)); }catch(e){} }
-function salvar(){ try{ localStorage.setItem(CHAVE, JSON.stringify(s)); if(s.fase>=2){ const c=lerCamp(); if(c.infl!==(s.infl||0) || c.usouInfl!==(s.usouInfl||0)){ c.infl=s.infl||0; c.usouInfl=s.usouInfl||0; gravarCamp(c); } } }catch(e){} }
+// rede de segurança: se um cálculo gerar NaN/infinito no dinheiro, não grava o estado quebrado: volta ao último salvo e guarda um diagnóstico
+function estadoSaudavel(){ try{ return Number.isFinite(s.conta) && Number.isFinite(s.salario||0) && Number.isFinite(patrimonio()); }catch(e){ return false; } }
+function desfazerNaN(){
+  let stack=''; try{ stack=(new Error()).stack.split('\n').slice(2,9).map(l=>(l.match(/at ([\w.$<>]+)/)||[])[1]).filter(Boolean).join(' < '); }catch(e){}
+  const bad=Object.entries(s).filter(([k,v])=>typeof v==='number' && !Number.isFinite(v)).map(([k])=>k);
+  const lin=(s.extrato||[]).filter(l=>!Number.isFinite(l[1])).map(l=>l[0]).slice(0,5);
+  const d={mes:s.mes, ev:s.evento||null, campos:bad, extrato:lin, conta:String(s.conta), pat:String((()=>{try{return patrimonio();}catch(e){return 'erro';}})()), ativos:(s.ativos||[]).map(a=>a.id+(Number.isFinite(a.valor)?'':':valor?')+(a.tyc&&!Number.isFinite(a.tyc.caixa)?':caixa?':'')).join(','), stack};
+  try{ localStorage.setItem('corrida-diag', JSON.stringify(d)); }catch(e){}
+  const bom=carregar(); if(bom){ s=bom; ui.modal=null; if(s.ceo && s.ceo.on){ s.ceo.on=false; s.ceo.auto=false; d.ceoPausado=true; } }
+  ui.erroSist=d; return d;
+}
+function salvar(){ if(s && s.iniciado && !estadoSaudavel()){ desfazerNaN(); render(); return; } try{ localStorage.setItem(CHAVE, JSON.stringify(s)); if(s.iniciado && ultSnapMes!==s.mes){ const a=localStorage.getItem('corrida-snapA'); if(a) localStorage.setItem('corrida-snapB',a); localStorage.setItem('corrida-snapA',JSON.stringify(s)); ultSnapMes=s.mes; } if(s.fase>=2){ const c=lerCamp(); if(c.infl!==(s.infl||0) || c.usouInfl!==(s.usouInfl||0)){ c.infl=s.infl||0; c.usouInfl=s.usouInfl||0; gravarCamp(c); } } }catch(e){} }
 function carregar(){ try{ const t=localStorage.getItem(CHAVE); return t?JSON.parse(t):null; }catch(e){ return null; } }
 
 /* ================= cálculos ================= */
@@ -3071,6 +3083,7 @@ function venderAtivo(a, preco){
   if(a.tipo==='negocio' && preco>=1000000*(s.idx||1)) s.vendaGrande=Math.max(s.vendaGrande||0, preco);
   let quitado=0;
   if(a.finUid){ const pi=s.parcelas.findIndex(p=>p.uid===a.finUid); if(pi>=0){ const p=s.parcelas[pi]; quitado=p.valor*(1-Math.pow(1+p.taxa,-p.restante))/p.taxa; s.parcelas.splice(pi,1); } }
+  if(!Number.isFinite(quitado)) quitado=0; if(!Number.isFinite(preco)) preco=0;
   s.conta+=preco-quitado; s.ativos=s.ativos.filter(x=>x.uid!==a.uid);
   const lucro=preco-a.custo; s.lucroAtivos=(s.lucroAtivos||0)+lucro;
   return {quitado, lucro};
@@ -4720,9 +4733,9 @@ function liquidacaoForcada(){
   const lista=[...(s.ativos||[])].sort((a,b)=>a.valor-b.valor);
   for(const a of lista){
     if(s.conta>=0) break;
-    const fin=a.finUid ? s.parcelas.find(p=>p.uid===a.finUid) : null, saldoFin=fin?saldoParc(fin):0, preco=Math.round(vMerc(a)*0.7);
+    const fin=a.finUid ? s.parcelas.find(p=>p.uid===a.finUid) : null, saldoFin=fin?saldoParc(fin):0, preco=Math.round((Number.isFinite(vMerc(a))?vMerc(a):(a.custo||a.valor||0))*0.7);
     if(preco-saldoFin<=0) continue; // vender não ajudaria: o imóvel vale menos que a dívida dele
-    const vm=vMerc(a); venderAtivo(a, preco); perdaDesconto+=vm-preco; vendas.push(`${a.nome.toLowerCase()} por ${fmt0(preco)}`);
+    const vm=Number.isFinite(vMerc(a))?vMerc(a):preco/0.7; venderAtivo(a, preco); perdaDesconto+=vm-preco; vendas.push(`${a.nome.toLowerCase()} por ${fmt0(preco)}`);
   }
   s.vendaForcada=(s.vendaForcada||0)+1; s.perdaForcada=(s.perdaForcada||0)+perdaDesconto;
   return {vendas, perdaDesconto};
@@ -5427,7 +5440,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v322</p>
+    <p class="titulo-versao">versão v323</p>
   </div>`;
 }
 function render(){
@@ -5454,6 +5467,7 @@ function render(){
   }
   if(esgotado()) alerta+=`<div class="alerta ruim"><strong>Afastado(a) por esgotamento</strong><p>Faltam ${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?'mês':'meses'}. Salário a 50%, R$ de tratamento todo mês, sem renda extra e sem promoção. Ao voltar, o risco de demissão é alto. O bem-estar não passa de 40 até você se recuperar.</p></div>`;
   else if((s.cansaco||0)>=8) alerta+=`<div class="alerta neutro"><strong>Cansaço acumulado: ${cansacoFel()}</strong><p>Pouco tempo livre por meses seguidos. Ele tira ${cansacoFel()} de bem-estar todo mês e só baixa com 78 h livres por mês ou mais.</p></div>`;
+  if(ui.erroSist){ const d=ui.erroSist; alerta+=`<div class="alerta ruim" role="alert"><strong>Corrigimos um erro de cálculo</strong><p>Um número do jogo saiu inválido e voltamos ao último estado salvo, sem perder o seu progresso.${d.ceoPausado?' O CEO foi pausado por segurança: contrate de novo na aba Renda quando quiser.':''} Se aparecer de novo, mande este código para o suporte: <code>${escHtml(JSON.stringify({m:d.mes,e:d.ev,c:d.campos,x:d.extrato,a:d.ativos,s:d.stack}))}</code></p></div>`; }
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Desempregado</strong><p>Faltam ${s.desemp} ${s.desemp===1?'mês':'meses'} até o novo emprego. ${s.seguro>0?`Ainda ${s.seguro===1?'resta 1 parcela':'restam '+s.seguro+' parcelas'} do seguro.`:'O seguro-desemprego acabou.'}</p></div>`;
 
   if(F3() && s.aposentado) alerta=`<div class="alerta bom"><strong>Vivendo de renda desde ${rotulo(s.aposentouEm)}</strong><p>Sem salário. Dividendos e saques da carteira pagam as contas. Mantenha a renda passiva acima de 100% do custo.</p><button class="btn" data-acao="voltarRenda" style="margin-top:6px">Voltar a trabalhar (${fmt0(Math.round(s.salario*0.85))}/mês)</button></div>`+alerta;
@@ -5835,6 +5849,7 @@ function ceoMes(ex){
   const c=ceo(); if(!c.on) return;
   const emps=ceoEmps(); if(!emps.length){ c.on=false; c.auto=false; return; }
   const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
+  if(s.conta<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(['CEO: dispensado por falta de caixa para pagar o salário',0]); s.licao={tom:'ruim', titulo:'O CEO foi embora', texto:'A sua conta não tinha folga para pagar o salário dele. Gestor profissional só compensa quando a conta aguenta o custo dele e as despesas do mês. Você pode contratar de novo na aba Renda quando houver caixa.'}; return; }
   s.conta-=v; c.pago=(c.pago||0)+v; ex.push(['CEO: salário e participação nos lucros',-v]);
   const ops=ceoOpcoes();
   if(c.auto){
@@ -5861,7 +5876,7 @@ function ceoResponder(sim){
   if(!sim){ c.pausa=s.mes+3; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra) return;
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)) return;
-  const cu=tycCustoTot(a,k), fonte=(a.tyc.caixa>=cu)?'caixa':(s.conta>=cu?'conta':null); if(!fonte) return;
+  const cu=tycCustoTot(a,k), fonte=(a.tyc.caixa-cu>=tycReserva(a))?'caixa':(s.conta-cu>=Math.max(cu*2,C(200000))?'conta':null); if(!fonte){ ui.tycMsg='O CEO esperou: o caixa da empresa e a sua conta ficariam sem folga para pagar as despesas.'; return; }
   tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
 }
 const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-img" src="${ARTE.ceo}" alt="Seu CEO recebendo a pasta da equipe" width="640" height="317">` : '';
@@ -5981,6 +5996,8 @@ function renderModal0(){
         <div class="row"><button class="btn" data-acao="bkBaixar">Baixar backup</button><button class="btn" data-acao="bkCopiar">Copiar código</button></div>
         <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código do backup para restaurar" style="width:100%;margin-top:8px;font:12px monospace"></textarea>
         <div class="row"><button class="btn" data-acao="bkRestaurar">Restaurar do código</button><label class="btn" for="bkArq" style="cursor:pointer">Restaurar de arquivo</label><input id="bkArq" type="file" accept=".json,.txt,application/json,text/plain" hidden></div>
+        <div class="row"><button class="btn" data-acao="snapVoltar">Voltar ao mês anterior</button></div>
+        <p class="hint">O jogo guarda sozinho uma cópia por mês. Se algo quebrar, este botão volta um ou dois meses.</p>
         <p class="hint" id="bkMsg" role="status"></p></div>
       <div class="row"><button class="btn coin" data-acao="fechar">Pronto</button></div></div></div>`;
     return; }
@@ -6663,6 +6680,7 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
+    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); if(!confirm('Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.')) break; localStorage.setItem(CHAVE,t); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
     case 'bkBaixar': bkBaixar(); break;
     case 'bkCopiar': bkCopiar(); break;
     case 'bkRestaurar': bkRestaurarTexto((document.getElementById('bkTxt')||{}).value); break;
