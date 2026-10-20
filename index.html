@@ -1244,6 +1244,11 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 .ritmo-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;z-index:5;width:38px;height:38px;border-radius:50%;border:0;background:rgba(23,27,46,.8);color:#eef0f7;font-size:18px;cursor:pointer}
 
 .sobre{max-height:60vh;overflow:auto}.sobre h4{margin:14px 0 2px;font-size:15px}.sobre p{margin:0;font-size:14px;line-height:1.5}
+
+.av-nome.av-erro{border-color:#c4513f;box-shadow:0 0 0 2px rgba(196,81,63,.35)}
+.av-dica{color:#e28a7a;margin:4px 0 0}
+.av-dica[hidden]{display:none}
+#av-ok:disabled{opacity:.5;cursor:not-allowed}
 </style>
 
 <div class="app" id="app"></div>
@@ -5419,7 +5424,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v319</p>
+    <p class="titulo-versao">versão v320</p>
   </div>`;
 }
 function render(){
@@ -6610,7 +6615,7 @@ document.addEventListener('click', e=>{
       if(cobre) ui.av.fantasia='nenhuma'; avRe(); break; }
     case 'avSexo': if(ui.av.sexo!==alvo){ ui.av=avTrocaSexo(ui.av,alvo); avRe(); } break;
     case 'avAlea': { const n=ui.av.nome; ui.av=avAleatorio(alvo); ui.av.nome=n; avRe(); break; }
-    case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim()||'Ratinho'; avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
+    case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
@@ -6693,7 +6698,7 @@ document.addEventListener('click', e=>{
 });
 function avRe(){ const sc=document.querySelector('.av-sheet'); const y=sc?sc.scrollTop:0, ab=document.querySelector('.av-abas'); const x=ab?ab.scrollLeft:0; renderModal(); const n=document.querySelector('.av-sheet'); if(n) n.scrollTop=y; const ab2=document.querySelector('.av-abas'); if(ab2) ab2.scrollLeft=x; }
 document.addEventListener('input', e=>{
-  if(e.target.matches&&e.target.matches('[data-av-nome]')){ ui.av.nome=e.target.value; return; }
+  if(e.target.matches&&e.target.matches('[data-av-nome]')){ ui.av.nome=e.target.value; const ok=!!e.target.value.trim(), b=document.getElementById('av-ok'), h=document.getElementById('av-nome-dica'); if(b) b.disabled=!ok; if(ok){ e.target.classList.remove('av-erro'); if(h) h.hidden=true; } return; }
   if(e.target.id==='valorAmort'){ previewAmort(); return; }
   if(e.target.id!=='valor') return;
   if(ui.erro){ ui.erro=''; const el=document.getElementById('erro'); if(el) el.textContent=''; }
@@ -7078,12 +7083,13 @@ function modalAvatar(){
       <div class="av-lado">
         <label class="label-c" for="av-nome">Nome</label>
         <input id="av-nome" class="av-nome" type="text" maxlength="14" placeholder="Como ele se chama?" value="${(c.nome||'').replace(/"/g,'&quot;')}" autocomplete="off" data-av-nome>
+        <p class="hint av-dica" id="av-nome-dica" role="alert" ${(c.nome||'').trim()?'hidden':''}>Escolha um nome para o seu ratinho para começar.</p>
         <div class="seg"><button data-acao="avSexo" data-alvo="m" aria-pressed="${c.sexo==='m'}">Masculino</button><button data-acao="avSexo" data-alvo="f" aria-pressed="${c.sexo==='f'}">Feminino</button></div>
       </div>
     </div>
     <div class="av-alea"><button class="btn" data-acao="avAlea" data-alvo="m">🎲 Aleatório masculino</button><button class="btn" data-acao="avAlea" data-alvo="f">🎲 Aleatório feminino</button></div>
     <div class="av-linhas">${lin}</div>
-    <div class="opcoes"><button class="opcao coin" data-acao="avOk"><b>${ui.avOrigem==='novo'?'Pronto, vamos jogar':'Salvar'}</b></button>${ui.avOrigem==='novo'?'':'<button class="opcao" data-acao="fechar"><b>Cancelar</b></button>'}</div>
+    <div class="opcoes"><button class="opcao coin" id="av-ok" data-acao="avOk" ${(c.nome||'').trim()?'':'disabled'}><b>${ui.avOrigem==='novo'?'Pronto, vamos jogar':'Salvar'}</b></button>${ui.avOrigem==='novo'?'':'<button class="opcao" data-acao="fechar"><b>Cancelar</b></button>'}</div>
   </div></div>`;
 }
 function avCardVida(){
