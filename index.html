@@ -2277,13 +2277,11 @@ const HABS = {
     ef:'Vence o vício no celular e ainda dá +5 h livres por mês.', base:'Desligar notificações e tirar o celular do quarto reduz as interrupções. Cada interrupção custa minutos para a mente voltar ao foco.'},
   foco:{nome:'Foco profundo', ic:'🎯', ramo:'Mente', req:['plan'], meses:3, horas:2, custo:300, x:50, r:2, curaV:'procrastinar',
     ef:'Vence a procrastinação. As promoções pedem 25% menos meses no cargo.', base:'Blocos de 50 a 90 minutos sem distração (o "trabalho focado") rendem mais que um dia inteiro picotado.'},
-  exercicio:{nome:'Exercício regular', ic:'🏃', ramo:'Energia', req:['sono'], meses:6, horas:3, custo:720, ganha:1.8, x:84, r:2,
-    ef:'Depois de 6 meses vira rotina: +8 h livres por mês de disposição, sem casa de saúde na roleta e +2 de bem-estar todo mês.', base:'Quem se exercita com regularidade dorme melhor, tem mais energia e aprende a organizar o dia em volta do treino.'},
   delegar:{nome:'Delegar', ic:'🙋', ramo:'Tempo', req:['detox'], meses:3, horas:2, custo:600, x:16, r:3,
     ef:'Suas empresas pedem 30% menos horas suas.', base:'Quem tenta fazer tudo sozinho vira o gargalo do próprio negócio. Ensinar e confiar libera o dono para decidir.'},
   comunicacao:{nome:'Comunicação', ic:'🗣️', ramo:'Mente', req:['foco'], meses:4, horas:3, custo:800, x:50, r:3,
     ef:'Seu salário sobe 5% ao concluir, ganha +1 casa de oportunidade na roleta e corre menos risco nos cortes da empresa.', base:'Explicar bem uma ideia, ouvir com atenção e saber dar e receber retorno estão entre as habilidades mais valorizadas no trabalho.'},
-  meditacao:{nome:'Meditação', ic:'🧘', ramo:'Energia', req:['exercicio'], meses:3, horas:1.5, custo:300, x:84, r:3,
+  meditacao:{nome:'Meditação', ic:'🧘', ramo:'Energia', req:['sono'], meses:3, horas:1.5, custo:300, x:84, r:2,
     ef:'Esgotamento dura metade do tempo, gasto por impulso fica mais raro e +1 de bem-estar todo mês.', base:'Alguns minutos por dia de atenção plena reduzem o estresse e ajudam a perceber a emoção antes de agir por impulso.'},
   automatizar:{nome:'Automatizar a vida', ic:'🤖', ramo:'Tempo', req:['delegar'], meses:3, horas:2, custo:900, ganha:2.3, x:16, r:4,
     ef:'+10 h livres por mês e as contas fixas ficam 3% mais baratas.', base:'Débito automático, compras programadas e aplicativos certos tiram da sua cabeça as tarefas repetidas.'},
@@ -2364,7 +2362,7 @@ const habAtivos = () => Object.keys(s.habitos||{}).filter(id=>HABITOS[id] && (!H
 const custoHabitos = () => habAtivos().reduce((x,id)=>x+custoHab(id),0);
 const horasHabitos = () => habAtivos().reduce((x,id)=>x+HABITOS[id].horas,0);
 const mesesHab = id => s.mes - (s.habitos[id]||0);
-const fatorSaude = () => Math.min(habAtivos().reduce((x,id)=>Math.min(x, HABITOS[id].saude||1),1), temHab('exercicio')?0.5:1);
+const fatorSaude = () => Math.min(habAtivos().reduce((x,id)=>Math.min(x, HABITOS[id].saude||1),1), treinando()?0.5:1);
 const temMente = () => habAtivos().some(id=>HABITOS[id].mente) || temHab('meditacao') || temHab('emocional');
 const temExtra = () => !!s.extra && !!prof().extra && !s.aposentado && !((s.extraBloq||0)>s.mes) && !esgotado();
 const horasExtra = () => temExtra() ? prof().extra.horas : 0;
@@ -2591,6 +2589,7 @@ const NOME_COND = ['Iniciante','Treinado','Atleta'];
 // treinar custa: academia, tênis, roupa, suplemento e deslocamento (por mês, na moeda da fase)
 const custoTreinoH = h => h ? Math.round(C({3:70,6:130,9:190}[h])/10)*10 : 0;
 const custoTreino = () => { const c=corr(); return (c.h && !esgotado()) ? custoTreinoH(c.h) : 0; };
+const treinando = () => { const c=corr(); return !!(c.h && !esgotado()); }; // treina regularmente: cuida da saúde
 const felTreino = () => { const c=corr(); return (c.h&&!esgotado()) ? TREINO_FEL[c.h]+(c.cond>=60?1:0) : 0; };
 function atualizarCond(){ const c=corr();
   if(c.h && !esgotado()){ const g={3:3.5,6:5.5,9:7}[c.h]*(1-c.cond/115); c.cond=clamp(c.cond+g,0,100); }
@@ -2644,7 +2643,7 @@ function efeitosFel(hl=horasLivres()){
   { const fc=felCarro(); if(fc) L.push([`carro${fc>0&&!cabeCarro()?' (apertado no bolso)':''}`, fc]); }
   if((s.confortos||[]).length) L.push(['padrão de vida', conforto()]);
   if(felTreino()) L.push(['treino regular', felTreino()]);
-  if(temHab('exercicio')) L.push(['rotina de exercício', 2]); if(temHab('meditacao')) L.push(['meditação', 1]);
+  if(temHab('meditacao')) L.push(['meditação', 1]);
   for(const id of habAtivos()) L.push([HABITOS[id].nome.toLowerCase()+(mesesHab(id)>=6?' (hábito firme)':''), HABITOS[id].fel+(mesesHab(id)>=6?1:0)]);
   if(s.conta<0) L.push(['cheque especial', -4]);
   else { const m=mesesReserva(), v=m>=6?2:m>=3?1:m<1?-2:0; if(v) L.push([v>0?'reserva tranquila':'sem reserva', v]); }
@@ -2666,7 +2665,7 @@ const MARCOS = [
   {id:'res3', nome:'Primeiro colchão', txt:'Sua reserva já cobre 3 meses de custo.', ok:()=>mesesReserva()>=3, prog:()=>[mesesReserva(),3,v=>dec1(v)+' de 3 meses']},
   {id:'res6', nome:'Reserva completa', txt:'6 meses de custo guardados. Imprevisto agora é só um contratempo.', ok:()=>mesesReserva()>=6, prog:()=>[mesesReserva(),6,v=>dec1(v)+' de 6 meses']},
   {id:'azul', nome:'Um ano no azul', txt:'12 meses seguidos sem cheque especial.', ok:()=>(s.mesesAzul||0)>=12, prog:()=>[s.mesesAzul||0,12,v=>v+' de 12 meses']},
-  {id:'habito', nome:'Hábito firme', txt:'6 meses seguidos cuidando de você.', ok:()=>habAtivos().some(id=>mesesHab(id)>=6)||temHab('exercicio'), prog:()=>{ const m=Math.max(0,...habAtivos().map(mesesHab)); return [m,6,v=>v+' de 6 meses']; }},
+  {id:'habito', nome:'Hábito firme', txt:'6 meses seguidos cuidando de você.', ok:()=>habAtivos().some(id=>mesesHab(id)>=6)||false, prog:()=>{ const m=Math.max(0,...habAtivos().map(mesesHab)); return [m,6,v=>v+' de 6 meses']; }},
   {id:'acao', nome:'Sócio das grandes empresas', txt:'Sua primeira cota de ações.', ok:()=>qtd('acoes')>=1-1e-6},
   {id:'imovel', nome:'Primeiro inquilino', txt:'Agora alguém paga aluguel para você.', fases:[2,3], ok:()=>(s.ativos||[]).some(a=>a.tipo==='imovel')},
   {id:'semdivida', nome:'Livre de dívidas', txt:'Todas as parcelas quitadas.', ok:()=>s.teveDivida && !s.parcelas.some(p=>p.nome!=='Título de capitalização')},
@@ -4373,7 +4372,7 @@ function eventoDaCasa(t, forcar){
     case 'tra': if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.6) return 'avaliacao'; break;
     case 'ten': if(Math.random()<Math.min(0.7,(temHab('emocional')?0.5:0)+((s.livroCalmaAte||0)>=s.mes?0.5:0)+bonV('calma'))) return 'resistiu';
       if(F2() && !s.aposentado && s.conta>4*custoMensal() && (!s.tentEm || s.mes-s.tentEm>=6) && Math.random()<0.6){ s.tentEm=s.mes; return 'tentacao'; } break;
-    case 'sau': if(!forcar && (temHab('exercicio') ? Math.random()<0.7 : Math.random()>fatorSaude()*(s.casado?0.6:1))) return 'checkup'; break;
+    case 'sau': if(!forcar && (treinando() ? Math.random()<0.7 : Math.random()>fatorSaude()*(s.casado?0.6:1))) return 'checkup'; break;
   }
   const filtra=solto=>(CASA_EV[t]||[]).filter(id=>evOk(id,EVENTOS[id],solto) && !(t==='tra' && !empregado() && id!=='freela'));
   let pool=filtra(false); if(!pool.length && forcar) pool=filtra(true);
@@ -4822,7 +4821,7 @@ function eixoVida(){
   if(F2()) v += Math.min(10, (s.infl||0)/10 + (s.usouInfl||0)*2);
   if(s.sonhoFeito) v += 10;
   v += Math.min(5, (s.viagens||[]).filter(x=>x.id!=='litoral').length + (s.viagens||[]).length*0.3);
-  if(habAtivos().some(id=>mesesHab(id)>=6)||temHab('exercicio')) v += 5;
+  if(habAtivos().some(id=>mesesHab(id)>=6)) v += 5;
   return Math.round(clamp(v,0,100));
 }
 function tituloVida(){
@@ -5440,7 +5439,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v329</p>
+    <p class="titulo-versao">versão v330</p>
   </div>`;
 }
 function render(){
