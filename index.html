@@ -4925,14 +4925,14 @@ const pix = (e, cls='') => pixK(EMO_PX[e], e, cls);
 const ABA_PX={inicio:'aba-inicio', dinheiro:'aba-dinheiro', investir:'aba-investir', renda:'aba-renda', vida:'casa-vid', casa:'aba-casa', carreira:'aba-voce'};
 // ilustração da carta (Gemini): a cena do acontecimento ou, nas ofertas, a do negócio
 const nomeOferta = id => CARTAS[id]?.tyc ? (TYC_EMP[id]?.ofertaNome||'Cafeteria de bairro') : CARTAS[id].nome;
-function cenaNegocio(a){ try{ const X=(typeof ARTE!=='undefined'&&ARTE.extras)||{}, EM=emp(a), nEq=(a.tyc.niv||[]).length?Math.min(...a.tyc.niv):1, k=nEq<=3?'pequena':nEq<=6?'media':'grande'; return X[EM.arte+'-'+k]||null; }catch(e){ return null; } }
+function cenaNegocio(a){ try{ const X=(typeof ARTE!=='undefined'&&ARTE.extras)||{}, EM=emp(a), nEq=(a.tyc.niv||[]).length?tycNP(a,Math.min(...a.tyc.niv)):1, k=nEq<=3?'pequena':nEq<=6?'media':'grande'; return X[EM.arte+'-'+k]||null; }catch(e){ return null; } }
 function ofertaCena(id,C){ const T=TYC_EMP[id]||TYC_EMP.cafeteria, X=(typeof ARTE!=='undefined'&&ARTE.extras)||{}; return C[T.ofertaImg]||X[T.arte+'-pequena']||C.negocio; }
 const fotoNeg = (id,a,oferta) => { const C0=(typeof ARTE!=='undefined'&&ARTE.cards)||{}; const f=(oferta&&CARTAS[id]?.tyc)?ofertaCena(id,C0):((!oferta&&a&&a.tyc&&CARTAS[id]?.tyc&&cenaNegocio(a))||C0[id]); return f?`<img class="opp-foto${id==='cafeteria'||id==='geek'||id==='acai'||id==='lavanderia'||id==='lojaroupa'||id==='vending'||id==='ecommerce'||id==='saas'||id==='vacinas'||id==='bike'||id==='lavajato'||id==='estacionamento'||id==='cursinho'||id==='foodtruck'||id==='influencia'||id==='kitnet'||id==='sala'||id==='terreno'?' opp-foto-fach':''}${oferta&&CARTAS[id]?.tyc?' opp-foto-oferta':''}" src="${f}" alt="">`:''; };
 /* carta de decisão no estilo board game: moldura única (arte) + textos por código */
 const MOLD={"titulo": [7.595, 92.468, 5.519, 11.532], "cena": [10.0, 90.063, 16.227, 42.226], "texto": [7.595, 92.405, 45.356, 71.911], "op1": [7.595, 92.405, 73.682, 79.201], "op2": [7.595, 92.405, 81.466, 87.026], "op3": [7.595, 92.405, 89.292, 94.811], "ratio": 0.6507};
 function cenaDecisao(){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{}, X=(typeof ARTE!=='undefined'&&ARTE.extras)||{};
   const f=C['tyc-'+s.tycCarta]; if(f) return f;
-  const a=alvoAtivo(); if(a&&a.tyc){ const EM=emp(a), nEq=(a.tyc.niv||[]).length?Math.min(...a.tyc.niv):1, k=nEq<=3?'pequena':nEq<=6?'media':'grande'; return X[EM.arte+'-'+k]||null; } return null; }
+  const a=alvoAtivo(); if(a&&a.tyc){ const EM=emp(a), nEq=(a.tyc.niv||[]).length?tycNP(a,Math.min(...a.tyc.niv)):1, k=nEq<=3?'pequena':nEq<=6?'media':'grande'; return X[EM.arte+'-'+k]||null; } return null; }
 function moldeCarta(ev,ops,extra,rr,foil){
   const X=(typeof ARTE!=='undefined'&&ARTE.extras)||{}, M=foil?(X['moldura-foil']||X['moldura-carta']):X['moldura-carta']; if(!M) return null;
   const MK=foil&&X['moldura-foil']?X['moldura-foil-mask']:null;
@@ -5440,7 +5440,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v327</p>
+    <p class="titulo-versao">versão v328</p>
   </div>`;
 }
 function render(){
