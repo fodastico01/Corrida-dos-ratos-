@@ -4568,7 +4568,7 @@ function iniciarMes(){
       const v0=valor(id); if(v0<0.01) continue;
       const r=p.taxa(); for(const l of lotes(id)) l.v*=1+r;
       const g=v0*r; s.rend+=g; if(!p.variavel) s.jg+=g;
-      ex.push([p.variavel ? `${p.curto} no mês (${pctFmt(r)})` : `Rendimento ${p.curto}`, g]);
+      ex.push([p.variavel ? `${p.curto} no mês (${pctFmt(r)})` : `Rendimento ${p.curto}`, g, true]); // true = variação da carteira: não entra na conta
     }
     // dividendos de ações (trimestrais)
     const va=valor('acoes');
@@ -5440,7 +5440,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v325</p>
+    <p class="titulo-versao">versão v326</p>
   </div>`;
 }
 function render(){
@@ -5474,13 +5474,14 @@ function render(){
   else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>Você já pode viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios com gerentes e viver de renda':'Pedir demissão e viver de renda'}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Voltar a trabalhar (${fmt0(s.salario)}/mês)</button>`:''}</div>`+alerta;
   else if(F3() && s.empresario) alerta=`<div class="alerta neutro"><strong>Dono do próprio negócio</strong><p>Você deixou o emprego e a carreira ficou pausada no cargo de ${nomeCargo().toLowerCase()}.</p><button class="btn" data-acao="voltarTrab" style="margin-top:6px">Voltar a trabalhar (${fmt0(s.salario)}/mês)</button></div>`+alerta;
   if(F3() && s.semPontos){
-    alerta=`<div class="alerta neutro"><strong>Jogo vencido em ${rotulo(s.venceuEm)} · modo livre</strong><p>Sua pontuação ficou guardada em ${fmtPts(s.ptsFinal.total)} pontos. Daqui em diante você pode acumular mais e testar o jogo à vontade, mas nada mais conta pontos.</p><button class="btn" data-acao="concluir" style="margin-top:6px">Encerrar a partida</button></div>`+alerta;
+    alerta=`<div class="alerta neutro"><strong>Jogo vencido em ${rotulo(s.venceuEm||s.concluidoEm||s.mes)} · modo livre</strong><p>Sua pontuação ficou guardada em ${fmtPts(s.ptsFinal.total)} pontos. Daqui em diante você pode acumular mais e testar o jogo à vontade, mas nada mais conta pontos.</p><button class="btn" data-acao="concluir" style="margin-top:6px">Encerrar a partida</button></div>`+alerta;
   } else if(podeConcluir()){
     const sobra=cfg().total-s.mes, bonus=sobra*15;
     alerta=`<div class="alerta bom"><strong>${s.fase>=3?'Você venceu o jogo!':'Objetivo da fase cumprido'}</strong><p>${s.fase>=3?'Livre, com o sonho realizado e a renda passiva pagando as contas.':s.fase===1?'Reserva de 6 meses completa.':'Patrimônio de 30 meses de custo e reserva cheia.'} Encerre agora e ganhe ${fmtPts(bonus)} pontos pelos ${sobra} meses que sobraram, ou continue jogando.</p><button class="btn coin" data-acao="concluir" style="margin-top:6px">${s.fase===3?'Encerrar e ver minha pontuação':'Concluir a fase agora'}</button></div>`+alerta;
   }
-  const total=s.extrato.reduce((a,l)=>a+l[1],0);
-  const linhas=s.extrato.map(([n,v])=>`<div class="linha"><span>${n}</span><span class="v ${v>0?'pos':v<0?'neg':''}">${v===0?'—':(v>0?'+':'−')+fmt(Math.abs(v))}</span></div>`).join('');
+  const total=s.extrato.reduce((a,l)=>a+(l[2]?0:l[1]),0), varCart=s.extrato.reduce((a,l)=>a+(l[2]?l[1]:0),0);
+  const linhas=s.extrato.filter(l=>!l[2]).map(([n,v])=>`<div class="linha"><span>${n}</span><span class="v ${v>0?'pos':v<0?'neg':''}">${v===0?'—':(v>0?'+':'−')+fmt(Math.abs(v))}</span></div>`).join('')
+    + (s.extrato.some(l=>l[2]) ? `<div class="linha" style="opacity:.75;border-top:1px dashed currentColor;margin-top:6px"><span>Variação da carteira de investimentos (não entra na conta)</span><span class="v ${varCart>0?'pos':varCart<0?'neg':''}">${varCart===0?'—':(varCart>0?'+':'−')+fmt(Math.abs(varCart))}</span></div>` : '');
   const parcelas = s.parcelas.length ? `<section class="card" aria-labelledby="t-parc"><h2 id="t-parc">Parcelas e financiamentos</h2>
     ${s.parcelas.map(p=>{ if(p.uid==null) p.uid=s.uid++;
       const linha=`<div class="parcela"><span>${p.nome} · faltam ${p.restante}</span><span>${fmt(p.valor)}/mês</span></div>`;
@@ -6433,7 +6434,7 @@ function renderFim(){
     botoes = (passou?`<button class="avancar" data-acao="fase" data-alvo="3">Ir para a Fase 3 →</button><button class="btn" data-acao="fase" data-alvo="2">Jogar a Fase 2 de novo</button>`:`<button class="avancar" data-acao="fase" data-alvo="2">Jogar a Fase 2 de novo</button>`) + `<button class="btn" data-acao="menu">Menu de fases</button>`;
   }
   modal.innerHTML=`<div class="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <span class="tag ${nota<='B'?'bom':nota==='C'?'neutro':'ruim'}">${s.semPontos&&passou?`${s.fase===4?'Jogo livre':'Fase 3'} · vencida em ${rotulo(s.venceuEm)}`:estouro?'Fim de jogo · '+rotulo(s.mes):s.concluidoEm?`${nomeFase()} · concluída em ${s.concluidoEm} meses`:`${nomeFase()} · resultado de ${cfg().dur}`}</span>
+    <span class="tag ${nota<='B'?'bom':nota==='C'?'neutro':'ruim'}">${s.semPontos&&passou?`${s.fase===4?'Jogo livre':'Fase 3'} · vencida em ${rotulo(s.venceuEm||s.concluidoEm||s.mes)}`:estouro?'Fim de jogo · '+rotulo(s.mes):s.concluidoEm?`${nomeFase()} · concluída em ${s.concluidoEm} meses`:`${nomeFase()} · resultado de ${cfg().dur}`}</span>
     <div class="row" style="align-items:center;gap:16px"><div class="nota" style="color:${cor}">${nota}</div><h3 id="m-t">${s.semPontos&&passou?'Você venceu o jogo':estouro?'Limite estourado':nota==='A'?(F3()?'Fora da corrida!':F2()?'Dinheiro trabalhando':'Reserva completa'):(F3()&&nota==='B'?'Fora da corrida':'Ainda na corrida')}</h3></div>
     ${s.semPontos&&passou?`<p>A nota e a pontuação ficaram guardadas no momento da vitória. Depois disso você jogou em modo livre até ${rotulo(s.mes)}; abaixo, como ficou a sua situação no fim.</p>`:`<p>${frase}</p>`}
     ${lerCamp().avatar?`<div class="res-av"><img src="${avURL(lerCamp().avatar,3)}" alt=""><b>${lerCamp().avatar.nome||''}</b></div>`:''}
@@ -6558,7 +6559,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
-    case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:'O jogo continua', texto:'Mais 20 anos pela frente. A pontuação ficou guardada. Agora o objetivo é o seu: construir patrimônio, comprar os bens de luxo na aba da casa e chegar ao bilhão.'}; salvar(); render(); } break;
+    case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:'O jogo continua', texto:'Mais 20 anos pela frente. A pontuação ficou guardada. Agora o objetivo é o seu: construir patrimônio, comprar os bens de luxo na aba da casa e chegar ao bilhão.'}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
     case 'mudarOk': { const [n,modo,ant,pag]=alvo.split(':'); moverPara(Number(n), modo, ant==='null'?null:ant, pag); ui.modal=null; checarFim(); salvar(); render(); break; }
