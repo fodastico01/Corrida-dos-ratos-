@@ -4459,11 +4459,12 @@ function novaOferta(tipo){
   const ids=Object.keys(CARTAS).filter(id=>faseOk(CARTAS[id].fases) && doTipo(id) && !s.ofertas.some(o=>o.id===id) && !soCafe(id));
   if(!ids.length) return null;
   if(s.ofertas.length>=3){ s.ofertas.sort((a,b)=>a.expira-b.expira); s.ofertas.shift(); }
-  const w=id=>CARTAS[id].area===s.prof?2.5:1, tot=ids.reduce((a,id)=>a+w(id),0); let r=Math.random()*tot, id=ids[0];
+  const hist=s.ofertaHist||(s.ofertaHist={}); // quem nunca apareceu (ou há muito tempo não aparece) tem mais chance: o jogador vê todos os negócios
+  const w=id=>(CARTAS[id].area===s.prof?2.5:1)*(hist[id]==null?3:1+Math.min(2,(s.mes-hist[id])/18)), tot=ids.reduce((a,id)=>a+w(id),0); let r=Math.random()*tot, id=ids[0];
   for(const x of ids){ r-=w(x); if(r<=0){ id=x; break; } }
   const c=CARTAS[id], f=0.85+Math.random()*0.3, idx=F2()?s.idx:1;
   const dl=(1-(s.livroDesc||0))*(1-bonV('desc')); s.livroDesc=0; const o={uid:s.uid++, id, preco:Math.round(c.preco*idx*f*dl/100)*100, renda:Math.round(c.renda*idx*(0.9+Math.random()*0.25)*(ehArea(c)?AREA.renda:1)), area:ehArea(c), expira:s.mes+4};
-  s.ofertas.push(o); s.ofertaNova=o.uid; return o;
+  s.ofertas.push(o); s.ofertaNova=o.uid; hist[id]=s.mes; return o;
 }
 const ofertaNova = () => (s.ofertas||[]).find(o=>o.uid===s.ofertaNova);
 // grande oportunidade: negócio mais caro, 25% abaixo do preço, só vale neste mês
@@ -5441,7 +5442,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v333</p>
+    <p class="titulo-versao">versão v334</p>
   </div>`;
 }
 function render(){
