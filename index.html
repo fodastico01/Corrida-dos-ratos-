@@ -2397,7 +2397,7 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const rendaInvest = () => investido()*TAXA_RENDA;
-const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0);
+const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
   const prox=mesCal()%12+1, NM=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][prox-1];
@@ -4030,7 +4030,7 @@ TYC_EMP.vacinas.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('cl_'));
 const FRANQ_ROY=0.05, FRANQ_TAXA=0.08, FRANQ_MAX=8;
 const FRANQ_NOMES=['Marcos','Juliana','Rafael','Camila','Bruno','Patrícia','Diego','Fernanda','Thiago','Larissa','Gustavo','Renata'];
 const PERF_TXT={bom:'Causou ótima impressão: organizado e cheio de ideias.', medio:'A impressão foi razoável: parece sério, mas sem muita certeza.', ruim:'A impressão foi fraca: respostas vagas e pouca atenção aos detalhes.'};
-function tycRefRec(){ const L=(s.ativos||[]).filter(a=>a.tyc&&a.tyc.premio); if(L.length) s.franqRef=Math.max(...L.map(a=>tycPrev(a).rec)); return s.franqRef||0; }
+function tycRefRec(){ const L=(s.ativos||[]).filter(a=>a.tyc&&a.tyc.premio); if(L.length) s.franqRef=Math.max(...L.map(a=>tycPrev(a).rec/tycLojaMult(a))); /* base: faturamento de UMA unidade: um franqueado abre uma loja, não a rede toda */ return s.franqRef||0; }
 const tycRoyF = (f,alea) => { const m=s.mes-f.desde, mat=f.treino?(m<6?0.65:m<12?0.9:1):(m<6?0.5:m<12?0.8:1), perf={bom:1,medio:0.8,ruim:0.5}[f.perfil]; return Math.round(tycRefRec()*FRANQ_ROY*mat*perf*(alea?0.9+Math.random()*0.2:1)); };
 const tycRoyTotal = () => (s.franqs||[]).reduce((x,f)=>x+tycRoyF(f,false),0);
 const tycTaxaFranq = () => { const L=(s.ativos||[]).filter(a=>a.tyc&&a.tyc.premio&&!a.franqDe); return Math.round(Math.max(0,...L.map(a=>a.custo))*FRANQ_TAXA/1000)*1000; };
@@ -5480,7 +5480,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão vv338</p>
+    <p class="titulo-versao">versão vv339</p>
   </div>`;
 }
 function render(){
@@ -5742,6 +5742,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   if(temExtra()) fontes.push([prof().extra.nome, valorExtra(), horasExtra(), false]);
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?' (gerente)':''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(['Sócio da cafeteria', s.rendaNegocio, 0, true]);
+  if(s.franqs&&s.franqs.length) fontes.push([`Royalties de franquias (${s.franqs.length})`, tycRoyTotal(), 0, true]);
   if(rendaInvest()>0.5) fontes.push(['Investimentos (estimativa)', rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : '<span style="color:var(--gain)">sem horas</span>';
