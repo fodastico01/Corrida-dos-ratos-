@@ -1,0 +1,9 @@
+{
+  "appId": "br.com.legendariobr.financegame",
+  "appName": "Corrida dos Ratos",
+  "webDir": "www",
+  "backgroundColor": "#F5F3EF",
+  "android": {
+    "allowMixedContent": false
+  }
+}
