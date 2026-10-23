@@ -43,10 +43,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
-
-      - name: Instalar plataforma Android 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Preparar o Android SDK (licencas e plataforma 36)
+        run: |
+          SDKM=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | tail -1)
+          echo "sdkmanager: $SDKM"
+          (yes | "$SDKM" --licenses > /dev/null) || true
+          "$SDKM" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Montar o projeto
         working-directory: android-app
