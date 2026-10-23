@@ -1598,7 +1598,7 @@ function novoEstado(fase){
     herdar(e,f);
   }
   { const c=lerCamp(); if(fase===1||fase===4){ e.mor={n:MOR_BASE[e.prof]??1, propria:false}; c.mor=null; c.casa=0; c.album=[]; c.infl=0; c.usouInfl=0; gravarCamp(c); } else { e.mor=c.mor||{n:MOR_BASE[e.prof]??1, propria:false}; if(c.casa) e.casa=c.casa; } if(fase===1||fase===4){ c.carro=null; gravarCamp(c); } else { if(c.carro) e.carro=c.carro; e.infl=c.infl||0; e.usouInfl=c.usouInfl||0; } }
-  e.marcos={...(lerCamp().marcos||{})}; { const c=lerCamp(); if(fase===1||fase===4){ c.casado=false; c.filhos=0; c.recusouCasar=0; gravarCamp(c); } else { e.casado=!!c.casado; e.filhos=c.filhos||0; e.recusouCasar=c.recusouCasar||0; } } e.extra=!!lerCamp().extra; e.empresario=!!lerCamp().empresario; { const c=lerCamp(); if(fase===1||fase===4){ c.cargo=0; c.cargoMeses=0; c.desempenho=0; c.cursosOk=[]; c.habs={}; c.vicios=sortearVicios(); c.habEst=null; c.mentorou=false; c.empresario=false; gravarCamp(c); e.empresario=false; } e.cargo=c.cargo||0; e.cursosOk=c.cursosOk||[]; e.habs={...(c.habs||{})}; e.vicios=c.vicios||sortearVicios(); if(c.habEst&&HABS[c.habEst.id]) e.habEst={id:c.habEst.id, ini:1-(HABS[c.habEst.id].meses-c.habEst.falta), ate:1+c.habEst.falta}; e.mentorou=!!c.mentorou && (fase>1&&fase<4); e.cargoDesde=0; e.cargoMesesAntes=c.cargoMeses||0; e.desempenho=c.desempenho||0; }
+  e.marcos={...(lerCamp().marcos||{})}; { const c=lerCamp(); if(fase===1||fase===4){ c.casado=false; c.filhos=0; c.filhosIdade=[]; c.recusouCasar=0; gravarCamp(c); } else { e.casado=!!c.casado; e.filhos=c.filhos||0; e.filhosIdade=Array.isArray(c.filhosIdade)?[...c.filhosIdade]:Array(c.filhos||0).fill(0); e.recusouCasar=c.recusouCasar||0; } } e.extra=!!lerCamp().extra; e.empresario=!!lerCamp().empresario; { const c=lerCamp(); if(fase===1||fase===4){ c.cargo=0; c.cargoMeses=0; c.desempenho=0; c.cursosOk=[]; c.habs={}; c.vicios=sortearVicios(); c.habEst=null; c.mentorou=false; c.empresario=false; gravarCamp(c); e.empresario=false; } e.cargo=c.cargo||0; e.cursosOk=c.cursosOk||[]; e.habs={...(c.habs||{})}; e.vicios=c.vicios||sortearVicios(); if(c.habEst&&HABS[c.habEst.id]) e.habEst={id:c.habEst.id, ini:1-(HABS[c.habEst.id].meses-c.habEst.falta), ate:1+c.habEst.falta}; e.mentorou=!!c.mentorou && (fase>1&&fase<4); e.cargoDesde=0; e.cargoMesesAntes=c.cargoMeses||0; e.desempenho=c.desempenho||0; }
   e.habitos={};
   s=e; ui.modal=null; iniciarMes(); return s;
 }
@@ -1649,7 +1649,11 @@ const MORADIAS = [
 ];
 /* ================= família (fase 2 em diante, escolha do jogador) ================= */
 // o cônjuge não traz dinheiro: traz bem-estar, segurança e vida social; filhos pedem casa maior
-const nFilhos = () => s.filhos||0;
+const IDADE_INDEP = 264, IDADE_MAIOR = 216; // meses: aos 18 anos o custo cai pela metade; aos 22 o filho se emancipa
+const idadesF = () => { if(!Array.isArray(s.filhosIdade)) s.filhosIdade = Array(s.filhos||0).fill(0); return s.filhosIdade; };
+const totalFilhos = () => idadesF().length; // filhos que a família teve (a foto de família continua igual)
+const nFilhos = () => idadesF().filter(a=>a<IDADE_INDEP).length; // só os que ainda dependem de você
+const custoFilhos = () => idadesF().reduce((t,a)=> t + (a<IDADE_MAIOR ? custoFilho() : a<IDADE_INDEP ? Math.round(custoFilho()/20)*10 : 0), 0);
 const CF = v => Math.round(v*(s.idx||1)*(s.escL||1)/10)*10; // gastos de família acompanham o padrão de renda
 const morMin = () => nFilhos()>=2 ? 2 : (nFilhos()>0 || s.casado) ? 1 : 0; // o bebê cabe no quarto dos pais; com dois filhos, precisa de 2 quartos
 const FK = "Child (school, health plan, diapers)";
@@ -2932,9 +2936,9 @@ const EVENTOS = {
       {label:`Big party for 200 guests (${fmt0(C(45000))})`, sub:subAVista(C(45000)), disabled:!podeAVista(C(45000)), run:()=>{ const t=pagarAVista(C(45000)); s.infl=clamp((s.infl||0)+15,0,100); const r=casar(16); r.texto+=" The party even brought in contacts."+t; return r; }},
       {label:"Stay single", run:()=>{ s.recusouCasar=(s.recusouCasar||0)+1; s.fel=clamp(s.fel-negar(3),0,100); const c=lerCamp(); c.recusouCasar=s.recusouCasar; gravarCamp(c); return {tom:'neutro', titulo:"Not yet", texto:"That's fine: it's your life. But too much time alone also weighs on you over the years."}; }}
     ]},
-  filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?"A little brother?":"Shall we have a child?", texto:()=>`A child changes everything: with your current income, ${padraoFilho()} add up to about ${fmt0(custoFilho())} a month (around ${Math.round(PCT_FILHO*100)}% of what you earn), and the family will need at least an apartment${nFilhos()?" with 2 bedrooms":''}. In return, a joy no money can buy.`,
+  filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && idadeJog()<=42 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?"A little brother?":"Shall we have a child?", texto:()=>`A child changes everything: with your current income, ${padraoFilho()} add up to about ${fmt0(custoFilho())} a month (around ${Math.round(PCT_FILHO*100)}% of what you earn), and the family will need at least an apartment${nFilhos()?" with 2 bedrooms":''}. In return, a joy no money can buy.`,
     opcoes:()=>[
-      {label:"Yes, let's!", coin:true, run:()=>{ s.filhos=nFilhos()+1; foto(s.filhos>1?'bebe2':'bebe'); s.fixos[FK]=custoFilho()*s.filhos; s.fel=clamp(s.fel+12,0,100); const c=lerCamp(); c.filhos=s.filhos; gravarCamp(c);
+      {label:"Yes, let's!", coin:true, run:()=>{ idadesF().push(0); s.filhos=nFilhos(); foto(s.filhos>1?'bebe2':'bebe'); s.fixos[FK]=custoFilhos(); s.fel=clamp(s.fel+12,0,100); const c=lerCamp(); c.filhos=s.filhos; c.filhosIdade=idadesF(); gravarCamp(c);
         return {tom:'bom', titulo:s.filhos>1?"Family growing":"A baby is coming!", texto:`The cost of living goes up ${fmt0(custoFilho())} a month (${padraoFilho()}). If your income changes, this spending follows.${morN()<morMin()?" The house will be cramped: see the Home tab.":''} With more people depending on you, the emergency fund and net worth matter even more.`}; }},
       {label:"Not now", run:()=>({tom:'neutro', titulo:"Further down the road", texto:"Every family has its own timing."})}
     ]},
@@ -4692,7 +4696,15 @@ function iniciarMes(){
   checarMarcosPatr();
   crescerNegocios();
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
-  if(nFilhos()>0) s.fixos[FK]=custoFilho()*nFilhos();
+  if(idadesF().length){
+    const antes=nFilhos(); let virou18=0;
+    s.filhosIdade=idadesF().map(a=>{ if(a===IDADE_MAIOR-1) virou18++; return a+1; });
+    const dep=nFilhos();
+    if(dep<antes){ if(!lic) lic={tom:'bom', titulo:antes-dep>1?'The kids started their own lives':'Your child started their own life', texto:`After ${Math.round(IDADE_INDEP/12)} years of care, ${antes-dep>1?'they are independent':'they are independent'}: finished school, started working and moved out. The cost of ${antes-dep>1?'the kids is over':'the child is over'} and the family budget can breathe. Investing through the heaviest years made a difference.`}; const c=lerCamp(); c.filhos=dep; c.filhosIdade=s.filhosIdade; gravarCamp(c); }
+    else if(virou18 && !lic) lic={tom:'neutro', titulo:'Coming of age in the family', texto:'Your child turned 18 and started to get by: their monthly cost drops by half until they become fully independent.'};
+    s.filhos=dep;
+    if(custoFilhos()>0) s.fixos[FK]=custoFilhos(); else delete s.fixos[FK];
+  }
   for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
@@ -5268,7 +5280,7 @@ const FOTOS = {
 };
 // as fotos de férias mudam com a família: sem sufixo = casal com dois filhos; -s sozinho(a), -c casal, -1 casal com um filho
 ['praia','tropical','esqui','exterior'].forEach(b=>['-s','-c','-1'].forEach(x=>{ FOTOS[b+x]=FOTOS[b]; }));
-const famSufixo = () => nFilhos()>=2 ? '' : nFilhos()===1 ? '-1' : s.casado ? '-c' : '-s';
+const famSufixo = () => totalFilhos()>=2 ? '' : totalFilhos()===1 ? '-1' : s.casado ? '-c' : '-s';
 const album = () => (lerCamp().album || []).filter(f=>ARTE.fotos?.[f.id]);
 function foto(id){
   if(!FOTOS[id] || window.__corridaMudo) return;
@@ -5351,7 +5363,7 @@ function montarCena(){
   if(!CENA.box) criarCena();
   slot.replaceWith(CENA.box);
   const negs=(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+(a.unid||1),0);
-  CENA.chave={mor:morN(), car:carN(), fam:1+(s.casado?1:0)+nFilhos(), negs, m:mesCal()};
+  CENA.chave={mor:morN(), car:carN(), fam:1+(s.casado?1:0)+totalFilhos(), negs, m:mesCal()};
 }
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
@@ -5514,7 +5526,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v344</p>
+    <p class="titulo-versao">version v345</p>
   </div>`;
 }
 function render(){
@@ -5650,7 +5662,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Your home ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Owned":"Rented"} · ${fmt0(cm)} per month${morPropria()?" (condo fees, property tax and loan payment)":''}</span></div></div>
       <div class="fl"><span>Housing well-being</span><b>${fm>0?'+':''}${fm}/mo</b></div>
-      ${s.casado||nFilhos()?`<div class="fl"><span>Family: ${s.casado?"married":"single"}${nFilhos()?` · ${nFilhos()} ${nFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">asks for ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>Family: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">asks for ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Fits the budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Yes":!cabeRenda()?"No: over 30% of income":"No: emergency fund below 3 months"}</b></div>
 ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>Move house</summary>${linhas}</details>`:''}</section>`; })();
@@ -6395,7 +6407,7 @@ const FINAIS = [
     txt:()=>`The debts won. At ${idadeJog()} years old, he started over from zero, living on someone else's charity. The lesson was costly: without an emergency fund, a stumble becomes a fall.`},
   {id:'empresa', nome:"The empire", ok:()=>(s.vendaGrande||0)>0 || (s.ativos||[]).some(a=>escala(a) && a.valor>=2000000*(s.idx||1)),
     txt:()=>`The company that started small became a reference in the city${s.vendaGrande?` and was sold for ${fmt0(s.vendaGrande)}`:''}. It created jobs, ${s.casado?"gave security to the family ":''}and proved that those who sell something that scales go far beyond those who sell hours.`},
-  {id:'familia', nome:"Free and with family", ok:()=>cobertura()>=1 && s.casado && nFilhos()>0 && eixoVida()>=65,
+  {id:'familia', nome:"Free and with family", ok:()=>cobertura()>=1 && s.casado && totalFilhos()>0 && eixoVida()>=65,
     txt:()=>`Became free at ${s.livreEm?idadeAos(s.livreEm):idadeJog()} years old. Took the kids, and later the grandkids, traveling, and Sunday lunch was never empty. Had enough, and knew it was enough.`},
   {id:'zelador', nome:"The invisible millionaire", ok:()=>patrimonio()>=1000000*(s.idx||1) && !s.casado && eixoVida()<50,
     txt:()=>`Died with ${fmt0(patrimonio())}, in the same old house. The neighbors only found out from the will. Like the janitor Morgan Housel tells about in The Psychology of Money: rich in the account, but almost nobody to share life with.`},
@@ -7797,7 +7809,7 @@ function novoEstado(fase){
     herdar(e,f);
   }
   { const c=lerCamp(); if(fase===1||fase===4){ e.mor={n:MOR_BASE[e.prof]??1, propria:false}; c.mor=null; c.casa=0; c.album=[]; c.infl=0; c.usouInfl=0; gravarCamp(c); } else { e.mor=c.mor||{n:MOR_BASE[e.prof]??1, propria:false}; if(c.casa) e.casa=c.casa; } if(fase===1||fase===4){ c.carro=null; gravarCamp(c); } else { if(c.carro) e.carro=c.carro; e.infl=c.infl||0; e.usouInfl=c.usouInfl||0; } }
-  e.marcos={...(lerCamp().marcos||{})}; { const c=lerCamp(); if(fase===1||fase===4){ c.casado=false; c.filhos=0; c.recusouCasar=0; gravarCamp(c); } else { e.casado=!!c.casado; e.filhos=c.filhos||0; e.recusouCasar=c.recusouCasar||0; } } e.extra=!!lerCamp().extra; e.empresario=!!lerCamp().empresario; { const c=lerCamp(); if(fase===1||fase===4){ c.cargo=0; c.cargoMeses=0; c.desempenho=0; c.cursosOk=[]; c.habs={}; c.vicios=sortearVicios(); c.habEst=null; c.mentorou=false; c.empresario=false; gravarCamp(c); e.empresario=false; } e.cargo=c.cargo||0; e.cursosOk=c.cursosOk||[]; e.habs={...(c.habs||{})}; e.vicios=c.vicios||sortearVicios(); if(c.habEst&&HABS[c.habEst.id]) e.habEst={id:c.habEst.id, ini:1-(HABS[c.habEst.id].meses-c.habEst.falta), ate:1+c.habEst.falta}; e.mentorou=!!c.mentorou && (fase>1&&fase<4); e.cargoDesde=0; e.cargoMesesAntes=c.cargoMeses||0; e.desempenho=c.desempenho||0; }
+  e.marcos={...(lerCamp().marcos||{})}; { const c=lerCamp(); if(fase===1||fase===4){ c.casado=false; c.filhos=0; c.filhosIdade=[]; c.recusouCasar=0; gravarCamp(c); } else { e.casado=!!c.casado; e.filhos=c.filhos||0; e.filhosIdade=Array.isArray(c.filhosIdade)?[...c.filhosIdade]:Array(c.filhos||0).fill(0); e.recusouCasar=c.recusouCasar||0; } } e.extra=!!lerCamp().extra; e.empresario=!!lerCamp().empresario; { const c=lerCamp(); if(fase===1||fase===4){ c.cargo=0; c.cargoMeses=0; c.desempenho=0; c.cursosOk=[]; c.habs={}; c.vicios=sortearVicios(); c.habEst=null; c.mentorou=false; c.empresario=false; gravarCamp(c); e.empresario=false; } e.cargo=c.cargo||0; e.cursosOk=c.cursosOk||[]; e.habs={...(c.habs||{})}; e.vicios=c.vicios||sortearVicios(); if(c.habEst&&HABS[c.habEst.id]) e.habEst={id:c.habEst.id, ini:1-(HABS[c.habEst.id].meses-c.habEst.falta), ate:1+c.habEst.falta}; e.mentorou=!!c.mentorou && (fase>1&&fase<4); e.cargoDesde=0; e.cargoMesesAntes=c.cargoMeses||0; e.desempenho=c.desempenho||0; }
   e.habitos={};
   s=e; ui.modal=null; iniciarMes(); return s;
 }
@@ -7848,7 +7860,11 @@ const MORADIAS = [
 ];
 /* ================= família (fase 2 em diante, escolha do jogador) ================= */
 // o cônjuge não traz dinheiro: traz bem-estar, segurança e vida social; filhos pedem casa maior
-const nFilhos = () => s.filhos||0;
+const IDADE_INDEP = 264, IDADE_MAIOR = 216; // meses: aos 18 anos o custo cai pela metade; aos 22 o filho se emancipa
+const idadesF = () => { if(!Array.isArray(s.filhosIdade)) s.filhosIdade = Array(s.filhos||0).fill(0); return s.filhosIdade; };
+const totalFilhos = () => idadesF().length; // filhos que a família teve (a foto de família continua igual)
+const nFilhos = () => idadesF().filter(a=>a<IDADE_INDEP).length; // só os que ainda dependem de você
+const custoFilhos = () => idadesF().reduce((t,a)=> t + (a<IDADE_MAIOR ? custoFilho() : a<IDADE_INDEP ? Math.round(custoFilho()/20)*10 : 0), 0);
 const CF = v => Math.round(v*(s.idx||1)*(s.escL||1)/10)*10; // gastos de família acompanham o padrão de renda
 const morMin = () => nFilhos()>=2 ? 2 : (nFilhos()>0 || s.casado) ? 1 : 0; // o bebê cabe no quarto dos pais; com dois filhos, precisa de 2 quartos
 const FK = 'Filho (escola, plano, fraldas)';
@@ -9131,9 +9147,9 @@ const EVENTOS = {
       {label:`Festa grande para 200 convidados (${fmt0(C(45000))})`, sub:subAVista(C(45000)), disabled:!podeAVista(C(45000)), run:()=>{ const t=pagarAVista(C(45000)); s.infl=clamp((s.infl||0)+15,0,100); const r=casar(16); r.texto+=' A festa ainda rendeu contatos.'+t; return r; }},
       {label:'Continuar solteiro(a)', run:()=>{ s.recusouCasar=(s.recusouCasar||0)+1; s.fel=clamp(s.fel-negar(3),0,100); const c=lerCamp(); c.recusouCasar=s.recusouCasar; gravarCamp(c); return {tom:'neutro', titulo:'Ainda não', texto:'Tudo bem: a vida é sua. Só que tempo sozinho demais também pesa com os anos.'}; }}
     ]},
-  filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?'Um irmãozinho?':'Vamos ter um filho?', texto:()=>`Um filho muda tudo: com a sua renda de hoje, ${padraoFilho()} somam uns ${fmt0(custoFilho())} por mês (cerca de ${Math.round(PCT_FILHO*100)}% do que você ganha), e a família vai precisar de pelo menos um apê${nFilhos()?' de 2 quartos':''}. Em troca, uma alegria que dinheiro nenhum compra.`,
+  filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && idadeJog()<=42 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?'Um irmãozinho?':'Vamos ter um filho?', texto:()=>`Um filho muda tudo: com a sua renda de hoje, ${padraoFilho()} somam uns ${fmt0(custoFilho())} por mês (cerca de ${Math.round(PCT_FILHO*100)}% do que você ganha), e a família vai precisar de pelo menos um apê${nFilhos()?' de 2 quartos':''}. Em troca, uma alegria que dinheiro nenhum compra.`,
     opcoes:()=>[
-      {label:'Sim, vamos!', coin:true, run:()=>{ s.filhos=nFilhos()+1; foto(s.filhos>1?'bebe2':'bebe'); s.fixos[FK]=custoFilho()*s.filhos; s.fel=clamp(s.fel+12,0,100); const c=lerCamp(); c.filhos=s.filhos; gravarCamp(c);
+      {label:'Sim, vamos!', coin:true, run:()=>{ idadesF().push(0); s.filhos=nFilhos(); foto(s.filhos>1?'bebe2':'bebe'); s.fixos[FK]=custoFilhos(); s.fel=clamp(s.fel+12,0,100); const c=lerCamp(); c.filhos=s.filhos; c.filhosIdade=idadesF(); gravarCamp(c);
         return {tom:'bom', titulo:s.filhos>1?'Família crescendo':'Vem aí um bebê!', texto:`O custo de vida sobe ${fmt0(custoFilho())} por mês (${padraoFilho()}). Se a sua renda mudar, esse gasto acompanha.${morN()<morMin()?' A casa vai ficar apertada: veja na aba Casa.':''} Com mais gente dependendo de você, a reserva e o patrimônio ficam ainda mais importantes.`}; }},
       {label:'Agora não', run:()=>({tom:'neutro', titulo:'Mais para frente', texto:'Cada família tem seu tempo.'})}
     ]},
@@ -10891,7 +10907,15 @@ function iniciarMes(){
   checarMarcosPatr();
   crescerNegocios();
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
-  if(nFilhos()>0) s.fixos[FK]=custoFilho()*nFilhos();
+  if(idadesF().length){
+    const antes=nFilhos(); let virou18=0;
+    s.filhosIdade=idadesF().map(a=>{ if(a===IDADE_MAIOR-1) virou18++; return a+1; });
+    const dep=nFilhos();
+    if(dep<antes){ if(!lic) lic={tom:'bom', titulo:antes-dep>1?'Os filhos seguiram a própria vida':'Seu filho seguiu a própria vida', texto:`Depois de ${Math.round(IDADE_INDEP/12)} anos de cuidado, ${antes-dep>1?'eles se emanciparam':'ele(a) se emancipou'}: terminou o curso, começou a trabalhar e saiu de casa. A despesa com ${antes-dep>1?'os filhos acabou':'o filho acabou'} e o orçamento da família respira. Ter investido nos anos de maior gasto fez diferença.`}; const c=lerCamp(); c.filhos=dep; c.filhosIdade=s.filhosIdade; gravarCamp(c); }
+    else if(virou18 && !lic) lic={tom:'neutro', titulo:'Maioridade na família', texto:'Seu filho completou 18 anos e começou a se virar: o custo mensal dele cai pela metade até que ele se emancipe de vez.'};
+    s.filhos=dep;
+    if(custoFilhos()>0) s.fixos[FK]=custoFilhos(); else delete s.fixos[FK];
+  }
   for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
@@ -11467,7 +11491,7 @@ const FOTOS = {
 };
 // as fotos de férias mudam com a família: sem sufixo = casal com dois filhos; -s sozinho(a), -c casal, -1 casal com um filho
 ['praia','tropical','esqui','exterior'].forEach(b=>['-s','-c','-1'].forEach(x=>{ FOTOS[b+x]=FOTOS[b]; }));
-const famSufixo = () => nFilhos()>=2 ? '' : nFilhos()===1 ? '-1' : s.casado ? '-c' : '-s';
+const famSufixo = () => totalFilhos()>=2 ? '' : totalFilhos()===1 ? '-1' : s.casado ? '-c' : '-s';
 const album = () => (lerCamp().album || []).filter(f=>ARTE.fotos?.[f.id]);
 function foto(id){
   if(!FOTOS[id] || window.__corridaMudo) return;
@@ -11550,7 +11574,7 @@ function montarCena(){
   if(!CENA.box) criarCena();
   slot.replaceWith(CENA.box);
   const negs=(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+(a.unid||1),0);
-  CENA.chave={mor:morN(), car:carN(), fam:1+(s.casado?1:0)+nFilhos(), negs, m:mesCal()};
+  CENA.chave={mor:morN(), car:carN(), fam:1+(s.casado?1:0)+totalFilhos(), negs, m:mesCal()};
 }
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
@@ -11713,7 +11737,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v344</p>
+    <p class="titulo-versao">versão v345</p>
   </div>`;
 }
 function render(){
@@ -11849,7 +11873,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Sua casa ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?'Própria':'Alugada'} · ${fmt0(cm)} por mês${morPropria()?' (condomínio, IPTU e parcela)':''}</span></div></div>
       <div class="fl"><span>Bem-estar da moradia</span><b>${fm>0?'+':''}${fm}/mês</b></div>
-      ${s.casado||nFilhos()?`<div class="fl"><span>Família: ${s.casado?'casado(a)':'solteiro(a)'}${nFilhos()?` · ${nFilhos()} ${nFilhos()>1?'filhos':'filho'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">pede ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>Família: ${s.casado?'casado(a)':'solteiro(a)'}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'filhos':'filho'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">pede ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Cabe no bolso?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?'Sim':!cabeRenda()?'Não: passa de 30% da renda':'Não: reserva abaixo de 3 meses'}</b></div>
 ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>Mudar de casa</summary>${linhas}</details>`:''}</section>`; })();
@@ -12594,7 +12618,7 @@ const FINAIS = [
     txt:()=>`As dívidas venceram. Aos ${idadeJog()} anos, recomeçou do zero, morando de favor. A lição custou caro: sem reserva, um tropeço vira queda.`},
   {id:'empresa', nome:'O império', ok:()=>(s.vendaGrande||0)>0 || (s.ativos||[]).some(a=>escala(a) && a.valor>=2000000*(s.idx||1)),
     txt:()=>`A empresa que começou pequena virou referência na cidade${s.vendaGrande?` e foi vendida por ${fmt0(s.vendaGrande)}`:''}. Gerou empregos, ${s.casado?'deu segurança à família ':''}e provou que quem vende algo que escala vai muito além de quem vende horas.`},
-  {id:'familia', nome:'Livre e em família', ok:()=>cobertura()>=1 && s.casado && nFilhos()>0 && eixoVida()>=65,
+  {id:'familia', nome:'Livre e em família', ok:()=>cobertura()>=1 && s.casado && totalFilhos()>0 && eixoVida()>=65,
     txt:()=>`Ficou livre aos ${s.livreEm?idadeAos(s.livreEm):idadeJog()} anos. Levou os filhos, e depois os netos, para viajar, e o almoço de domingo nunca ficou vazio. Teve o suficiente, e soube que era o suficiente.`},
   {id:'zelador', nome:'O milionário invisível', ok:()=>patrimonio()>=1000000*(s.idx||1) && !s.casado && eixoVida()<50,
     txt:()=>`Morreu com ${fmt0(patrimonio())}, na mesma casa de sempre. Os vizinhos só souberam pelo testamento. Como o zelador que Morgan Housel conta em A Psicologia Financeira: rico na conta, mas quase ninguém para dividir a vida.`},
