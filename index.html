@@ -1269,6 +1269,11 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 .lang-flags button{background:rgba(255,255,255,.88);border:2px solid transparent;border-radius:10px;padding:4px;line-height:0;cursor:pointer}
 .lang-flags button[aria-pressed="true"]{border-color:var(--coin);box-shadow:0 0 0 2px rgba(19,32,58,.55)}
 .lang-flags button:not([aria-pressed="true"]){opacity:.75}
+.slots{display:flex;flex-direction:column;gap:8px;margin:8px 0 10px}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1.5px solid var(--linha,rgba(0,0,0,.12));border-radius:12px;padding:8px 10px;background:rgba(255,255,255,.55)}
+.slot-i{display:flex;flex-direction:column;min-width:0}.slot-i small{opacity:.75;line-height:1.3}
+.slot-b{display:flex;gap:6px;flex-shrink:0}.slot-b .btn{padding:6px 10px;min-height:0}
+.slot-b .btn:disabled{opacity:.4}
 </style>
 
 <div class="app" id="app"></div>
@@ -1632,7 +1637,7 @@ function desfazerNaN(){
   const bom=carregar(); if(bom){ s=bom; ui.modal=null; if(s.ceo && s.ceo.on){ s.ceo.on=false; s.ceo.auto=false; d.ceoPausado=true; } }
   ui.erroSist=d; return d;
 }
-function salvar(){ if(s && s.iniciado && !estadoSaudavel()){ desfazerNaN(); render(); return; } try{ localStorage.setItem(CHAVE, JSON.stringify(s)); if(s.iniciado && ultSnapMes!==s.mes){ const a=localStorage.getItem('corrida-en-snapA'); if(a) localStorage.setItem('corrida-en-snapB',a); localStorage.setItem('corrida-en-snapA',JSON.stringify(s)); ultSnapMes=s.mes; } if(s.fase>=2){ const c=lerCamp(); if(c.infl!==(s.infl||0) || c.usouInfl!==(s.usouInfl||0)){ c.infl=s.infl||0; c.usouInfl=s.usouInfl||0; gravarCamp(c); } } }catch(e){} }
+function salvar(){ if(window.__carregando) return; if(s && s.iniciado && !estadoSaudavel()){ desfazerNaN(); render(); return; } try{ localStorage.setItem(CHAVE, JSON.stringify(s)); if(s.iniciado && ultSnapMes!==s.mes){ const a=localStorage.getItem('corrida-en-snapA'); if(a) localStorage.setItem('corrida-en-snapB',a); localStorage.setItem('corrida-en-snapA',JSON.stringify(s)); ultSnapMes=s.mes; } if(s.fase>=2){ const c=lerCamp(); if(c.infl!==(s.infl||0) || c.usouInfl!==(s.usouInfl||0)){ c.infl=s.infl||0; c.usouInfl=s.usouInfl||0; gravarCamp(c); } } }catch(e){} }
 function carregar(){ try{ const t=localStorage.getItem(CHAVE); return t?JSON.parse(t):null; }catch(e){ return null; } }
 
 /* ================= cálculos ================= */
@@ -5536,7 +5541,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v348</p>
+    <p class="titulo-versao">version v349</p>
   </div>`;
 }
 function render(){
@@ -5859,15 +5864,15 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
-    <button class="topo-menu" data-acao="titulo" aria-label="Menu">☰</button>
-    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · month ${s.mes} of ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''}" data-acao="aba" data-alvo="dinheiro"><small>Account</small><b class="num">${fmt0(s.conta)}</b></button>
-    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Well-being ${fz} of 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Well-being</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":fz>=70?"Great":fz>=50?"Good":fz>=25?"Tired":"At the limit"}</span></button>
+    <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
+    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} of ${tot}</small></div>
+    <button class="topo-conta ${neg?'neg':''}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
+    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":fz>=70?"Great":fz>=50?"Good":fz>=25?"Tired":"At the limit"}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Game sections">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   renderModal();
@@ -5908,6 +5913,28 @@ function mapaFases(){
 }
 
 
+/* ================= espaços de salvar e carregar ================= */
+const SLOTS=3, SLOT_KEY=n=>CHAVE+'-slot'+n;
+function slotLer(n){ try{ return JSON.parse(localStorage.getItem(SLOT_KEY(n)))||null; }catch(e){ return null; } }
+function slotData(q){ try{ return new Date(q).toLocaleString(localStorage.getItem('corrida-lang')==='en'?'en-US':'en-US',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
+  for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
+    h+=`<div class="slot"><div class="slot-i"><b>Slot ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Empty'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Save</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Load</button></div></div>`; }
+  return h+'</div>'; }
+function slotSalvar(n){ if(!temJogo()) return; const ant=slotLer(n);
+  if(ant && !confirm('Replace the game saved in slot '+n+' ('+ant.r+')?')) return;
+  salvar(); let ok=true;
+  try{ localStorage.setItem(SLOT_KEY(n),JSON.stringify({q:new Date().toISOString(),r:nomeFase()+' · '+rotulo(s.mes)+' · '+fmt0(patrimonio()),s:localStorage.getItem(CHAVE),c:localStorage.getItem(CHAVE_CAMP)||'{}'})); }catch(e){ ok=false; }
+  renderModal(); bkMsg(ok?'Game saved in slot '+n+'.':'Could not save: no space left on the device.'); }
+function slotCarregar(n){ const d=slotLer(n); if(!d) return;
+  if(!confirm('Load the game from slot '+n+' ('+d.r+')? The current game will be replaced.')) return;
+  try{ const cur=lerCamp(), sl=JSON.parse(d.c||'{}'), fixo=k=>['album','finais','ranking','rec','marcos'].includes(k)||/^f\d+Nota$/.test(k);
+    window.__carregando=true;
+    try{ localStorage.setItem(CHAVE+'-antes-de-carregar',localStorage.getItem(CHAVE)||''); }catch(e){}
+    localStorage.setItem(CHAVE,d.s);
+    const novo=Object.assign({},sl); for(const k of Object.keys(cur)) if(fixo(k)) novo[k]=cur[k]; gravarCamp(novo);
+    bkMsg('Game loaded. Restarting…'); setTimeout(()=>location.reload(),400);
+  }catch(e){ window.__carregando=false; bkMsg('Could not load that game.'); } }
 /* ================= backup do progresso (exportar e restaurar) ================= */
 const BK_PREF='CDR1:';
 function bkGerar(){ const k={}; try{ for(let i=0;i<localStorage.length;i++){ const n=localStorage.key(i); if(n && (n.indexOf('corrida-dos-ratos')===0 || n==='linhaFrac2' || n===PREF_KEY)) k[n]=localStorage.getItem(n); } }catch(e){}
@@ -6092,14 +6119,12 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Wheel sound</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tick-tock</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silence</button></div></div>
       <div class="cfg"><span class="label-c">Text size</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Large</button></div></div>
       <div class="cfg"><span class="label-c">Events</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cards</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Simple window</button></div></div>
-      <div class="cfg"><span class="label-c">Progress backup</span><p class="hint">The game saves only on this device. Keep a copy so you don't lose everything if you clear the browser or switch phones.</p>
-        <div class="row"><button class="btn" data-acao="bkBaixar">Download backup</button><button class="btn" data-acao="bkCopiar">Copy code</button></div>
-        <textarea id="bkTxt" rows="3" placeholder="Paste the backup code here to restore" style="width:100%;margin-top:8px;font:12px monospace"></textarea>
-        <div class="row"><button class="btn" data-acao="bkRestaurar">Restore from code</button><label class="btn" for="bkArq" style="cursor:pointer">Restore from file</label><input id="bkArq" type="file" accept=".json,.txt,application/json,text/plain" hidden></div>
+      <div class="cfg"><span class="label-c">Save and load</span><p class="hint">The game saves by itself every month. Here you can keep up to 3 separate games and go back to them whenever you like.</p>
+        ${slotsHtml()}
         <div class="row"><button class="btn" data-acao="snapVoltar">Go back to the previous month</button></div>
         <p class="hint">The game automatically keeps a copy for each month. If something breaks, this button goes back one or two months.</p>
         <p class="hint" id="bkMsg" role="status"></p></div>
-      <div class="row"><button class="btn coin" data-acao="fechar">Done</button></div></div></div>`;
+      <div class="row"><button class="btn coin" data-acao="fechar">Done</button>${ui.tela!=='titulo'?'<button class="btn" data-acao="titulo">Go to the title screen</button>':''}</div></div></div>`;
     return; }
   if(!ui.modal && !s.evento && (ui.fotoFila||[]).length){ ui.foto=ui.fotoFila.shift(); ui.modal='foto'; ui.fotoNova=true; ui.fotoFlash=true; }
   if(ui.modal==='foto'){
@@ -6783,6 +6808,8 @@ document.addEventListener('click', e=>{
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
     case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-en-snapB')||localStorage.getItem('corrida-en-snapA'); if(!t){ bkMsg("There's no automatic copy on this device yet."); break; } const o=JSON.parse(t); if(!confirm("Go back the game to "+(o.mes?("month "+o.mes):"an earlier copy")+"? Progress after that will be lost.")) break; localStorage.setItem(CHAVE,t); bkMsg("Copy restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't restore the copy."); } break; }
+    case 'slotSalvar': slotSalvar(Number(alvo)); break;
+    case 'slotCarregar': slotCarregar(Number(alvo)); break;
     case 'bkBaixar': bkBaixar(); break;
     case 'bkCopiar': bkCopiar(); break;
     case 'bkRestaurar': bkRestaurarTexto((document.getElementById('bkTxt')||{}).value); break;
@@ -7853,7 +7880,7 @@ function desfazerNaN(){
   const bom=carregar(); if(bom){ s=bom; ui.modal=null; if(s.ceo && s.ceo.on){ s.ceo.on=false; s.ceo.auto=false; d.ceoPausado=true; } }
   ui.erroSist=d; return d;
 }
-function salvar(){ if(s && s.iniciado && !estadoSaudavel()){ desfazerNaN(); render(); return; } try{ localStorage.setItem(CHAVE, JSON.stringify(s)); if(s.iniciado && ultSnapMes!==s.mes){ const a=localStorage.getItem('corrida-snapA'); if(a) localStorage.setItem('corrida-snapB',a); localStorage.setItem('corrida-snapA',JSON.stringify(s)); ultSnapMes=s.mes; } if(s.fase>=2){ const c=lerCamp(); if(c.infl!==(s.infl||0) || c.usouInfl!==(s.usouInfl||0)){ c.infl=s.infl||0; c.usouInfl=s.usouInfl||0; gravarCamp(c); } } }catch(e){} }
+function salvar(){ if(window.__carregando) return; if(s && s.iniciado && !estadoSaudavel()){ desfazerNaN(); render(); return; } try{ localStorage.setItem(CHAVE, JSON.stringify(s)); if(s.iniciado && ultSnapMes!==s.mes){ const a=localStorage.getItem('corrida-snapA'); if(a) localStorage.setItem('corrida-snapB',a); localStorage.setItem('corrida-snapA',JSON.stringify(s)); ultSnapMes=s.mes; } if(s.fase>=2){ const c=lerCamp(); if(c.infl!==(s.infl||0) || c.usouInfl!==(s.usouInfl||0)){ c.infl=s.infl||0; c.usouInfl=s.usouInfl||0; gravarCamp(c); } } }catch(e){} }
 function carregar(){ try{ const t=localStorage.getItem(CHAVE); return t?JSON.parse(t):null; }catch(e){ return null; } }
 
 /* ================= cálculos ================= */
@@ -11757,7 +11784,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v348</p>
+    <p class="titulo-versao">versão v349</p>
   </div>`;
 }
 function render(){
@@ -12080,7 +12107,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
-    <button class="topo-menu" data-acao="titulo" aria-label="Menu">☰</button>
+    <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
     <button class="topo-conta ${neg?'neg':''}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?'Esgotado':fz>=70?'Ótimo':fz>=50?'Bem':fz>=25?'Cansado':'No limite'}</span></button>
@@ -12129,6 +12156,28 @@ function mapaFases(){
 }
 
 
+/* ================= espaços de salvar e carregar ================= */
+const SLOTS=3, SLOT_KEY=n=>CHAVE+'-slot'+n;
+function slotLer(n){ try{ return JSON.parse(localStorage.getItem(SLOT_KEY(n)))||null; }catch(e){ return null; } }
+function slotData(q){ try{ return new Date(q).toLocaleString(localStorage.getItem('corrida-lang')==='en'?'en-US':'pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
+  for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
+    h+=`<div class="slot"><div class="slot-i"><b>Espaço ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Vazio'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Salvar</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Carregar</button></div></div>`; }
+  return h+'</div>'; }
+function slotSalvar(n){ if(!temJogo()) return; const ant=slotLer(n);
+  if(ant && !confirm('Substituir o jogo guardado no espaço '+n+' ('+ant.r+')?')) return;
+  salvar(); let ok=true;
+  try{ localStorage.setItem(SLOT_KEY(n),JSON.stringify({q:new Date().toISOString(),r:nomeFase()+' · '+rotulo(s.mes)+' · '+fmt0(patrimonio()),s:localStorage.getItem(CHAVE),c:localStorage.getItem(CHAVE_CAMP)||'{}'})); }catch(e){ ok=false; }
+  renderModal(); bkMsg(ok?'Jogo salvo no espaço '+n+'.':'Não consegui salvar: sem espaço no aparelho.'); }
+function slotCarregar(n){ const d=slotLer(n); if(!d) return;
+  if(!confirm('Carregar o jogo do espaço '+n+' ('+d.r+')? O jogo atual será substituído.')) return;
+  try{ const cur=lerCamp(), sl=JSON.parse(d.c||'{}'), fixo=k=>['album','finais','ranking','rec','marcos'].includes(k)||/^f\d+Nota$/.test(k);
+    window.__carregando=true;
+    try{ localStorage.setItem(CHAVE+'-antes-de-carregar',localStorage.getItem(CHAVE)||''); }catch(e){}
+    localStorage.setItem(CHAVE,d.s);
+    const novo=Object.assign({},sl); for(const k of Object.keys(cur)) if(fixo(k)) novo[k]=cur[k]; gravarCamp(novo);
+    bkMsg('Jogo carregado. Reiniciando…'); setTimeout(()=>location.reload(),400);
+  }catch(e){ window.__carregando=false; bkMsg('Não consegui carregar esse jogo.'); } }
 /* ================= backup do progresso (exportar e restaurar) ================= */
 const BK_PREF='CDR1:';
 function bkGerar(){ const k={}; try{ for(let i=0;i<localStorage.length;i++){ const n=localStorage.key(i); if(n && (n.indexOf('corrida-dos-ratos')===0 || n==='linhaFrac2' || n===PREF_KEY)) k[n]=localStorage.getItem(n); } }catch(e){}
@@ -12313,14 +12362,12 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Som da roleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tique-taque</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silêncio</button></div></div>
       <div class="cfg"><span class="label-c">Tamanho da letra</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grande</button></div></div>
       <div class="cfg"><span class="label-c">Eventos</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cartas</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Janela simples</button></div></div>
-      <div class="cfg"><span class="label-c">Backup do progresso</span><p class="hint">O jogo salva só neste aparelho. Guarde uma cópia para não perder tudo se limpar o navegador ou trocar de celular.</p>
-        <div class="row"><button class="btn" data-acao="bkBaixar">Baixar backup</button><button class="btn" data-acao="bkCopiar">Copiar código</button></div>
-        <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código do backup para restaurar" style="width:100%;margin-top:8px;font:12px monospace"></textarea>
-        <div class="row"><button class="btn" data-acao="bkRestaurar">Restaurar do código</button><label class="btn" for="bkArq" style="cursor:pointer">Restaurar de arquivo</label><input id="bkArq" type="file" accept=".json,.txt,application/json,text/plain" hidden></div>
+      <div class="cfg"><span class="label-c">Salvar e carregar</span><p class="hint">O jogo salva sozinho a cada mês. Aqui você guarda até 3 jogos à parte e volta a eles quando quiser.</p>
+        ${slotsHtml()}
         <div class="row"><button class="btn" data-acao="snapVoltar">Voltar ao mês anterior</button></div>
         <p class="hint">O jogo guarda sozinho uma cópia por mês. Se algo quebrar, este botão volta um ou dois meses.</p>
         <p class="hint" id="bkMsg" role="status"></p></div>
-      <div class="row"><button class="btn coin" data-acao="fechar">Pronto</button></div></div></div>`;
+      <div class="row"><button class="btn coin" data-acao="fechar">Pronto</button>${ui.tela!=='titulo'?'<button class="btn" data-acao="titulo">Ir para a tela inicial</button>':''}</div></div></div>`;
     return; }
   if(!ui.modal && !s.evento && (ui.fotoFila||[]).length){ ui.foto=ui.fotoFila.shift(); ui.modal='foto'; ui.fotoNova=true; ui.fotoFlash=true; }
   if(ui.modal==='foto'){
@@ -13004,6 +13051,8 @@ document.addEventListener('click', e=>{
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
     case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); if(!confirm('Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.')) break; localStorage.setItem(CHAVE,t); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
+    case 'slotSalvar': slotSalvar(Number(alvo)); break;
+    case 'slotCarregar': slotCarregar(Number(alvo)); break;
     case 'bkBaixar': bkBaixar(); break;
     case 'bkCopiar': bkCopiar(); break;
     case 'bkRestaurar': bkRestaurarTexto((document.getElementById('bkTxt')||{}).value); break;

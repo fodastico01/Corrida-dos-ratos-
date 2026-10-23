@@ -37,12 +37,6 @@ if (html.includes('fonts.googleapis.com') || html.includes('fonts.gstatic.com'))
   console.warn('AVISO: ainda ha referencia a fontes do Google no html');
 
 
-// 3) Sem backup manual dentro do app: o jogo salva sozinho no app (o Android ainda guarda copia na conta Google)
-const bkRe = /<div class="cfg"><span class="label-c">[^<]*<\/span><p class="hint">[^<]*<\/p>\s*<div class="row"><button class="btn" data-acao="bkBaixar">[\s\S]*?(?=<div class="row"><button class="btn" data-acao="snapVoltar">)/g;
-const nbk = (html.match(bkRe) || []).length;
-if (nbk < 1) throw new Error('bloco de backup nao encontrado');
-html = html.replace(bkRe, '<div class="cfg">');
-console.log('blocos de backup removidos:', nbk);
 
 fs.writeFileSync(path.join(www, 'index.html'), html);
 for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'manifest.json', 'manifest-en.json'])
