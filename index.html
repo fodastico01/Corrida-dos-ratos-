@@ -1650,17 +1650,20 @@ const MORADIAS = [
 /* ================= família (fase 2 em diante, escolha do jogador) ================= */
 // o cônjuge não traz dinheiro: traz bem-estar, segurança e vida social; filhos pedem casa maior
 const IDADE_INDEP = 264, IDADE_MAIOR = 216; // meses: aos 18 anos o custo cai pela metade; aos 22 o filho se emancipa
-const idadesF = () => { if(!Array.isArray(s.filhosIdade)) s.filhosIdade = Array(s.filhos||0).fill(0); return s.filhosIdade; };
+const idadesF = () => { if(!Array.isArray(s.filhosIdade)){ // save antigo: estima a idade pelo tempo desde o casamento (o 1º filho veio depois de 6 meses; o 2º, pelo menos 18 meses depois)
+    const m=Math.max(0,(s.mes||0)-(s.casadoEm||0)-6); s.filhosIdade=Array.from({length:s.filhos||0},(_,i)=>Math.max(0,m-18*i)); }
+  return s.filhosIdade; };
 const totalFilhos = () => idadesF().length; // filhos que a família teve (a foto de família continua igual)
 const nFilhos = () => idadesF().filter(a=>a<IDADE_INDEP).length; // só os que ainda dependem de você
-const custoFilhos = () => idadesF().reduce((t,a)=> t + (a<IDADE_MAIOR ? custoFilho() : a<IDADE_INDEP ? Math.round(custoFilho()/20)*10 : 0), 0);
+const custoFilhos = () => (idadesF().reduce((t,a)=> t + (a<IDADE_MAIOR ? custoFilho() : a<IDADE_INDEP ? Math.round(custoFilho()/20)*10 : 0), 0));
 const CF = v => Math.round(v*(s.idx||1)*(s.escL||1)/10)*10; // gastos de família acompanham o padrão de renda
 const morMin = () => nFilhos()>=2 ? 2 : (nFilhos()>0 || s.casado) ? 1 : 0; // o bebê cabe no quarto dos pais; com dois filhos, precisa de 2 quartos
 const FK = "Child (school, health plan, diapers)";
 // filho custa uma fatia da renda da família: quem ganha pouco usa escola pública e SUS; quem ganha mais paga escola e plano
 const rendaFamilia = () => s.aposentado||s.empresario ? Math.max(rendaPassiva(), rendaAtivos()) : s.salario + comissaoMedia();
 const PCT_FILHO = 0.15;
-const custoFilho = () => Math.max(C(300), Math.round(rendaFamilia()*PCT_FILHO/10)*10);
+const TETO_FILHO = 50000; // teto mensal por filho (faculdade, moradia, conforto): mais renda não vira gasto ilimitado
+const custoFilho = () => Math.min(TETO_FILHO, Math.max(C(300), Math.round(rendaFamilia()*PCT_FILHO/10)*10));
 const padraoFilho = () => { const r=rendaFamilia()/(s.idx||1); return r<4000 ? "public school, public healthcare, diapers and food" : r<12000 ? "private school, health plan and diapers" : "bilingual school, full health plan and activities"; };
 function felFamilia(){
   const L=[];
@@ -4229,10 +4232,10 @@ const BOL_DEC={
         return bolRes('bom',"Low cost, no promises",`Buy ${fmt0(X)} in index shares`,"You got the return of the whole market and a near-zero fee. It looks dull, but it's what earns the most over time.",[[`${fmt0(X)} invested in the index`,true]],'gestor'); }},
       {label:"Decline and ask for the prospectus with all fees", sub:"No cost", modal:'tycRes', run:()=>bolRes('bom',"The right question","Decline and ask for the prospectus","When you asked for the numbers, the manager changed the subject. Whoever sells financial products lives on commission: the more fees, the more he earns.",[["No money spent",true]],'gestor')}]; }},
   fomo:{titulo:"Everyone is talking about the stock market", texto:()=>`The market is hitting records and at work all anyone talks about is who made money. A coworker sold his car to get in.`,
-    ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round(((s.salario||0)*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
+    ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round((Math.max(rendaTotal(),rendaFamilia())*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
       {label:"Put in everything left in the account, all at once", sub:livre>=X?fmt0(livre):"There's no money left beyond the next months' bills", disabled:livre<X, modal:'tycRes', run:()=>{ aplicar('acoes',livre);
         return bolRes('neutro',"Went in all at once at the top","Put it all in at once",`You bought ${fmt0(livre)} in stocks with the market at its highs. If it falls 20% right after, the fall is big and the urge to sell appears.`,[[`${fmt0(livre)} invested in stocks all at once`,null]],'fomo'); }},
-      {label:jaTem?`Increase the scheduled contribution by ${fmt0(aporte)} a month`:`Schedule a contribution of ${fmt0(aporte)} a month`, sub:jaTem?`Today: ${fmt0(jaTem)} a month`:"Every month, only if there's money left beyond the bills", disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
+      {label:jaTem?`Increase the scheduled contribution by ${fmt0(aporte)} a month`:`Schedule a contribution of ${fmt0(aporte)} a month`, sub:jaTem?(jaTem>=aporte*3?`Limit reached: the contribution is already at 30% of your income (${fmt0(jaTem)} a month)`:`Today: ${fmt0(jaTem)} a month`):"Every month, only if there's money left beyond the bills", disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
         return bolRes('bom',"You created a rule",jaTem?"Increase the scheduled contribution":"Schedule a monthly contribution",`Every month, ${fmt0(s.aporteAuto)} goes into stocks automatically, as long as there's money left beyond three months of bills. No emotion and no trying to guess the best day.`,[[`Scheduled contribution: ${fmt0(s.aporteAuto)} a month`,true]],'fomo'); }},
       {label:"Wait for the market to fall before getting in", sub:"No cost", modal:'tycRes', run:()=>bolRes('neutro',"Waiting for the perfect moment","Wait for the market to fall","It may fall, it may rise more first. Those who wait for the \"perfect moment\" tend to miss a good part of the rise.",[["Nothing was invested",null]],'fomo')}]; }}
 };
@@ -5526,7 +5529,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v346</p>
+    <p class="titulo-versao">version v347</p>
   </div>`;
 }
 function render(){
@@ -7861,17 +7864,20 @@ const MORADIAS = [
 /* ================= família (fase 2 em diante, escolha do jogador) ================= */
 // o cônjuge não traz dinheiro: traz bem-estar, segurança e vida social; filhos pedem casa maior
 const IDADE_INDEP = 264, IDADE_MAIOR = 216; // meses: aos 18 anos o custo cai pela metade; aos 22 o filho se emancipa
-const idadesF = () => { if(!Array.isArray(s.filhosIdade)) s.filhosIdade = Array(s.filhos||0).fill(0); return s.filhosIdade; };
+const idadesF = () => { if(!Array.isArray(s.filhosIdade)){ // save antigo: estima a idade pelo tempo desde o casamento (o 1º filho veio depois de 6 meses; o 2º, pelo menos 18 meses depois)
+    const m=Math.max(0,(s.mes||0)-(s.casadoEm||0)-6); s.filhosIdade=Array.from({length:s.filhos||0},(_,i)=>Math.max(0,m-18*i)); }
+  return s.filhosIdade; };
 const totalFilhos = () => idadesF().length; // filhos que a família teve (a foto de família continua igual)
 const nFilhos = () => idadesF().filter(a=>a<IDADE_INDEP).length; // só os que ainda dependem de você
-const custoFilhos = () => idadesF().reduce((t,a)=> t + (a<IDADE_MAIOR ? custoFilho() : a<IDADE_INDEP ? Math.round(custoFilho()/20)*10 : 0), 0);
+const custoFilhos = () => (idadesF().reduce((t,a)=> t + (a<IDADE_MAIOR ? custoFilho() : a<IDADE_INDEP ? Math.round(custoFilho()/20)*10 : 0), 0));
 const CF = v => Math.round(v*(s.idx||1)*(s.escL||1)/10)*10; // gastos de família acompanham o padrão de renda
 const morMin = () => nFilhos()>=2 ? 2 : (nFilhos()>0 || s.casado) ? 1 : 0; // o bebê cabe no quarto dos pais; com dois filhos, precisa de 2 quartos
 const FK = 'Filho (escola, plano, fraldas)';
 // filho custa uma fatia da renda da família: quem ganha pouco usa escola pública e SUS; quem ganha mais paga escola e plano
 const rendaFamilia = () => s.aposentado||s.empresario ? Math.max(rendaPassiva(), rendaAtivos()) : s.salario + comissaoMedia();
 const PCT_FILHO = 0.15;
-const custoFilho = () => Math.max(C(300), Math.round(rendaFamilia()*PCT_FILHO/10)*10);
+const TETO_FILHO = 50000; // teto mensal por filho (faculdade, moradia, conforto): mais renda não vira gasto ilimitado
+const custoFilho = () => Math.min(TETO_FILHO, Math.max(C(300), Math.round(rendaFamilia()*PCT_FILHO/10)*10));
 const padraoFilho = () => { const r=rendaFamilia()/(s.idx||1); return r<4000 ? 'escola pública, SUS, fraldas e comida' : r<12000 ? 'escola particular, plano de saúde e fraldas' : 'escola bilíngue, plano completo e atividades'; };
 function felFamilia(){
   const L=[];
@@ -10440,10 +10446,10 @@ const BOL_DEC={
         return bolRes('bom','Custo baixo, sem promessa',`Comprar ${fmt0(X)} em cotas do índice`,'Você ficou com o retorno do mercado inteiro e uma taxa quase zero. Parece sem graça, mas é o que mais ganha com o tempo.',[[`${fmt0(X)} aplicados no índice`,true]],'gestor'); }},
       {label:'Recusar e pedir a lâmina com todas as taxas', sub:'Sem custo', modal:'tycRes', run:()=>bolRes('bom','Pergunta certa','Recusar e pedir a lâmina','Quando você pediu os números, o gerente mudou de assunto. Quem vende produto financeiro vive de comissão: quanto mais taxa, mais ele ganha.',[['Nenhum dinheiro gasto',true]],'gestor')}]; }},
   fomo:{titulo:'Todo mundo está falando em bolsa', texto:()=>`A bolsa está batendo recordes e no trabalho só se fala em quem ganhou dinheiro. Um colega vendeu o carro para entrar.`,
-    ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round(((s.salario||0)*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
+    ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round((Math.max(rendaTotal(),rendaFamilia())*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
       {label:'Colocar tudo que sobrou na conta, de uma vez', sub:livre>=X?fmt0(livre):'Não sobra dinheiro além das contas dos próximos meses', disabled:livre<X, modal:'tycRes', run:()=>{ aplicar('acoes',livre);
         return bolRes('neutro','Entrou de uma vez no topo','Colocar tudo de uma vez',`Você comprou ${fmt0(livre)} em ações com a bolsa nas máximas. Se ela cair 20% logo depois, o tombo é grande e a vontade de vender aparece.`,[[`${fmt0(livre)} aplicados em ações de uma vez`,null]],'fomo'); }},
-      {label:jaTem?`Aumentar o aporte programado em ${fmt0(aporte)} por mês`:`Programar um aporte de ${fmt0(aporte)} por mês`, sub:jaTem?`Hoje: ${fmt0(jaTem)} por mês`:'Todo mês, só se sobrar dinheiro além das contas', disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
+      {label:jaTem?`Aumentar o aporte programado em ${fmt0(aporte)} por mês`:`Programar um aporte de ${fmt0(aporte)} por mês`, sub:jaTem?(jaTem>=aporte*3?`Limite atingido: o aporte já está em 30% da sua renda (${fmt0(jaTem)} por mês)`:`Hoje: ${fmt0(jaTem)} por mês`):'Todo mês, só se sobrar dinheiro além das contas', disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
         return bolRes('bom','Você criou uma regra',jaTem?'Aumentar o aporte programado':'Programar um aporte mensal',`Todo mês, ${fmt0(s.aporteAuto)} vão para ações automaticamente, desde que sobre dinheiro além de três meses de contas. Sem emoção e sem tentar adivinhar o melhor dia.`,[[`Aporte programado: ${fmt0(s.aporteAuto)} por mês`,true]],'fomo'); }},
       {label:'Esperar a bolsa cair para entrar', sub:'Sem custo', modal:'tycRes', run:()=>bolRes('neutro','Esperando o momento perfeito','Esperar a bolsa cair','Pode cair, pode subir mais antes. Quem espera o "momento perfeito" costuma ficar de fora de boa parte da alta.',[['Nada foi investido',null]],'fomo')}]; }}
 };
@@ -11737,7 +11743,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v346</p>
+    <p class="titulo-versao">versão v347</p>
   </div>`;
 }
 function render(){
