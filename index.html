@@ -4744,6 +4744,7 @@ function iniciarMes(){
     if(alvo>1 && tot>0) for(const id of Object.keys(prods())){ const v=valor(id); if(v>0){ const r=calcResgate(id, Math.min(v, alvo*v/tot), true); tirou+=r.liq; } }
     if(tirou>0) ex.push([protegeu?"Withdrawal from the emergency fund (to avoid selling stocks at a low)":"Withdrawal from the portfolio to live", tirou]);
   }
+  if(s.sobraCdb && F2() && !s.aposentado && prods().cdb && s.conta>=1){ const x=Math.floor(s.conta); aplicar('cdb',x); ex.push(['Leftover cash moved to savings', -x]); }
   s.mesesAzul = s.conta>=0 ? (s.mesesAzul||0)+1 : 0;
   if(s.parcelas.some(p=>p.nome!=="Capitalization bond")) s.teveDivida=true;
   if(s.habEst && HABS[s.habEst.id] && s.mes>=s.habEst.ate){ const r=concluirHab(); avisarEvolucao('habilidade', r.titulo.replace("New skill: ",''), r.texto); ex.push(['🌱 '+r.titulo, 0]); lic = lic ? {...lic, texto:lic.texto+` Besides that: ${r.titulo.toLowerCase()}. ${r.texto}`} : r; }
@@ -4994,12 +4995,15 @@ function linhaProduto(id,p){
   if(p.reserva && !trancado){ const paga=!!(s.jurosConta||{})[id], r=p.taxa(), reinv=v*(Math.pow(1+r,12)-1), simples=v*r*12;
     modoJuros=`<div class="juros-modo"><small>Monthly yield:</small><div class="seg seg-hud" role="group" aria-label="Where the yield goes"><button data-acao="jurosModo" data-alvo="${id}:reinv" aria-pressed="${!paga}">Reinvest<small>adds to the ${p.curto}</small></button><button data-acao="jurosModo" data-alvo="${id}:conta" aria-pressed="${paga}">Paid to account<small>every month</small></button></div>
       <details class="mais"><summary>Which one to choose?</summary><p class="hint"><b>Reinvest</b>: the yield stays in the ${p.curto} and starts earning too. That's compound interest: it grows slowly at first and accelerates over time. <b>Paid to account</b>: the yield becomes cash in hand every month, like a dividend. It feels like income, but the ${p.curto} stops growing on its own, and money sitting in the account loses to inflation. ${v>0.5?`With today's balance, in 12 months: reinvesting earns about <b>${fmt(reinv)}</b>; receiving it in the account, <b>${fmt(simples)}</b>. You can switch at any time.`:"You can switch at any time."}</p></details></div>`; }
+  let sobraHtml='';
+  if(p.reserva && !trancado && F2()){ const on=!!s.sobraCdb;
+    sobraHtml=`<div class="juros-modo"><small>Month's leftover:</small><div class="seg seg-hud" role="group" aria-label="Month's leftover"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Stays in the account<small>you decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Goes to ${p.curto}<small>automatic</small></button></div><p class="hint">Once the month's bills are paid, whatever is left in your checking account goes by itself into ${p.curto}. If something unexpected comes up, the game redeems from here first.</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctuates every month":"last month "+pctFmt(p.taxa())):pct2(p.taxa())+" a month"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
     ${unid}
     ${acoes}
-    ${modoJuros}
+    ${modoJuros||sobraHtml?`<div style="flex:1 1 100%;width:100%">${modoJuros}${sobraHtml}</div>`:''}
   </div>`;
 }
 
@@ -5542,7 +5546,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v351</p>
+    <p class="titulo-versao">version v352</p>
   </div>`;
 }
 function render(){
@@ -6697,6 +6701,7 @@ document.addEventListener('click', e=>{
       else { s.habitos[alvo]=s.mes; if(!lst.includes(alvo)) lst.push(alvo); s.licao={tom:'bom', titulo:`Started: ${HABITOS[alvo].nome.toLowerCase()}`, texto:`${HABITOS[alvo].desc} Keep it up for 6 months to become a firm habit.`}; }
       c.habitos=lst; gravarCamp(c); salvar(); render(); break; }
     case 'estilo': s.estilo=alvo; salvar(); render(); break;
+    case 'sobraCdb': s.sobraCdb=(alvo==='1'); salvar(); render(); break;
     case 'jurosModo': { const [pid,modo]=String(alvo).split(':'); (s.jurosConta||(s.jurosConta={}))[pid]=(modo==='conta'); salvar(); render(); break; }
     case 'guardar': case 'resgatar': ui.mov={tipo:a, alvo}; ui.modal='valor'; ui.erro=''; ui.valor=''; render(); break;
     case 'pct': { const inp=document.getElementById('valor'); if(!inp) break; inp.value=alvo; ui.valor=alvo; ui.erro=''; const er=document.getElementById('erro'); if(er) er.textContent=''; atualizarPreview(); break; }
@@ -10988,6 +10993,7 @@ function iniciarMes(){
     if(alvo>1 && tot>0) for(const id of Object.keys(prods())){ const v=valor(id); if(v>0){ const r=calcResgate(id, Math.min(v, alvo*v/tot), true); tirou+=r.liq; } }
     if(tirou>0) ex.push([protegeu?'Saque da reserva (para não vender ações em baixa)':'Saque da carteira para viver', tirou]);
   }
+  if(s.sobraCdb && F2() && !s.aposentado && prods().cdb && s.conta>=1){ const x=Math.floor(s.conta); aplicar('cdb',x); ex.push(['Sobra do mês guardada na reserva', -x]); }
   s.mesesAzul = s.conta>=0 ? (s.mesesAzul||0)+1 : 0;
   if(s.parcelas.some(p=>p.nome!=='Título de capitalização')) s.teveDivida=true;
   if(s.habEst && HABS[s.habEst.id] && s.mes>=s.habEst.ate){ const r=concluirHab(); avisarEvolucao('habilidade', r.titulo.replace('Nova habilidade: ',''), r.texto); ex.push(['🌱 '+r.titulo, 0]); lic = lic ? {...lic, texto:lic.texto+` Além disso: ${r.titulo.toLowerCase()}. ${r.texto}`} : r; }
@@ -11238,12 +11244,15 @@ function linhaProduto(id,p){
   if(p.reserva && !trancado){ const paga=!!(s.jurosConta||{})[id], r=p.taxa(), reinv=v*(Math.pow(1+r,12)-1), simples=v*r*12;
     modoJuros=`<div class="juros-modo"><small>O rendimento mensal:</small><div class="seg seg-hud" role="group" aria-label="Destino do rendimento"><button data-acao="jurosModo" data-alvo="${id}:reinv" aria-pressed="${!paga}">Reinvestir<small>soma no ${p.curto}</small></button><button data-acao="jurosModo" data-alvo="${id}:conta" aria-pressed="${paga}">Cair na conta<small>todo mês</small></button></div>
       <details class="mais"><summary>Qual escolher?</summary><p class="hint"><b>Reinvestir</b>: o rendimento fica no ${p.curto} e passa a render também. É o efeito dos juros sobre juros: cresce devagar no começo e acelera com o tempo. <b>Cair na conta</b>: o rendimento vira dinheiro na mão todo mês, como um dividendo. Dá a sensação de renda, mas o ${p.curto} para de crescer sozinho, e dinheiro parado na conta perde para a inflação. ${v>0.5?`Com o saldo de hoje, em 12 meses: reinvestindo rende cerca de <b>${fmt(reinv)}</b>; recebendo na conta, <b>${fmt(simples)}</b>. Dá para trocar a qualquer momento.`:'Dá para trocar a qualquer momento.'}</p></details></div>`; }
+  let sobraHtml='';
+  if(p.reserva && !trancado && F2()){ const on=!!s.sobraCdb;
+    sobraHtml=`<div class="juros-modo"><small>Sobra do mês:</small><div class="seg seg-hud" role="group" aria-label="Sobra do mês"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Fica na conta<small>você decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Vai para o ${p.curto}<small>automático</small></button></div><p class="hint">Depois que as contas do mês são pagas, tudo o que sobrar na conta corrente vai sozinho para o ${p.curto}. Se aparecer um imprevisto, o jogo resgata daqui primeiro.</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?'oscila todo mês':'último mês '+pctFmt(p.taxa())):pct2(p.taxa())+' ao mês'}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
     ${unid}
     ${acoes}
-    ${modoJuros}
+    ${modoJuros||sobraHtml?`<div style="flex:1 1 100%;width:100%">${modoJuros}${sobraHtml}</div>`:''}
   </div>`;
 }
 
@@ -11786,7 +11795,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v351</p>
+    <p class="titulo-versao">versão v352</p>
   </div>`;
 }
 function render(){
@@ -12941,6 +12950,7 @@ document.addEventListener('click', e=>{
       else { s.habitos[alvo]=s.mes; if(!lst.includes(alvo)) lst.push(alvo); s.licao={tom:'bom', titulo:`Começou: ${HABITOS[alvo].nome.toLowerCase()}`, texto:`${HABITOS[alvo].desc} Mantenha por 6 meses para virar hábito firme.`}; }
       c.habitos=lst; gravarCamp(c); salvar(); render(); break; }
     case 'estilo': s.estilo=alvo; salvar(); render(); break;
+    case 'sobraCdb': s.sobraCdb=(alvo==='1'); salvar(); render(); break;
     case 'jurosModo': { const [pid,modo]=String(alvo).split(':'); (s.jurosConta||(s.jurosConta={}))[pid]=(modo==='conta'); salvar(); render(); break; }
     case 'guardar': case 'resgatar': ui.mov={tipo:a, alvo}; ui.modal='valor'; ui.erro=''; ui.valor=''; render(); break;
     case 'pct': { const inp=document.getElementById('valor'); if(!inp) break; inp.value=alvo; ui.valor=alvo; ui.erro=''; const er=document.getElementById('erro'); if(er) er.textContent=''; atualizarPreview(); break; }
