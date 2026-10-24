@@ -1274,6 +1274,13 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 .slot-i{display:flex;flex-direction:column;min-width:0}.slot-i small{opacity:.75;line-height:1.3}
 .slot-b{display:flex;gap:6px;flex-shrink:0}.slot-b .btn{padding:6px 10px;min-height:0}
 .slot-b .btn:disabled{opacity:.4}
+
+/* v354: a conta pisca em verde quando o mês entra dinheiro e em vermelho quando sai */
+.topo-conta.fl-bom{animation:flContaBom 1.4s ease-out}
+.topo-conta.fl-ruim{animation:flContaRuim 1.4s ease-out}
+@keyframes flContaBom{0%{box-shadow:0 0 0 0 rgba(63,174,107,0);background:#BFF0CF}25%{box-shadow:0 0 0 5px rgba(63,174,107,.55);background:#9DE5B6}100%{box-shadow:0 0 0 0 rgba(63,174,107,0)}}
+@keyframes flContaRuim{0%{box-shadow:0 0 0 0 rgba(229,83,75,0);background:#F8C9C5}25%{box-shadow:0 0 0 5px rgba(229,83,75,.55);background:#F3A7A1}100%{box-shadow:0 0 0 0 rgba(229,83,75,0)}}
+@media (prefers-reduced-motion:reduce){.topo-conta.fl-bom,.topo-conta.fl-ruim{animation:none}}
 </style>
 
 <div class="app" id="app"></div>
@@ -4624,7 +4631,7 @@ function legendaTabuleiro(){
 /* ================= turno ================= */
 function iniciarMes(){
   s.mes++; s.vendasAcoes=0; if(mesCal()===1){ s.marcas={}; s.marcasT={}; }
-  const ex=[]; let lic=null;
+  const ex=[]; let lic=null; const conta0=s.conta;
   if(s.mes>1){
     mercado();
     for(const [id,p] of Object.entries(prods())){
@@ -4744,6 +4751,7 @@ function iniciarMes(){
     if(alvo>1 && tot>0) for(const id of Object.keys(prods())){ const v=valor(id); if(v>0){ const r=calcResgate(id, Math.min(v, alvo*v/tot), true); tirou+=r.liq; } }
     if(tirou>0) ex.push([protegeu?"Withdrawal from the emergency fund (to avoid selling stocks at a low)":"Withdrawal from the portfolio to live", tirou]);
   }
+  s.fluxoMes=s.conta-conta0;   // o que entrou menos o que saiu da conta no mês (antes de guardar a sobra)
   if(s.sobraCdb && F2() && !s.aposentado && prods().cdb){
     if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Savings used automatically to cover the bills', r.liq]); }
     else if(s.conta>=1){ const x=Math.floor(s.conta); aplicar('cdb',x); ex.push(['Leftover cash moved to savings', -x]); } }
@@ -4848,12 +4856,13 @@ function avancar(n=1){
   let dadoUsado=false;
   if(n===1 && s.mes>=1 && !s.fim){ const k=preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
   const p0=patrimonio(), m0=s.mes;
-  let motivo='';
+  let motivo='', fl=0;
   for(let i=0;i<n && s.mes<totalMes();i++){
-    iniciarMes(); checarDesbloqueio(); checarFim();
+    iniciarMes(); fl+=s.fluxoMes||0; checarDesbloqueio(); checarFim();
     if(s.fim||s.evento||s.avisosEvolucao?.length) break;
     if(s.conta<0){ motivo="The account went negative, so we paused for you to decide."; break; }
   }
+  ui.flashConta = Math.abs(fl)<1 ? null : (fl>0 ? 'bom' : 'ruim');
   const pulados=s.mes-m0;
   if(n>1 && pulados>1 && !dadoUsado && !s.evento && !s.fim){
     const d=patrimonio()-p0;
@@ -5548,7 +5557,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v353</p>
+    <p class="titulo-versao">version v354</p>
   </div>`;
 }
 function render(){
@@ -5873,7 +5882,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} of ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":fz>=70?"Great":fz>=50?"Good":fz>=25?"Tired":"At the limit"}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
@@ -10875,7 +10884,7 @@ function legendaTabuleiro(){
 /* ================= turno ================= */
 function iniciarMes(){
   s.mes++; s.vendasAcoes=0; if(mesCal()===1){ s.marcas={}; s.marcasT={}; }
-  const ex=[]; let lic=null;
+  const ex=[]; let lic=null; const conta0=s.conta;
   if(s.mes>1){
     mercado();
     for(const [id,p] of Object.entries(prods())){
@@ -10995,6 +11004,7 @@ function iniciarMes(){
     if(alvo>1 && tot>0) for(const id of Object.keys(prods())){ const v=valor(id); if(v>0){ const r=calcResgate(id, Math.min(v, alvo*v/tot), true); tirou+=r.liq; } }
     if(tirou>0) ex.push([protegeu?'Saque da reserva (para não vender ações em baixa)':'Saque da carteira para viver', tirou]);
   }
+  s.fluxoMes=s.conta-conta0;   // o que entrou menos o que saiu da conta no mês (antes de guardar a sobra)
   if(s.sobraCdb && F2() && !s.aposentado && prods().cdb){
     if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Reserva usada automaticamente para cobrir as contas', r.liq]); }
     else if(s.conta>=1){ const x=Math.floor(s.conta); aplicar('cdb',x); ex.push(['Sobra do mês guardada na reserva', -x]); } }
@@ -11099,12 +11109,13 @@ function avancar(n=1){
   let dadoUsado=false;
   if(n===1 && s.mes>=1 && !s.fim){ const k=preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
   const p0=patrimonio(), m0=s.mes;
-  let motivo='';
+  let motivo='', fl=0;
   for(let i=0;i<n && s.mes<totalMes();i++){
-    iniciarMes(); checarDesbloqueio(); checarFim();
+    iniciarMes(); fl+=s.fluxoMes||0; checarDesbloqueio(); checarFim();
     if(s.fim||s.evento||s.avisosEvolucao?.length) break;
     if(s.conta<0){ motivo='A conta ficou negativa, então paramos para você decidir.'; break; }
   }
+  ui.flashConta = Math.abs(fl)<1 ? null : (fl>0 ? 'bom' : 'ruim');
   const pulados=s.mes-m0;
   if(n>1 && pulados>1 && !dadoUsado && !s.evento && !s.fim){
     const d=patrimonio()-p0;
@@ -11799,7 +11810,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v353</p>
+    <p class="titulo-versao">versão v354</p>
   </div>`;
 }
 function render(){
@@ -12124,7 +12135,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?'Esgotado':fz>=70?'Ótimo':fz>=50?'Bem':fz>=25?'Cansado':'No limite'}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
