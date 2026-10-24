@@ -4752,9 +4752,10 @@ function iniciarMes(){
     if(tirou>0) ex.push([protegeu?"Withdrawal from the emergency fund (to avoid selling stocks at a low)":"Withdrawal from the portfolio to live", tirou]);
   }
   s.fluxoMes=s.conta-conta0;   // o que entrou menos o que saiu da conta no mês (antes de guardar a sobra)
-  if(s.sobraCdb && F2() && !s.aposentado && prods().cdb){
+  if(s.sobraCdb && F2() && prods().cdb){
+    const colchao = s.aposentado ? custoMensal() : 0;   // quem vive de renda mantém 1 mês de custo na conta
     if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Savings used automatically to cover the bills', r.liq]); }
-    else if(s.conta>=1){ const x=Math.floor(s.conta); aplicar('cdb',x); ex.push(['Leftover cash moved to savings', -x]); } }
+    else if(s.conta-colchao>=1){ const x=Math.floor(s.conta-colchao); aplicar('cdb',x); ex.push(['Leftover cash moved to savings', -x]); } }
   s.mesesAzul = s.conta>=0 ? (s.mesesAzul||0)+1 : 0;
   if(s.parcelas.some(p=>p.nome!=="Capitalization bond")) s.teveDivida=true;
   if(s.habEst && HABS[s.habEst.id] && s.mes>=s.habEst.ate){ const r=concluirHab(); avisarEvolucao('habilidade', r.titulo.replace("New skill: ",''), r.texto); ex.push(['🌱 '+r.titulo, 0]); lic = lic ? {...lic, texto:lic.texto+` Besides that: ${r.titulo.toLowerCase()}. ${r.texto}`} : r; }
@@ -5557,7 +5558,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v354</p>
+    <p class="titulo-versao">version v355</p>
   </div>`;
 }
 function render(){
@@ -11005,9 +11006,10 @@ function iniciarMes(){
     if(tirou>0) ex.push([protegeu?'Saque da reserva (para não vender ações em baixa)':'Saque da carteira para viver', tirou]);
   }
   s.fluxoMes=s.conta-conta0;   // o que entrou menos o que saiu da conta no mês (antes de guardar a sobra)
-  if(s.sobraCdb && F2() && !s.aposentado && prods().cdb){
+  if(s.sobraCdb && F2() && prods().cdb){
+    const colchao = s.aposentado ? custoMensal() : 0;   // quem vive de renda mantém 1 mês de custo na conta
     if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Reserva usada automaticamente para cobrir as contas', r.liq]); }
-    else if(s.conta>=1){ const x=Math.floor(s.conta); aplicar('cdb',x); ex.push(['Sobra do mês guardada na reserva', -x]); } }
+    else if(s.conta-colchao>=1){ const x=Math.floor(s.conta-colchao); aplicar('cdb',x); ex.push(['Sobra do mês guardada na reserva', -x]); } }
   s.mesesAzul = s.conta>=0 ? (s.mesesAzul||0)+1 : 0;
   if(s.parcelas.some(p=>p.nome!=='Título de capitalização')) s.teveDivida=true;
   if(s.habEst && HABS[s.habEst.id] && s.mes>=s.habEst.ate){ const r=concluirHab(); avisarEvolucao('habilidade', r.titulo.replace('Nova habilidade: ',''), r.texto); ex.push(['🌱 '+r.titulo, 0]); lic = lic ? {...lic, texto:lic.texto+` Além disso: ${r.titulo.toLowerCase()}. ${r.texto}`} : r; }
@@ -11810,7 +11812,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v354</p>
+    <p class="titulo-versao">versão v355</p>
   </div>`;
 }
 function render(){
