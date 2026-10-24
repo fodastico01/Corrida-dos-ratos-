@@ -4311,7 +4311,7 @@ function opcoesDe(id){
   if(!o.length || !o.every(x=>x.disabled)) return o;
   const extra=[], a=alvoVenda();
   if(a){ const p=Math.round(vMerc(a)*0.85/100)*100;
-    extra.push({label:`Sell ${a.nome.toLowerCase()} for ${fmt0(p)}`, sub:"The money lands in the account and you choose again (sells for 85% of the value)", manter:true, run:()=>{ const r=venderAtivo(a,p); ui.evAviso=`You sold ${a.nome.toLowerCase()} for ${fmt0(p)}${r.quitado>0?` and paid off ${fmt0(r.quitado)} of the loan`:''}. Now choose again.`; return null; }}); }
+    extra.push({label:`Sell ${a.nome.toLowerCase()} for ${fmt0(p)}`, sub:"The money lands in the account and you choose again (sells for 85% of the value)", manter:true, run:()=>{ if(!confirm('Sell '+a.nome.toLowerCase()+' for '+fmt0(p)+'? It will no longer be yours.')) return null; const r=venderAtivo(a,p); ui.evAviso=`You sold ${a.nome.toLowerCase()} for ${fmt0(p)}${r.quitado>0?` and paid off ${fmt0(r.quitado)} of the loan`:''}. Now choose again.`; return null; }}); }
   extra.push({label:"Postpone and struggle", sub:"The problem continues and the stress weighs on well-being", run:()=>{ s.fel=clamp(s.fel-6,0,100); return {tom:'ruim', titulo:"Left for later", texto:"With no cash on hand, the decision was postponed. A postponed problem usually comes back bigger. Having an emergency fund avoids this squeeze, and wealth that doesn't turn into cash quickly (like a company) doesn't solve an emergency."}; }});
   return [...o, ...extra];
 }
@@ -4804,7 +4804,7 @@ function liquidacaoForcada(){
     if(s.conta>=0 || !prods()[id]) continue; const d=disponivel(id); if(d<=0) continue;
     const r=resgatarLiquido(id, Math.min(-s.conta, d), true); if(r.liq>0) vendas.push(`${fmt0(r.liq)} of ${prod(id).curto}`);
   }
-  const lista=[...(s.ativos||[])].sort((a,b)=>a.valor-b.valor);
+  const lista=[...(s.ativos||[])].sort((a,b)=>((a.tipo==='negocio')-(b.tipo==='negocio'))||a.valor-b.valor); // empresas por último
   for(const a of lista){
     if(s.conta>=0) break;
     const fin=a.finUid ? s.parcelas.find(p=>p.uid===a.finUid) : null, saldoFin=fin?saldoParc(fin):0, preco=Math.round((Number.isFinite(vMerc(a))?vMerc(a):(a.custo||a.valor||0))*0.7);
@@ -4816,7 +4816,8 @@ function liquidacaoForcada(){
 }
 function checarFim(){
   if(s.conta >= -limCheque()) return;
-  const tinhaRes=!!reservaCobre(); const {vendas, perdaDesconto}=liquidacaoForcada();
+  const tinhaRes=!!reservaCobre(); try{ localStorage.setItem('corrida-snapPre', JSON.stringify(s)); }catch(e){}
+  const {vendas, perdaDesconto}=liquidacaoForcada();
   if(s.conta < -limCheque()){ s.fim='estouro'; s.evento=null; ui.modal='fim'; return; }
   s.licao={tom:'ruim', titulo:"The bank enforced the debt", texto:tinhaRes?`Overdraft passed ${fmt0(limCheque())}. You had an emergency fund, but it sat idle while the account sank: the bank withdrew it for you (${vendas.join('; ')}) after charging interest of 8% a month. When the account goes negative, use "Cover with Emergency Fund" right away.`:`Overdraft passed ${fmt0(limCheque())} and there was no emergency fund. To cover it, you had to sell in a rush: ${vendas.join('; ')}.${perdaDesconto>0?` In the quick-sale discount alone you lost ${fmt0(perdaDesconto)}.`:''} Wealth is not cash in hand: without an emergency fund, an emergency forces you to sell at the worst time.`};
 }
@@ -5541,7 +5542,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v349</p>
+    <p class="titulo-versao">version v350</p>
   </div>`;
 }
 function render(){
@@ -6068,7 +6069,7 @@ function renderConfirmOperacao(){
   }
   modal.innerHTML=`<div class="overlay" data-acao="cancelarConfirmOperacao"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">Check before finishing</span><h3 id="m-t">${titulo}</h3>${html}<div class="opcoes"><button class="opcao" data-acao="cancelarConfirmOperacao"><b>Cancel</b><span>Keep everything as is</span></button><button class="opcao coin" data-acao="concluirConfirmOperacao"><b>${botao}</b></button></div></div></div>`;
 }
-function renderModal(){
+function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
   renderModal0();
@@ -6679,7 +6680,7 @@ document.addEventListener('click', e=>{
     case 'expandir': expandir(Number(alvo)); checarFim(); salvar(); render(); break;
     case 'receber': receberAmigos(); salvar(); render(); break;
     case 'usarInfl': if((s.infl||0)>=100){ if(!(ui.cartasInfl||[]).length || ui.cartasMes!==s.mes){ ui.cartasInfl=sortearCartasInfl(); ui.cartasMes=s.mes; } ui.modal='infl'; render(); } break;
-    case 'cartaInfl': { const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); break; }
+    case 'cartaInfl': { if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break; const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador'){ const a0=alvoVenda(); if(a0 && !confirm('Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.')) break; } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
@@ -6786,7 +6787,7 @@ document.addEventListener('click', e=>{
     case 'corridaSair': ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); break;
     case 'fechar': ui.modal=null; ui.erro=''; ui.fotoNova=false; render(); break;
     case 'verFoto': ui.foto=alvo; ui.fotoFlash=false; ui.fotoNova=false; ui.modal='foto'; renderModal(); break;
-    case 'opcao': { if(ui.girando) break;
+    case 'opcao': { if(ui.girando) break; if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break;
       if(s.evento==='corte'){ if(ui.corteAnim) break; s.corteR=Math.random(); const mk=document.getElementById('marcCorte');
         if(mk && !window.__corridaMudo && !matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.corteAnim=true; document.querySelectorAll('#modal .opcao').forEach(b=>b.disabled=true);
           const barra=mk.parentElement, n=14, fim=s.corteR, p=pctCorte(); let i=0;
@@ -6807,7 +6808,7 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
-    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-en-snapB')||localStorage.getItem('corrida-en-snapA'); if(!t){ bkMsg("There's no automatic copy on this device yet."); break; } const o=JSON.parse(t); if(!confirm("Go back the game to "+(o.mes?("month "+o.mes):"an earlier copy")+"? Progress after that will be lost.")) break; localStorage.setItem(CHAVE,t); bkMsg("Copy restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't restore the copy."); } break; }
+    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-en-snapB')||localStorage.getItem('corrida-en-snapA'); if(!t){ bkMsg("There's no automatic copy on this device yet."); break; } const o=JSON.parse(t); if(!confirm("Go back the game to "+(o.mes?("month "+o.mes):"an earlier copy")+"? Progress after that will be lost.")) break; localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg("Copy restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't restore the copy."); } break; }
     case 'slotSalvar': slotSalvar(Number(alvo)); break;
     case 'slotCarregar': slotCarregar(Number(alvo)); break;
     case 'bkBaixar': bkBaixar(); break;
@@ -10554,7 +10555,7 @@ function opcoesDe(id){
   if(!o.length || !o.every(x=>x.disabled)) return o;
   const extra=[], a=alvoVenda();
   if(a){ const p=Math.round(vMerc(a)*0.85/100)*100;
-    extra.push({label:`Vender ${a.nome.toLowerCase()} por ${fmt0(p)}`, sub:'O dinheiro cai na conta e você volta a escolher (vende por 85% do valor)', manter:true, run:()=>{ const r=venderAtivo(a,p); ui.evAviso=`Você vendeu ${a.nome.toLowerCase()} por ${fmt0(p)}${r.quitado>0?` e quitou ${fmt0(r.quitado)} do financiamento`:''}. Agora escolha de novo.`; return null; }}); }
+    extra.push({label:`Vender ${a.nome.toLowerCase()} por ${fmt0(p)}`, sub:'O dinheiro cai na conta e você volta a escolher (vende por 85% do valor)', manter:true, run:()=>{ if(!confirm('Vender '+a.nome.toLowerCase()+' por '+fmt0(p)+'? O bem deixa de ser seu.')) return null; const r=venderAtivo(a,p); ui.evAviso=`Você vendeu ${a.nome.toLowerCase()} por ${fmt0(p)}${r.quitado>0?` e quitou ${fmt0(r.quitado)} do financiamento`:''}. Agora escolha de novo.`; return null; }}); }
   extra.push({label:'Adiar e ficar no sufoco', sub:'O problema continua e o estresse pesa no bem-estar', run:()=>{ s.fel=clamp(s.fel-6,0,100); return {tom:'ruim', titulo:'Ficou para depois', texto:'Sem dinheiro à mão, a decisão foi adiada. Problema adiado costuma voltar maior. Ter reserva de emergência evita esse aperto, e patrimônio que não vira dinheiro rápido (como uma empresa) não resolve imprevisto.'}; }});
   return [...o, ...extra];
 }
@@ -11047,7 +11048,7 @@ function liquidacaoForcada(){
     if(s.conta>=0 || !prods()[id]) continue; const d=disponivel(id); if(d<=0) continue;
     const r=resgatarLiquido(id, Math.min(-s.conta, d), true); if(r.liq>0) vendas.push(`${fmt0(r.liq)} de ${prod(id).curto}`);
   }
-  const lista=[...(s.ativos||[])].sort((a,b)=>a.valor-b.valor);
+  const lista=[...(s.ativos||[])].sort((a,b)=>((a.tipo==='negocio')-(b.tipo==='negocio'))||a.valor-b.valor); // empresas por último
   for(const a of lista){
     if(s.conta>=0) break;
     const fin=a.finUid ? s.parcelas.find(p=>p.uid===a.finUid) : null, saldoFin=fin?saldoParc(fin):0, preco=Math.round((Number.isFinite(vMerc(a))?vMerc(a):(a.custo||a.valor||0))*0.7);
@@ -11059,7 +11060,8 @@ function liquidacaoForcada(){
 }
 function checarFim(){
   if(s.conta >= -limCheque()) return;
-  const tinhaRes=!!reservaCobre(); const {vendas, perdaDesconto}=liquidacaoForcada();
+  const tinhaRes=!!reservaCobre(); try{ localStorage.setItem('corrida-snapPre', JSON.stringify(s)); }catch(e){}
+  const {vendas, perdaDesconto}=liquidacaoForcada();
   if(s.conta < -limCheque()){ s.fim='estouro'; s.evento=null; ui.modal='fim'; return; }
   s.licao={tom:'ruim', titulo:'O banco executou a dívida', texto:tinhaRes?`O cheque especial passou de ${fmt0(limCheque())}. Você tinha reserva, mas ela ficou parada enquanto a conta afundava: o banco resgatou por você (${vendas.join('; ')}) depois de cobrar juros de 8% ao mês. Quando a conta ficar negativa, use "Cobrir com a Reserva" logo.`:`O cheque especial passou de ${fmt0(limCheque())} e não havia reserva. Para cobrir, foi preciso vender às pressas: ${vendas.join('; ')}.${perdaDesconto>0?` Só no desconto da venda rápida você perdeu ${fmt0(perdaDesconto)}.`:''} Patrimônio não é dinheiro na mão: sem reserva, um imprevisto obriga a vender na pior hora.`};
 }
@@ -11784,7 +11786,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v349</p>
+    <p class="titulo-versao">versão v350</p>
   </div>`;
 }
 function render(){
@@ -12311,7 +12313,7 @@ function renderConfirmOperacao(){
   }
   modal.innerHTML=`<div class="overlay" data-acao="cancelarConfirmOperacao"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">Confira antes de concluir</span><h3 id="m-t">${titulo}</h3>${html}<div class="opcoes"><button class="opcao" data-acao="cancelarConfirmOperacao"><b>Cancelar</b><span>Manter tudo como está</span></button><button class="opcao coin" data-acao="concluirConfirmOperacao"><b>${botao}</b></button></div></div></div>`;
 }
-function renderModal(){
+function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
   renderModal0();
@@ -12922,7 +12924,7 @@ document.addEventListener('click', e=>{
     case 'expandir': expandir(Number(alvo)); checarFim(); salvar(); render(); break;
     case 'receber': receberAmigos(); salvar(); render(); break;
     case 'usarInfl': if((s.infl||0)>=100){ if(!(ui.cartasInfl||[]).length || ui.cartasMes!==s.mes){ ui.cartasInfl=sortearCartasInfl(); ui.cartasMes=s.mes; } ui.modal='infl'; render(); } break;
-    case 'cartaInfl': { const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); break; }
+    case 'cartaInfl': { if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break; const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador'){ const a0=alvoVenda(); if(a0 && !confirm('Vender '+a0.nome.toLowerCase()+' por '+fmt0(Math.round(vMerc(a0)*1.4))+'? A empresa deixa de ser sua.')) break; } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
@@ -13029,7 +13031,7 @@ document.addEventListener('click', e=>{
     case 'corridaSair': ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); break;
     case 'fechar': ui.modal=null; ui.erro=''; ui.fotoNova=false; render(); break;
     case 'verFoto': ui.foto=alvo; ui.fotoFlash=false; ui.fotoNova=false; ui.modal='foto'; renderModal(); break;
-    case 'opcao': { if(ui.girando) break;
+    case 'opcao': { if(ui.girando) break; if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break;
       if(s.evento==='corte'){ if(ui.corteAnim) break; s.corteR=Math.random(); const mk=document.getElementById('marcCorte');
         if(mk && !window.__corridaMudo && !matchMedia('(prefers-reduced-motion: reduce)').matches){ ui.corteAnim=true; document.querySelectorAll('#modal .opcao').forEach(b=>b.disabled=true);
           const barra=mk.parentElement, n=14, fim=s.corteR, p=pctCorte(); let i=0;
@@ -13050,7 +13052,7 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
-    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); if(!confirm('Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.')) break; localStorage.setItem(CHAVE,t); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
+    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); if(!confirm('Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.')) break; localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
     case 'slotSalvar': slotSalvar(Number(alvo)); break;
     case 'slotCarregar': slotCarregar(Number(alvo)); break;
     case 'bkBaixar': bkBaixar(); break;
