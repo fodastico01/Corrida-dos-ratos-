@@ -4754,8 +4754,8 @@ function iniciarMes(){
   s.fluxoMes=s.conta-conta0;   // o que entrou menos o que saiu da conta no mês (antes de guardar a sobra)
   if(s.sobraCdb && F2() && prods().cdb){
     const colchao = s.aposentado ? custoMensal() : 0;   // quem vive de renda mantém 1 mês de custo na conta
-    if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Savings used automatically to cover the bills', r.liq]); }
-    else if(s.conta-colchao>=1){ const x=Math.floor(s.conta-colchao); aplicar('cdb',x); ex.push(['Leftover cash moved to savings', -x]); } }
+    if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Savings used automatically to cover the bills', r.liq, false, 'transf']); }
+    else if(s.conta-colchao>=1){ const x=Math.floor(s.conta-colchao); aplicar('cdb',x); ex.push(['Leftover cash moved to savings', -x, false, 'transf']); } }
   s.mesesAzul = s.conta>=0 ? (s.mesesAzul||0)+1 : 0;
   if(s.parcelas.some(p=>p.nome!=="Capitalization bond")) s.teveDivida=true;
   if(s.habEst && HABS[s.habEst.id] && s.mes>=s.habEst.ate){ const r=concluirHab(); avisarEvolucao('habilidade', r.titulo.replace("New skill: ",''), r.texto); ex.push(['🌱 '+r.titulo, 0]); lic = lic ? {...lic, texto:lic.texto+` Besides that: ${r.titulo.toLowerCase()}. ${r.texto}`} : r; }
@@ -5558,7 +5558,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v355</p>
+    <p class="titulo-versao">version v356</p>
   </div>`;
 }
 function render(){
@@ -5597,8 +5597,8 @@ function render(){
     const sobra=cfg().total-s.mes, bonus=sobra*15;
     alerta=`<div class="alerta bom"><strong>${s.fase>=3?"You won the game!":"Phase goal achieved"}</strong><p>${s.fase>=3?"Free, with the dream realized and passive income paying the bills.":s.fase===1?"6-month emergency fund complete.":"Net worth of 30 months of costs and a full emergency fund."} End now and earn ${fmtPts(bonus)} points for the ${sobra} months left, or keep playing.</p><button class="btn coin" data-acao="concluir" style="margin-top:6px">${s.fase===3?"End and see my score":"Complete the phase now"}</button></div>`+alerta;
   }
-  const total=s.extrato.reduce((a,l)=>a+(l[2]?0:l[1]),0), varCart=s.extrato.reduce((a,l)=>a+(l[2]?l[1]:0),0);
-  const linhas=s.extrato.filter(l=>!l[2]).map(([n,v])=>`<div class="linha"><span>${n}</span><span class="v ${v>0?'pos':v<0?'neg':''}">${v===0?'—':(v>0?'+':'−')+fmt(Math.abs(v))}</span></div>`).join('')
+  const total=s.extrato.reduce((a,l)=>a+((l[2]||l[3])?0:l[1]),0), varCart=s.extrato.reduce((a,l)=>a+(l[2]?l[1]:0),0);
+  const linhas=s.extrato.filter(l=>!l[2] && !l[3]).map(([n,v])=>`<div class="linha"><span>${n}</span><span class="v ${v>0?'pos':v<0?'neg':''}">${v===0?'—':(v>0?'+':'−')+fmt(Math.abs(v))}</span></div>`).join('')
     + (s.extrato.some(l=>l[2]) ? `<div class="linha" style="opacity:.75;border-top:1px dashed currentColor;margin-top:6px"><span>Change in investment portfolio (not counted in the account)</span><span class="v ${varCart>0?'pos':varCart<0?'neg':''}">${varCart===0?'—':(varCart>0?'+':'−')+fmt(Math.abs(varCart))}</span></div>` : '');
   const parcelas = s.parcelas.length ? `<section class="card" aria-labelledby="t-parc"><h2 id="t-parc">Installments and loans</h2>
     ${s.parcelas.map(p=>{ if(p.uid==null) p.uid=s.uid++;
@@ -5812,6 +5812,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       <div class="recibo-cab">MONTH'S ACTIVITY</div>
       ${linhas}
       <div class="linha total"><span>Result of the month</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
+      ${s.extrato.filter(l=>l[3]).map(([n,v])=>`<div class="linha" style="opacity:.8"><span>${n} <small>(transfer, not an expense)</small></span><span class="v">${v>0?'+':'−'}${fmt(Math.abs(v))}</span></div>`).join('')}
     </div>
   </section>`;
   // painel de renda no estilo Timeflow: quanto cada fonte paga e quanto tempo pede
@@ -11008,8 +11009,8 @@ function iniciarMes(){
   s.fluxoMes=s.conta-conta0;   // o que entrou menos o que saiu da conta no mês (antes de guardar a sobra)
   if(s.sobraCdb && F2() && prods().cdb){
     const colchao = s.aposentado ? custoMensal() : 0;   // quem vive de renda mantém 1 mês de custo na conta
-    if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Reserva usada automaticamente para cobrir as contas', r.liq]); }
-    else if(s.conta-colchao>=1){ const x=Math.floor(s.conta-colchao); aplicar('cdb',x); ex.push(['Sobra do mês guardada na reserva', -x]); } }
+    if(s.conta<0 && disponivel('cdb')>0.5){ const r=resgatarLiquido('cdb', -s.conta, true); if(r.liq>0) ex.push(['Reserva usada automaticamente para cobrir as contas', r.liq, false, 'transf']); }
+    else if(s.conta-colchao>=1){ const x=Math.floor(s.conta-colchao); aplicar('cdb',x); ex.push(['Sobra do mês guardada na reserva', -x, false, 'transf']); } }
   s.mesesAzul = s.conta>=0 ? (s.mesesAzul||0)+1 : 0;
   if(s.parcelas.some(p=>p.nome!=='Título de capitalização')) s.teveDivida=true;
   if(s.habEst && HABS[s.habEst.id] && s.mes>=s.habEst.ate){ const r=concluirHab(); avisarEvolucao('habilidade', r.titulo.replace('Nova habilidade: ',''), r.texto); ex.push(['🌱 '+r.titulo, 0]); lic = lic ? {...lic, texto:lic.texto+` Além disso: ${r.titulo.toLowerCase()}. ${r.texto}`} : r; }
@@ -11812,7 +11813,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v355</p>
+    <p class="titulo-versao">versão v356</p>
   </div>`;
 }
 function render(){
@@ -11851,8 +11852,8 @@ function render(){
     const sobra=cfg().total-s.mes, bonus=sobra*15;
     alerta=`<div class="alerta bom"><strong>${s.fase>=3?'Você venceu o jogo!':'Objetivo da fase cumprido'}</strong><p>${s.fase>=3?'Livre, com o sonho realizado e a renda passiva pagando as contas.':s.fase===1?'Reserva de 6 meses completa.':'Patrimônio de 30 meses de custo e reserva cheia.'} Encerre agora e ganhe ${fmtPts(bonus)} pontos pelos ${sobra} meses que sobraram, ou continue jogando.</p><button class="btn coin" data-acao="concluir" style="margin-top:6px">${s.fase===3?'Encerrar e ver minha pontuação':'Concluir a fase agora'}</button></div>`+alerta;
   }
-  const total=s.extrato.reduce((a,l)=>a+(l[2]?0:l[1]),0), varCart=s.extrato.reduce((a,l)=>a+(l[2]?l[1]:0),0);
-  const linhas=s.extrato.filter(l=>!l[2]).map(([n,v])=>`<div class="linha"><span>${n}</span><span class="v ${v>0?'pos':v<0?'neg':''}">${v===0?'—':(v>0?'+':'−')+fmt(Math.abs(v))}</span></div>`).join('')
+  const total=s.extrato.reduce((a,l)=>a+((l[2]||l[3])?0:l[1]),0), varCart=s.extrato.reduce((a,l)=>a+(l[2]?l[1]:0),0);
+  const linhas=s.extrato.filter(l=>!l[2] && !l[3]).map(([n,v])=>`<div class="linha"><span>${n}</span><span class="v ${v>0?'pos':v<0?'neg':''}">${v===0?'—':(v>0?'+':'−')+fmt(Math.abs(v))}</span></div>`).join('')
     + (s.extrato.some(l=>l[2]) ? `<div class="linha" style="opacity:.75;border-top:1px dashed currentColor;margin-top:6px"><span>Variação da carteira de investimentos (não entra na conta)</span><span class="v ${varCart>0?'pos':varCart<0?'neg':''}">${varCart===0?'—':(varCart>0?'+':'−')+fmt(Math.abs(varCart))}</span></div>` : '');
   const parcelas = s.parcelas.length ? `<section class="card" aria-labelledby="t-parc"><h2 id="t-parc">Parcelas e financiamentos</h2>
     ${s.parcelas.map(p=>{ if(p.uid==null) p.uid=s.uid++;
@@ -12066,6 +12067,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       <div class="recibo-cab">MOVIMENTAÇÃO DO MÊS</div>
       ${linhas}
       <div class="linha total"><span>Resultado do mês</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
+      ${s.extrato.filter(l=>l[3]).map(([n,v])=>`<div class="linha" style="opacity:.8"><span>${n} <small>(transferência, não é gasto)</small></span><span class="v">${v>0?'+':'−'}${fmt(Math.abs(v))}</span></div>`).join('')}
     </div>
   </section>`;
   // painel de renda no estilo Timeflow: quanto cada fonte paga e quanto tempo pede
