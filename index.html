@@ -4578,7 +4578,7 @@ function avalCalc(){
 const pctCorte = () => { const d=prof().demissao||1;
   let p = !F2() ? clamp(0.55*d+0.2,0.25,0.85) : clamp(0.3*d*(F3()?0.75:1),0.05,0.55);
   p*=1-0.1*Math.min(3,s.desempenho||0); p*=s.avalStand==='destaque'?0.8:s.avalStand==='alerta'?1.5:1; if(temHab('comunicacao')) p*=0.85; if(s.esgotN) p*=1+0.2*Math.min(2,s.esgotN);
-  return Math.round(p*100)/100; };
+  return clamp(Math.round(p*100)/100, 0.02, 0.9); };   // nunca passa de 90%: a barra e os rótulos precisam fazer sentido
 let tiqueAC=null;
 // Jingle Bells em sinos com guizos de trenó por baixo: toca quando a cidade vira Natal
 function sinoNatal(){
@@ -5542,7 +5542,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v350</p>
+    <p class="titulo-versao">version v351</p>
   </div>`;
 }
 function render(){
@@ -10822,7 +10822,7 @@ function avalCalc(){
 const pctCorte = () => { const d=prof().demissao||1;
   let p = !F2() ? clamp(0.55*d+0.2,0.25,0.85) : clamp(0.3*d*(F3()?0.75:1),0.05,0.55);
   p*=1-0.1*Math.min(3,s.desempenho||0); p*=s.avalStand==='destaque'?0.8:s.avalStand==='alerta'?1.5:1; if(temHab('comunicacao')) p*=0.85; if(s.esgotN) p*=1+0.2*Math.min(2,s.esgotN);
-  return Math.round(p*100)/100; };
+  return clamp(Math.round(p*100)/100, 0.02, 0.9); };   // nunca passa de 90%: a barra e os rótulos precisam fazer sentido
 let tiqueAC=null;
 // Jingle Bells em sinos com guizos de trenó por baixo: toca quando a cidade vira Natal
 function sinoNatal(){
@@ -11786,7 +11786,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v350</p>
+    <p class="titulo-versao">versão v351</p>
   </div>`;
 }
 function render(){
