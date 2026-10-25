@@ -2615,7 +2615,30 @@ const horasAtivo = a => { const h = a.gerente ? Math.max(1, Math.round(a.horas*(
 const horasAtivos = () => (s.ativos||[]).reduce((x,a)=>x+horasAtivo(a),0);
 const ehArea = c => !!c.area && c.area===s.prof;
 const AREA = {renda:1.3, risco:0.6, horas:2};
-const fatorFel = () => s.fel<15 ? 0.8 : s.fel<30 ? 0.9 : 1; // quem está esgotado rende menos no trabalho
+// faixas de bem-estar: quem está bem rende um pouco mais no trabalho; quem está mal rende menos
+const FAIXAS_FEL = [{min:85,nome:"Great",mult:1.05},{min:50,nome:"Good",mult:1},{min:30,nome:"Normal",mult:0.95},{min:15,nome:"Tired",mult:0.9},{min:0,nome:"At the limit",mult:0.8}];
+const faixaFel = () => FAIXAS_FEL.find(f=>s.fel>=f.min);
+const fatorFel = () => faixaFel().mult;
+// lazer pontual: programas avulsos que custam dinheiro e horas só no mês em que acontecem. Repetir o mesmo cansa (tolerância); variar rende mais
+const PROGRAMAS = [
+  {id:'cinema', nome:'Movie night with popcorn', custo:70, h:4, g:1.5, fase:1},
+  {id:'jantar', nome:'Dinner out', custo:180, h:3, g:2.5, fase:1},
+  {id:'show', nome:'Concert or theater', custo:380, h:5, g:3.5, fase:1},
+  {id:'fds', nome:'Weekend getaway', custo:1100, h:16, g:5, fase:1},
+  {id:'parque', nome:'Amusement park', custo:900, h:12, g:6, fase:1},
+  {id:'aquatico', nome:'International water park', custo:7500, h:40, g:9, fase:2}
+];
+const lazP = () => { const o=s.lazerP||(s.lazerP={mes:0,h:0,hist:{}}); if(o.mes!==s.mes){ o.mes=s.mes; o.h=0; } return o; };
+const progCusto = p => Math.round(C(p.custo)/10)*10;
+const progRecente = p => (lazP().hist[p.id]||[]).filter(m=>s.mes-m<6).length;
+const progTol = p => [1,0.67,0.4,0.2][Math.min(3,progRecente(p))];
+const progVar = p => { const o=lazP(), d=Object.keys(o.hist).filter(id=>id!==p.id && o.hist[id].some(m=>s.mes-m<3)).length; return 1+0.1*Math.min(3,d); };
+const progGanho = p => Math.round(p.g*progTol(p)*progVar(p)*10)/10;
+const progHorasLivres = () => Math.max(0, horasLivres()-12)*HM - lazP().h; // sobra de horas por mês depois de uma folga de descanso
+const progPode = p => faseOk(p.fase===1?[1,2,3]:[2,3]) && p.h<=progHorasLivres()+1e-6 && podeAVista(progCusto(p));
+function fazerPrograma(id){ const p=PROGRAMAS.find(x=>x.id===id); if(!p || !progPode(p)) return;
+  const g=progGanho(p), o=lazP(); pagarAVista(progCusto(p)); o.h+=p.h; (o.hist[p.id]||(o.hist[p.id]=[])).push(s.mes); o.hist[p.id]=o.hist[p.id].filter(m=>s.mes-m<12);
+  s.fel=clamp(s.fel+g,0,esgotado()?40:100); salvar(); render(); }
 const valSeguro = () => s.seguroVal || Math.round(Math.min(C(SEGURO), (s.salario||0)*SEGURO_PCT)/10)*10; // 70% do salário, com teto
 const horasBusca = () => s.desemp>0 ? 12 : 0; // procurar vaga, enviar currículo e fazer entrevistas toma tempo
 const horasLivres = () => Math.round((HORAS_BASE - horasTrab() - horasMentoria() - horasEstudo() - horasAtivos() - horasHabitos() - horasExtra() - horasHabEst() - horasVicios() - horasTreino() - horasBusca() + horasGanhas())*10)/10;
@@ -2684,6 +2707,11 @@ function modalCorrida(){ const c=corr(), cfg={cond:c.cond/100, total:ui.corrida.
   const html=RITMO_HTML_EN.replace('<div id="app">','<script>window.__CFG='+JSON.stringify(cfg)+'<\/script><div id="app">');
   modal.innerHTML=`<div class="overlay ritmo-ov"><div class="ritmo-box"><button class="ritmo-x" data-acao="corridaSair" aria-label="Leave the race">✕</button><iframe class="ritmo" title="Little rats race" allow="autoplay"></iframe></div></div>`;
   modal.querySelector('iframe.ritmo').srcdoc=html; }
+function programasHtml(){
+  const itens=PROGRAMAS.filter(p=>faseOk(p.fase===1?[1,2,3]:[2,3])).map(p=>{ const rec=progRecente(p), semHora=p.h>progHorasLivres()+1e-6;
+    const sub=p.h+' h this month · well-being +'+progGanho(p)+(rec?' · repeated: pays off less':'')+(semHora?' · not enough free hours':'');
+    return '<button class="prova-lin" data-acao="programa" data-alvo="'+p.id+'" '+(progPode(p)?'':'disabled')+'><span><b>'+p.nome+'</b><small>'+sub+'</small></span><span class="prova-v">'+fmt0(progCusto(p))+'</span></button>'; }).join('');
+  return '<h3 class="lazer-sub">Leisure outings</h3><div class="provas">'+itens+'</div><p class="hint">Outings cost money and hours only in the month they happen. Repeating the same one pays off less; mixing them pays off more. You have '+hm(Math.max(0,progHorasLivres()/HM))+' free hours left this month for outings.</p>'; }
 function lazerCard(){
   const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
   const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<9, f=h?TREINO_FEL[h]:0;
@@ -2699,7 +2727,7 @@ function lazerCard(){
     <p class="hint">Fitness gives time back: more energy and better organization. Now you get <b>${hm(horasCond())} h per month</b> back (up to ${hm(3)} h at most).</p>
     <p class="hint">Training costs money (gym, shoes, clothes and transport) and uses free time, but it's good for you: it raises well-being and fitness. The higher your fitness, the calmer and more forgiving the race. Stopping training lowers fitness slowly.</p>
     <div class="seg seg-hud" role="group" aria-label="Training per week">${seg}</div>
-    ${livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":''}<h3 class="lazer-sub">Running races</h3>
+    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+programasHtml()}<h3 class="lazer-sub">Running races</h3>
     <div class="provas">${provas}</div>
     ${usada?"<p class=\"hint\">You've already run this month.</p>":''}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the waterfront once a year. You can only sign up in the race month.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Sneaker drop"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">In perspective<small>coming from the horizon</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Straight line<small>falling straight</small></button></div>
@@ -2722,7 +2750,7 @@ function efeitosFel(hl=horasLivres()){
   const nDed=nDedicacao(); if(nDed && !s.empresario && !s.aposentado && s.desemp===0) L.push(["job + business" + (nDed>1?'s':''), -3*nDed]);
   if(cansacoFel()>=1) L.push([`accumulated tiredness${esgotado()?" (on leave, recovering)":''}`, -cansacoFel()]);
   if(esgotado()) L.push(['esgotamento', -4]);
-  { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>5?5+(P-5)*0.5:P; if(P-Pe>=1) L.push(["adaptation: the good becomes normal", -Math.round(P-Pe)]); }
+  { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>2?2+(P-2)*0.25:P; if(P-Pe>=1) L.push(["adaptation: the good becomes normal", -Math.round(P-Pe)]); }
   const r=Math.round((FEL_BASE-s.fel)*FEL_VOLTA); if(r) L.push(['rotina', r]);
   return L;
 }
@@ -3148,6 +3176,9 @@ const ESPECIAIS = {
       const p=s.estudoAumPct||0.1; s.salario=Math.round(s.salario*(1+p)); s.estudoAumPct=0; const idC=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome); if(idC==='pos'||idC==='mba') foto('formatura'); if(idC){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idC])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); } return {tom:'bom', titulo:"The best investment was in you", texto:"The raise is a percentage and becomes part of the salary: every year it's adjusted for inflation along with the rest. The course was expensive at the start, but the raise pays for itself in under a year and continues forever."}; }}
 };
 const alvoAtivo = () => (s.ativos||[]).find(a=>a.uid===s.alvoAtivo);
+// terreno: mostra quanto já valorizou e o que renderia vender agora, para decidir se vale a pena
+function terrInfo(a){ const ganho=a.valor-a.custo, mk=Number.isFinite(vMerc(a))?vMerc(a):a.valor, venda=Math.round(mk*0.85), lucro=venda-a.custo;
+  return `<span>Paid <b>${fmt0(a.custo)}</b> · gain so far <b>${ganho>=0?'+':'−'}${fmt0(Math.abs(ganho))}</b></span><span>If sold now (−15%): <b>${fmt0(venda)}</b>, ${lucro>=0?'profit':'loss'} of <b>${fmt0(Math.abs(lucro))}</b></span>`; }
 function venderAtivo(a, preco){
   if(a.tipo==='negocio' && preco>=1000000*(s.idx||1)) s.vendaGrande=Math.max(s.vendaGrande||0, preco);
   let quitado=0;
@@ -4568,7 +4599,7 @@ function avalItens(){
   const cursoOk=estudando || recente || !aberto || (!early && s.mes<24);
   return [
     ["Deliverables of the year", ganho>=1 || (s.desempenho||0)>=2, ganho>=1?"performance went up":(s.desempenho||0)>=2?"performance is already high":"no standout this year"],
-    ["Balance", media>=25, media>=25?"healthy well-being":"low well-being all year"],
+    ["Balance", media>=50, media>=50?"healthy well-being":"low well-being all year"],
     [early?"Qualification (first year)":"Qualification (every 2 years)", cursoOk, estudando?'in progress':recente?"completed":!aberto?"nothing to do right now":"no course taken"]
   ];
 }
@@ -4694,7 +4725,7 @@ function iniciarMes(){
   } else if(esgotado()){
     const v=Math.round(s.salario*0.5); s.conta+=v; ex.push(["On leave for burnout: 50% of salary, no commission", v]); const tr=C(1000); s.conta-=tr; ex.push(["Treatment (appointments, medicine and therapy)", -tr]);
   } else {
-    { const sv=Math.round(s.salario*fatorFel()); s.conta+=sv; ex.push([sv<s.salario?"Net salary (reduced earnings: low well-being)":"Net salary", sv]); }
+    { const sv=Math.round(s.salario*fatorFel()); s.conta+=sv; ex.push([sv<s.salario?"Net salary (reduced earnings: low well-being)":sv>s.salario?'Net salary (higher pay: great well-being)':"Net salary", sv]); }
     if(s.greveDevido){ s.conta+=s.greveDevido; ex.push(["Back pay from the strike", s.greveDevido]); s.greveDevido=0; }
     if(mesCal()===12){ s.conta+=s.salario; ex.push(["13th salary", s.salario]); }
     if(prof().comissao){ const c=Math.round(s.salario*prof().comissao*(SAZ_COM[mesCal()]||1)*(0.7+Math.random()*0.6)); s.conta+=c; ex.push([`Sales commission${mesCal()>=11?" (year-end)":mesCal()<=2?" (slow month)":''}`, c]); }
@@ -5558,7 +5589,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v356</p>
+    <p class="titulo-versao">version vv357</p>
   </div>`;
 }
 function render(){
@@ -5787,7 +5818,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Your properties and businesses</h2>
     ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
-      <div class="opp-dados"><span>Income <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Time <b>${hm(horasAtivo(a))} h/mo</b>${a.gerente?" (supervision)":''}</span>${a.gerente?"<span>With manager</span>":''}${a.area?"<span>Your field</span>":''}${a.finUid?"<span>Financed</span>":''}${a.tipo==='imovel'&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Appreciated <b>${pctFmt(a.valor/a.custo-1)}</b> since purchase</span>`:''}${a.ultReaj?`<span>Rent adjusted <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
+      <div class="opp-dados"><span>Income <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Time <b>${hm(horasAtivo(a))} h/mo</b>${a.gerente?" (supervision)":''}</span>${a.gerente?"<span>With manager</span>":''}${a.area?"<span>Your field</span>":''}${a.finUid?"<span>Financed</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Appreciated <b>${pctFmt(a.valor/a.custo-1)}</b> since purchase</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Rent adjusted <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Fixed payment of ${fmt0(pp.valor)} against rent of ${fmt0(rendaAtivo(a))}: with inflation, rent rises and the payment doesn't, so the debt weighs less each year.</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
         return `${a.mercado!=null?`<p class="hint">Market value today: <b>${fmt0(a.mercado)}</b> (3 years of current profit). In net worth, the value starts from what you paid and gradually approaches this number: it rises if the business grows, falls if it shrinks.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} units · `:''}${noTeto?"Reached the ceiling of this location: to grow, open another.":r>0.03?"Growing fast: you're dedicating yourself.":r>0?"Growing slowly.":"Shrinking: nobody is looking after it."} Worth ${fmt0(a.valor)} (about 3 years of profit).</p>
@@ -5838,7 +5869,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   const aba=ABA_ANTIGA[ui.aba]||(ABAS.some(a=>a[0]===ui.aba)?ui.aba:'inicio');
   if(aba==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; }
   const barrasVida=`<section class="card" aria-label="Well-being and time">
-    ${(()=>{ const f=Math.round(s.fel), cor=f>=50?'#4E9A73':f>=25?'#D19A3B':'#D06A5E', hl=horasLivres();
+    ${(()=>{ const f=Math.round(s.fel), cor=f>=50?'#4E9A73':f>=30?'#D19A3B':'#D06A5E', hl=horasLivres();
       const dica = f<=15 ? "Risk of impulse spending!" : f<30 ? "Low: risk of stress illness; below 15 it turns into impulse spending" : f>=75 ? "High: more chance of promotion, bonus and extra work" : hl<18 ? `Little free time (${hl} h/wk) drags well-being down` : 'Ok';
       const L=efeitosFel(hl), tf=L.reduce((x,[,v])=>x+v,0), ch=hl>=28?'#4E9A73':hl>=18?'#D19A3B':'#D06A5E';
       return `<div class="humor-hud" data-info="fel" role="meter" aria-label="Well-being" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${f}">
@@ -5883,14 +5914,14 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   app.innerHTML=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
-    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} of ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
-    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":fz>=70?"Great":fz>=50?"Good":fz>=25?"Tired":"At the limit"}</span></button>
+    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · month ${s.mes} of ${tot}</small></div>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Account</small><b class="num">${fmt0(s.conta)}</b></button>
+    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Well-being ${fz} of 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Well-being</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Game sections">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   renderModal();
@@ -6605,9 +6636,9 @@ const sgn = v => (v>0?'+':v<0?'−':'')+Math.abs(v);
 const fl = (n,v,cor,c='') => `<div class="fl ${c}"><span>${n}</span><b${cor?` style="color:${cor}"`:''}>${v}</b></div>`;
 const INFO = {
   fel:()=>{ const f=Math.round(s.fel), L=efeitosFel(), tot=L.reduce((a,[,v])=>a+v,0);
-    return {t:`Well-being: ${f} of 100`, h:`<p>${f<=15?"Very low: risk of impulse spending.":f<25?"Low: risk of stress illness.":f>=75?"High: more chance of promotion, bonus and extra work.":"About average."}</p>
+    return {t:`Well-being: ${f} of 100`, h:`<p>${f<15?'At the limit: work pays 20% less and there is a risk of impulse spending.':f<30?'Tired: work pays 10% less and there is a risk of getting sick from stress.':f<50?'Normal: work pays 5% less. Something is missing to lift your mood.':f>=85?'Great: work pays 5% more, with a better chance of promotion and bonuses.':'Good: no bonus and no penalty at work.'}</p>
       <div class="info-lista">${L.filter(([,v])=>v).map(([n,v])=>fl(n,sgn(v),v>0?'var(--gain)':'var(--loss)')).join('')}${fl("<b>Total per month</b>",sgn(tot),'','tot')}</div>
-      <p class="hint">Routine pulls well-being back toward ${FEL_BASE}: joys and sorrows pass. But under 78 free hours a month builds up tiredness, and 2 months below 20 lead to burnout. To raise it lastingly: the growth tree (You tab), free time, family, a home that fits your budget and an emergency fund standing.</p>`}; },
+      <p class="hint">Routine pulls well-being back toward ${FEL_BASE}: joys and sorrows pass. But under 78 free hours a month builds up tiredness, and 2 months below 20 lead to burnout. Fixed joys (home, car, comfort) become routine and add little. What lifts it most is looking after yourself now and then: varied leisure outings in the Life tab, free time, exercise, family and an emergency fund standing.</p>`}; },
   tempo:()=>{ const hl=horasLivres(), ef=efeitoTempo(hl);
     return {t:`Free time: ${hm(hl)} h per month`, h:`<div class="info-lista">${fl("Hours awake in the month",hm(HORAS_BASE)+' h')}${[["Work",horasTrab()],["Teaching the newcomer",horasMentoria()],["Study",horasEstudo()],["Businesses",horasAtivos()],["Habits",horasHabitos()],["Extra income",horasExtra()]].filter(([,h])=>h>0).map(([n,h])=>fl(n,'−'+hm(h)+' h','var(--loss)')).join('')}${fl("<b>Free</b>",hm(hl)+' h','','tot')}</div>
       <p>Effect on well-being: <b>${sgn(ef)} per month</b>.</p><p class="hint">${hm(28)} h or more per month: +2. Between ${hm(18)} and ${hm(28)-1} h: neutral. Below ${hm(18)} h: −3. Below ${hm(10)} h: −7. Time is also a resource: courses, habits and businesses consume hours.</p>`}; },
@@ -6801,6 +6832,7 @@ document.addEventListener('click', e=>{
     case 'tycResFechar': ui.modal=null; s.licao=null; proximoDaFila(); salvar(); render(); break;
     case 'treino': corr().h=Number(alvo); salvar(); render(); break;
     case 'prova': iniciarProva(Number(alvo)); break;
+    case 'programa': fazerPrograma(alvo); break;
     case 'corridaPersp': corr().persp=alvo==='1'; salvar(); render(); break;
     case 'corridaSair': ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); break;
     case 'fechar': ui.modal=null; ui.erro=''; ui.fotoNova=false; render(); break;
@@ -7566,7 +7598,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
@@ -8870,7 +8902,30 @@ const horasAtivo = a => { const h = a.gerente ? Math.max(1, Math.round(a.horas*(
 const horasAtivos = () => (s.ativos||[]).reduce((x,a)=>x+horasAtivo(a),0);
 const ehArea = c => !!c.area && c.area===s.prof;
 const AREA = {renda:1.3, risco:0.6, horas:2};
-const fatorFel = () => s.fel<15 ? 0.8 : s.fel<30 ? 0.9 : 1; // quem está esgotado rende menos no trabalho
+// faixas de bem-estar: quem está bem rende um pouco mais no trabalho; quem está mal rende menos
+const FAIXAS_FEL = [{min:85,nome:'Ótimo',mult:1.05},{min:50,nome:'Bem',mult:1},{min:30,nome:'Normal',mult:0.95},{min:15,nome:'Cansado',mult:0.9},{min:0,nome:'No limite',mult:0.8}];
+const faixaFel = () => FAIXAS_FEL.find(f=>s.fel>=f.min);
+const fatorFel = () => faixaFel().mult;
+// lazer pontual: programas avulsos que custam dinheiro e horas só no mês em que acontecem. Repetir o mesmo cansa (tolerância); variar rende mais
+const PROGRAMAS = [
+  {id:'cinema', nome:'Cinema com pipoca', custo:70, h:4, g:1.5, fase:1},
+  {id:'jantar', nome:'Jantar fora', custo:180, h:3, g:2.5, fase:1},
+  {id:'show', nome:'Show ou teatro', custo:380, h:5, g:3.5, fase:1},
+  {id:'fds', nome:'Fim de semana fora', custo:1100, h:16, g:5, fase:1},
+  {id:'parque', nome:'Parque de diversões', custo:900, h:12, g:6, fase:1},
+  {id:'aquatico', nome:'Parque aquático internacional', custo:7500, h:40, g:9, fase:2}
+];
+const lazP = () => { const o=s.lazerP||(s.lazerP={mes:0,h:0,hist:{}}); if(o.mes!==s.mes){ o.mes=s.mes; o.h=0; } return o; };
+const progCusto = p => Math.round(C(p.custo)/10)*10;
+const progRecente = p => (lazP().hist[p.id]||[]).filter(m=>s.mes-m<6).length;
+const progTol = p => [1,0.67,0.4,0.2][Math.min(3,progRecente(p))];
+const progVar = p => { const o=lazP(), d=Object.keys(o.hist).filter(id=>id!==p.id && o.hist[id].some(m=>s.mes-m<3)).length; return 1+0.1*Math.min(3,d); };
+const progGanho = p => Math.round(p.g*progTol(p)*progVar(p)*10)/10;
+const progHorasLivres = () => Math.max(0, horasLivres()-12)*HM - lazP().h; // sobra de horas por mês depois de uma folga de descanso
+const progPode = p => faseOk(p.fase===1?[1,2,3]:[2,3]) && p.h<=progHorasLivres()+1e-6 && podeAVista(progCusto(p));
+function fazerPrograma(id){ const p=PROGRAMAS.find(x=>x.id===id); if(!p || !progPode(p)) return;
+  const g=progGanho(p), o=lazP(); pagarAVista(progCusto(p)); o.h+=p.h; (o.hist[p.id]||(o.hist[p.id]=[])).push(s.mes); o.hist[p.id]=o.hist[p.id].filter(m=>s.mes-m<12);
+  s.fel=clamp(s.fel+g,0,esgotado()?40:100); salvar(); render(); }
 const valSeguro = () => s.seguroVal || Math.round(Math.min(C(SEGURO), (s.salario||0)*SEGURO_PCT)/10)*10; // 70% do salário, com teto
 const horasBusca = () => s.desemp>0 ? 12 : 0; // procurar vaga, enviar currículo e fazer entrevistas toma tempo
 const horasLivres = () => Math.round((HORAS_BASE - horasTrab() - horasMentoria() - horasEstudo() - horasAtivos() - horasHabitos() - horasExtra() - horasHabEst() - horasVicios() - horasTreino() - horasBusca() + horasGanhas())*10)/10;
@@ -8939,6 +8994,11 @@ function modalCorrida(){ const c=corr(), cfg={cond:c.cond/100, total:ui.corrida.
   const html=RITMO_HTML.replace('<div id="app">','<script>window.__CFG='+JSON.stringify(cfg)+'<\/script><div id="app">');
   modal.innerHTML=`<div class="overlay ritmo-ov"><div class="ritmo-box"><button class="ritmo-x" data-acao="corridaSair" aria-label="Sair da prova">✕</button><iframe class="ritmo" title="Corrida dos ratinhos" allow="autoplay"></iframe></div></div>`;
   modal.querySelector('iframe.ritmo').srcdoc=html; }
+function programasHtml(){
+  const itens=PROGRAMAS.filter(p=>faseOk(p.fase===1?[1,2,3]:[2,3])).map(p=>{ const rec=progRecente(p), semHora=p.h>progHorasLivres()+1e-6;
+    const sub=p.h+' h neste mês · bem-estar +'+progGanho(p)+(rec?' · repetido: rende menos':'')+(semHora?' · sem horas livres':'');
+    return '<button class="prova-lin" data-acao="programa" data-alvo="'+p.id+'" '+(progPode(p)?'':'disabled')+'><span><b>'+p.nome+'</b><small>'+sub+'</small></span><span class="prova-v">'+fmt0(progCusto(p))+'</span></button>'; }).join('');
+  return '<h3 class="lazer-sub">Programas de lazer</h3><div class="provas">'+itens+'</div><p class="hint">Programas gastam dinheiro e horas só no mês em que acontecem. O mesmo programa repetido rende menos; variar rende mais. Sobram '+hm(Math.max(0,progHorasLivres()/HM))+' h livres neste mês para programas.</p>'; }
 function lazerCard(){
   const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
   const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<9, f=h?TREINO_FEL[h]:0;
@@ -8954,7 +9014,7 @@ function lazerCard(){
     <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
     <p class="hint">Treinar custa dinheiro (academia, tênis, roupa e transporte) e usa tempo livre, mas faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
-    ${livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':''}<h3 class="lazer-sub">Provas de corrida</h3>
+    ${(livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':'')+programasHtml()}<h3 class="lazer-sub">Provas de corrida</h3>
     <div class="provas">${provas}</div>
     ${usada?'<p class="hint">Você já correu neste mês.</p>':''}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
@@ -8977,7 +9037,7 @@ function efeitosFel(hl=horasLivres()){
   const nDed=nDedicacao(); if(nDed && !s.empresario && !s.aposentado && s.desemp===0) L.push(['emprego + negócio' + (nDed>1?'s':''), -3*nDed]);
   if(cansacoFel()>=1) L.push([`cansaço acumulado${esgotado()?' (afastado, recuperando)':''}`, -cansacoFel()]);
   if(esgotado()) L.push(['esgotamento', -4]);
-  { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>5?5+(P-5)*0.5:P; if(P-Pe>=1) L.push(['adaptação: o bom vira normal', -Math.round(P-Pe)]); }
+  { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>2?2+(P-2)*0.25:P; if(P-Pe>=1) L.push(['adaptação: o bom vira normal', -Math.round(P-Pe)]); }
   const r=Math.round((FEL_BASE-s.fel)*FEL_VOLTA); if(r) L.push(['rotina', r]);
   return L;
 }
@@ -9403,6 +9463,9 @@ const ESPECIAIS = {
       const p=s.estudoAumPct||0.1; s.salario=Math.round(s.salario*(1+p)); s.estudoAumPct=0; const idC=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome); if(idC==='pos'||idC==='mba') foto('formatura'); if(idC){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idC])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); } return {tom:'bom', titulo:'O melhor investimento foi em você', texto:'O aumento é em porcentagem e passa a fazer parte do salário: todo ano ele é reajustado pela inflação junto com o resto. O curso custou caro no começo, mas o aumento se paga em menos de um ano e continua para sempre.'}; }}
 };
 const alvoAtivo = () => (s.ativos||[]).find(a=>a.uid===s.alvoAtivo);
+// terreno: mostra quanto já valorizou e o que renderia vender agora, para decidir se vale a pena
+function terrInfo(a){ const ganho=a.valor-a.custo, mk=Number.isFinite(vMerc(a))?vMerc(a):a.valor, venda=Math.round(mk*0.85), lucro=venda-a.custo;
+  return `<span>Pagou <b>${fmt0(a.custo)}</b> · ganho hoje <b>${ganho>=0?'+':'−'}${fmt0(Math.abs(ganho))}</b></span><span>Se vender agora (−15%): <b>${fmt0(venda)}</b>, ${lucro>=0?'lucro':'prejuízo'} de <b>${fmt0(Math.abs(lucro))}</b></span>`; }
 function venderAtivo(a, preco){
   if(a.tipo==='negocio' && preco>=1000000*(s.idx||1)) s.vendaGrande=Math.max(s.vendaGrande||0, preco);
   let quitado=0;
@@ -10823,7 +10886,7 @@ function avalItens(){
   const cursoOk=estudando || recente || !aberto || (!early && s.mes<24);
   return [
     ['Entregas do ano', ganho>=1 || (s.desempenho||0)>=2, ganho>=1?'desempenho subiu':(s.desempenho||0)>=2?'desempenho já é alto':'sem destaque no ano'],
-    ['Equilíbrio', media>=25, media>=25?'bem-estar saudável':'bem-estar baixo o ano todo'],
+    ['Equilíbrio', media>=50, media>=50?'bem-estar saudável':'bem-estar baixo o ano todo'],
     [early?'Qualificação (primeiro ano)':'Qualificação (a cada 2 anos)', cursoOk, estudando?'cursando':recente?'concluída':!aberto?'nada a fazer agora':'nenhum curso feito']
   ];
 }
@@ -10949,7 +11012,7 @@ function iniciarMes(){
   } else if(esgotado()){
     const v=Math.round(s.salario*0.5); s.conta+=v; ex.push(['Afastado por esgotamento: 50% do salário, sem comissão', v]); const tr=C(1000); s.conta-=tr; ex.push(['Tratamento (consultas, remédios e terapia)', -tr]);
   } else {
-    { const sv=Math.round(s.salario*fatorFel()); s.conta+=sv; ex.push([sv<s.salario?'Salário líquido (rendimento menor: bem-estar baixo)':'Salário líquido', sv]); }
+    { const sv=Math.round(s.salario*fatorFel()); s.conta+=sv; ex.push([sv<s.salario?'Salário líquido (rendimento menor: bem-estar baixo)':sv>s.salario?'Salário líquido (rendimento maior: bem-estar ótimo)':'Salário líquido', sv]); }
     if(s.greveDevido){ s.conta+=s.greveDevido; ex.push(['Salários atrasados da greve', s.greveDevido]); s.greveDevido=0; }
     if(mesCal()===12){ s.conta+=s.salario; ex.push(['13º salário', s.salario]); }
     if(prof().comissao){ const c=Math.round(s.salario*prof().comissao*(SAZ_COM[mesCal()]||1)*(0.7+Math.random()*0.6)); s.conta+=c; ex.push([`Comissão de vendas${mesCal()>=11?' (fim de ano)':mesCal()<=2?' (mês fraco)':''}`, c]); }
@@ -11813,7 +11876,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v356</p>
+    <p class="titulo-versao">versão vv357</p>
   </div>`;
 }
 function render(){
@@ -12042,7 +12105,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Seus imóveis e negócios</h2>
     ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
-      <div class="opp-dados"><span>Renda <b>${a.tipo==='terreno'?'nenhuma':a.vagoAte>=s.mes?'vazio':fmt0(rendaAtivo(a))+'/mês'}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mês</b>${a.gerente?' (supervisão)':''}</span>${a.gerente?'<span>Com gerente</span>':''}${a.area?'<span>Sua área</span>':''}${a.finUid?'<span>Financiado</span>':''}${a.tipo==='imovel'&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorizou <b>${pctFmt(a.valor/a.custo-1)}</b> desde a compra</span>`:''}${a.ultReaj?`<span>Aluguel reajustado <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
+      <div class="opp-dados"><span>Renda <b>${a.tipo==='terreno'?'nenhuma':a.vagoAte>=s.mes?'vazio':fmt0(rendaAtivo(a))+'/mês'}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mês</b>${a.gerente?' (supervisão)':''}</span>${a.gerente?'<span>Com gerente</span>':''}${a.area?'<span>Sua área</span>':''}${a.finUid?'<span>Financiado</span>':''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorizou <b>${pctFmt(a.valor/a.custo-1)}</b> desde a compra</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Aluguel reajustado <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Parcela fixa de ${fmt0(pp.valor)} contra aluguel de ${fmt0(rendaAtivo(a))}: com a inflação, o aluguel sobe e a parcela não, então a dívida pesa menos a cada ano.</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
         return `${a.mercado!=null?`<p class="hint">Valor de mercado hoje: <b>${fmt0(a.mercado)}</b> (3 anos do lucro atual). No patrimônio, o valor parte do que você pagou e se aproxima desse número aos poucos: sobe se o negócio crescer, cai se encolher.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} unidades · `:''}${noTeto?'Chegou ao teto desta unidade: para crescer, abra outra.':r>0.03?'Crescendo rápido: você está se dedicando.':r>0?'Crescendo devagar.':'Encolhendo: falta alguém cuidando.'} Vale ${fmt0(a.valor)} (cerca de 3 anos de lucro).</p>
@@ -12093,7 +12156,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   const aba=ABA_ANTIGA[ui.aba]||(ABAS.some(a=>a[0]===ui.aba)?ui.aba:'inicio');
   if(aba==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; }
   const barrasVida=`<section class="card" aria-label="Bem-estar e tempo">
-    ${(()=>{ const f=Math.round(s.fel), cor=f>=50?'#4E9A73':f>=25?'#D19A3B':'#D06A5E', hl=horasLivres();
+    ${(()=>{ const f=Math.round(s.fel), cor=f>=50?'#4E9A73':f>=30?'#D19A3B':'#D06A5E', hl=horasLivres();
       const dica = f<=15 ? 'Risco de gasto por impulso!' : f<30 ? 'Baixo: risco de adoecer de estresse; abaixo de 15 vira gasto por impulso' : f>=75 ? 'Em alta: mais chance de promoção, bônus e trabalhos extras' : hl<18 ? `Pouco tempo livre (${hl} h/sem) derruba o bem-estar` : 'Ok';
       const L=efeitosFel(hl), tf=L.reduce((x,[,v])=>x+v,0), ch=hl>=28?'#4E9A73':hl>=18?'#D19A3B':'#D06A5E';
       return `<div class="humor-hud" data-info="fel" role="meter" aria-label="Bem-estar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${f}">
@@ -12140,7 +12203,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
     <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
-    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?'Esgotado':fz>=70?'Ótimo':fz>=50?'Bem':fz>=25?'Cansado':'No limite'}</span></button>
+    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?'Esgotado':faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
@@ -12860,9 +12923,9 @@ const sgn = v => (v>0?'+':v<0?'−':'')+Math.abs(v);
 const fl = (n,v,cor,c='') => `<div class="fl ${c}"><span>${n}</span><b${cor?` style="color:${cor}"`:''}>${v}</b></div>`;
 const INFO = {
   fel:()=>{ const f=Math.round(s.fel), L=efeitosFel(), tot=L.reduce((a,[,v])=>a+v,0);
-    return {t:`Bem-estar: ${f} de 100`, h:`<p>${f<=15?'Muito baixo: risco de gasto por impulso.':f<25?'Baixo: risco de adoecer de estresse.':f>=75?'Em alta: mais chance de promoção, bônus e trabalhos extras.':'Na média.'}</p>
+    return {t:`Bem-estar: ${f} de 100`, h:`<p>${f<15?'No limite: o trabalho rende 20% menos e há risco de gasto por impulso.':f<30?'Cansado: o trabalho rende 10% menos e há risco de adoecer de estresse.':f<50?'Normal: o trabalho rende 5% menos. Falta algo que anime.':f>=85?'Ótimo: o trabalho rende 5% mais, com mais chance de promoção e bônus.':'Bem: sem bônus nem prejuízo no trabalho.'}</p>
       <div class="info-lista">${L.filter(([,v])=>v).map(([n,v])=>fl(n,sgn(v),v>0?'var(--gain)':'var(--loss)')).join('')}${fl('<b>Total por mês</b>',sgn(tot),'','tot')}</div>
-      <p class="hint">A rotina puxa o bem-estar de volta para perto de ${FEL_BASE}: alegrias e tristezas passam. Mas menos de 78 h livres por mês acumulam cansaço, e 2 meses abaixo de 20 levam ao esgotamento. Para subir de forma duradoura: a árvore de crescimento (aba Você), tempo livre, família, uma casa que caiba no bolso e reserva de pé.</p>`}; },
+      <p class="hint">A rotina puxa o bem-estar de volta para perto de ${FEL_BASE}: alegrias e tristezas passam. Mas menos de 78 h livres por mês acumulam cansaço, e 2 meses abaixo de 20 levam ao esgotamento. Alegrias fixas (casa, carro, conforto) viram rotina e rendem pouco. O que mais sobe é cuidar de si de vez em quando: programas de lazer variados na aba Vida, tempo livre, treino, família e reserva de pé.</p>`}; },
   tempo:()=>{ const hl=horasLivres(), ef=efeitoTempo(hl);
     return {t:`Tempo livre: ${hm(hl)} h por mês`, h:`<div class="info-lista">${fl('Horas acordado(a) no mês',hm(HORAS_BASE)+' h')}${[['Trabalho',horasTrab()],['Ensinando o novato',horasMentoria()],['Estudo',horasEstudo()],['Negócios',horasAtivos()],['Hábitos',horasHabitos()],['Renda extra',horasExtra()]].filter(([,h])=>h>0).map(([n,h])=>fl(n,'−'+hm(h)+' h','var(--loss)')).join('')}${fl('<b>Livre</b>',hm(hl)+' h','','tot')}</div>
       <p>Efeito no bem-estar: <b>${sgn(ef)} por mês</b>.</p><p class="hint">${hm(28)} h ou mais por mês: +2. Entre ${hm(18)} e ${hm(28)-1} h: neutro. Abaixo de ${hm(18)} h: −3. Abaixo de ${hm(10)} h: −7. Tempo também é recurso: cursos, hábitos e negócios consomem horas.</p>`}; },
@@ -13056,6 +13119,7 @@ document.addEventListener('click', e=>{
     case 'tycResFechar': ui.modal=null; s.licao=null; proximoDaFila(); salvar(); render(); break;
     case 'treino': corr().h=Number(alvo); salvar(); render(); break;
     case 'prova': iniciarProva(Number(alvo)); break;
+    case 'programa': fazerPrograma(alvo); break;
     case 'corridaPersp': corr().persp=alvo==='1'; salvar(); render(); break;
     case 'corridaSair': ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); break;
     case 'fechar': ui.modal=null; ui.erro=''; ui.fotoNova=false; render(); break;
@@ -13821,7 +13885,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
