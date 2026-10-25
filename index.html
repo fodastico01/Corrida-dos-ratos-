@@ -4349,7 +4349,7 @@ function opcoesDe(id){
   if(!o.length || !o.every(x=>x.disabled)) return o;
   const extra=[], a=alvoVenda();
   if(a){ const p=Math.round(vMerc(a)*0.85/100)*100;
-    extra.push({label:`Sell ${a.nome.toLowerCase()} for ${fmt0(p)}`, sub:"The money lands in the account and you choose again (sells for 85% of the value)", manter:true, run:()=>{ if(!confirm('Sell '+a.nome.toLowerCase()+' for '+fmt0(p)+'? It will no longer be yours.')) return null; const r=venderAtivo(a,p); ui.evAviso=`You sold ${a.nome.toLowerCase()} for ${fmt0(p)}${r.quitado>0?` and paid off ${fmt0(r.quitado)} of the loan`:''}. Now choose again.`; return null; }}); }
+    extra.push({label:`Sell ${a.nome.toLowerCase()} for ${fmt0(p)}`, sub:"The money lands in the account and you choose again (sells for 85% of the value)", manter:true, run:()=>{ pedirConfirmacao("Confirm sale?",'Sell '+a.nome.toLowerCase()+' for '+fmt0(p)+'? It will no longer be yours.',"Confirm sale",()=>{ const r=venderAtivo(a,p); ui.evAviso=`You sold ${a.nome.toLowerCase()} for ${fmt0(p)}${r.quitado>0?` and paid off ${fmt0(r.quitado)} of the loan`:''}. Now choose again.`; salvar(); render(); },ui.modal); return null; }}); }
   extra.push({label:"Postpone and struggle", sub:"The problem continues and the stress weighs on well-being", run:()=>{ s.fel=clamp(s.fel-6,0,100); return {tom:'ruim', titulo:"Left for later", texto:"With no cash on hand, the decision was postponed. A postponed problem usually comes back bigger. Having an emergency fund avoids this squeeze, and wealth that doesn't turn into cash quickly (like a company) doesn't solve an emergency."}; }});
   return [...o, ...extra];
 }
@@ -5589,7 +5589,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version vv357</p>
+    <p class="titulo-versao">version vv358</p>
   </div>`;
 }
 function render(){
@@ -5970,13 +5970,14 @@ function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
   for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
     h+=`<div class="slot"><div class="slot-i"><b>Slot ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Empty'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Save</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Load</button></div></div>`; }
   return h+'</div>'; }
-function slotSalvar(n){ if(!temJogo()) return; const ant=slotLer(n);
-  if(ant && !confirm('Replace the game saved in slot '+n+' ('+ant.r+')?')) return;
+function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao("Confirm sale?",'Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.',"Confirm sale",()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); }
+function slotSalvar(n,conf){ if(!temJogo()) return; const ant=slotLer(n);
+  if(ant && !conf){ pedirConfirmacao('Replace the game?','Replace the game saved in slot '+n+' ('+ant.r+')?','Replace',()=>slotSalvar(n,true),ui.modal); return; }
   salvar(); let ok=true;
   try{ localStorage.setItem(SLOT_KEY(n),JSON.stringify({q:new Date().toISOString(),r:nomeFase()+' · '+rotulo(s.mes)+' · '+fmt0(patrimonio()),s:localStorage.getItem(CHAVE),c:localStorage.getItem(CHAVE_CAMP)||'{}'})); }catch(e){ ok=false; }
   renderModal(); bkMsg(ok?'Game saved in slot '+n+'.':'Could not save: no space left on the device.'); }
-function slotCarregar(n){ const d=slotLer(n); if(!d) return;
-  if(!confirm('Load the game from slot '+n+' ('+d.r+')? The current game will be replaced.')) return;
+function slotCarregar(n,ok){ const d=slotLer(n); if(!d) return;
+  if(!ok){ pedirConfirmacao('Load the game?','Load the game from slot '+n+' ('+d.r+')? The current game will be replaced.','Load',()=>slotCarregar(n,true),ui.modal); return; }
   try{ const cur=lerCamp(), sl=JSON.parse(d.c||'{}'), fixo=k=>['album','finais','ranking','rec','marcos'].includes(k)||/^f\d+Nota$/.test(k);
     window.__carregando=true;
     try{ localStorage.setItem(CHAVE+'-antes-de-carregar',localStorage.getItem(CHAVE)||''); }catch(e){}
@@ -5996,9 +5997,8 @@ function bkCopiar(){ const c=bkGerar(); const ok=()=>bkMsg("Code copied. Paste i
   try{ navigator.clipboard.writeText(c).then(ok,fb); }catch(e){ fb(); } }
 function bkRestaurarTexto(txt){ try{ txt=(txt||'').trim(); if(txt.indexOf(BK_PREF)!==0) return bkMsg("Invalid code: it must start with "+BK_PREF);
     const o=JSON.parse(decodeURIComponent(escape(atob(txt.slice(BK_PREF.length))))); if(!o||o.v!==1||!o.k||!o.k[CHAVE]) return bkMsg("Incomplete backup or from another version.");
-    if(!confirm("Restoring this backup will replace the current progress on this device. Continue?")) return;
-    for(const n of Object.keys(o.k)){ if(o.k[n]!=null) localStorage.setItem(n,o.k[n]); }
-    bkMsg("Backup restored. Restarting…"); setTimeout(()=>location.reload(),600);
+    pedirConfirmacao('Restore the backup?',"Restoring this backup will replace the current progress on this device. Continue?",'Restore',()=>{ try{ for(const n of Object.keys(o.k)){ if(o.k[n]!=null) localStorage.setItem(n,o.k[n]); }
+    bkMsg("Backup restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't read this backup."); } },ui.modal);
   }catch(e){ bkMsg("I couldn't read this backup."); } }
 document.addEventListener('change',e=>{ if(e.target&&e.target.id==='bkArq'&&e.target.files&&e.target.files[0]){ const r=new FileReader(); r.onload=()=>bkRestaurarTexto(String(r.result)); r.readAsText(e.target.files[0]); } });
 /* ================= CEO: cuida das melhorias de rotina das empresas ================= */
@@ -6021,12 +6021,18 @@ function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata pa
       if(fonte) L.push({a,ki,k,c,fonte}); } }
   return L.sort((x,y)=>x.c-y.c);
 }
+const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
 function ceoMes(ex){
   const c=ceo(); if(!c.on) return;
   const emps=ceoEmps(); if(!emps.length) return;
   const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
   if(ceoLiq()<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(["CEO: dismissed for lack of cash to pay the salary",0]); s.licao={tom:'ruim', titulo:"The CEO left", texto:"Your account had no slack to pay his salary. A professional manager only pays off when the account can bear his cost and the month's expenses. You can hire again in the Income tab when there is cash."}; return; }
   pagarAVista(v); c.pago=(c.pago||0)+v; ex.push(["CEO: salary and profit sharing",-v]);
+  if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
+    if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
+      (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Open a new store?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
+        texto:'The company is polished in every area. Store '+(n+1)+' costs '+fmt0(v)+' and takes '+dur+' months to be ready, selling nothing in the meantime. Afterwards, the company earns about '+pct+'% more. The money comes from your own capital.'}); } }
   const ops=ceoOpcoes();
   if(c.auto){
     if(c.gm!==s.mes){ c.gm=s.mes; c.gv=0; }
@@ -6049,6 +6055,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
+  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ s.licao={tom:'neutro', titulo:'The CEO could not open the store', texto:'The company is under construction or no longer meets the conditions for a new store.'}; return; }
+    if(!ceoLojaV(a)){ s.licao={tom:'neutro', titulo:'The CEO waited', texto:'Your account would have no slack to pay expenses after the construction.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'New store on the way', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+3; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="The CEO couldn't upgrade: the company is under construction or no longer exists."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="The CEO couldn't upgrade now: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"the company is blocked for improvements."); return; }
@@ -6078,6 +6088,7 @@ function renderAvisoEvolucao(){
   const aviso=s?.avisosEvolucao?.[0];
   box.hidden=!aviso||!!ui.modal||!!ui.girando||ui.tela==='titulo';
   if(box.hidden){ box.innerHTML=''; return; }
+  if(aviso.tipo==='ceo' && aviso.loja){ box.innerHTML='<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Not now">×</button><strong>'+aviso.titulo+'</strong><b>'+escHtml(aviso.nome)+'</b><p>'+escHtml(aviso.texto)+'</p><button class="btn coin" data-acao="ceoSim">Yes, build it</button> <button class="btn" data-acao="ceoNao">Not now</button></div>'; return; }
   if(aviso.tipo==='ceo'){ box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Not now">×</button><strong>${aviso.titulo}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p><button class="btn coin" data-acao="ceoSim">Yes, upgrade</button> <button class="btn" data-acao="ceoNao">Not now</button></div>`; return; }
   box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite" aria-atomic="true"><button class="evolucao-fechar" data-acao="evolucaoFechar" aria-label="Close completion notice">×</button><strong>${aviso.titulo?aviso.titulo:aviso.tipo==='obra'?"🏗️ Project completed!":aviso.tipo==='estudo'?pix('🎓','mini')+" Study completed!":pixK('aba-voce','🌱','mini')+" Skill completed!"}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p>${aviso.tipo==='obra'||aviso.tipo==='marco'?`<small>${aviso.tipo==='marco'?(s.avisosEvolucao.length>1?`${s.avisosEvolucao.length-1} more notice(s).`:"Keep growing."):s.avisosEvolucao.length>1?`${s.avisosEvolucao.length-1} more notice(s).`:"Open the company to start the next project."}</small>${aviso.tipo==='obra'&&aviso.uid?`<button class="btn coin" data-acao="evolucaoConferir" data-alvo="${aviso.uid}">Check →</button>`:''}`:`<small>Your time was freed up. ${aviso.tipo==='habilidade'?"See the next skill in the Life tab.":"Check the next upgrade in the You tab."}${s.avisosEvolucao.length>1?` ${s.avisosEvolucao.length-1} more notice(s).`:''}</small><button class="btn coin" data-acao="evolucaoVer">${pixK('aba-voce','🌱','mini')} ${aviso.tipo==='habilidade'?"See skills":"See studies"} →</button>`}</div>`;
 }
@@ -6091,10 +6102,12 @@ function prepararConfirmacaoVenda(ativo,valor,opcao=null){
   ui.confirmOperacao={tipo:opcao===null?'venda':'vendaEvento',uid:ativo.uid,valor,opcao,evento:s.evento,voltar:opcao===null?null:'evento'};
   ui.modal='confirmOperacao'; render();
 }
+function pedirConfirmacao(titulo,texto,botao,fn,voltar=null){ ui.confirmOperacao={tipo:'geral',titulo,texto,botao,fn,voltar}; ui.modal='confirmOperacao'; render(); }
 function cancelarConfirmOperacao(){ const voltar=ui.confirmOperacao?.voltar||null; ui.confirmOperacao=null; ui.modal=voltar; render(); }
 function concluirConfirmOperacao(){
   const pend=ui.confirmOperacao; if(ui.modal!=='confirmOperacao'||!pend) return;
   ui.confirmOperacao=null; ui.modal=null;
+  if(pend.tipo==='geral'){ ui.modal=pend.voltar||null; render(); if(pend.fn) pend.fn(); return; }
   if(pend.tipo==='emp'){ pegarEmprestimo(pend.emp,pend.valor); salvar(); render(); return; }
   const ativo=s.ativos.find(a=>a.uid===pend.uid); if(!ativo){ render(); return; }
   if(pend.tipo==='vendaEvento'){ if(s.evento===pend.evento&&s.evento==='comprador'&&s.alvoAtivo===pend.uid&&s.ofertaValor===pend.valor) resolver(pend.opcao,true); else render(); return; }
@@ -6105,7 +6118,9 @@ function concluirConfirmOperacao(){
 function renderConfirmOperacao(){
   const pend=ui.confirmOperacao; if(!pend){ ui.modal=null; modal.innerHTML=''; return; }
   let titulo,html,botao;
-  if(pend.tipo==='emp'){
+  if(pend.tipo==='geral'){
+    titulo=pend.titulo; botao=pend.botao; html='<p>'+escHtml(pend.texto)+'</p>';
+  } else if(pend.tipo==='emp'){
     const L=EMPRESTIMOS[pend.emp], parcela=pmt(pend.valor,L.taxa,L.n), total=parcela*L.n;
     titulo="Confirm loan?"; botao="Confirm loan";
     html=`<p>${escHtml(L.nome)}</p><div class="info-lista"><div class="fl"><span>You receive</span><b>${fmt0(pend.valor)}</b></div><div class="fl"><span>Installments</span><b>${L.n}x of ${fmt(parcela)}</b></div><div class="fl"><span>Interest per month</span><b>${dec1(100*L.taxa)}%</b></div><div class="fl"><span>Total to repay</span><b>${fmt0(total)}</b></div><div class="fl"><span>Total interest</span><b>${fmt0(total-pend.valor)}</b></div></div><p class="hint">${escHtml(L.txt)}</p>`;
@@ -6728,7 +6743,7 @@ document.addEventListener('click', e=>{
     case 'expandir': expandir(Number(alvo)); checarFim(); salvar(); render(); break;
     case 'receber': receberAmigos(); salvar(); render(); break;
     case 'usarInfl': if((s.infl||0)>=100){ if(!(ui.cartasInfl||[]).length || ui.cartasMes!==s.mes){ ui.cartasInfl=sortearCartasInfl(); ui.cartasMes=s.mes; } ui.modal='infl'; render(); } break;
-    case 'cartaInfl': { if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break; const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador'){ const a0=alvoVenda(); if(a0 && !confirm('Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.')) break; } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); break; }
+    case 'cartaInfl': { if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break; usarCartaInfl(alvo,false); break; }
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
@@ -6858,7 +6873,7 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
-    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-en-snapB')||localStorage.getItem('corrida-en-snapA'); if(!t){ bkMsg("There's no automatic copy on this device yet."); break; } const o=JSON.parse(t); if(!confirm("Go back the game to "+(o.mes?("month "+o.mes):"an earlier copy")+"? Progress after that will be lost.")) break; localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg("Copy restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't restore the copy."); } break; }
+    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-en-snapB')||localStorage.getItem('corrida-en-snapA'); if(!t){ bkMsg("There's no automatic copy on this device yet."); break; } const o=JSON.parse(t); pedirConfirmacao('Go back in the game?',"Go back the game to "+(o.mes?("month "+o.mes):"an earlier copy")+"? Progress after that will be lost.",'Go back',()=>{ try{ localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg("Copy restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't restore the copy."); } },ui.modal); }catch(e){ bkMsg("I couldn't restore the copy."); } break; }
     case 'slotSalvar': slotSalvar(Number(alvo)); break;
     case 'slotCarregar': slotCarregar(Number(alvo)); break;
     case 'bkBaixar': bkBaixar(); break;
@@ -10636,7 +10651,7 @@ function opcoesDe(id){
   if(!o.length || !o.every(x=>x.disabled)) return o;
   const extra=[], a=alvoVenda();
   if(a){ const p=Math.round(vMerc(a)*0.85/100)*100;
-    extra.push({label:`Vender ${a.nome.toLowerCase()} por ${fmt0(p)}`, sub:'O dinheiro cai na conta e você volta a escolher (vende por 85% do valor)', manter:true, run:()=>{ if(!confirm('Vender '+a.nome.toLowerCase()+' por '+fmt0(p)+'? O bem deixa de ser seu.')) return null; const r=venderAtivo(a,p); ui.evAviso=`Você vendeu ${a.nome.toLowerCase()} por ${fmt0(p)}${r.quitado>0?` e quitou ${fmt0(r.quitado)} do financiamento`:''}. Agora escolha de novo.`; return null; }}); }
+    extra.push({label:`Vender ${a.nome.toLowerCase()} por ${fmt0(p)}`, sub:'O dinheiro cai na conta e você volta a escolher (vende por 85% do valor)', manter:true, run:()=>{ pedirConfirmacao('Confirmar venda?','Vender '+a.nome.toLowerCase()+' por '+fmt0(p)+'? O bem deixa de ser seu.','Confirmar venda',()=>{ const r=venderAtivo(a,p); ui.evAviso=`Você vendeu ${a.nome.toLowerCase()} por ${fmt0(p)}${r.quitado>0?` e quitou ${fmt0(r.quitado)} do financiamento`:''}. Agora escolha de novo.`; salvar(); render(); },ui.modal); return null; }}); }
   extra.push({label:'Adiar e ficar no sufoco', sub:'O problema continua e o estresse pesa no bem-estar', run:()=>{ s.fel=clamp(s.fel-6,0,100); return {tom:'ruim', titulo:'Ficou para depois', texto:'Sem dinheiro à mão, a decisão foi adiada. Problema adiado costuma voltar maior. Ter reserva de emergência evita esse aperto, e patrimônio que não vira dinheiro rápido (como uma empresa) não resolve imprevisto.'}; }});
   return [...o, ...extra];
 }
@@ -11876,7 +11891,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão vv357</p>
+    <p class="titulo-versao">versão vv358</p>
   </div>`;
 }
 function render(){
@@ -12257,13 +12272,14 @@ function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
   for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
     h+=`<div class="slot"><div class="slot-i"><b>Espaço ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Vazio'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Salvar</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Carregar</button></div></div>`; }
   return h+'</div>'; }
-function slotSalvar(n){ if(!temJogo()) return; const ant=slotLer(n);
-  if(ant && !confirm('Substituir o jogo guardado no espaço '+n+' ('+ant.r+')?')) return;
+function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao('Confirmar venda?','Vender '+a0.nome.toLowerCase()+' por '+fmt0(Math.round(vMerc(a0)*1.4))+'? A empresa deixa de ser sua.','Confirmar venda',()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); }
+function slotSalvar(n,conf){ if(!temJogo()) return; const ant=slotLer(n);
+  if(ant && !conf){ pedirConfirmacao('Substituir o jogo?','Substituir o jogo guardado no espaço '+n+' ('+ant.r+')?','Substituir',()=>slotSalvar(n,true),ui.modal); return; }
   salvar(); let ok=true;
   try{ localStorage.setItem(SLOT_KEY(n),JSON.stringify({q:new Date().toISOString(),r:nomeFase()+' · '+rotulo(s.mes)+' · '+fmt0(patrimonio()),s:localStorage.getItem(CHAVE),c:localStorage.getItem(CHAVE_CAMP)||'{}'})); }catch(e){ ok=false; }
   renderModal(); bkMsg(ok?'Jogo salvo no espaço '+n+'.':'Não consegui salvar: sem espaço no aparelho.'); }
-function slotCarregar(n){ const d=slotLer(n); if(!d) return;
-  if(!confirm('Carregar o jogo do espaço '+n+' ('+d.r+')? O jogo atual será substituído.')) return;
+function slotCarregar(n,ok){ const d=slotLer(n); if(!d) return;
+  if(!ok){ pedirConfirmacao('Carregar o jogo?','Carregar o jogo do espaço '+n+' ('+d.r+')? O jogo atual será substituído.','Carregar',()=>slotCarregar(n,true),ui.modal); return; }
   try{ const cur=lerCamp(), sl=JSON.parse(d.c||'{}'), fixo=k=>['album','finais','ranking','rec','marcos'].includes(k)||/^f\d+Nota$/.test(k);
     window.__carregando=true;
     try{ localStorage.setItem(CHAVE+'-antes-de-carregar',localStorage.getItem(CHAVE)||''); }catch(e){}
@@ -12283,9 +12299,8 @@ function bkCopiar(){ const c=bkGerar(); const ok=()=>bkMsg('Código copiado. Col
   try{ navigator.clipboard.writeText(c).then(ok,fb); }catch(e){ fb(); } }
 function bkRestaurarTexto(txt){ try{ txt=(txt||'').trim(); if(txt.indexOf(BK_PREF)!==0) return bkMsg('Código inválido: ele deve começar com '+BK_PREF);
     const o=JSON.parse(decodeURIComponent(escape(atob(txt.slice(BK_PREF.length))))); if(!o||o.v!==1||!o.k||!o.k[CHAVE]) return bkMsg('Backup incompleto ou de outra versão.');
-    if(!confirm('Restaurar este backup vai substituir o progresso atual neste aparelho. Continuar?')) return;
-    for(const n of Object.keys(o.k)){ if(o.k[n]!=null) localStorage.setItem(n,o.k[n]); }
-    bkMsg('Backup restaurado. Reiniciando…'); setTimeout(()=>location.reload(),600);
+    pedirConfirmacao('Restaurar o backup?','Restaurar este backup vai substituir o progresso atual neste aparelho. Continuar?','Restaurar',()=>{ try{ for(const n of Object.keys(o.k)){ if(o.k[n]!=null) localStorage.setItem(n,o.k[n]); }
+    bkMsg('Backup restaurado. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui ler esse backup.'); } },ui.modal);
   }catch(e){ bkMsg('Não consegui ler esse backup.'); } }
 document.addEventListener('change',e=>{ if(e.target&&e.target.id==='bkArq'&&e.target.files&&e.target.files[0]){ const r=new FileReader(); r.onload=()=>bkRestaurarTexto(String(r.result)); r.readAsText(e.target.files[0]); } });
 /* ================= CEO: cuida das melhorias de rotina das empresas ================= */
@@ -12308,12 +12323,18 @@ function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata pa
       if(fonte) L.push({a,ki,k,c,fonte}); } }
   return L.sort((x,y)=>x.c-y.c);
 }
+const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
 function ceoMes(ex){
   const c=ceo(); if(!c.on) return;
   const emps=ceoEmps(); if(!emps.length) return;
   const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
   if(ceoLiq()<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(['CEO: dispensado por falta de caixa para pagar o salário',0]); s.licao={tom:'ruim', titulo:'O CEO foi embora', texto:'A sua conta não tinha folga para pagar o salário dele. Gestor profissional só compensa quando a conta aguenta o custo dele e as despesas do mês. Você pode contratar de novo na aba Renda quando houver caixa.'}; return; }
   pagarAVista(v); c.pago=(c.pago||0)+v; ex.push(['CEO: salário e participação nos lucros',-v]);
+  if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
+    if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
+      (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Abrir uma nova loja?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
+        texto:'A empresa está redonda em todos os setores. A loja '+(n+1)+' custa '+fmt0(v)+' e leva '+dur+' meses para ficar pronta, sem vender nada nesse período. Depois, a empresa passa a render cerca de '+pct+'% a mais. O dinheiro sai do seu capital.'}); } }
   const ops=ceoOpcoes();
   if(c.auto){
     if(c.gm!==s.mes){ c.gm=s.mes; c.gv=0; }
@@ -12336,6 +12357,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
+  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ s.licao={tom:'neutro', titulo:'O CEO não pôde abrir a loja', texto:'A empresa está em obra ou não atende mais às condições para uma loja nova.'}; return; }
+    if(!ceoLojaV(a)){ s.licao={tom:'neutro', titulo:'O CEO esperou', texto:'A sua conta ficaria sem folga para pagar as despesas depois da obra.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Nova loja a caminho', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+3; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg='O CEO não pôde evoluir: a empresa está em obra ou não existe mais.'; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg='O CEO não pôde evoluir agora: '+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):'a empresa está bloqueada para melhorias.'); return; }
@@ -12365,6 +12390,7 @@ function renderAvisoEvolucao(){
   const aviso=s?.avisosEvolucao?.[0];
   box.hidden=!aviso||!!ui.modal||!!ui.girando||ui.tela==='titulo';
   if(box.hidden){ box.innerHTML=''; return; }
+  if(aviso.tipo==='ceo' && aviso.loja){ box.innerHTML='<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Agora não">×</button><strong>'+aviso.titulo+'</strong><b>'+escHtml(aviso.nome)+'</b><p>'+escHtml(aviso.texto)+'</p><button class="btn coin" data-acao="ceoSim">Sim, construir</button> <button class="btn" data-acao="ceoNao">Agora não</button></div>'; return; }
   if(aviso.tipo==='ceo'){ box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Agora não">×</button><strong>${aviso.titulo}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p><button class="btn coin" data-acao="ceoSim">Sim, evoluir</button> <button class="btn" data-acao="ceoNao">Agora não</button></div>`; return; }
   box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite" aria-atomic="true"><button class="evolucao-fechar" data-acao="evolucaoFechar" aria-label="Fechar aviso de conclusão">×</button><strong>${aviso.titulo?aviso.titulo:aviso.tipo==='obra'?'🏗️ Obra concluída!':aviso.tipo==='estudo'?pix('🎓','mini')+' Estudo concluído!':pixK('aba-voce','🌱','mini')+' Habilidade concluída!'}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p>${aviso.tipo==='obra'||aviso.tipo==='marco'?`<small>${aviso.tipo==='marco'?(s.avisosEvolucao.length>1?`Mais ${s.avisosEvolucao.length-1} aviso(s).`:'Continue crescendo.'):s.avisosEvolucao.length>1?`Mais ${s.avisosEvolucao.length-1} aviso(s).`:'Abra a empresa para começar a próxima obra.'}</small>${aviso.tipo==='obra'&&aviso.uid?`<button class="btn coin" data-acao="evolucaoConferir" data-alvo="${aviso.uid}">Conferir →</button>`:''}`:`<small>Seu tempo foi liberado. ${aviso.tipo==='habilidade'?'Veja a próxima habilidade na aba Vida.':'Confira a próxima evolução na aba Você.'}${s.avisosEvolucao.length>1?` Mais ${s.avisosEvolucao.length-1} aviso(s).`:''}</small><button class="btn coin" data-acao="evolucaoVer">${pixK('aba-voce','🌱','mini')} ${aviso.tipo==='habilidade'?'Ver habilidades':'Ver estudos'} →</button>`}</div>`;
 }
@@ -12378,10 +12404,12 @@ function prepararConfirmacaoVenda(ativo,valor,opcao=null){
   ui.confirmOperacao={tipo:opcao===null?'venda':'vendaEvento',uid:ativo.uid,valor,opcao,evento:s.evento,voltar:opcao===null?null:'evento'};
   ui.modal='confirmOperacao'; render();
 }
+function pedirConfirmacao(titulo,texto,botao,fn,voltar=null){ ui.confirmOperacao={tipo:'geral',titulo,texto,botao,fn,voltar}; ui.modal='confirmOperacao'; render(); }
 function cancelarConfirmOperacao(){ const voltar=ui.confirmOperacao?.voltar||null; ui.confirmOperacao=null; ui.modal=voltar; render(); }
 function concluirConfirmOperacao(){
   const pend=ui.confirmOperacao; if(ui.modal!=='confirmOperacao'||!pend) return;
   ui.confirmOperacao=null; ui.modal=null;
+  if(pend.tipo==='geral'){ ui.modal=pend.voltar||null; render(); if(pend.fn) pend.fn(); return; }
   if(pend.tipo==='emp'){ pegarEmprestimo(pend.emp,pend.valor); salvar(); render(); return; }
   const ativo=s.ativos.find(a=>a.uid===pend.uid); if(!ativo){ render(); return; }
   if(pend.tipo==='vendaEvento'){ if(s.evento===pend.evento&&s.evento==='comprador'&&s.alvoAtivo===pend.uid&&s.ofertaValor===pend.valor) resolver(pend.opcao,true); else render(); return; }
@@ -12392,7 +12420,9 @@ function concluirConfirmOperacao(){
 function renderConfirmOperacao(){
   const pend=ui.confirmOperacao; if(!pend){ ui.modal=null; modal.innerHTML=''; return; }
   let titulo,html,botao;
-  if(pend.tipo==='emp'){
+  if(pend.tipo==='geral'){
+    titulo=pend.titulo; botao=pend.botao; html='<p>'+escHtml(pend.texto)+'</p>';
+  } else if(pend.tipo==='emp'){
     const L=EMPRESTIMOS[pend.emp], parcela=pmt(pend.valor,L.taxa,L.n), total=parcela*L.n;
     titulo='Confirmar empréstimo?'; botao='Confirmar empréstimo';
     html=`<p>${escHtml(L.nome)}</p><div class="info-lista"><div class="fl"><span>Você recebe</span><b>${fmt0(pend.valor)}</b></div><div class="fl"><span>Parcelas</span><b>${L.n}x de ${fmt(parcela)}</b></div><div class="fl"><span>Juros por mês</span><b>${dec1(100*L.taxa)}%</b></div><div class="fl"><span>Total a devolver</span><b>${fmt0(total)}</b></div><div class="fl"><span>Total de juros</span><b>${fmt0(total-pend.valor)}</b></div></div><p class="hint">${escHtml(L.txt)}</p>`;
@@ -13015,7 +13045,7 @@ document.addEventListener('click', e=>{
     case 'expandir': expandir(Number(alvo)); checarFim(); salvar(); render(); break;
     case 'receber': receberAmigos(); salvar(); render(); break;
     case 'usarInfl': if((s.infl||0)>=100){ if(!(ui.cartasInfl||[]).length || ui.cartasMes!==s.mes){ ui.cartasInfl=sortearCartasInfl(); ui.cartasMes=s.mes; } ui.modal='infl'; render(); } break;
-    case 'cartaInfl': { if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break; const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador'){ const a0=alvoVenda(); if(a0 && !confirm('Vender '+a0.nome.toLowerCase()+' por '+fmt0(Math.round(vMerc(a0)*1.4))+'? A empresa deixa de ser sua.')) break; } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); break; }
+    case 'cartaInfl': { if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break; usarCartaInfl(alvo,false); break; }
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
@@ -13145,7 +13175,7 @@ document.addEventListener('click', e=>{
     case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
-    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); if(!confirm('Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.')) break; localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
+    case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); pedirConfirmacao('Voltar o jogo?','Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.','Voltar',()=>{ try{ localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } },ui.modal); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
     case 'slotSalvar': slotSalvar(Number(alvo)); break;
     case 'slotCarregar': slotCarregar(Number(alvo)); break;
     case 'bkBaixar': bkBaixar(); break;
