@@ -1289,6 +1289,15 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 
 .polaroid.capa img{aspect-ratio:3/4}
 .foto-sheet .polaroid.capa{width:min(70vw,260px)}
+
+.prova-lin[data-acao="prova"]{flex-wrap:wrap;overflow:hidden}
+.prova-lin[data-acao="prova"]::before{content:'';flex:0 0 calc(100% + 24px);margin:-10px -12px 2px;aspect-ratio:1000/400;background-size:cover;background-position:center;border-bottom:1px solid rgba(127,140,165,.3)}
+.prova-lin[data-acao="prova"][disabled]::before{filter:grayscale(.7)}
+.prova-lin[data-acao="prova"] > span:first-child{flex:1 1 0;min-width:0}
+
+.ritmo-box{position:relative}
+.ritmo-bonus{position:absolute;left:10px;right:10px;top:10px;z-index:6;background:#2f8f5b;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;line-height:1.35;box-shadow:0 6px 18px -6px rgba(0,0,0,.5);animation:revela .6s ease-out;cursor:pointer}
+.ritmo-bonus.sem{background:#6b7280}
 </style>
 
 <div class="app" id="app"></div>
@@ -2703,9 +2712,14 @@ function concluirProva(d){ const c=corr(), km=ui.corrida.km, pos=Math.max(1,Math
   const gf=[8,5,3,2][pos-1], gc=Math.round([4,3,2,2][pos-1]*mk*10)/10;
   s.fel=clamp(s.fel+gf,0,esgotado()?40:100); c.cond=clamp(c.cond+gc,0,100); c.n=(c.n||0)+1;
   const b=c.melhor[km]; c.melhor[km]={pos:b?Math.min(b.pos,pos):pos, tempo:b?Math.min(b.tempo,d.tempo):d.tempo};
+  { const bv=[3,2,1][pos-1]||0, at=s.bonusCorrida; if(bv && (!at || at.ate<s.mes || bv>=at.v)) s.bonusCorrida={v:bv, ate:s.mes+12}; }
   c.ult={km,pos,tempo:d.tempo,gf,gc,mes:s.mes}; ui.corrida.feito=true; if(pos===1) foto('corrida-'+km); salvar(); }
+function avisoBonusCorrida(){ const u=corr().ult, box=document.querySelector('.ritmo-box'); if(!u || !box) return; const bv=[3,2,1][u.pos-1]||0;
+  const el=document.createElement('div'); el.className='ritmo-bonus'+(bv?'':' sem');
+  el.textContent = bv ? '🏅 Finished in place '+u.pos+'! Well-being bonus of +'+bv+' per month for 1 year.' : 'You finished in place '+u.pos+'. No bonus this time: only the podium (up to 3rd place) earns a well-being bonus.';
+  el.onclick=()=>el.remove(); box.appendChild(el); }
 window.addEventListener('message', e=>{ const d=e.data, fr=document.querySelector('iframe.ritmo'); if(!d||!d.corrida||!ui.corrida||!fr||e.source!==fr.contentWindow) return;
-  if(d.corrida==='fim' && !ui.corrida.feito) concluirProva(d);
+  if(d.corrida==='fim' && !ui.corrida.feito){ concluirProva(d); avisoBonusCorrida(); }
   if(d.corrida==='fechar'){ ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); } });
 function corridaImgs(){ const c=corr(); let base=lerCamp().avatar; if(!base) base=AV_PADRAO;
   if(!c.rivais){ c.rivais=[avAleatorio('f'),avAleatorio('m'),avAleatorio('m')].map((r,i)=>Object.assign(r,{nome:["Bia","Leo","Teo"][i],fantasia:'nenhuma'})); }
@@ -2723,8 +2737,13 @@ function programasHtml(){
 function modalProgRes(){ const r=ui.progRes, p=r&&PROGRAMAS.find(x=>x.id===r.id); if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   const im=(typeof ARTE!=='undefined'&&ARTE.cards)?ARTE.cards['lazer-'+p.id]:null;
   modal.innerHTML='<div class="overlay" data-acao="progResFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">'+(im?'<img class="ceo-img" src="'+im+'" alt="">':'')+'<h3 id="m-t">'+escHtml(p.res)+'</h3><p>'+escHtml(p.txt)+'</p><p class="hint">Well-being +'+r.g+' · '+fmt0(r.custo)+' · '+p.h+' h</p><div class="opcoes"><button class="opcao coin" data-acao="progResFechar"><b>Continue</b></button></div></div></div>'; }
+function bonusCorridaHtml(){ const b=s.bonusCorrida, ativo=b && b.ate>=s.mes;
+  return '<p class="hint">Finishing on the podium earns a well-being bonus for 1 year: 1st place +3 per month, 2nd +2 and 3rd +1. Racing at least once a year keeps the bonus going.</p>'+(ativo?'<p class="hint lazer-ult">Race bonus active: <b>well-being +'+b.v+' per month</b> until '+rotulo(b.ate)+'.</p>':''); }
+function cssProvas(){ if(document.getElementById('css-provas') || typeof ARTE==='undefined' || !ARTE.cards) return;
+  const r=PROVAS.map(p=>ARTE.cards['corrida-'+p.km]?'.prova-lin[data-acao="prova"][data-alvo="'+p.km+'"]::before{background-image:url("'+ARTE.cards['corrida-'+p.km]+'")}':'').join('\n');
+  const el=document.createElement('style'); el.id='css-provas'; el.textContent=r; document.head.appendChild(el); }
 function lazerCard(){
-  const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
+  cssProvas(); const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
   const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<9, f=h?TREINO_FEL[h]:0;
     return `<button data-acao="treino" data-alvo="${h}" aria-pressed="${c.h===h}" ${dis?'disabled':''}>${h?h+' h':"Stopped"}<small>${h?"per week":"no training"}</small><small class="efeito">${h?`${hm(h)} h/mo · well-being +${f} · ${fmt0(custoTreinoH(h))}/mo`:"slowly declining"}</small></button>`; }).join('');
   const usada=c.ultMes===s.mes;
@@ -2740,7 +2759,7 @@ function lazerCard(){
     <div class="seg seg-hud" role="group" aria-label="Training per week">${seg}</div>
     ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+programasHtml()}<h3 class="lazer-sub">Running races</h3>
     <div class="provas">${provas}</div>
-    ${usada?"<p class=\"hint\">You've already run this month.</p>":''}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the waterfront once a year. You can only sign up in the race month.</p>
+    ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the waterfront once a year. You can only sign up in the race month.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Sneaker drop"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">In perspective<small>coming from the horizon</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Straight line<small>falling straight</small></button></div>
     ${u?`<p class="hint lazer-ult">Last race (${u.km} km): <b>${u.pos}th place</b> in ${fmtTempo(u.tempo)} · well-being +${u.gf} · fitness +${u.gc}</p>`:"<p class=\"hint\">A race result only adds: first place gives more, and last place still gives a little.</p>"}
   </section>`; }
@@ -2762,6 +2781,7 @@ function efeitosFel(hl=horasLivres()){
   if(cansacoFel()>=1) L.push([`accumulated tiredness${esgotado()?" (on leave, recovering)":''}`, -cansacoFel()]);
   if(esgotado()) L.push(['esgotamento', -4]);
   { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>2?2+(P-2)*0.25:P; if(P-Pe>=1) L.push(["adaptation: the good becomes normal", -Math.round(P-Pe)]); }
+  if(s.bonusCorrida && s.bonusCorrida.ate>=s.mes) L.push(['race bonus', s.bonusCorrida.v]);
   const r=Math.round((FEL_BASE-s.fel)*FEL_VOLTA); if(r) L.push(['rotina', r]);
   return L;
 }
@@ -5603,7 +5623,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v362</p>
+    <p class="titulo-versao">version v363</p>
   </div>`;
 }
 function render(){
@@ -7629,7 +7649,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
@@ -9014,9 +9034,14 @@ function concluirProva(d){ const c=corr(), km=ui.corrida.km, pos=Math.max(1,Math
   const gf=[8,5,3,2][pos-1], gc=Math.round([4,3,2,2][pos-1]*mk*10)/10;
   s.fel=clamp(s.fel+gf,0,esgotado()?40:100); c.cond=clamp(c.cond+gc,0,100); c.n=(c.n||0)+1;
   const b=c.melhor[km]; c.melhor[km]={pos:b?Math.min(b.pos,pos):pos, tempo:b?Math.min(b.tempo,d.tempo):d.tempo};
+  { const bv=[3,2,1][pos-1]||0, at=s.bonusCorrida; if(bv && (!at || at.ate<s.mes || bv>=at.v)) s.bonusCorrida={v:bv, ate:s.mes+12}; }
   c.ult={km,pos,tempo:d.tempo,gf,gc,mes:s.mes}; ui.corrida.feito=true; if(pos===1) foto('corrida-'+km); salvar(); }
+function avisoBonusCorrida(){ const u=corr().ult, box=document.querySelector('.ritmo-box'); if(!u || !box) return; const bv=[3,2,1][u.pos-1]||0;
+  const el=document.createElement('div'); el.className='ritmo-bonus'+(bv?'':' sem');
+  el.textContent = bv ? '🏅 '+u.pos+'º lugar! Bônus de bem-estar de +'+bv+' por mês durante 1 ano.' : 'Você chegou em '+u.pos+'º lugar. Sem bônus desta vez: só o pódio (até o 3º lugar) rende bônus de bem-estar.';
+  el.onclick=()=>el.remove(); box.appendChild(el); }
 window.addEventListener('message', e=>{ const d=e.data, fr=document.querySelector('iframe.ritmo'); if(!d||!d.corrida||!ui.corrida||!fr||e.source!==fr.contentWindow) return;
-  if(d.corrida==='fim' && !ui.corrida.feito) concluirProva(d);
+  if(d.corrida==='fim' && !ui.corrida.feito){ concluirProva(d); avisoBonusCorrida(); }
   if(d.corrida==='fechar'){ ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); } });
 function corridaImgs(){ const c=corr(); let base=lerCamp().avatar; if(!base) base=AV_PADRAO;
   if(!c.rivais){ c.rivais=[avAleatorio('f'),avAleatorio('m'),avAleatorio('m')].map((r,i)=>Object.assign(r,{nome:['Bia','Leo','Teo'][i],fantasia:'nenhuma'})); }
@@ -9034,8 +9059,13 @@ function programasHtml(){
 function modalProgRes(){ const r=ui.progRes, p=r&&PROGRAMAS.find(x=>x.id===r.id); if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   const im=(typeof ARTE!=='undefined'&&ARTE.cards)?ARTE.cards['lazer-'+p.id]:null;
   modal.innerHTML='<div class="overlay" data-acao="progResFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">'+(im?'<img class="ceo-img" src="'+im+'" alt="">':'')+'<h3 id="m-t">'+escHtml(p.res)+'</h3><p>'+escHtml(p.txt)+'</p><p class="hint">Bem-estar +'+r.g+' · '+fmt0(r.custo)+' · '+p.h+' h</p><div class="opcoes"><button class="opcao coin" data-acao="progResFechar"><b>Continuar</b></button></div></div></div>'; }
+function bonusCorridaHtml(){ const b=s.bonusCorrida, ativo=b && b.ate>=s.mes;
+  return '<p class="hint">Quem chega ao pódio ganha um bônus de bem-estar por 1 ano: 1º lugar +3 por mês, 2º +2 e 3º +1. Correr pelo menos uma vez por ano mantém o bônus.</p>'+(ativo?'<p class="hint lazer-ult">Bônus de corrida ativo: <b>bem-estar +'+b.v+' por mês</b> até '+rotulo(b.ate)+'.</p>':''); }
+function cssProvas(){ if(document.getElementById('css-provas') || typeof ARTE==='undefined' || !ARTE.cards) return;
+  const r=PROVAS.map(p=>ARTE.cards['corrida-'+p.km]?'.prova-lin[data-acao="prova"][data-alvo="'+p.km+'"]::before{background-image:url("'+ARTE.cards['corrida-'+p.km]+'")}':'').join('\n');
+  const el=document.createElement('style'); el.id='css-provas'; el.textContent=r; document.head.appendChild(el); }
 function lazerCard(){
-  const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
+  cssProvas(); const c=corr(), n=nivelCond(c.cond), pct=Math.round(c.cond), cor=['#6F9CC9','#D19A3B','#4E9A73'][n], livre=horasLivres()+horasTreino();
   const seg=TREINO_H.map(h=>{ const dis=h>0 && livre-h<9, f=h?TREINO_FEL[h]:0;
     return `<button data-acao="treino" data-alvo="${h}" aria-pressed="${c.h===h}" ${dis?'disabled':''}>${h?h+' h':'Parado'}<small>${h?'por semana':'sem treino'}</small><small class="efeito">${h?`${hm(h)} h/mês · bem-estar +${f} · ${fmt0(custoTreinoH(h))}/mês`:'cai devagar'}</small></button>`; }).join('');
   const usada=c.ultMes===s.mes;
@@ -9051,7 +9081,7 @@ function lazerCard(){
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
     ${(livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':'')+programasHtml()}<h3 class="lazer-sub">Provas de corrida</h3>
     <div class="provas">${provas}</div>
-    ${usada?'<p class="hint">Você já correu neste mês.</p>':''}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
+    ${(usada?'<p class="hint">Você já correu neste mês.</p>':'')+bonusCorridaHtml()}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
     ${u?`<p class="hint lazer-ult">Última prova (${u.km} km): <b>${u.pos}º lugar</b> em ${fmtTempo(u.tempo)} · bem-estar +${u.gf} · condicionamento +${u.gc}</p>`:'<p class="hint">Resultado de prova só soma: o primeiro lugar rende mais, e o último ainda rende um pouco.</p>'}
   </section>`; }
@@ -9073,6 +9103,7 @@ function efeitosFel(hl=horasLivres()){
   if(cansacoFel()>=1) L.push([`cansaço acumulado${esgotado()?' (afastado, recuperando)':''}`, -cansacoFel()]);
   if(esgotado()) L.push(['esgotamento', -4]);
   { const P=L.reduce((x,[,v])=>x+(v>0?v:0),0), Pe=P>2?2+(P-2)*0.25:P; if(P-Pe>=1) L.push(['adaptação: o bom vira normal', -Math.round(P-Pe)]); }
+  if(s.bonusCorrida && s.bonusCorrida.ate>=s.mes) L.push(['bônus de corrida', s.bonusCorrida.v]);
   const r=Math.round((FEL_BASE-s.fel)*FEL_VOLTA); if(r) L.push(['rotina', r]);
   return L;
 }
@@ -11914,7 +11945,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v362</p>
+    <p class="titulo-versao">versão v363</p>
   </div>`;
 }
 function render(){
@@ -13940,7 +13971,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+window.__MI = MES_INI; window.__corrida = { get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
