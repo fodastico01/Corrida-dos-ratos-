@@ -4823,6 +4823,7 @@ function comprarOferta(uid, financiar){
   if(!podeAVista(entrada)) return;
   const a={uid:s.uid++, id:o.id, nome:c.nome, tipo:c.tipo, valor:o.preco, custo:financiar?o.preco:pv, renda:o.renda, horas:Math.max(1,c.horas-(o.area?AREA.horas:0)), area:!!o.area, desde:s.mes};
   if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:50, meses:0}; tycAtualizar(a); }
+  const gerAuto=!!(s.aposentado && c.tipo==='negocio'); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; }
   const vendTxt=pagarAVista(entrada);
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
@@ -4830,6 +4831,7 @@ function comprarOferta(uid, financiar){
     txtFin=` The payment is ${fmt0(p)} and the rent is ${fmt0(o.renda)}: ${o.renda>=p?"the property pays for itself.":`you cover ${fmt0(p-o.renda)} a month out of your own pocket. With interest at 13% a year, financing to rent out rarely pays off in Brazil.`}`; }
   s.ativos.push(a); s.ofertas=s.ofertas.filter(x=>x.uid!==uid); s.comprouAtivos=(s.comprouAtivos||0)+1; if(c.tipo==='negocio') foto('negocio'); else if(c.tipo==='imovel') foto('imovel');
   if(!financiar && pv<o.preco) txtFin=` Paying in cash, you negotiated ${fmt0(o.preco-pv)} off.`;
+  if(gerAuto) txtFin+=' Since you already live off income, a manager took over the daily running of the business.';
   if(!financiar && c.finan) txtFin+=parabensAVista(pv, o.preco, 0.3, 0.0105, 120);
   s.licao={tom:'bom', titulo:`Now you're the owner: ${c.nome.toLowerCase()}`, texto:(c.tyc?`Open management in the Income tab and start improving the business. You choose how much profit to withdraw and how much to reinvest.`:o.renda>0?`Expected income of ${fmt0(o.renda)} per month.`:"It generates no income: the gain depends on selling for more.")+txtFin+vendTxt};
   checarDescoberto(m0);
@@ -5596,7 +5598,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version vv359</p>
+    <p class="titulo-versao">version vv360</p>
   </div>`;
 }
 function render(){
@@ -5814,7 +5816,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       ${podeSonho?`<button class="btn coin" data-acao="realizar">Achieve the dream</button>`:''}</div>
   </section>`;
   const ofertas=(s.ofertas||[]).length?`<section class="card" aria-labelledby="t-opp"><h2 id="t-opp">Opportunities</h2>
-    ${s.ofertas.map(o=>{ const c=CARTAS[o.id], hO=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0)), semTempo=hl-hO<6 && c.horas>0, ent=Math.round(o.preco*0.3);
+    ${s.ofertas.map(o=>{ const c=CARTAS[o.id], hO0=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0)), hO=(s.aposentado&&c.tipo==='negocio')?Math.max(1,Math.round(hO0*(c.dedicacao?0.5:0.25))):hO0, semTempo=hl-hO<6 && c.horas>0, ent=Math.round(o.preco*0.3);
       return `<div class="opp">${fotoNeg(o.id,null,true)}<div class="opp-top"><b>${nomeOferta(o.id)}</b><span class="num">${fmt0(o.preco)}</span></div>
         <p class="hint desc">${c.desc}</p>
         <div class="opp-dados"><span>${c.tyc?"Initial profit":"Income"} <b>${o.renda?fmt0(o.renda)+"/mo":'none'}</b></span><span>Time <b>${hm(hO)} h/mo</b></span><span>Expires <b>${rotulo(o.expira)}</b></span></div>
@@ -5832,7 +5834,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
         <div class="conta-acoes"><button class="btn coin" data-acao="expandir" data-alvo="${a.uid}" ${podeAVista(custoExpandir(a))?'':'disabled'}>Open new location (${fmt0(custoExpandir(a))})</button></div>`; })():''}
       ${largado(a)?`<p class="hint" style="color:var(--loss)">You have no time to take care of it: income 30% lower, more breakdowns and more risk of closing. A manager solves it.</p>`:''}
       ${a.tipo==='negocio'&&!a.tyc&&!a.gerente&&a.horas>1?`<p class="hint">With a manager: takes ${Math.round(gerCusto()*100)}% of the income, but gives back ${hm(a.horas-Math.max(1,Math.round(a.horas*0.25)))} h per month (you still supervise ${hm(Math.max(1,Math.round(a.horas*0.25)))} h), breaks down less, almost never closes, improves over time and the business is worth 25% more when sold.</p>`:''}
-      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Manage company</button>`:''}${a.tipo==='negocio'&&!a.tyc&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Hire manager</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dismiss manager</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Sell now for ${fmt0(vMerc(a)*0.85)}</button></div>
+      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Manage company</button>`:''}${a.tipo==='negocio'&&(!a.tyc||s.aposentado)&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Hire manager</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dismiss manager</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Sell now for ${fmt0(vMerc(a)*0.85)}</button></div>
     </div>`).join('')}</section>`:'';
 
   const emps=s.parcelas.filter(p=>p.emp);
@@ -6910,7 +6912,7 @@ document.addEventListener('click', e=>{
     case 'sonhoEsc': { const c=lerCamp(); c.sonho=alvo; gravarCamp(c); s.sonho=alvo; salvar(); render(); break; }
     case 'comprar': comprarOferta(Number(alvo), false); salvar(); render(); break;
     case 'financiar': comprarOferta(Number(alvo), true); salvar(); render(); break;
-    case 'gerente': { const at=s.ativos.find(x=>x.uid===Number(alvo)); if(at){ at.gerente=true; at.gerDesde=s.mes; s.licao={tom:'bom', titulo:"Manager hired", texto:`The ${at.nome.toLowerCase()} now runs without you. You give up 25% of the income and gain ${hm(at.horas-horasAtivo(at))} hours per month (you still need ${hm(horasAtivo(at))} h to supervise), the business breaks down less and improves with professional management. A business that depends on the owner is a job; a business that runs on its own is passive income, and that's why it's worth more when selling.`}; } salvar(); render(); break; }
+    case 'gerente': { const at=s.ativos.find(x=>x.uid===Number(alvo)); if(at && at.tyc){ at.gerente=true; at.gerDesde=s.mes; s.licao={tom:'bom', titulo:"Manager hired", texto:'The '+at.nome.toLowerCase()+' now runs without you. You still spend '+hm(horasAtivo(at))+' h a month supervising.'}; salvar(); render(); break; } if(at){ at.gerente=true; at.gerDesde=s.mes; s.licao={tom:'bom', titulo:"Manager hired", texto:`The ${at.nome.toLowerCase()} now runs without you. You give up 25% of the income and gain ${hm(at.horas-horasAtivo(at))} hours per month (you still need ${hm(horasAtivo(at))} h to supervise), the business breaks down less and improves with professional management. A business that depends on the owner is a job; a business that runs on its own is passive income, and that's why it's worth more when selling.`}; } salvar(); render(); break; }
     case 'semgerente': { const at=s.ativos.find(x=>x.uid===Number(alvo)); if(at){ at.gerente=false; at.gerDesde=null; s.licao={tom:'neutro', titulo:"You went back to running the business", texto:`Full income returns to you, but the business now takes ${hm(at.horas)} hours per month of your time.`}; } salvar(); render(); break; }
     case 'vender': { const at=s.ativos.find(x=>x.uid===Number(alvo)); prepararConfirmacaoVenda(at, at?Math.round(vMerc(at)*0.85):0); break; }
     case 'realizar': { const ps=precoSonho(); if(F3() && s.conta+investido()>=ps){ const falta=ps-Math.max(0,s.conta); if(falta>0){ const tot=investido(); for(const id of Object.keys(prods())){ const v=valor(id); if(v>0) calcResgate(id, Math.min(v, falta*v/tot+1), true); } } s.conta-=ps; s.sonhoFeito=s.mes; foto('sonho-'+(s.sonho||'viagem')); s.fel=100;
@@ -11130,6 +11132,7 @@ function comprarOferta(uid, financiar){
   if(!podeAVista(entrada)) return;
   const a={uid:s.uid++, id:o.id, nome:c.nome, tipo:c.tipo, valor:o.preco, custo:financiar?o.preco:pv, renda:o.renda, horas:Math.max(1,c.horas-(o.area?AREA.horas:0)), area:!!o.area, desde:s.mes};
   if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:50, meses:0}; tycAtualizar(a); }
+  const gerAuto=!!(s.aposentado && c.tipo==='negocio'); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; }
   const vendTxt=pagarAVista(entrada);
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
@@ -11137,6 +11140,7 @@ function comprarOferta(uid, financiar){
     txtFin=` A parcela é de ${fmt0(p)} e o aluguel, ${fmt0(o.renda)}: ${o.renda>=p?'o imóvel se paga sozinho.':`você completa ${fmt0(p-o.renda)} por mês do próprio bolso. Com juros de 13% ao ano, financiar para alugar raramente se paga no Brasil.`}`; }
   s.ativos.push(a); s.ofertas=s.ofertas.filter(x=>x.uid!==uid); s.comprouAtivos=(s.comprouAtivos||0)+1; if(c.tipo==='negocio') foto('negocio'); else if(c.tipo==='imovel') foto('imovel');
   if(!financiar && pv<o.preco) txtFin=` Pagando à vista, você negociou ${fmt0(o.preco-pv)} de desconto.`;
+  if(gerAuto) txtFin+=' Como você já vive de renda, um gerente assumiu o dia a dia do negócio.';
   if(!financiar && c.finan) txtFin+=parabensAVista(pv, o.preco, 0.3, 0.0105, 120);
   s.licao={tom:'bom', titulo:`Agora você é dono: ${c.nome.toLowerCase()}`, texto:(c.tyc?`Abra a gestão na aba Renda e comece a melhorar o negócio. Você escolhe quanto do lucro retirar e quanto reinvestir.`:o.renda>0?`Renda prevista de ${fmt0(o.renda)} por mês.`:'Ele não gera renda: o ganho depende de vender mais caro.')+txtFin+vendTxt};
   checarDescoberto(m0);
@@ -11903,7 +11907,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão vv359</p>
+    <p class="titulo-versao">versão vv360</p>
   </div>`;
 }
 function render(){
@@ -12121,7 +12125,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       ${podeSonho?`<button class="btn coin" data-acao="realizar">Realizar o sonho</button>`:''}</div>
   </section>`;
   const ofertas=(s.ofertas||[]).length?`<section class="card" aria-labelledby="t-opp"><h2 id="t-opp">Oportunidades</h2>
-    ${s.ofertas.map(o=>{ const c=CARTAS[o.id], hO=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0)), semTempo=hl-hO<6 && c.horas>0, ent=Math.round(o.preco*0.3);
+    ${s.ofertas.map(o=>{ const c=CARTAS[o.id], hO0=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0)), hO=(s.aposentado&&c.tipo==='negocio')?Math.max(1,Math.round(hO0*(c.dedicacao?0.5:0.25))):hO0, semTempo=hl-hO<6 && c.horas>0, ent=Math.round(o.preco*0.3);
       return `<div class="opp">${fotoNeg(o.id,null,true)}<div class="opp-top"><b>${nomeOferta(o.id)}</b><span class="num">${fmt0(o.preco)}</span></div>
         <p class="hint desc">${c.desc}</p>
         <div class="opp-dados"><span>${c.tyc?'Lucro inicial':'Renda'} <b>${o.renda?fmt0(o.renda)+'/mês':'nenhuma'}</b></span><span>Tempo <b>${hm(hO)} h/mês</b></span><span>Expira <b>${rotulo(o.expira)}</b></span></div>
@@ -12139,7 +12143,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
         <div class="conta-acoes"><button class="btn coin" data-acao="expandir" data-alvo="${a.uid}" ${podeAVista(custoExpandir(a))?'':'disabled'}>Abrir nova unidade (${fmt0(custoExpandir(a))})</button></div>`; })():''}
       ${largado(a)?`<p class="hint" style="color:var(--loss)">Você está sem tempo para cuidar dele: renda 30% menor, mais quebras e mais risco de fechar. Um gerente resolve.</p>`:''}
       ${a.tipo==='negocio'&&!a.tyc&&!a.gerente&&a.horas>1?`<p class="hint">Com gerente: fica com ${Math.round(gerCusto()*100)}% da renda, mas devolve ${hm(a.horas-Math.max(1,Math.round(a.horas*0.25)))} h por mês (você ainda supervisiona ${hm(Math.max(1,Math.round(a.horas*0.25)))} h), quebra menos, quase não fecha, melhora com o tempo e o negócio vale 25% mais na venda.</p>`:''}
-      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Gerir empresa</button>`:''}${a.tipo==='negocio'&&!a.tyc&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Contratar gerente</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dispensar gerente</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Vender já por ${fmt0(vMerc(a)*0.85)}</button></div>
+      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Gerir empresa</button>`:''}${a.tipo==='negocio'&&(!a.tyc||s.aposentado)&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Contratar gerente</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dispensar gerente</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Vender já por ${fmt0(vMerc(a)*0.85)}</button></div>
     </div>`).join('')}</section>`:'';
 
   const emps=s.parcelas.filter(p=>p.emp);
@@ -13217,7 +13221,7 @@ document.addEventListener('click', e=>{
     case 'sonhoEsc': { const c=lerCamp(); c.sonho=alvo; gravarCamp(c); s.sonho=alvo; salvar(); render(); break; }
     case 'comprar': comprarOferta(Number(alvo), false); salvar(); render(); break;
     case 'financiar': comprarOferta(Number(alvo), true); salvar(); render(); break;
-    case 'gerente': { const at=s.ativos.find(x=>x.uid===Number(alvo)); if(at){ at.gerente=true; at.gerDesde=s.mes; s.licao={tom:'bom', titulo:'Gerente contratado', texto:`A ${at.nome.toLowerCase()} agora roda sem você. Você abre mão de 25% da renda e ganha ${hm(at.horas-horasAtivo(at))} horas por mês (ainda precisa de ${hm(horasAtivo(at))} h para supervisionar), o negócio quebra menos e vai melhorando com a gestão profissional. Negócio que depende do dono é emprego; negócio que roda sozinho é renda passiva, e por isso vale mais na hora de vender.`}; } salvar(); render(); break; }
+    case 'gerente': { const at=s.ativos.find(x=>x.uid===Number(alvo)); if(at && at.tyc){ at.gerente=true; at.gerDesde=s.mes; s.licao={tom:'bom', titulo:'Gerente contratado', texto:'A '+at.nome.toLowerCase()+' agora roda sem você. Você ainda gasta '+hm(horasAtivo(at))+' h por mês supervisionando.'}; salvar(); render(); break; } if(at){ at.gerente=true; at.gerDesde=s.mes; s.licao={tom:'bom', titulo:'Gerente contratado', texto:`A ${at.nome.toLowerCase()} agora roda sem você. Você abre mão de 25% da renda e ganha ${hm(at.horas-horasAtivo(at))} horas por mês (ainda precisa de ${hm(horasAtivo(at))} h para supervisionar), o negócio quebra menos e vai melhorando com a gestão profissional. Negócio que depende do dono é emprego; negócio que roda sozinho é renda passiva, e por isso vale mais na hora de vender.`}; } salvar(); render(); break; }
     case 'semgerente': { const at=s.ativos.find(x=>x.uid===Number(alvo)); if(at){ at.gerente=false; at.gerDesde=null; s.licao={tom:'neutro', titulo:'Você voltou a tocar o negócio', texto:`A renda cheia volta para você, mas o negócio passa a tomar ${hm(at.horas)} horas por mês do seu tempo.`}; } salvar(); render(); break; }
     case 'vender': { const at=s.ativos.find(x=>x.uid===Number(alvo)); prepararConfirmacaoVenda(at, at?Math.round(vMerc(at)*0.85):0); break; }
     case 'realizar': { const ps=precoSonho(); if(F3() && s.conta+investido()>=ps){ const falta=ps-Math.max(0,s.conta); if(falta>0){ const tot=investido(); for(const id of Object.keys(prods())){ const v=valor(id); if(v>0) calcResgate(id, Math.min(v, falta*v/tot+1), true); } } s.conta-=ps; s.sonhoFeito=s.mes; foto('sonho-'+(s.sonho||'viagem')); s.fel=100;
