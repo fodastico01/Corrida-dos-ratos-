@@ -2665,6 +2665,20 @@ function fazerPrograma(id){ const p=PROGRAMAS.find(x=>x.id===id); if(!p || !prog
   s.fel=clamp(s.fel+g,0,esgotado()?40:100); ui.progRes={id:p.id,g,custo:progCusto(p)}; ui.modal='progRes'; salvar(); render(); }
 const valSeguro = () => s.seguroVal || Math.round(Math.min(C(SEGURO), (s.salario||0)*SEGURO_PCT)/10)*10; // 70% do salário, com teto
 const horasBusca = () => s.desemp>0 ? 12 : 0; // procurar vaga, enviar currículo e fazer entrevistas toma tempo
+
+function tempoLinhas(){
+  const L=[], G=[]; const P=(n,h)=>{ if(h>0) L.push(fl(n,'−'+hm(h)+' h','var(--loss)')); };
+  P("Work",horasTrab()); P("Teaching the newcomer",horasMentoria()); P('Study: '+(s.estudoNome||'course'),horasEstudo());
+  for(const a of (s.ativos||[])) if(a.tipo!=='terreno') P('Negócio: '+a.nome+(a.gerente?" (manager)":''),horasAtivo(a));
+  for(const id of habAtivos()) P('Habit: '+HABITOS[id].nome,HABITOS[id].horas);
+  if(s.habEst && HABS[s.habEst.id]) P('Learning: '+HABS[s.habEst.id].nome,horasHabEst());
+  for(const v of vicAtivos()) P('Vice: '+VICIOS[v].nome,VICIOS[v].horas);
+  P("Extra income",horasExtra()); P('Running training',horasTreino()); P('Job hunting',horasBusca());
+  for(const id of Object.keys(s.habs||{})) if(HABS[id] && HABS[id].ganha>0) G.push(fl('Skill: '+HABS[id].nome,'+'+hm(HABS[id].ganha)+' h','var(--gain)'));
+  if((s.livroHoras||0)>0) G.push(fl('Reading that organized your schedule','+'+hm(s.livroHoras)+' h','var(--gain)'));
+  if(horasCond()>0) G.push(fl('Physical fitness','+'+hm(horasCond())+' h','var(--gain)'));
+  return L.join('')+(G.length?'<div class="fl"><span><b>Hours you gained</b></span></div>'+G.join(''):'');
+}
 const horasLivres = () => Math.round((HORAS_BASE - horasTrab() - horasMentoria() - horasEstudo() - horasAtivos() - horasHabitos() - horasExtra() - horasHabEst() - horasVicios() - horasTreino() - horasBusca() + horasGanhas())*10)/10;
 const sobrecarga = () => horasLivres() < 10;
 const efeitoTempo = (hl=horasLivres()) => { const v=hl>=28?2:hl>=18?0:hl>=10?-3:-7; return s.desemp>0 ? Math.min(0,v) : v; }; // sem emprego, o tempo sobrando não descansa
@@ -5630,7 +5644,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v365</p>
+    <p class="titulo-versao">version v366</p>
   </div>`;
 }
 function render(){
@@ -6703,7 +6717,7 @@ const INFO = {
       <div class="info-lista">${L.filter(([,v])=>v).map(([n,v])=>fl(n,sgn(v),v>0?'var(--gain)':'var(--loss)')).join('')}${fl("<b>Total per month</b>",sgn(tot),'','tot')}</div>
       <p class="hint">Routine pulls well-being back toward ${FEL_BASE}: joys and sorrows pass. But under 78 free hours a month builds up tiredness, and 2 months below 20 lead to burnout. Fixed joys (home, car, comfort) become routine and add little. What lifts it most is looking after yourself now and then: varied leisure outings in the Life tab, free time, exercise, family and an emergency fund standing.</p>`}; },
   tempo:()=>{ const hl=horasLivres(), ef=efeitoTempo(hl);
-    return {t:`Free time: ${hm(hl)} h per month`, h:`<div class="info-lista">${fl("Hours awake in the month",hm(HORAS_BASE)+' h')}${[["Work",horasTrab()],["Teaching the newcomer",horasMentoria()],["Study",horasEstudo()],["Businesses",horasAtivos()],["Habits",horasHabitos()],["Extra income",horasExtra()]].filter(([,h])=>h>0).map(([n,h])=>fl(n,'−'+hm(h)+' h','var(--loss)')).join('')}${fl("<b>Free</b>",hm(hl)+' h','','tot')}</div>
+    return {t:`Free time: ${hm(hl)} h per month`, h:`<div class="info-lista">${fl("Hours awake in the month",hm(HORAS_BASE)+' h')}${tempoLinhas()}${fl("<b>Free</b>",hm(hl)+' h','','tot')}</div>
       <p>Effect on well-being: <b>${sgn(ef)} per month</b>.</p><p class="hint">${hm(28)} h or more per month: +2. Between ${hm(18)} and ${hm(28)-1} h: neutral. Below ${hm(18)} h: −3. Below ${hm(10)} h: −7. Time is also a resource: courses, habits and businesses consume hours.</p>`}; },
   fluxo:()=>{ const f=fluxo();
     return {t:`Cash flow in ${rotulo(s.mes+1)}: ${f.sobra>=0?'+':'−'}${fmt0(Math.abs(f.sobra))}`, h:`<p>How much should come in and go out of your checking account next month, not counting setbacks.${prof().comissao?" Commission changes with the time of year (Christmas and Black Friday pay a lot; January and February are weak) and also varies about 30% up or down.":''}</p>
@@ -8993,6 +9007,20 @@ function fazerPrograma(id){ const p=PROGRAMAS.find(x=>x.id===id); if(!p || !prog
   s.fel=clamp(s.fel+g,0,esgotado()?40:100); ui.progRes={id:p.id,g,custo:progCusto(p)}; ui.modal='progRes'; salvar(); render(); }
 const valSeguro = () => s.seguroVal || Math.round(Math.min(C(SEGURO), (s.salario||0)*SEGURO_PCT)/10)*10; // 70% do salário, com teto
 const horasBusca = () => s.desemp>0 ? 12 : 0; // procurar vaga, enviar currículo e fazer entrevistas toma tempo
+
+function tempoLinhas(){
+  const L=[], G=[]; const P=(n,h)=>{ if(h>0) L.push(fl(n,'−'+hm(h)+' h','var(--loss)')); };
+  P('Trabalho',horasTrab()); P('Ensinando o novato',horasMentoria()); P('Estudo: '+(s.estudoNome||'curso'),horasEstudo());
+  for(const a of (s.ativos||[])) if(a.tipo!=='terreno') P('Negócio: '+a.nome+(a.gerente?' (gerente)':''),horasAtivo(a));
+  for(const id of habAtivos()) P('Hábito: '+HABITOS[id].nome,HABITOS[id].horas);
+  if(s.habEst && HABS[s.habEst.id]) P('Aprendendo: '+HABS[s.habEst.id].nome,horasHabEst());
+  for(const v of vicAtivos()) P('Vício: '+VICIOS[v].nome,VICIOS[v].horas);
+  P('Renda extra',horasExtra()); P('Treino de corrida',horasTreino()); P('Procurando emprego',horasBusca());
+  for(const id of Object.keys(s.habs||{})) if(HABS[id] && HABS[id].ganha>0) G.push(fl('Habilidade: '+HABS[id].nome,'+'+hm(HABS[id].ganha)+' h','var(--gain)'));
+  if((s.livroHoras||0)>0) G.push(fl('Leituras que organizaram a agenda','+'+hm(s.livroHoras)+' h','var(--gain)'));
+  if(horasCond()>0) G.push(fl('Condicionamento físico','+'+hm(horasCond())+' h','var(--gain)'));
+  return L.join('')+(G.length?'<div class="fl"><span><b>Horas que você ganhou</b></span></div>'+G.join(''):'');
+}
 const horasLivres = () => Math.round((HORAS_BASE - horasTrab() - horasMentoria() - horasEstudo() - horasAtivos() - horasHabitos() - horasExtra() - horasHabEst() - horasVicios() - horasTreino() - horasBusca() + horasGanhas())*10)/10;
 const sobrecarga = () => horasLivres() < 10;
 const efeitoTempo = (hl=horasLivres()) => { const v=hl>=28?2:hl>=18?0:hl>=10?-3:-7; return s.desemp>0 ? Math.min(0,v) : v; }; // sem emprego, o tempo sobrando não descansa
@@ -11958,7 +11986,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v365</p>
+    <p class="titulo-versao">versão v366</p>
   </div>`;
 }
 function render(){
@@ -13031,7 +13059,7 @@ const INFO = {
       <div class="info-lista">${L.filter(([,v])=>v).map(([n,v])=>fl(n,sgn(v),v>0?'var(--gain)':'var(--loss)')).join('')}${fl('<b>Total por mês</b>',sgn(tot),'','tot')}</div>
       <p class="hint">A rotina puxa o bem-estar de volta para perto de ${FEL_BASE}: alegrias e tristezas passam. Mas menos de 78 h livres por mês acumulam cansaço, e 2 meses abaixo de 20 levam ao esgotamento. Alegrias fixas (casa, carro, conforto) viram rotina e rendem pouco. O que mais sobe é cuidar de si de vez em quando: programas de lazer variados na aba Vida, tempo livre, treino, família e reserva de pé.</p>`}; },
   tempo:()=>{ const hl=horasLivres(), ef=efeitoTempo(hl);
-    return {t:`Tempo livre: ${hm(hl)} h por mês`, h:`<div class="info-lista">${fl('Horas acordado(a) no mês',hm(HORAS_BASE)+' h')}${[['Trabalho',horasTrab()],['Ensinando o novato',horasMentoria()],['Estudo',horasEstudo()],['Negócios',horasAtivos()],['Hábitos',horasHabitos()],['Renda extra',horasExtra()]].filter(([,h])=>h>0).map(([n,h])=>fl(n,'−'+hm(h)+' h','var(--loss)')).join('')}${fl('<b>Livre</b>',hm(hl)+' h','','tot')}</div>
+    return {t:`Tempo livre: ${hm(hl)} h por mês`, h:`<div class="info-lista">${fl('Horas acordado(a) no mês',hm(HORAS_BASE)+' h')}${tempoLinhas()}${fl('<b>Livre</b>',hm(hl)+' h','','tot')}</div>
       <p>Efeito no bem-estar: <b>${sgn(ef)} por mês</b>.</p><p class="hint">${hm(28)} h ou mais por mês: +2. Entre ${hm(18)} e ${hm(28)-1} h: neutro. Abaixo de ${hm(18)} h: −3. Abaixo de ${hm(10)} h: −7. Tempo também é recurso: cursos, hábitos e negócios consomem horas.</p>`}; },
   fluxo:()=>{ const f=fluxo();
     return {t:`Fluxo de caixa em ${rotulo(s.mes+1)}: ${f.sobra>=0?'+':'−'}${fmt0(Math.abs(f.sobra))}`, h:`<p>Quanto deve entrar e sair da sua conta corrente no mês que vem, sem contar imprevistos.${prof().comissao?' A comissão muda com a época do ano (Natal e Black Friday rendem muito; janeiro e fevereiro são fracos) e ainda varia uns 30% para mais ou para menos.':''}</p>
