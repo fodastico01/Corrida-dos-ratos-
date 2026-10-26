@@ -2743,9 +2743,9 @@ function concluirProva(d){ const c=corr(), km=ui.corrida.km, pos=Math.max(1,Math
   const gf=[8,5,3,2][pos-1], gc=Math.round([4,3,2,2][pos-1]*mk*10)/10;
   s.fel=clamp(s.fel+gf,0,esgotado()?40:100); c.cond=clamp(c.cond+gc,0,100); c.n=(c.n||0)+1;
   const b=c.melhor[km]; c.melhor[km]={pos:b?Math.min(b.pos,pos):pos, tempo:b?Math.min(b.tempo,d.tempo):d.tempo};
-  { const bv=[3,2,1][pos-1]||0, at=s.bonusCorrida; if(bv && (!at || at.ate<s.mes || bv>=at.v)) s.bonusCorrida={v:bv, ate:s.mes+12}; }
+  { const bv=pos<=3?({2:1,5:2,10:3}[km]||0):0, at=s.bonusCorrida; if(bv && (!at || at.ate<s.mes || bv>=at.v)) s.bonusCorrida={v:bv, ate:s.mes+12}; }
   c.ult={km,pos,tempo:d.tempo,gf,gc,mes:s.mes}; ui.corrida.feito=true; if(pos===1) foto('corrida-'+km); salvar(); }
-function avisoBonusCorrida(){ const u=corr().ult, box=document.querySelector('.ritmo-box'); if(!u || !box) return; const bv=[3,2,1][u.pos-1]||0;
+function avisoBonusCorrida(){ const u=corr().ult, box=document.querySelector('.ritmo-box'); if(!u || !box) return; const bv=u.pos<=3?({2:1,5:2,10:3}[u.km]||0):0;
   const el=document.createElement('div'); el.className='ritmo-bonus'+(bv?'':' sem');
   el.textContent = bv ? '🏅 Finished in place '+u.pos+'! Well-being bonus of +'+bv+' per month for 1 year.' : 'You finished in place '+u.pos+'. No bonus this time: only the podium (up to 3rd place) earns a well-being bonus.';
   el.onclick=()=>el.remove(); box.appendChild(el); }
@@ -2769,7 +2769,7 @@ function modalProgRes(){ const r=ui.progRes, p=r&&PROGRAMAS.find(x=>x.id===r.id)
   const im=(typeof ARTE!=='undefined'&&ARTE.cards)?ARTE.cards['lazer-'+p.id]:null;
   modal.innerHTML='<div class="overlay" data-acao="progResFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">'+(im?'<img class="ceo-img" src="'+im+'" alt="">':'')+'<h3 id="m-t">'+escHtml(p.res)+'</h3><p>'+escHtml(p.txt)+'</p><p class="hint">Well-being +'+r.g+' · '+fmt0(r.custo)+' · '+p.h+' h</p><div class="opcoes"><button class="opcao coin" data-acao="progResFechar"><b>Continue</b></button></div></div></div>'; }
 function bonusCorridaHtml(){ const b=s.bonusCorrida, ativo=b && b.ate>=s.mes;
-  return '<p class="hint">Finishing on the podium earns a well-being bonus for 1 year: 1st place +3 per month, 2nd +2 and 3rd +1. Racing at least once a year keeps the bonus going.</p>'+(ativo?'<p class="hint lazer-ult">Race bonus active: <b>well-being +'+b.v+' per month</b> until '+rotulo(b.ate)+'.</p>':''); }
+  return '<p class="hint">Finishing on the podium (1st to 3rd) earns a well-being bonus for 1 year, depending on the race: 2 km +1, 5 km +2 and 10 km +3 per month. Racing at least once a year keeps the bonus going.</p>'+(ativo?'<p class="hint lazer-ult">Race bonus active: <b>well-being +'+b.v+' per month</b> until '+rotulo(b.ate)+'.</p>':''); }
 function cssProvas(){ if(document.getElementById('css-provas') || typeof ARTE==='undefined' || !ARTE.cards) return;
   const r=PROVAS.map(p=>ARTE.cards['corrida-'+p.km]?'.prova-lin[data-acao="prova"][data-alvo="'+p.km+'"]::before{background-image:url("'+ARTE.cards['corrida-'+p.km]+'")}':'').join('\n');
   const el=document.createElement('style'); el.id='css-provas'; el.textContent=r; document.head.appendChild(el); }
@@ -5654,7 +5654,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v368</p>
+    <p class="titulo-versao">version v369</p>
   </div>`;
 }
 function render(){
@@ -9095,9 +9095,9 @@ function concluirProva(d){ const c=corr(), km=ui.corrida.km, pos=Math.max(1,Math
   const gf=[8,5,3,2][pos-1], gc=Math.round([4,3,2,2][pos-1]*mk*10)/10;
   s.fel=clamp(s.fel+gf,0,esgotado()?40:100); c.cond=clamp(c.cond+gc,0,100); c.n=(c.n||0)+1;
   const b=c.melhor[km]; c.melhor[km]={pos:b?Math.min(b.pos,pos):pos, tempo:b?Math.min(b.tempo,d.tempo):d.tempo};
-  { const bv=[3,2,1][pos-1]||0, at=s.bonusCorrida; if(bv && (!at || at.ate<s.mes || bv>=at.v)) s.bonusCorrida={v:bv, ate:s.mes+12}; }
+  { const bv=pos<=3?({2:1,5:2,10:3}[km]||0):0, at=s.bonusCorrida; if(bv && (!at || at.ate<s.mes || bv>=at.v)) s.bonusCorrida={v:bv, ate:s.mes+12}; }
   c.ult={km,pos,tempo:d.tempo,gf,gc,mes:s.mes}; ui.corrida.feito=true; if(pos===1) foto('corrida-'+km); salvar(); }
-function avisoBonusCorrida(){ const u=corr().ult, box=document.querySelector('.ritmo-box'); if(!u || !box) return; const bv=[3,2,1][u.pos-1]||0;
+function avisoBonusCorrida(){ const u=corr().ult, box=document.querySelector('.ritmo-box'); if(!u || !box) return; const bv=u.pos<=3?({2:1,5:2,10:3}[u.km]||0):0;
   const el=document.createElement('div'); el.className='ritmo-bonus'+(bv?'':' sem');
   el.textContent = bv ? '🏅 '+u.pos+'º lugar! Bônus de bem-estar de +'+bv+' por mês durante 1 ano.' : 'Você chegou em '+u.pos+'º lugar. Sem bônus desta vez: só o pódio (até o 3º lugar) rende bônus de bem-estar.';
   el.onclick=()=>el.remove(); box.appendChild(el); }
@@ -9121,7 +9121,7 @@ function modalProgRes(){ const r=ui.progRes, p=r&&PROGRAMAS.find(x=>x.id===r.id)
   const im=(typeof ARTE!=='undefined'&&ARTE.cards)?ARTE.cards['lazer-'+p.id]:null;
   modal.innerHTML='<div class="overlay" data-acao="progResFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">'+(im?'<img class="ceo-img" src="'+im+'" alt="">':'')+'<h3 id="m-t">'+escHtml(p.res)+'</h3><p>'+escHtml(p.txt)+'</p><p class="hint">Bem-estar +'+r.g+' · '+fmt0(r.custo)+' · '+p.h+' h</p><div class="opcoes"><button class="opcao coin" data-acao="progResFechar"><b>Continuar</b></button></div></div></div>'; }
 function bonusCorridaHtml(){ const b=s.bonusCorrida, ativo=b && b.ate>=s.mes;
-  return '<p class="hint">Quem chega ao pódio ganha um bônus de bem-estar por 1 ano: 1º lugar +3 por mês, 2º +2 e 3º +1. Correr pelo menos uma vez por ano mantém o bônus.</p>'+(ativo?'<p class="hint lazer-ult">Bônus de corrida ativo: <b>bem-estar +'+b.v+' por mês</b> até '+rotulo(b.ate)+'.</p>':''); }
+  return '<p class="hint">Quem chega ao pódio (1º ao 3º lugar) ganha um bônus de bem-estar por 1 ano, conforme a prova: 2 km +1, 5 km +2 e 10 km +3 por mês. Correr pelo menos uma vez por ano mantém o bônus.</p>'+(ativo?'<p class="hint lazer-ult">Bônus de corrida ativo: <b>bem-estar +'+b.v+' por mês</b> até '+rotulo(b.ate)+'.</p>':''); }
 function cssProvas(){ if(document.getElementById('css-provas') || typeof ARTE==='undefined' || !ARTE.cards) return;
   const r=PROVAS.map(p=>ARTE.cards['corrida-'+p.km]?'.prova-lin[data-acao="prova"][data-alvo="'+p.km+'"]::before{background-image:url("'+ARTE.cards['corrida-'+p.km]+'")}':'').join('\n');
   const el=document.createElement('style'); el.id='css-provas'; el.textContent=r; document.head.appendChild(el); }
@@ -12006,7 +12006,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v368</p>
+    <p class="titulo-versao">versão v369</p>
   </div>`;
 }
 function render(){
