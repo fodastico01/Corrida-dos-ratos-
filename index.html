@@ -2277,6 +2277,12 @@ const tycFranqs = a => (s.ativos||[]).filter(x=>x.franqDe===a.uid).length;
 const tycCustoFranq = a => Math.round(a.custo/100)*100;
 const tycCustoLoja = a => Math.round(a.custo*0.8/100)*100;
 const tycPodeLoja = a => !!(a.tyc && emp(a).premio && !a.franqDe && tycNP(a,Math.min(...a.tyc.niv))>=6 && tycLojas(a)<3 && !a.tyc.obraLoja);
+const lojaObraMeses = a => { const o=a.tyc&&a.tyc.obraLoja; return o?Math.max(1,o.ate-s.mes):0; };
+function lojaObraHtml(a){ const m=lojaObraMeses(a); if(!m) return ''; const en=window.__LANG==='en', n=tycLojas(a)+1;
+  return en ? '<div class="alerta bom" role="note"><strong>🏗️ Store '+n+' under construction</strong><p>Ready in '+m+(m>1?' months':' month')+'. The new store does not sell yet; the current one keeps running.</p></div>'
+    : '<div class="alerta bom" role="note"><strong>🏗️ Loja '+n+' em construção</strong><p>Fica pronta em '+m+(m>1?" months":' mês')+'. A loja nova ainda não vende; a atual continua funcionando.</p></div>'; }
+function lojaObraSpan(a){ const m=lojaObraMeses(a); if(!m) return ''; const en=window.__LANG==='en', n=tycLojas(a)+1;
+  return en ? '<span>🏗️ Store '+n+' being built: <b>'+m+(m>1?' months':' month')+'</b></span>' : '<span>🏗️ Loja '+n+' em obra: <b>'+m+(m>1?" months":' mês')+'</b></span>'; }
 function tycFranquia(uid){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!tycPodeLoja(a)) return;
   const v=tycCustoLoja(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycLojas(a)+1, t=pagarAVista(v), dur=TYC_LOJA_MESES[n-1];
@@ -2300,7 +2306,7 @@ function modalTyc(a){
   const T=a.tyc, pv=tycPrev(a), nMin=Math.min(...T.niv), garg=tycGargalo(a), u=T.ult;
   const nEq=tycNP(a,nMin), porteK=nEq<=3?'pequena':nEq<=6?'media':'grande', EM=emp(a), imgCena=ARTE.extras?.[EM.arte+'-'+porteK];
   const estagio=n=>{ n=tycNP(a,n); return n>=7?4:n>=5?3:n>=3?2:1; };
-  const cena=(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nEq).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
+  const cena=lojaObraHtml(a)+(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nEq).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
     const itens=Array.from({length:e},(_,j)=>{ const im=ARTE.icones?.[`${EM.arte}-${nomeK}-${j+1}`]; return im?`<img class="tyc-ic-img" src="${im}" alt="">`:`<i>${S.ic}</i>`; }).join('');
     return `<div class="tyc-linha"><span class="tyc-lb">${S.nome}</span><span class="tyc-itens">${itens}</span></div>`; }).join('');
   const linhas=TYC_KEYS.map((k,i)=>{ const S=EM.set[k], n=tycNiv(a,k), bl=tycBloqueio(a,k), R=tycReforma(a,i), c=tycCustoTot(a,k), doCaixa=T.caixa>=c, doBolso=podeAVista(c);
@@ -5648,7 +5654,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v367</p>
+    <p class="titulo-versao">version v368</p>
   </div>`;
 }
 function render(){
@@ -5877,7 +5883,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Your properties and businesses</h2>
     ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
-      <div class="opp-dados"><span>Income <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Time <b>${hm(horasAtivo(a))} h/mo</b>${a.gerente?" (supervision)":''}</span>${a.gerente?"<span>With manager</span>":''}${a.area?"<span>Your field</span>":''}${a.finUid?"<span>Financed</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Appreciated <b>${pctFmt(a.valor/a.custo-1)}</b> since purchase</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Rent adjusted <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
+      <div class="opp-dados"><span>Income <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Time <b>${hm(horasAtivo(a))} h/mo</b>${a.gerente?" (supervision)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>With manager</span>":'')}${a.area?"<span>Your field</span>":''}${a.finUid?"<span>Financed</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Appreciated <b>${pctFmt(a.valor/a.custo-1)}</b> since purchase</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Rent adjusted <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Fixed payment of ${fmt0(pp.valor)} against rent of ${fmt0(rendaAtivo(a))}: with inflation, rent rises and the payment doesn't, so the debt weighs less each year.</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
         return `${a.mercado!=null?`<p class="hint">Market value today: <b>${fmt0(a.mercado)}</b> (3 years of current profit). In net worth, the value starts from what you paid and gradually approaches this number: it rises if the business grows, falls if it shrinks.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} units · `:''}${noTeto?"Reached the ceiling of this location: to grow, open another.":r>0.03?"Growing fast: you're dedicating yourself.":r>0?"Growing slowly.":"Shrinking: nobody is looking after it."} Worth ${fmt0(a.valor)} (about 3 years of profit).</p>
@@ -8623,6 +8629,12 @@ const tycFranqs = a => (s.ativos||[]).filter(x=>x.franqDe===a.uid).length;
 const tycCustoFranq = a => Math.round(a.custo/100)*100;
 const tycCustoLoja = a => Math.round(a.custo*0.8/100)*100;
 const tycPodeLoja = a => !!(a.tyc && emp(a).premio && !a.franqDe && tycNP(a,Math.min(...a.tyc.niv))>=6 && tycLojas(a)<3 && !a.tyc.obraLoja);
+const lojaObraMeses = a => { const o=a.tyc&&a.tyc.obraLoja; return o?Math.max(1,o.ate-s.mes):0; };
+function lojaObraHtml(a){ const m=lojaObraMeses(a); if(!m) return ''; const en=window.__LANG==='en', n=tycLojas(a)+1;
+  return en ? '<div class="alerta bom" role="note"><strong>🏗️ Store '+n+' under construction</strong><p>Ready in '+m+(m>1?' months':' month')+'. The new store does not sell yet; the current one keeps running.</p></div>'
+    : '<div class="alerta bom" role="note"><strong>🏗️ Loja '+n+' em construção</strong><p>Fica pronta em '+m+(m>1?' meses':' mês')+'. A loja nova ainda não vende; a atual continua funcionando.</p></div>'; }
+function lojaObraSpan(a){ const m=lojaObraMeses(a); if(!m) return ''; const en=window.__LANG==='en', n=tycLojas(a)+1;
+  return en ? '<span>🏗️ Store '+n+' being built: <b>'+m+(m>1?' months':' month')+'</b></span>' : '<span>🏗️ Loja '+n+' em obra: <b>'+m+(m>1?' meses':' mês')+'</b></span>'; }
 function tycFranquia(uid){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!tycPodeLoja(a)) return;
   const v=tycCustoLoja(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycLojas(a)+1, t=pagarAVista(v), dur=TYC_LOJA_MESES[n-1];
@@ -8646,7 +8658,7 @@ function modalTyc(a){
   const T=a.tyc, pv=tycPrev(a), nMin=Math.min(...T.niv), garg=tycGargalo(a), u=T.ult;
   const nEq=tycNP(a,nMin), porteK=nEq<=3?'pequena':nEq<=6?'media':'grande', EM=emp(a), imgCena=ARTE.extras?.[EM.arte+'-'+porteK];
   const estagio=n=>{ n=tycNP(a,n); return n>=7?4:n>=5?3:n>=3?2:1; };
-  const cena=(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nEq).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
+  const cena=lojaObraHtml(a)+(imgCena?`<img class="tyc-cena-img" src="${imgCena}" alt="${EM.negocio} ${tycPorte(nEq).toLowerCase()}">`:'')+TYC_KEYS.map(k=>{ const S=EM.set[k], n=tycNiv(a,k), e=estagio(n), nomeK={equip:'equip',cardapio:'cardapio',ambiente:'ambiente',equipe:'equipe',mkt:'mkt'}[k];
     const itens=Array.from({length:e},(_,j)=>{ const im=ARTE.icones?.[`${EM.arte}-${nomeK}-${j+1}`]; return im?`<img class="tyc-ic-img" src="${im}" alt="">`:`<i>${S.ic}</i>`; }).join('');
     return `<div class="tyc-linha"><span class="tyc-lb">${S.nome}</span><span class="tyc-itens">${itens}</span></div>`; }).join('');
   const linhas=TYC_KEYS.map((k,i)=>{ const S=EM.set[k], n=tycNiv(a,k), bl=tycBloqueio(a,k), R=tycReforma(a,i), c=tycCustoTot(a,k), doCaixa=T.caixa>=c, doBolso=podeAVista(c);
@@ -11994,7 +12006,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v367</p>
+    <p class="titulo-versao">versão v368</p>
   </div>`;
 }
 function render(){
@@ -12223,7 +12235,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Seus imóveis e negócios</h2>
     ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
-      <div class="opp-dados"><span>Renda <b>${a.tipo==='terreno'?'nenhuma':a.vagoAte>=s.mes?'vazio':fmt0(rendaAtivo(a))+'/mês'}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mês</b>${a.gerente?' (supervisão)':''}</span>${a.gerente?'<span>Com gerente</span>':''}${a.area?'<span>Sua área</span>':''}${a.finUid?'<span>Financiado</span>':''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorizou <b>${pctFmt(a.valor/a.custo-1)}</b> desde a compra</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Aluguel reajustado <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
+      <div class="opp-dados"><span>Renda <b>${a.tipo==='terreno'?'nenhuma':a.vagoAte>=s.mes?'vazio':fmt0(rendaAtivo(a))+'/mês'}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mês</b>${a.gerente?' (supervisão)':''}</span>${lojaObraSpan(a)+(a.gerente?'<span>Com gerente</span>':'')}${a.area?'<span>Sua área</span>':''}${a.finUid?'<span>Financiado</span>':''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorizou <b>${pctFmt(a.valor/a.custo-1)}</b> desde a compra</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Aluguel reajustado <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Parcela fixa de ${fmt0(pp.valor)} contra aluguel de ${fmt0(rendaAtivo(a))}: com a inflação, o aluguel sobe e a parcela não, então a dívida pesa menos a cada ano.</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
         return `${a.mercado!=null?`<p class="hint">Valor de mercado hoje: <b>${fmt0(a.mercado)}</b> (3 anos do lucro atual). No patrimônio, o valor parte do que você pagou e se aproxima desse número aos poucos: sobe se o negócio crescer, cai se encolher.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} unidades · `:''}${noTeto?'Chegou ao teto desta unidade: para crescer, abra outra.':r>0.03?'Crescendo rápido: você está se dedicando.':r>0?'Crescendo devagar.':'Encolhendo: falta alguém cuidando.'} Vale ${fmt0(a.valor)} (cerca de 3 anos de lucro).</p>
