@@ -2384,7 +2384,8 @@ const HABS = {
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
-const horasCond = () => Math.round(Math.max(0,(s.corr&&s.corr.cond)||0)/100*3*2)/2; // condicionamento devolve até 3 h/semana (disposição + gestão de tempo)
+const COND_RET={3:6,6:12,9:18}; // com o condicionamento no máximo, devolve o dobro das horas que o treino gasta
+const horasCond = () => { const c=s.corr||{}; return Math.round(Math.max(0,c.cond||0)/100*(COND_RET[c.ref||c.h]||COND_RET[3])*2)/2; };
 const horasGanhas = () => Object.keys(s.habs||{}).reduce((x,id)=>x+(HABS[id]?.ganha||0),0) + (s.livroHoras||0) + horasCond();
 const reqHabOk = id => HABS[id].req.every(temHab);
 const candHab = () => Object.keys(HABS).filter(id=>!temHab(id) && reqHabOk(id) && !(HABS[id].fase && s.fase<HABS[id].fase));
@@ -2713,6 +2714,8 @@ const provaEm = p => { for(let k=0;k<12;k++) if(mesAbertoProva(p,s.mes+k)) retur
 const corridasAbertas = () => PROVAS.filter(p=>provaAberta(p) && provaLiberada(p));
 const corr = () => s.corr || (s.corr={h:0, cond:15, melhor:{}, ultMes:-9, persp:true, ult:null, n:0});
 const horasTreino = () => esgotado() ? 0 : corr().h; // em horas por semana, como o resto do tempo livre
+function condRetornoHtml(){ const c=corr(), r=horasCond(), h=c.h||c.ref||3, max=COND_RET[h]||5;
+  return '<p class="hint">A fit body pays back in time: at peak fitness, training '+hm(h)+' h a month returns '+hm(max)+' h a month in energy and better organization. Right now your fitness returns '+hm(r)+' h a month.</p>'; }
 const nivelCond = c => c<45?0:c<75?1:2;
 const NOME_COND = ["Beginner","Trained","Athlete"];
 // treinar custa: academia, tênis, roupa, suplemento e deslocamento (por mês, na moeda da fase)
@@ -2721,6 +2724,7 @@ const custoTreino = () => { const c=corr(); return (c.h && !esgotado()) ? custoT
 const treinando = () => { const c=corr(); return !!(c.h && !esgotado()); }; // treina regularmente: cuida da saúde
 const felTreino = () => { const c=corr(); return (c.h&&!esgotado()) ? TREINO_FEL[c.h]+(c.cond>=60?1:0) : 0; };
 function atualizarCond(){ const c=corr();
+  if(c.h) c.ref=c.h;
   if(c.h && !esgotado()){ const g={3:3.5,6:5.5,9:7}[c.h]*(1-c.cond/115); c.cond=clamp(c.cond+g,0,100); }
   else c.cond=clamp(c.cond-(c.h?0.5:1.2),0,100); // sem treino cai devagar, como as outras barras
 }
@@ -2778,7 +2782,7 @@ function lazerCard(){
     <p class="hint">Fitness gives time back: more energy and better organization. Now you get <b>${hm(horasCond())} h per month</b> back (up to ${hm(3)} h at most).</p>
     <p class="hint">Training costs money (gym, shoes, clothes and transport) and uses free time, but it's good for you: it raises well-being and fitness. The higher your fitness, the calmer and more forgiving the race. Stopping training lowers fitness slowly.</p>
     <div class="seg seg-hud" role="group" aria-label="Training per week">${seg}</div>
-    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+programasHtml()}<h3 class="lazer-sub">Running races</h3>
+    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub">Running races</h3>
     <div class="provas">${provas}</div>
     ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the waterfront once a year. You can only sign up in the race month.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Sneaker drop"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">In perspective<small>coming from the horizon</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Straight line<small>falling straight</small></button></div>
@@ -5644,7 +5648,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v366</p>
+    <p class="titulo-versao">version v367</p>
   </div>`;
 }
 function render(){
@@ -8726,7 +8730,8 @@ const HABS = {
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
-const horasCond = () => Math.round(Math.max(0,(s.corr&&s.corr.cond)||0)/100*3*2)/2; // condicionamento devolve até 3 h/semana (disposição + gestão de tempo)
+const COND_RET={3:6,6:12,9:18}; // com o condicionamento no máximo, devolve o dobro das horas que o treino gasta
+const horasCond = () => { const c=s.corr||{}; return Math.round(Math.max(0,c.cond||0)/100*(COND_RET[c.ref||c.h]||COND_RET[3])*2)/2; };
 const horasGanhas = () => Object.keys(s.habs||{}).reduce((x,id)=>x+(HABS[id]?.ganha||0),0) + (s.livroHoras||0) + horasCond();
 const reqHabOk = id => HABS[id].req.every(temHab);
 const candHab = () => Object.keys(HABS).filter(id=>!temHab(id) && reqHabOk(id) && !(HABS[id].fase && s.fase<HABS[id].fase));
@@ -9055,6 +9060,8 @@ const provaEm = p => { for(let k=0;k<12;k++) if(mesAbertoProva(p,s.mes+k)) retur
 const corridasAbertas = () => PROVAS.filter(p=>provaAberta(p) && provaLiberada(p));
 const corr = () => s.corr || (s.corr={h:0, cond:15, melhor:{}, ultMes:-9, persp:true, ult:null, n:0});
 const horasTreino = () => esgotado() ? 0 : corr().h; // em horas por semana, como o resto do tempo livre
+function condRetornoHtml(){ const c=corr(), r=horasCond(), h=c.h||c.ref||3, max=COND_RET[h]||5;
+  return '<p class="hint">Corpo em forma rende tempo: com o condicionamento no máximo, treinar '+hm(h)+' h por mês devolve '+hm(max)+' h por mês em disposição e organização. Hoje o condicionamento já devolve '+hm(r)+' h por mês.</p>'; }
 const nivelCond = c => c<45?0:c<75?1:2;
 const NOME_COND = ['Iniciante','Treinado','Atleta'];
 // treinar custa: academia, tênis, roupa, suplemento e deslocamento (por mês, na moeda da fase)
@@ -9063,6 +9070,7 @@ const custoTreino = () => { const c=corr(); return (c.h && !esgotado()) ? custoT
 const treinando = () => { const c=corr(); return !!(c.h && !esgotado()); }; // treina regularmente: cuida da saúde
 const felTreino = () => { const c=corr(); return (c.h&&!esgotado()) ? TREINO_FEL[c.h]+(c.cond>=60?1:0) : 0; };
 function atualizarCond(){ const c=corr();
+  if(c.h) c.ref=c.h;
   if(c.h && !esgotado()){ const g={3:3.5,6:5.5,9:7}[c.h]*(1-c.cond/115); c.cond=clamp(c.cond+g,0,100); }
   else c.cond=clamp(c.cond-(c.h?0.5:1.2),0,100); // sem treino cai devagar, como as outras barras
 }
@@ -9120,7 +9128,7 @@ function lazerCard(){
     <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
     <p class="hint">Treinar custa dinheiro (academia, tênis, roupa e transporte) e usa tempo livre, mas faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
-    ${(livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':'')+programasHtml()}<h3 class="lazer-sub">Provas de corrida</h3>
+    ${(livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub">Provas de corrida</h3>
     <div class="provas">${provas}</div>
     ${(usada?'<p class="hint">Você já correu neste mês.</p>':'')+bonusCorridaHtml()}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
@@ -11986,7 +11994,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v366</p>
+    <p class="titulo-versao">versão v367</p>
   </div>`;
 }
 function render(){
