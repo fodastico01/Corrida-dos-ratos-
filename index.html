@@ -1354,6 +1354,15 @@ body.pxui.suave .btn,body.pxui.suave .opcao,body.pxui.suave .avancar{
   background-image:linear-gradient(180deg,rgba(255,255,255,.35),rgba(0,0,0,.10));
   box-shadow:0 -3px 0 0 var(--px-b),0 3px 0 0 var(--px-b),-3px 0 0 0 var(--px-b),3px 0 0 0 var(--px-b),0 8px 0 -1px rgba(60,45,20,.30),inset 2px 2px 0 0 rgba(255,255,255,.6)}
 body.pxui.suave .topo-conta,body.pxui.suave .topo-fel{box-shadow:0 -2px 0 0 var(--px-b),0 2px 0 0 var(--px-b),-2px 0 0 0 var(--px-b),2px 0 0 0 var(--px-b),inset 2px 2px 0 0 var(--px-hi)}
+/* v389: botões com cantos arredondados (contorno em anel que acompanha o raio) */
+body.pxui.suave .btn,body.pxui.suave .opcao,body.pxui.suave .avancar,body.pxui.suave .btn-hud{border-radius:14px;
+  box-shadow:0 0 0 3px var(--px-b),0 7px 0 1px var(--px-b),inset 2px 2px 0 0 rgba(255,255,255,.6),inset 0 -3px 0 0 rgba(0,0,0,.10);margin-bottom:9px}
+body.pxui.suave .btn:active,body.pxui.suave .opcao:active,body.pxui.suave .avancar:active,body.pxui.suave .btn-hud:active{transform:translateY(4px);
+  box-shadow:0 0 0 3px var(--px-b),0 3px 0 1px var(--px-b),inset 2px 2px 0 0 rgba(255,255,255,.35)}
+body.pxui.suave .escolha{border-radius:12px;box-shadow:0 0 0 3px var(--px-b),0 5px 0 1px var(--px-b),inset 2px 2px 0 0 var(--px-hi)}
+body.pxui.suave .topo-conta,body.pxui.suave .topo-fel{border-radius:12px;box-shadow:0 0 0 2px var(--px-b),inset 2px 2px 0 0 var(--px-hi)}
+body.pxui.suave .abas2 button{border-radius:12px}
+body.pxui.suave .abas2 button[aria-selected="true"]{box-shadow:0 0 0 3px var(--px-b),inset 2px 2px 0 0 var(--px-hi)}
 </style>
 
 <div class="app" id="app"></div>
@@ -5724,7 +5733,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v388</p>
+    <p class="titulo-versao">version v389</p>
   </div>`;
 }
 function render(){
@@ -12131,7 +12140,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v388</p>
+    <p class="titulo-versao">versão v389</p>
   </div>`;
 }
 function render(){
