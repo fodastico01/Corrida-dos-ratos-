@@ -5343,6 +5343,14 @@ function lotesHTML(){
 }
 function remendoSVG(E){ const c=COR_REMENDO[E], f=`rgb(${c})`, b=`rgb(${Math.round(c[0]*.68)},${Math.round(c[1]*.56)},${Math.round(c[2]*.5)})`;
   return `<svg class="im-remendo" width="${MP.W}" height="${MP.H}" viewBox="0 0 ${MP.W} ${MP.H}" aria-hidden="true"><polyline points="${REMENDO}" fill="none" stroke="${b}" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${REMENDO}" fill="none" stroke="${f}" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+// o carro do jogador fica estacionado ao lado da casa, conforme o nível dele
+function carroDaCasa(){
+  const n=carN(); if(!n||s.aposentado&&false) return '';
+  const K=['','carro-azul-e','carro-verm-e','carro-azul-d','carro-verm-d'][Math.min(4,n)], W=[0,40,44,50,56][Math.min(4,n)];
+  if(!mpImg(K)) return '';
+  return `<img class="mp-pec im-pec im-carro" data-pec="${K}" src="${mpImg(K)}" alt="" style="left:${CASA_POS.x+CARRO_DX}px;top:${CASA_POS.y+CARRO_DY}px;width:${W}px">`;
+}
+const CARRO_DX=82, CARRO_DY=4;
 function mundoHTML(){
   const m=mesCal(), E=estacaoDe(m), A=anel(), pos=ui.peaoPos??(s.rol?.pos||0), mn=m%12+1;
   const p0=(s.rol&&s.rol.pos!=null)?s.rol.pos:0, prox=ui.girando?null:true;
@@ -5351,7 +5359,7 @@ function mundoHTML(){
     return `<div class="cs k-${t}${ini?' ini':''}${i===pos?' on':''}" data-i="${i}" style="left:${x}px;top:${y}px;" title="${CASAS[t].nome}"><i>${pix(CASAS[t].ic)}</i>${pr?`<s>${pr}%</s>`:''}</div>`
       +(ini?`<div class="cs-mes${mi+1===m?' atual':''}" style="left:${x}px;top:${y-24}px">${MESES[mi].toUpperCase()}</div>`:''); }).join('');
   const {x:px,y:py}=casaXY(pos);
-  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Your house" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${morN()>=3?(s.aposentado?176:170):150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">YOUR HOME</em>`;
+  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Your house" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${morN()>=3?(s.aposentado?176:170):150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">YOUR HOME</em>`+carroDaCasa();
   const rato=`<div class="mp-rato im-rato${avPeao()?' av':''}" id="peao" style="left:${px}px;top:${py+8}px"><img src="${avPeao()||mpImg('rato-fp')}" alt=""></div>`;
   // transição suave: a imagem anterior fica por cima e se dissolve, com um brilho rápido
   const mEsc = (()=>{ let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; })(); // a cena segue a casa onde o rato está: meses pulados pelos dados e a caminhada não adiantam a festa
@@ -5739,7 +5747,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v393</p>
+    <p class="titulo-versao">version v394</p>
   </div>`;
 }
 function render(){
@@ -11750,6 +11758,14 @@ function lotesHTML(){
 }
 function remendoSVG(E){ const c=COR_REMENDO[E], f=`rgb(${c})`, b=`rgb(${Math.round(c[0]*.68)},${Math.round(c[1]*.56)},${Math.round(c[2]*.5)})`;
   return `<svg class="im-remendo" width="${MP.W}" height="${MP.H}" viewBox="0 0 ${MP.W} ${MP.H}" aria-hidden="true"><polyline points="${REMENDO}" fill="none" stroke="${b}" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${REMENDO}" fill="none" stroke="${f}" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+// o carro do jogador fica estacionado ao lado da casa, conforme o nível dele
+function carroDaCasa(){
+  const n=carN(); if(!n||s.aposentado&&false) return '';
+  const K=['','carro-azul-e','carro-verm-e','carro-azul-d','carro-verm-d'][Math.min(4,n)], W=[0,40,44,50,56][Math.min(4,n)];
+  if(!mpImg(K)) return '';
+  return `<img class="mp-pec im-pec im-carro" data-pec="${K}" src="${mpImg(K)}" alt="" style="left:${CASA_POS.x+CARRO_DX}px;top:${CASA_POS.y+CARRO_DY}px;width:${W}px">`;
+}
+const CARRO_DX=82, CARRO_DY=4;
 function mundoHTML(){
   const m=mesCal(), E=estacaoDe(m), A=anel(), pos=ui.peaoPos??(s.rol?.pos||0), mn=m%12+1;
   const p0=(s.rol&&s.rol.pos!=null)?s.rol.pos:0, prox=ui.girando?null:true;
@@ -11758,7 +11774,7 @@ function mundoHTML(){
     return `<div class="cs k-${t}${ini?' ini':''}${i===pos?' on':''}" data-i="${i}" style="left:${x}px;top:${y}px;" title="${CASAS[t].nome}"><i>${pix(CASAS[t].ic)}</i>${pr?`<s>${pr}%</s>`:''}</div>`
       +(ini?`<div class="cs-mes${mi+1===m?' atual':''}" style="left:${x}px;top:${y-24}px">${MESES[mi].toUpperCase()}</div>`:''); }).join('');
   const {x:px,y:py}=casaXY(pos);
-  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Sua casa" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${morN()>=3?(s.aposentado?176:170):150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">SUA CASA</em>`;
+  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Sua casa" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${morN()>=3?(s.aposentado?176:170):150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">SUA CASA</em>`+carroDaCasa();
   const rato=`<div class="mp-rato im-rato${avPeao()?' av':''}" id="peao" style="left:${px}px;top:${py+8}px"><img src="${avPeao()||mpImg('rato-fp')}" alt=""></div>`;
   // transição suave: a imagem anterior fica por cima e se dissolve, com um brilho rápido
   const mEsc = (()=>{ let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; })(); // a cena segue a casa onde o rato está: meses pulados pelos dados e a caminhada não adiantam a festa
@@ -12146,7 +12162,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v393</p>
+    <p class="titulo-versao">versão v394</p>
   </div>`;
 }
 function render(){
