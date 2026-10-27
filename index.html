@@ -5710,7 +5710,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v385</p>
+    <p class="titulo-versao">version v386</p>
   </div>`;
 }
 function render(){
@@ -7698,6 +7698,22 @@ const VIDA=(()=>{
     gotas2=gotas2.filter(q=>{ q.vy+=120*dt; q.x+=q.vx*dt; q.y+=q.vy*dt; if(q.y>=SER.y){ aneis.push({x:q.x,y:SER.y,t:0,v:.6}); return false; } g.fillStyle='rgba(214,238,255,.95)'; g.fillRect(Math.round(q.x/2),Math.round(q.y/2),1,1); return true; });
   }
   let gotas2=[];
+  // trânsito: carros devagar nas ruas de asfalto (todas correm no sentido sudeste, o mesmo em que os carros do desenho olham)
+  const FAIXAS=[{x0:230,y0:246,x1:430,y1:366,max:2,v:24},{x0:210,y0:612,x1:310,y1:672,max:1,v:20}];
+  const carSpr={}, carros=[]; let tCar=0;
+  function sprCarro(k,flip){ const id=k+(flip?'-f':''); if(carSpr[id]) return carSpr[id].ok?carSpr[id].c:null;
+    const o=carSpr[id]={ok:false,c:document.createElement('canvas')}, im=new Image(); o.c.width=26; o.c.height=20;
+    im.onload=()=>{ const x=o.c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; if(flip){ x.translate(26,0); x.scale(-1,1); } x.drawImage(im,0,0,26,20); o.ok=true; };
+    im.src=mpImg(k); return null; }
+  function trafego(dt){
+    let reduz=false; try{ reduz=matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
+    if(reduz||!mpImg('carro-verm-e')) return;
+    tCar-=dt; if(tCar<=0){ tCar=rnd(3.5,7); const L=FAIXAS[Math.floor(Math.random()*FAIXAS.length)]; if(carros.filter(c=>c.L===L).length<L.max && !carros.some(c=>c.L===L&&c.u<0.45)) carros.push({L,u:0,v:L.v*rnd(.85,1.15),k:Math.random()<.5?'carro-verm-e':'carro-azul-d',flip:false}); }
+    for(let i=carros.length-1;i>=0;i--){ const c=carros[i], L=c.L, len=Math.hypot(L.x1-L.x0,L.y1-L.y0); c.u+=c.v*dt/len; if(c.u>=1){ carros.splice(i,1); continue; }
+      const sp=sprCarro(c.k,c.k==='carro-azul-d'); if(!sp) continue;
+      const x=L.x0+(L.x1-L.x0)*c.u, y=L.y0+(L.y1-L.y0)*c.u, al=Math.min(1,c.u*8,(1-c.u)*8);
+      g.globalAlpha=al; g.drawImage(sp,Math.round(x/2-13),Math.round(y/2-15)); g.globalAlpha=1; }
+  }
   function efeitosFixos(dt,t,inv){
     if(!inv){ // chafariz: gotas sobem do bico e caem na bacia
       tFonte+=dt; while(tFonte>0.05){ tFonte-=0.05; const lado=Math.random()<.5?-1:1; gotas.push({x:434,y:597,vx:lado*rnd(5,19),vy:-rnd(48,78),t:0}); }
@@ -7707,6 +7723,7 @@ const VIDA=(()=>{
       // bruma leve em volta do bico
       g.fillStyle='rgba(255,255,255,'+(0.12+0.06*Math.sin(t*5)).toFixed(2)+')'; g.fillRect(215,297,5,2);
     }
+    trafego(dt);
     // giroflex: vermelho e azul alternando, bem de leve
     const fase=Math.floor(t/0.45)%2, glow=(x,y,cor,a)=>{ g.fillStyle=cor.replace('A',(a*0.5).toFixed(2)); g.beginPath(); g.arc(x/2,y/2,5,0,6.2832); g.fill(); g.fillStyle=cor.replace('A',(a*1.0).toFixed(2)); g.fillRect(Math.round(x/2)-1,Math.round(y/2)-1,2,2); };
     glow(402,1043,'rgba(255,60,50,A)',fase===0?0.5:0.1); glow(409,1045,'rgba(70,140,255,A)',fase===1?0.5:0.1);
@@ -12083,7 +12100,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v385</p>
+    <p class="titulo-versao">versão v386</p>
   </div>`;
 }
 function render(){
@@ -14071,6 +14088,22 @@ const VIDA=(()=>{
     gotas2=gotas2.filter(q=>{ q.vy+=120*dt; q.x+=q.vx*dt; q.y+=q.vy*dt; if(q.y>=SER.y){ aneis.push({x:q.x,y:SER.y,t:0,v:.6}); return false; } g.fillStyle='rgba(214,238,255,.95)'; g.fillRect(Math.round(q.x/2),Math.round(q.y/2),1,1); return true; });
   }
   let gotas2=[];
+  // trânsito: carros devagar nas ruas de asfalto (todas correm no sentido sudeste, o mesmo em que os carros do desenho olham)
+  const FAIXAS=[{x0:230,y0:246,x1:430,y1:366,max:2,v:24},{x0:210,y0:612,x1:310,y1:672,max:1,v:20}];
+  const carSpr={}, carros=[]; let tCar=0;
+  function sprCarro(k,flip){ const id=k+(flip?'-f':''); if(carSpr[id]) return carSpr[id].ok?carSpr[id].c:null;
+    const o=carSpr[id]={ok:false,c:document.createElement('canvas')}, im=new Image(); o.c.width=26; o.c.height=20;
+    im.onload=()=>{ const x=o.c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; if(flip){ x.translate(26,0); x.scale(-1,1); } x.drawImage(im,0,0,26,20); o.ok=true; };
+    im.src=mpImg(k); return null; }
+  function trafego(dt){
+    let reduz=false; try{ reduz=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    if(reduz||!mpImg('carro-verm-e')) return;
+    tCar-=dt; if(tCar<=0){ tCar=rnd(3.5,7); const L=FAIXAS[Math.floor(Math.random()*FAIXAS.length)]; if(carros.filter(c=>c.L===L).length<L.max && !carros.some(c=>c.L===L&&c.u<0.45)) carros.push({L,u:0,v:L.v*rnd(.85,1.15),k:Math.random()<.5?'carro-verm-e':'carro-azul-d',flip:false}); }
+    for(let i=carros.length-1;i>=0;i--){ const c=carros[i], L=c.L, len=Math.hypot(L.x1-L.x0,L.y1-L.y0); c.u+=c.v*dt/len; if(c.u>=1){ carros.splice(i,1); continue; }
+      const sp=sprCarro(c.k,c.k==='carro-azul-d'); if(!sp) continue;
+      const x=L.x0+(L.x1-L.x0)*c.u, y=L.y0+(L.y1-L.y0)*c.u, al=Math.min(1,c.u*8,(1-c.u)*8);
+      g.globalAlpha=al; g.drawImage(sp,Math.round(x/2-13),Math.round(y/2-15)); g.globalAlpha=1; }
+  }
   function efeitosFixos(dt,t,inv){
     if(!inv){ // chafariz: gotas sobem do bico e caem na bacia
       tFonte+=dt; while(tFonte>0.05){ tFonte-=0.05; const lado=Math.random()<.5?-1:1; gotas.push({x:434,y:597,vx:lado*rnd(5,19),vy:-rnd(48,78),t:0}); }
@@ -14080,6 +14113,7 @@ const VIDA=(()=>{
       // bruma leve em volta do bico
       g.fillStyle='rgba(255,255,255,'+(0.12+0.06*Math.sin(t*5)).toFixed(2)+')'; g.fillRect(215,297,5,2);
     }
+    trafego(dt);
     // giroflex: vermelho e azul alternando, bem de leve
     const fase=Math.floor(t/0.45)%2, glow=(x,y,cor,a)=>{ g.fillStyle=cor.replace('A',(a*0.5).toFixed(2)); g.beginPath(); g.arc(x/2,y/2,5,0,6.2832); g.fill(); g.fillStyle=cor.replace('A',(a*1.0).toFixed(2)); g.fillRect(Math.round(x/2)-1,Math.round(y/2)-1,2,2); };
     glow(402,1043,'rgba(255,60,50,A)',fase===0?0.5:0.1); glow(409,1045,'rgba(70,140,255,A)',fase===1?0.5:0.1);
