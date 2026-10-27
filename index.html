@@ -5271,7 +5271,6 @@ const POOL_NEG=['oficina','academia','shopping','escritorio'];
 // o desenho do lote combina com o negócio (clínica = hospital, lavanderia = fábrica com chaminé soltando vapor...)
 const SPR_NEG={vending:'mercado',bike:'oficina',lavanderia:'fabrica',acai:'cafeteria',ecommerce:'escritorio',lavajato:'oficina',foodtruck:'feira',estacionamento:'banco',lojaroupa:'lojas',cursinho:'escola',vacinas:'hospital',saas:'escritorio',socio_rede:'cafeteria',cafeteria:'cafeteria'};
 function casaDoJogador(){
-  if(s.aposentado) return 'casa6';
   const n=morN(), own=morPropria(); // cada moradia tem a sua casa: o apê de 2 quartos usa casa2b quando existir, e a casa de 3 quartos alugada é mais simples que a própria
   const k=[ 'casa1','casa2', mpImg('casa2b')?'casa2b':'casa2', own?'casa4':'casa3', 'casa5' ][n]||'casa1'; return k;
 }
@@ -5295,7 +5294,7 @@ function mundoHTML(){
     return `<div class="cs k-${t}${ini?' ini':''}${i===pos?' on':''}" data-i="${i}" style="left:${x}px;top:${y}px;" title="${CASAS[t].nome}"><i>${pix(CASAS[t].ic)}</i>${pr?`<s>${pr}%</s>`:''}</div>`
       +(ini?`<div class="cs-mes${mi+1===m?' atual':''}" style="left:${x}px;top:${y-24}px">${MESES[mi].toUpperCase()}</div>`:''); }).join('');
   const {x:px,y:py}=casaXY(pos);
-  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Your house" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${s.aposentado?176:morN()>=3?170:150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">YOUR HOME</em>`;
+  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Your house" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${morN()>=3?(s.aposentado?176:170):150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">YOUR HOME</em>`;
   const rato=`<div class="mp-rato im-rato${avPeao()?' av':''}" id="peao" style="left:${px}px;top:${py+8}px"><img src="${avPeao()||mpImg('rato-fp')}" alt=""></div>`;
   // transição suave: a imagem anterior fica por cima e se dissolve, com um brilho rápido
   const mEsc = (()=>{ let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; })(); // a cena segue a casa onde o rato está: meses pulados pelos dados e a caminhada não adiantam a festa
@@ -5683,7 +5682,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v383</p>
+    <p class="titulo-versao">version v384</p>
   </div>`;
 }
 function render(){
@@ -11645,7 +11644,6 @@ const POOL_NEG=['oficina','academia','shopping','escritorio'];
 // o desenho do lote combina com o negócio (clínica = hospital, lavanderia = fábrica com chaminé soltando vapor...)
 const SPR_NEG={vending:'mercado',bike:'oficina',lavanderia:'fabrica',acai:'cafeteria',ecommerce:'escritorio',lavajato:'oficina',foodtruck:'feira',estacionamento:'banco',lojaroupa:'lojas',cursinho:'escola',vacinas:'hospital',saas:'escritorio',socio_rede:'cafeteria',cafeteria:'cafeteria'};
 function casaDoJogador(){
-  if(s.aposentado) return 'casa6';
   const n=morN(), own=morPropria(); // cada moradia tem a sua casa: o apê de 2 quartos usa casa2b quando existir, e a casa de 3 quartos alugada é mais simples que a própria
   const k=[ 'casa1','casa2', mpImg('casa2b')?'casa2b':'casa2', own?'casa4':'casa3', 'casa5' ][n]||'casa1'; return k;
 }
@@ -11669,7 +11667,7 @@ function mundoHTML(){
     return `<div class="cs k-${t}${ini?' ini':''}${i===pos?' on':''}" data-i="${i}" style="left:${x}px;top:${y}px;" title="${CASAS[t].nome}"><i>${pix(CASAS[t].ic)}</i>${pr?`<s>${pr}%</s>`:''}</div>`
       +(ini?`<div class="cs-mes${mi+1===m?' atual':''}" style="left:${x}px;top:${y-24}px">${MESES[mi].toUpperCase()}</div>`:''); }).join('');
   const {x:px,y:py}=casaXY(pos);
-  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Sua casa" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${s.aposentado?176:morN()>=3?170:150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">SUA CASA</em>`;
+  const sua=`<img class="mp-pec im-pec im-sua" data-acao="minhaCasa" src="${mpImg(casaDoJogador())}" alt="Sua casa" style="left:${CASA_POS.x}px;top:${CASA_POS.y}px;width:${morN()>=3?(s.aposentado?176:170):150}px"><em class="im-rot im-sua-rot" style="left:${CASA_POS.x}px;top:${CASA_POS.y-130}px">SUA CASA</em>`;
   const rato=`<div class="mp-rato im-rato${avPeao()?' av':''}" id="peao" style="left:${px}px;top:${py+8}px"><img src="${avPeao()||mpImg('rato-fp')}" alt=""></div>`;
   // transição suave: a imagem anterior fica por cima e se dissolve, com um brilho rápido
   const mEsc = (()=>{ let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; })(); // a cena segue a casa onde o rato está: meses pulados pelos dados e a caminhada não adiantam a festa
@@ -12057,7 +12055,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v383</p>
+    <p class="titulo-versao">versão v384</p>
   </div>`;
 }
 function render(){
