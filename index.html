@@ -5322,6 +5322,8 @@ const COR_REMENDO={verao:[237,218,185],outono:[236,213,178],inverno:[218,207,183
 const ESTACAO_IMG={verao:'cidade-verao',outono:'cidade-outono',inverno:'cidade-inverno',primavera:'cidade-primavera'};
 // festas: usam a imagem enfeitada quando ela existe (Carnaval em fevereiro, Halloween em outubro, Natal em dezembro)
 const FESTA_IMG={2:'cidade-carnaval',10:'cidade-halloween',12:'cidade-natal'};
+// o mês que o mapa mostra: o da casa onde o rato está (a cena, o clima e os efeitos seguem sempre este mês)
+const mesDoMapa = () => { const pos=(typeof ui!=='undefined'&&ui.peaoPos!=null)?ui.peaoPos:(s&&s.rol?s.rol.pos||0:0); let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; };
 const imgCena = m => { const f=FESTA_IMG[m]; return f&&mpImg(f) ? f : ESTACAO_IMG[estacaoDe(m)]; };
 // onde ficam a casa do jogador (terreno cercado) e os 4 lotes de bens
 const CASA_POS={x:160,y:1196};
@@ -5354,7 +5356,7 @@ function carroDaCasa(){
 }
 const CARRO_DX=-34, CARRO_DY=14, CARRO_FACE='se';
 function mundoHTML(){
-  const m=mesCal(), E=estacaoDe(m), A=anel(), pos=ui.peaoPos??(s.rol?.pos||0), mn=m%12+1;
+  const m=mesCal(), E=estacaoDe(mesDoMapa()), A=anel(), pos=ui.peaoPos??(s.rol?.pos||0), mn=m%12+1;
   const p0=(s.rol&&s.rol.pos!=null)?s.rol.pos:0, prox=ui.girando?null:true;
   const casas=A.map((t,i)=>{ const {x,y}=casaXY(i), mi=MES_INI.indexOf(i), ini=mi>=0;
     const dd=(i-p0+96)%96, pr=0;
@@ -5749,7 +5751,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v396</p>
+    <p class="titulo-versao">version v397</p>
   </div>`;
 }
 function render(){
@@ -7534,11 +7536,15 @@ const CLIMA=(()=>{
   const rnd=(a,b)=>a+Math.random()*(b-a);
   const reduz=()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
   const COR_FOLHA=['#d9822b','#b5471f','#e0a526','#9c3a1a','#c96a1d'], COR_CONF=['#e8567a','#f2c230','#3fae6b','#4aa3df','#a463c7'];
+  // sorteio do clima de cada mês do mapa: neve de dez a fev (às vezes não neva), confete no carnaval (fev e, às vezes, mar), chuva só em meses chuvosos
+  const PCHUVA=[0,0,0,.7,.7,.7,.25,.25,.25,.45,.45,.45,0];
+  function sorteio(m){ if(ui.cMes===m) return; ui.cMes=m; ui.cNeve=Math.random()<.6; ui.cMarc=Math.random()<.5; ui.cChuva=Math.random()<PCHUVA[m]; chuva=0; proxChuva=rnd(30,90); }
   function modo(){
     if(!s||!s.mes) return '';
-    const m=mesCal(), e=estacaoDe(m);
-    if(m===2) return 'confete';
-    return e==='inverno'?'neve':e==='outono'?'folhas':'tempo';
+    const m=mesDoMapa(), e=estacaoDe(m); sorteio(m);
+    if(m===2||(m===3&&ui.cMarc)) return 'confete';
+    if(e==='inverno') return ui.cNeve?'neve':'tempo';
+    return e==='outono'?'folhas':'tempo';
   }
   const alvoN=(md)=>md==='neve'?(dpr>1.5?90:110):md==='folhas'?26:md==='confete'?55:0;
   function nova(md,topo){
@@ -7579,11 +7585,11 @@ const CLIMA=(()=>{
     const md=forcado?forcado.modo:modo(), red=reduz();
     if(md!==modoP){ modoP=md; P=[]; const n=alvoN(md); for(let i=0;i<n;i++){ const p=nova(md,false); if(p) P.push(p); } }
     // chuva aleatória (primavera, verão e, mais raro, outono)
-    const tempo=md==='tempo'||md==='folhas';
-    const e=estacaoDe(mesCal());
+    const tempo=(md==='tempo'||md==='folhas')&&ui.cChuva;
+    const e=estacaoDe(mesDoMapa());
     if(forcado&&forcado.chuva!=null){ chuva=forcado.chuva; }
     else if(tempo){
-      if(chuva<=0){ proxChuva-=dt; if(proxChuva<=0){ chuva=rnd(16,34); proxChuva=rnd(e==='outono'?60:30, e==='outono'?150:90); proxRaio=rnd(2,5); } }
+      if(chuva<=0){ proxChuva-=dt; if(proxChuva<=0){ chuva=rnd(14,26); proxChuva=rnd(e==='outono'?110:90, e==='outono'?220:180); proxRaio=rnd(2,5); } }
       else { chuva-=dt; }
     } else { chuva=0; }
     const meta=chuva>0?1:0; escuro+=(meta-escuro)*Math.min(1,dt*(meta?1.2:0.8));
@@ -7613,7 +7619,7 @@ const CLIMA=(()=>{
     }
   }
   function iniciar(){ if(rodando) return; rodando=true; ult=performance.now(); requestAnimationFrame(quadro); }
-  return {iniciar, forcar(md,ch){ forcado=md?{modo:md,chuva:ch}:null; if(!md){ chuva=0; } }, get ativo(){ return rodando; }};
+  return {iniciar, get modo(){ return modoP; }, get chovendo(){ return chuva>0; }, forcar(md,ch){ forcado=md?{modo:md,chuva:ch}:null; if(!md){ chuva=0; } }, get ativo(){ return rodando; }};
 })();
 window.__clima=CLIMA; CLIMA.iniciar();
 
@@ -7629,7 +7635,7 @@ const VIDA=(()=>{
   const total=comp[comp.length-1], FIMBARCO=comp[4]+34;   // o barquinho desaparece ao chegar na ponte
   const rnd=(a,b)=>a+Math.random()*(b-a);
   const noRio=(x,y)=>x>380&&y>735, noLago=(x,y)=>x<232&&y>335&&y<575, naFonte=(x,y)=>x>405&&x<470&&y>585&&y<650;
-  const estacao=()=>{ try{ return estacaoDe(mesCal()); }catch(e){ return 'verao'; } };
+  const estacao=()=>{ try{ return estacaoDe(mesDoMapa()); }catch(e){ return 'verao'; } };
   const ponto=(d)=>{ d=Math.max(0,Math.min(total,d)); let i=1; while(i<comp.length-1&&comp[i]<d) i++; const u=(d-comp[i-1])/(comp[i]-comp[i-1]||1), a=RIO[i-1], b=RIO[i];
     return {x:a[0]+(b[0]-a[0])*u, y:a[1]+(b[1]-a[1])*u, ang:Math.atan2(b[1]-a[1],b[0]-a[0])}; };
   function montarAgua(im){ // acha a água pela cor, no lago, no rio e na fonte
@@ -11738,6 +11744,8 @@ const COR_REMENDO={verao:[237,218,185],outono:[236,213,178],inverno:[218,207,183
 const ESTACAO_IMG={verao:'cidade-verao',outono:'cidade-outono',inverno:'cidade-inverno',primavera:'cidade-primavera'};
 // festas: usam a imagem enfeitada quando ela existe (Carnaval em fevereiro, Halloween em outubro, Natal em dezembro)
 const FESTA_IMG={2:'cidade-carnaval',10:'cidade-halloween',12:'cidade-natal'};
+// o mês que o mapa mostra: o da casa onde o rato está (a cena, o clima e os efeitos seguem sempre este mês)
+const mesDoMapa = () => { const pos=(typeof ui!=='undefined'&&ui.peaoPos!=null)?ui.peaoPos:(s&&s.rol?s.rol.pos||0:0); let k=0; for(let i=0;i<12;i++) if(pos>=MES_INI[i]) k=i; return k+1; };
 const imgCena = m => { const f=FESTA_IMG[m]; return f&&mpImg(f) ? f : ESTACAO_IMG[estacaoDe(m)]; };
 // onde ficam a casa do jogador (terreno cercado) e os 4 lotes de bens
 const CASA_POS={x:160,y:1196};
@@ -11770,7 +11778,7 @@ function carroDaCasa(){
 }
 const CARRO_DX=-34, CARRO_DY=14, CARRO_FACE='se';
 function mundoHTML(){
-  const m=mesCal(), E=estacaoDe(m), A=anel(), pos=ui.peaoPos??(s.rol?.pos||0), mn=m%12+1;
+  const m=mesCal(), E=estacaoDe(mesDoMapa()), A=anel(), pos=ui.peaoPos??(s.rol?.pos||0), mn=m%12+1;
   const p0=(s.rol&&s.rol.pos!=null)?s.rol.pos:0, prox=ui.girando?null:true;
   const casas=A.map((t,i)=>{ const {x,y}=casaXY(i), mi=MES_INI.indexOf(i), ini=mi>=0;
     const dd=(i-p0+96)%96, pr=0;
@@ -12165,7 +12173,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v396</p>
+    <p class="titulo-versao">versão v397</p>
   </div>`;
 }
 function render(){
@@ -13950,11 +13958,15 @@ const CLIMA=(()=>{
   const rnd=(a,b)=>a+Math.random()*(b-a);
   const reduz=()=>{ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } };
   const COR_FOLHA=['#d9822b','#b5471f','#e0a526','#9c3a1a','#c96a1d'], COR_CONF=['#e8567a','#f2c230','#3fae6b','#4aa3df','#a463c7'];
+  // sorteio do clima de cada mês do mapa: neve de dez a fev (às vezes não neva), confete no carnaval (fev e, às vezes, mar), chuva só em meses chuvosos
+  const PCHUVA=[0,0,0,.7,.7,.7,.25,.25,.25,.45,.45,.45,0];
+  function sorteio(m){ if(ui.cMes===m) return; ui.cMes=m; ui.cNeve=Math.random()<.6; ui.cMarc=Math.random()<.5; ui.cChuva=Math.random()<PCHUVA[m]; chuva=0; proxChuva=rnd(30,90); }
   function modo(){
     if(!s||!s.mes) return '';
-    const m=mesCal(), e=estacaoDe(m);
-    if(m===2) return 'confete';
-    return e==='inverno'?'neve':e==='outono'?'folhas':'tempo';
+    const m=mesDoMapa(), e=estacaoDe(m); sorteio(m);
+    if(m===2||(m===3&&ui.cMarc)) return 'confete';
+    if(e==='inverno') return ui.cNeve?'neve':'tempo';
+    return e==='outono'?'folhas':'tempo';
   }
   const alvoN=(md)=>md==='neve'?(dpr>1.5?90:110):md==='folhas'?26:md==='confete'?55:0;
   function nova(md,topo){
@@ -13995,11 +14007,11 @@ const CLIMA=(()=>{
     const md=forcado?forcado.modo:modo(), red=reduz();
     if(md!==modoP){ modoP=md; P=[]; const n=alvoN(md); for(let i=0;i<n;i++){ const p=nova(md,false); if(p) P.push(p); } }
     // chuva aleatória (primavera, verão e, mais raro, outono)
-    const tempo=md==='tempo'||md==='folhas';
-    const e=estacaoDe(mesCal());
+    const tempo=(md==='tempo'||md==='folhas')&&ui.cChuva;
+    const e=estacaoDe(mesDoMapa());
     if(forcado&&forcado.chuva!=null){ chuva=forcado.chuva; }
     else if(tempo){
-      if(chuva<=0){ proxChuva-=dt; if(proxChuva<=0){ chuva=rnd(16,34); proxChuva=rnd(e==='outono'?60:30, e==='outono'?150:90); proxRaio=rnd(2,5); } }
+      if(chuva<=0){ proxChuva-=dt; if(proxChuva<=0){ chuva=rnd(14,26); proxChuva=rnd(e==='outono'?110:90, e==='outono'?220:180); proxRaio=rnd(2,5); } }
       else { chuva-=dt; }
     } else { chuva=0; }
     const meta=chuva>0?1:0; escuro+=(meta-escuro)*Math.min(1,dt*(meta?1.2:0.8));
@@ -14029,7 +14041,7 @@ const CLIMA=(()=>{
     }
   }
   function iniciar(){ if(rodando) return; rodando=true; ult=performance.now(); requestAnimationFrame(quadro); }
-  return {iniciar, forcar(md,ch){ forcado=md?{modo:md,chuva:ch}:null; if(!md){ chuva=0; } }, get ativo(){ return rodando; }};
+  return {iniciar, get modo(){ return modoP; }, get chovendo(){ return chuva>0; }, forcar(md,ch){ forcado=md?{modo:md,chuva:ch}:null; if(!md){ chuva=0; } }, get ativo(){ return rodando; }};
 })();
 window.__clima=CLIMA; CLIMA.iniciar();
 
@@ -14045,7 +14057,7 @@ const VIDA=(()=>{
   const total=comp[comp.length-1], FIMBARCO=comp[4]+34;   // o barquinho desaparece ao chegar na ponte
   const rnd=(a,b)=>a+Math.random()*(b-a);
   const noRio=(x,y)=>x>380&&y>735, noLago=(x,y)=>x<232&&y>335&&y<575, naFonte=(x,y)=>x>405&&x<470&&y>585&&y<650;
-  const estacao=()=>{ try{ return estacaoDe(mesCal()); }catch(e){ return 'verao'; } };
+  const estacao=()=>{ try{ return estacaoDe(mesDoMapa()); }catch(e){ return 'verao'; } };
   const ponto=(d)=>{ d=Math.max(0,Math.min(total,d)); let i=1; while(i<comp.length-1&&comp[i]<d) i++; const u=(d-comp[i-1])/(comp[i]-comp[i-1]||1), a=RIO[i-1], b=RIO[i];
     return {x:a[0]+(b[0]-a[0])*u, y:a[1]+(b[1]-a[1])*u, ang:Math.atan2(b[1]-a[1],b[0]-a[0])}; };
   function montarAgua(im){ // acha a água pela cor, no lago, no rio e na fonte
