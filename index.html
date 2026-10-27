@@ -5749,7 +5749,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v395</p>
+    <p class="titulo-versao">version v396</p>
   </div>`;
 }
 function render(){
@@ -7741,9 +7741,10 @@ const VIDA=(()=>{
   const FAIXAS=[{x0:230,y0:246,x1:430,y1:366,max:2,v:24},{x0:210,y0:612,x1:310,y1:672,max:1,v:20}];
   const carSpr={}, carros=[]; let tCar=0;
   function sprCarro(k,flip){ const id=k+(flip?'-f':''); if(carSpr[id]) return carSpr[id].ok?carSpr[id].c:null;
-    const o=carSpr[id]={ok:false,c:document.createElement('canvas')}, im=new Image(); o.c.width=26; o.c.height=20;
-    im.onload=()=>{ const x=o.c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; if(flip){ x.translate(26,0); x.scale(-1,1); } x.drawImage(im,0,0,26,20); o.ok=true; };
+    const o=carSpr[id]={ok:false,c:document.createElement('canvas')}, im=new Image();
+    im.onload=()=>{ const w=CAR_W[k]||26, h=Math.round(w*im.naturalHeight/im.naturalWidth); o.c.width=w; o.c.height=h; const x=o.c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; if(flip){ x.translate(w,0); x.scale(-1,1); } x.drawImage(im,0,0,w,h); o.ok=true; };
     im.src=mpImg(k); return null; }
+  const CAR_W={cp1:25,cp2:28,cp3:30,cp4:31}; for(const k of Object.keys(CAR_W)){ CAR_W[k+'-se']=CAR_W[k]; }
   // sombras de nuvens passando devagar e, de vez em quando, um bando de pássaros cruzando o mapa
   const nuv=[{x:-120,y:260,w:190,h:110,v:7},{x:420,y:820,w:230,h:120,v:5}];
   const bando=[]; let tPas=3;
@@ -7762,12 +7763,12 @@ const VIDA=(()=>{
   }
   function trafego(dt){
     let reduz=false; try{ reduz=matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
-    if(reduz||!mpImg('carro-verm-e')) return;
-    tCar-=dt; if(tCar<=0){ tCar=rnd(3.5,7); const L=FAIXAS[Math.floor(Math.random()*FAIXAS.length)]; if(carros.filter(c=>c.L===L).length<L.max && !carros.some(c=>c.L===L&&c.u<0.45)) carros.push({L,u:0,v:L.v*rnd(.85,1.15),k:Math.random()<.5?'carro-verm-e':'carro-azul-d',flip:false}); }
+    if(reduz||!mpImg('cp1-se')) return;
+    tCar-=dt; if(tCar<=0){ tCar=rnd(3.5,7); const L=FAIXAS[Math.floor(Math.random()*FAIXAS.length)]; if(carros.filter(c=>c.L===L).length<L.max && !carros.some(c=>c.L===L&&c.u<0.45)) carros.push({L,u:0,v:L.v*rnd(.85,1.15),k:['cp1-se','cp2-se','cp2-se','cp3-se','cp4-se'][Math.floor(Math.random()*5)],flip:false}); }
     for(let i=carros.length-1;i>=0;i--){ const c=carros[i], L=c.L, len=Math.hypot(L.x1-L.x0,L.y1-L.y0); c.u+=c.v*dt/len; if(c.u>=1){ carros.splice(i,1); continue; }
-      const sp=sprCarro(c.k,c.k==='carro-azul-d'); if(!sp) continue;
+      const sp=sprCarro(c.k,false); if(!sp) continue;
       const x=L.x0+(L.x1-L.x0)*c.u, y=L.y0+(L.y1-L.y0)*c.u, al=Math.min(1,c.u*8,(1-c.u)*8);
-      g.globalAlpha=al; g.drawImage(sp,Math.round(x/2-13),Math.round(y/2-15)); g.globalAlpha=1; }
+      g.globalAlpha=al; g.drawImage(sp,Math.round(x/2-sp.width/2),Math.round(y/2-sp.height*.72)); g.globalAlpha=1; }
   }
   function efeitosFixos(dt,t,inv){
     if(!inv){ // chafariz: gotas sobem do bico e caem na bacia
@@ -12164,7 +12165,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v395</p>
+    <p class="titulo-versao">versão v396</p>
   </div>`;
 }
 function render(){
@@ -14156,9 +14157,10 @@ const VIDA=(()=>{
   const FAIXAS=[{x0:230,y0:246,x1:430,y1:366,max:2,v:24},{x0:210,y0:612,x1:310,y1:672,max:1,v:20}];
   const carSpr={}, carros=[]; let tCar=0;
   function sprCarro(k,flip){ const id=k+(flip?'-f':''); if(carSpr[id]) return carSpr[id].ok?carSpr[id].c:null;
-    const o=carSpr[id]={ok:false,c:document.createElement('canvas')}, im=new Image(); o.c.width=26; o.c.height=20;
-    im.onload=()=>{ const x=o.c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; if(flip){ x.translate(26,0); x.scale(-1,1); } x.drawImage(im,0,0,26,20); o.ok=true; };
+    const o=carSpr[id]={ok:false,c:document.createElement('canvas')}, im=new Image();
+    im.onload=()=>{ const w=CAR_W[k]||26, h=Math.round(w*im.naturalHeight/im.naturalWidth); o.c.width=w; o.c.height=h; const x=o.c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; if(flip){ x.translate(w,0); x.scale(-1,1); } x.drawImage(im,0,0,w,h); o.ok=true; };
     im.src=mpImg(k); return null; }
+  const CAR_W={cp1:25,cp2:28,cp3:30,cp4:31}; for(const k of Object.keys(CAR_W)){ CAR_W[k+'-se']=CAR_W[k]; }
   // sombras de nuvens passando devagar e, de vez em quando, um bando de pássaros cruzando o mapa
   const nuv=[{x:-120,y:260,w:190,h:110,v:7},{x:420,y:820,w:230,h:120,v:5}];
   const bando=[]; let tPas=3;
@@ -14177,12 +14179,12 @@ const VIDA=(()=>{
   }
   function trafego(dt){
     let reduz=false; try{ reduz=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
-    if(reduz||!mpImg('carro-verm-e')) return;
-    tCar-=dt; if(tCar<=0){ tCar=rnd(3.5,7); const L=FAIXAS[Math.floor(Math.random()*FAIXAS.length)]; if(carros.filter(c=>c.L===L).length<L.max && !carros.some(c=>c.L===L&&c.u<0.45)) carros.push({L,u:0,v:L.v*rnd(.85,1.15),k:Math.random()<.5?'carro-verm-e':'carro-azul-d',flip:false}); }
+    if(reduz||!mpImg('cp1-se')) return;
+    tCar-=dt; if(tCar<=0){ tCar=rnd(3.5,7); const L=FAIXAS[Math.floor(Math.random()*FAIXAS.length)]; if(carros.filter(c=>c.L===L).length<L.max && !carros.some(c=>c.L===L&&c.u<0.45)) carros.push({L,u:0,v:L.v*rnd(.85,1.15),k:['cp1-se','cp2-se','cp2-se','cp3-se','cp4-se'][Math.floor(Math.random()*5)],flip:false}); }
     for(let i=carros.length-1;i>=0;i--){ const c=carros[i], L=c.L, len=Math.hypot(L.x1-L.x0,L.y1-L.y0); c.u+=c.v*dt/len; if(c.u>=1){ carros.splice(i,1); continue; }
-      const sp=sprCarro(c.k,c.k==='carro-azul-d'); if(!sp) continue;
+      const sp=sprCarro(c.k,false); if(!sp) continue;
       const x=L.x0+(L.x1-L.x0)*c.u, y=L.y0+(L.y1-L.y0)*c.u, al=Math.min(1,c.u*8,(1-c.u)*8);
-      g.globalAlpha=al; g.drawImage(sp,Math.round(x/2-13),Math.round(y/2-15)); g.globalAlpha=1; }
+      g.globalAlpha=al; g.drawImage(sp,Math.round(x/2-sp.width/2),Math.round(y/2-sp.height*.72)); g.globalAlpha=1; }
   }
   function efeitosFixos(dt,t,inv){
     if(!inv){ // chafariz: gotas sobem do bico e caem na bacia
