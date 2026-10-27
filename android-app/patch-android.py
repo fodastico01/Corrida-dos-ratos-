@@ -23,4 +23,11 @@ m = os.path.join(base, 'app/src/main/AndroidManifest.xml'); x = open(m).read()
 if 'screenOrientation' not in x:
     x = x.replace('android:launchMode="singleTask"', 'android:launchMode="singleTask"\n            android:screenOrientation="portrait"', 1)
 open(m, 'w').write(x)
+
+# tela de abertura escura (Android 12+ usa o fundo da tema; as versoes antigas usam o drawable splash)
+st = os.path.join(base, 'app/src/main/res/values/styles.xml'); y = open(st).read()
+if 'windowSplashScreenBackground' not in y:
+    y = y.replace('<style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">',
+        '<style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">\n        <item name="windowSplashScreenBackground">#0E1014</item>', 1)
+    open(st, 'w').write(y)
 print('projeto Android ajustado: versionCode', vc, 'versionName', vn)
