@@ -1308,6 +1308,10 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 
 .ic-px.ic-auto{width:1.2em;height:1.2em;vertical-align:-.25em;image-rendering:pixelated;margin:0 .05em}
 .topo-menu .ic-px.ic-auto{width:22px;height:22px;vertical-align:middle}
+/* v382: tela de abertura escura */
+.titulo-splash{background:#0E1014}
+.titulo-splash span{color:#F1ECE0}
+.titulo-splash b{color:#A9A59B}
 </style>
 
 <div class="app" id="app"></div>
@@ -5272,10 +5276,13 @@ function casaDoJogador(){
   const k=[ 'casa1','casa2', mpImg('casa2b')?'casa2b':'casa2', own?'casa4':'casa3', 'casa5' ][n]||'casa1'; return k;
 }
 function rotCurto(n){ let t=String(n).replace(/\(.*?\)/g,'').trim(); if(t.length>18){ t=t.slice(0,18); t=t.slice(0,Math.max(8,t.lastIndexOf(' '))).trim(); } return t.toUpperCase(); }
+// o desenho do imóvel acompanha o nível dele: a antiga moradia usa o nível em que você morava; os demais, pelo valor
+function sprImovel(a){ let n=a.mor; if(n==null){ const v=a.valor||0; n=v<260000?1:v<420000?2:v<900000?3:4; }
+  return ['casa1','casa2',mpImg('casa2b')?'casa2b':'casa2','casa3','casa5'][Math.max(0,Math.min(4,n))]; }
 function lotesHTML(){
   const at=(s.ativos||[]).slice().sort((a,b)=>b.valor-a.valor).slice(0,4);
   return LOTES.map(([x,y],k)=>{ const a=at[k]; if(!a) return '';
-    const pec=a.tipo==='imovel'?'casa3':a.tipo==='terreno'?'placa':SPR_NEG[a.id]||POOL_NEG[(a.uid||k)%POOL_NEG.length], w=a.tipo==='imovel'?104:a.tipo==='terreno'?44:110;
+    const pec=a.tipo==='imovel'?sprImovel(a):a.tipo==='terreno'?'placa':SPR_NEG[a.id]||POOL_NEG[(a.uid||k)%POOL_NEG.length], w=a.tipo==='imovel'?104:a.tipo==='terreno'?44:110;
     return `<img class="mp-pec im-pec" data-pec="${pec}" src="${mpImg(pec)}" alt="" style="left:${x}px;top:${y}px;width:${w}px"><em class="im-rot" style="left:${x}px;top:${y+3}px">${rotCurto(a.nome)}</em>`; }).join('');
 }
 function remendoSVG(E){ const c=COR_REMENDO[E], f=`rgb(${c})`, b=`rgb(${Math.round(c[0]*.68)},${Math.round(c[1]*.56)},${Math.round(c[2]*.5)})`;
@@ -5676,7 +5683,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v381</p>
+    <p class="titulo-versao">version v382</p>
   </div>`;
 }
 function render(){
@@ -11643,10 +11650,13 @@ function casaDoJogador(){
   const k=[ 'casa1','casa2', mpImg('casa2b')?'casa2b':'casa2', own?'casa4':'casa3', 'casa5' ][n]||'casa1'; return k;
 }
 function rotCurto(n){ let t=String(n).replace(/\(.*?\)/g,'').trim(); if(t.length>18){ t=t.slice(0,18); t=t.slice(0,Math.max(8,t.lastIndexOf(' '))).trim(); } return t.toUpperCase(); }
+// o desenho do imóvel acompanha o nível dele: a antiga moradia usa o nível em que você morava; os demais, pelo valor
+function sprImovel(a){ let n=a.mor; if(n==null){ const v=a.valor||0; n=v<260000?1:v<420000?2:v<900000?3:4; }
+  return ['casa1','casa2',mpImg('casa2b')?'casa2b':'casa2','casa3','casa5'][Math.max(0,Math.min(4,n))]; }
 function lotesHTML(){
   const at=(s.ativos||[]).slice().sort((a,b)=>b.valor-a.valor).slice(0,4);
   return LOTES.map(([x,y],k)=>{ const a=at[k]; if(!a) return '';
-    const pec=a.tipo==='imovel'?'casa3':a.tipo==='terreno'?'placa':SPR_NEG[a.id]||POOL_NEG[(a.uid||k)%POOL_NEG.length], w=a.tipo==='imovel'?104:a.tipo==='terreno'?44:110;
+    const pec=a.tipo==='imovel'?sprImovel(a):a.tipo==='terreno'?'placa':SPR_NEG[a.id]||POOL_NEG[(a.uid||k)%POOL_NEG.length], w=a.tipo==='imovel'?104:a.tipo==='terreno'?44:110;
     return `<img class="mp-pec im-pec" data-pec="${pec}" src="${mpImg(pec)}" alt="" style="left:${x}px;top:${y}px;width:${w}px"><em class="im-rot" style="left:${x}px;top:${y+3}px">${rotCurto(a.nome)}</em>`; }).join('');
 }
 function remendoSVG(E){ const c=COR_REMENDO[E], f=`rgb(${c})`, b=`rgb(${Math.round(c[0]*.68)},${Math.round(c[1]*.56)},${Math.round(c[2]*.5)})`;
@@ -12047,7 +12057,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v381</p>
+    <p class="titulo-versao">versão v382</p>
   </div>`;
 }
 function render(){

@@ -18,13 +18,15 @@ for d, k in dens.items():
     fg.save(os.path.join(p, 'ic_launcher_foreground.png'))
 open(os.path.join(res, 'values/ic_launcher_background.xml'), 'w').write(
     '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#CDEFDB</color>\n</resources>\n')
-# tela de abertura: fundo do jogo + ratinho no centro
+# tela de abertura: fundo escuro + ratinho no centro
 for nome in sorted(os.listdir(res)):
     if not nome.startswith('drawable'): continue
     arq = os.path.join(res, nome, 'splash.png')
     if not os.path.exists(arq): continue
     w, h = Image.open(arq).size
-    im = Image.new('RGB', (w, h), (245, 243, 239)); t = round(min(w, h) * 0.38)
-    im.paste(mask.resize((t, t), Image.LANCZOS).convert('RGB'), ((w - t) // 2, (h - t) // 2))
+    im = Image.new('RGB', (w, h), (14, 16, 20)); t = round(min(w, h) * 0.38)
+    ic = mask.resize((t, t), Image.LANCZOS).convert('RGB'); rm = Image.new('L', (t, t), 0)
+    ImageDraw.Draw(rm).rounded_rectangle((0, 0, t - 1, t - 1), radius=round(t * 0.22), fill=255)
+    im.paste(ic, ((w - t) // 2, (h - t) // 2), rm)
     im.save(arq)
 print('icones e splash gerados')
