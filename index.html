@@ -1340,6 +1340,20 @@ body.pxui .hud{border:0;border-radius:0;margin:4px 4px 12px;
   box-shadow:0 -4px 0 0 var(--px-b),0 4px 0 0 var(--px-b),-4px 0 0 0 var(--px-b),4px 0 0 0 var(--px-b),0 8px 0 0 var(--px-base),inset 3px 3px 0 0 var(--px-hi),inset -3px -4px 0 0 var(--px-sh)}
 body.pxui .topo-conta,body.pxui .topo-fel{border:0;border-radius:0;margin:3px;
   box-shadow:0 -3px 0 0 var(--px-b),0 3px 0 0 var(--px-b),-3px 0 0 0 var(--px-b),3px 0 0 0 var(--px-b),inset 2px 2px 0 0 var(--px-hi),inset -2px -3px 0 0 var(--px-sh)}
+/* variante com degradê (teste): contorno mais claro, brilho suave e sombra difusa em vez de bloco duro */
+body.pxui.suave{--px-b:#9C8863;--px-hi:rgba(255,255,255,.9);--px-sh:rgba(110,85,40,.10);--px-base:transparent}
+html[data-paleta="noite"] body.pxui.suave{--px-b:#2B3560;--px-hi:rgba(255,255,255,.10);--px-sh:rgba(0,0,0,.22)}
+html[data-paleta="ouro"] body.pxui.suave{--px-b:#B79C5E}
+html[data-paleta="ceu"] body.pxui.suave{--px-b:#7E98B6}
+body.pxui.suave .card,body.pxui.suave .hud,body.pxui.suave .escolha,body.pxui.suave .sonho{
+  background-image:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 38%,rgba(120,95,50,.07) 100%);
+  box-shadow:0 -3px 0 0 var(--px-b),0 3px 0 0 var(--px-b),-3px 0 0 0 var(--px-b),3px 0 0 0 var(--px-b),
+  0 12px 14px -8px rgba(70,50,20,.28),inset 2px 2px 0 0 var(--px-hi)}
+html[data-paleta="noite"] body.pxui.suave .card,html[data-paleta="noite"] body.pxui.suave .hud{background-image:linear-gradient(180deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,0) 40%,rgba(0,0,0,.12) 100%);box-shadow:0 -3px 0 0 var(--px-b),0 3px 0 0 var(--px-b),-3px 0 0 0 var(--px-b),3px 0 0 0 var(--px-b),0 12px 14px -8px rgba(0,0,0,.5),inset 2px 2px 0 0 var(--px-hi)}
+body.pxui.suave .btn,body.pxui.suave .opcao,body.pxui.suave .avancar{
+  background-image:linear-gradient(180deg,rgba(255,255,255,.35),rgba(0,0,0,.10));
+  box-shadow:0 -3px 0 0 var(--px-b),0 3px 0 0 var(--px-b),-3px 0 0 0 var(--px-b),3px 0 0 0 var(--px-b),0 8px 0 -1px rgba(60,45,20,.30),inset 2px 2px 0 0 rgba(255,255,255,.6)}
+body.pxui.suave .topo-conta,body.pxui.suave .topo-fel{box-shadow:0 -2px 0 0 var(--px-b),0 2px 0 0 var(--px-b),-2px 0 0 0 var(--px-b),2px 0 0 0 var(--px-b),inset 2px 2px 0 0 var(--px-hi)}
 </style>
 
 <div class="app" id="app"></div>
@@ -5710,7 +5724,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v387</p>
+    <p class="titulo-versao">version v388</p>
   </div>`;
 }
 function render(){
@@ -7776,7 +7790,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-document.body.classList.add('pxui'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
@@ -12117,7 +12131,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v387</p>
+    <p class="titulo-versao">versão v388</p>
   </div>`;
 }
 function render(){
@@ -14183,7 +14197,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-document.body.classList.add('pxui'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
