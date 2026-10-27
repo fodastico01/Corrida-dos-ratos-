@@ -1371,6 +1371,8 @@ body.pxui .tela .opp:first-of-type{padding-top:12px}
 body.pxui .tela .opp-foto{margin-bottom:6px}
 /* v395: o carro do jogador fica na frente da casa e dos imóveis */
 .im-carro{z-index:8}
+/* v398: escolha do visual da corrida: só 2 botões, largura toda */
+.seg.lazer-persp{grid-template-columns:1fr 1fr;display:grid;gap:6px}
 </style>
 
 <div class="app" id="app"></div>
@@ -5751,7 +5753,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v397</p>
+    <p class="titulo-versao">version v398</p>
   </div>`;
 }
 function render(){
@@ -6069,7 +6071,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     dinheiro: `<section class="hud" aria-label="Month status">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: loans and installments</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Where your money comes from (per hour)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCard()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${metasCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Your sheet: income, spending and the dream</summary>${ficha}</details>`
   }[aba] || '';
@@ -7823,6 +7825,8 @@ const VIDA=(()=>{
 window.__vida=VIDA; VIDA.iniciar();
 
 document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+// título e explicação da escolha do visual da corrida (antes só aparecia o par de botões)
+function lazerCardComIntro(){ return lazerCard().replace('<div class="seg seg-hud lazer-persp"', `<h3 class="lazer-sub">Race view</h3><p class="hint">During the race you tap to the rhythm of the shoes falling down the screen. Choose how they appear:</p><div class="seg seg-hud lazer-persp"`); }
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
@@ -12173,7 +12177,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v397</p>
+    <p class="titulo-versao">versão v398</p>
   </div>`;
 }
 function render(){
@@ -12491,7 +12495,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCard()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${metasCard}${estCard}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
@@ -14245,6 +14249,8 @@ const VIDA=(()=>{
 window.__vida=VIDA; VIDA.iniciar();
 
 document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+// título e explicação da escolha do visual da corrida (antes só aparecia o par de botões)
+function lazerCardComIntro(){ return lazerCard().replace('<div class="seg seg-hud lazer-persp"', `<h3 class="lazer-sub">Visual da corrida</h3><p class="hint">Durante a prova você toca no ritmo dos tênis que descem na tela. Escolha como eles aparecem:</p><div class="seg seg-hud lazer-persp"`); }
 window.claude?.hot?.snapshot?.(()=>s);
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
@@ -14253,7 +14259,7 @@ window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude
 </script>
 
 <script>
-if('serviceWorker' in navigator){ const tinhaSW=!!navigator.serviceWorker.controller; let recarregou=false; navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(tinhaSW && !recarregou){ recarregou=true; location.reload(); } }); window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{})); }
+if('serviceWorker' in navigator){ const tinhaSW=!!navigator.serviceWorker.controller; let recarregou=false; navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(tinhaSW && !recarregou){ try{ const U=window.__corrida&&window.__corrida.ui; if(U && U.tela!=='titulo') return; }catch(e){} recarregou=true; location.reload(); } }); window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{})); }
 </script>
 </body>
 </html>
