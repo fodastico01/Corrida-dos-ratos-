@@ -1364,7 +1364,7 @@ body.pxui.suave .topo-conta,body.pxui.suave .topo-fel{border-radius:12px;box-sha
 body.pxui.suave .abas2 button{border-radius:12px}
 body.pxui.suave .abas2 button[aria-selected="true"]{box-shadow:0 0 0 3px var(--px-b),inset 2px 2px 0 0 var(--px-hi)}
 /* v390: botão Vender em vermelho */
-body.pxui .btn[data-acao="vender"],body.pxui .btn[data-acao="luxoVende"]{background-color:#E0483E;color:#fff;--px-b:#82241F}
+body.pxui .btn[data-acao="vender"],body.pxui .btn[data-acao="luxoVende"]{background-color:#E0483E !important;color:#fff !important;--px-b:#82241F}
 </style>
 
 <div class="app" id="app"></div>
@@ -5735,7 +5735,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v390</p>
+    <p class="titulo-versao">version v391</p>
   </div>`;
 }
 function render(){
@@ -12142,7 +12142,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v390</p>
+    <p class="titulo-versao">versão v391</p>
   </div>`;
 }
 function render(){
