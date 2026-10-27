@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 res = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'android/app/src/main/res')
 mask = Image.open(os.path.join(raiz, 'icon-maskable-512.png')).convert('RGBA')
-BG = (205, 239, 219)
+BG = (14, 16, 20)
 dens = {'mdpi': 1, 'hdpi': 1.5, 'xhdpi': 2, 'xxhdpi': 3, 'xxxhdpi': 4}
 for d, k in dens.items():
     p = os.path.join(res, 'mipmap-' + d); os.makedirs(p, exist_ok=True)
@@ -17,7 +17,7 @@ for d, k in dens.items():
     fg.paste(mask.resize((inner, inner), Image.LANCZOS), ((f - inner) // 2, (f - inner) // 2))
     fg.save(os.path.join(p, 'ic_launcher_foreground.png'))
 open(os.path.join(res, 'values/ic_launcher_background.xml'), 'w').write(
-    '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#CDEFDB</color>\n</resources>\n')
+    '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#0E1014</color>\n</resources>\n')
 # tela de abertura: fundo escuro + ratinho no centro
 for nome in sorted(os.listdir(res)):
     if not nome.startswith('drawable'): continue
