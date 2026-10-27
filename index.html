@@ -2666,7 +2666,7 @@ const ESTUDOS = {
 };
 ESTUDOS.holding = {fases:[2,3], emp:true, fortuna:true, nome:'Wealth management: family holding', meses:6, parc:20000, horas:4, efTxt:'Tax on gains −35%', desc:'Your investments move into a family-owned company (a holding), with an accountant, a lawyer and professional management. Tax on gains drops 35%, but the holding has a monthly cost. It only pays off with a very large fortune.'};
 const HOLDING_MIN = 1e9, HOLDING_KEY = 'Family holding (accountant, legal and management)';
-const holdingOn = () => cursoFeito('holding');
+const holdingOn = () => false; // o curso saiu do jogo: o imposto sobre ganhos é zero nas fases 2 a 4, então ele só custava dinheiro
 const custoHolding = () => Math.max(C(5000), Math.round(patrimonio()*0.0001/100)*100); // ~0,12% ao ano do patrimônio
 const nomeEst = id => txt(ESTUDOS[id].nome);
 // carreira: cada cargo exige tempo no cargo, desempenho (decisões no trabalho) e, nos cargos altos, cursos concluídos
@@ -4584,9 +4584,9 @@ const evOk=(id,e,solto)=> e && faseOk(e.fases||[1,2,3]) && !(e.tipo==='custo' &&
 const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1);
 // cursos que dá para começar agora (a casa Estudar oferece com bolsa)
 function estudosAbertos(){
-  if((s.estudoAte||0)>s.mes || s.aposentado) return [];
+  if((s.estudoAte||0)>s.mes) return [];
   const temNeg=(s.ativos||[]).some(a=>a.tipo==='negocio')||s.empresario;
-  return Object.keys(ESTUDOS).filter(id=>{ const E=ESTUDOS[id]; if(E.fortuna) return faseOk(E.fases) && patrimonio()>=HOLDING_MIN && !cursoUsado(id); return faseOk(E.fases) && (E.emp?temNeg:!s.empresario) && !cursoUsado(id); });
+  return Object.keys(ESTUDOS).filter(id=>{ const E=ESTUDOS[id]; if(E.fortuna) return false; if(s.aposentado) return false; return faseOk(E.fases) && (E.emp?temNeg:!s.empresario) && !cursoUsado(id); });
 }
 function eventoDaCasa(t, forcar){
   switch(t){
@@ -4878,7 +4878,7 @@ function iniciarMes(){
   checarMarcosPatr();
   crescerNegocios();
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
-  if(holdingOn()) s.fixos[HOLDING_KEY]=custoHolding();
+  delete s.fixos[HOLDING_KEY];
   if(idadesF().length){
     const antes=nFilhos(); let virou18=0;
     s.filhosIdade=idadesF().map(a=>{ if(a===IDADE_MAIOR-1) virou18++; return a+1; });
@@ -5753,7 +5753,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v398</p>
+    <p class="titulo-versao">version v399</p>
   </div>`;
 }
 function render(){
@@ -5911,7 +5911,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   const algumCurso=Object.values(ESTUDOS).some(E=>faseOk(E.fases));
   const estCard = !algumCurso ? '' : `<section class="card" aria-labelledby="t-est"><h2 id="t-est" data-info="estudos">${s.empresario?"Study to grow the company":"Study and grow in your career"} ${ii}</h2>
     ${estudando?cursoProg():`<p class="hint">Courses are at the study square of the board (${pix('🎓','mini')}). When the little rat lands on it, you choose a course to start.</p>`}
-    ${(()=>{ const rows=Object.entries(ESTUDOS).filter(([id,E])=>faseOk(E.fases) && (!E.fortuna || patrimonio()>=HOLDING_MIN || cursoUsado(id))).map(([id,E])=>{ const p=C(E.parc), feito=cursoUsado(id), andando=estudando&&s.estudoNome===nomeEst(id), f=ARTE.cursos?.[id==='pos'?'pos-'+(s.prof||'professor'):id];
+    ${(()=>{ const rows=Object.entries(ESTUDOS).filter(([id,E])=>faseOk(E.fases) && (!E.fortuna || cursoUsado(id))).map(([id,E])=>{ const p=C(E.parc), feito=cursoUsado(id), andando=estudando&&s.estudoNome===nomeEst(id), f=ARTE.cursos?.[id==='pos'?'pos-'+(s.prof||'professor'):id];
       const st=andando?`In progress: ${s.estudoAte-s.mes===1?"1 month left":`${s.estudoAte-s.mes} months left`}`:feito?"Completed":"Not done yet";
       return {fim:feito&&!andando, h:`<div class="opp${feito&&!andando?' feito':''}">${f?`<img class="opp-foto curso-foto" src="${f}" alt="">`:''}<div class="opp-top"><b>${nomeEst(id)}</b><span class="num">${E.meses}x ${fmt0(p)}</span></div>
         <p class="hint desc">${E.desc}</p>
@@ -9090,7 +9090,7 @@ const ESTUDOS = {
 };
 ESTUDOS.holding = {fases:[2,3], emp:true, fortuna:true, nome:'Gestão de fortuna: holding patrimonial', meses:6, parc:20000, horas:4, efTxt:'Imposto sobre ganhos −35%', desc:'Os seus investimentos passam a ficar numa empresa da família (holding), com contador, advogado e gestão profissional. O imposto sobre os ganhos cai 35%, mas a holding tem custo mensal. Só compensa com patrimônio muito alto.'};
 const HOLDING_MIN = 1e9, HOLDING_KEY = 'Holding patrimonial (contador, jurídico e gestão)';
-const holdingOn = () => cursoFeito('holding');
+const holdingOn = () => false; // o curso saiu do jogo: o imposto sobre ganhos é zero nas fases 2 a 4, então ele só custava dinheiro
 const custoHolding = () => Math.max(C(5000), Math.round(patrimonio()*0.0001/100)*100); // ~0,12% ao ano do patrimônio
 const nomeEst = id => txt(ESTUDOS[id].nome);
 // carreira: cada cargo exige tempo no cargo, desempenho (decisões no trabalho) e, nos cargos altos, cursos concluídos
@@ -11008,9 +11008,9 @@ const evOk=(id,e,solto)=> e && faseOk(e.fases||[1,2,3]) && !(e.tipo==='custo' &&
 const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1);
 // cursos que dá para começar agora (a casa Estudar oferece com bolsa)
 function estudosAbertos(){
-  if((s.estudoAte||0)>s.mes || s.aposentado) return [];
+  if((s.estudoAte||0)>s.mes) return [];
   const temNeg=(s.ativos||[]).some(a=>a.tipo==='negocio')||s.empresario;
-  return Object.keys(ESTUDOS).filter(id=>{ const E=ESTUDOS[id]; if(E.fortuna) return faseOk(E.fases) && patrimonio()>=HOLDING_MIN && !cursoUsado(id); return faseOk(E.fases) && (E.emp?temNeg:!s.empresario) && !cursoUsado(id); });
+  return Object.keys(ESTUDOS).filter(id=>{ const E=ESTUDOS[id]; if(E.fortuna) return false; if(s.aposentado) return false; return faseOk(E.fases) && (E.emp?temNeg:!s.empresario) && !cursoUsado(id); });
 }
 function eventoDaCasa(t, forcar){
   switch(t){
@@ -11302,7 +11302,7 @@ function iniciarMes(){
   checarMarcosPatr();
   crescerNegocios();
   s.ofertas=(s.ofertas||[]).filter(o=>o.expira>=s.mes);
-  if(holdingOn()) s.fixos[HOLDING_KEY]=custoHolding();
+  delete s.fixos[HOLDING_KEY];
   if(idadesF().length){
     const antes=nFilhos(); let virou18=0;
     s.filhosIdade=idadesF().map(a=>{ if(a===IDADE_MAIOR-1) virou18++; return a+1; });
@@ -12177,7 +12177,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v398</p>
+    <p class="titulo-versao">versão v399</p>
   </div>`;
 }
 function render(){
@@ -12335,7 +12335,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   const algumCurso=Object.values(ESTUDOS).some(E=>faseOk(E.fases));
   const estCard = !algumCurso ? '' : `<section class="card" aria-labelledby="t-est"><h2 id="t-est" data-info="estudos">${s.empresario?'Estudar para crescer a empresa':'Estudar e crescer na carreira'} ${ii}</h2>
     ${estudando?cursoProg():`<p class="hint">Os cursos ficam na casa de estudos do tabuleiro (${pix('🎓','mini')}). Quando o ratinho cair nela, você escolhe um curso para começar.</p>`}
-    ${(()=>{ const rows=Object.entries(ESTUDOS).filter(([id,E])=>faseOk(E.fases) && (!E.fortuna || patrimonio()>=HOLDING_MIN || cursoUsado(id))).map(([id,E])=>{ const p=C(E.parc), feito=cursoUsado(id), andando=estudando&&s.estudoNome===nomeEst(id), f=ARTE.cursos?.[id==='pos'?'pos-'+(s.prof||'professor'):id];
+    ${(()=>{ const rows=Object.entries(ESTUDOS).filter(([id,E])=>faseOk(E.fases) && (!E.fortuna || cursoUsado(id))).map(([id,E])=>{ const p=C(E.parc), feito=cursoUsado(id), andando=estudando&&s.estudoNome===nomeEst(id), f=ARTE.cursos?.[id==='pos'?'pos-'+(s.prof||'professor'):id];
       const st=andando?`Em andamento: ${s.estudoAte-s.mes===1?'falta 1 mês':`faltam ${s.estudoAte-s.mes} meses`}`:feito?'Concluído':'Ainda não feito';
       return {fim:feito&&!andando, h:`<div class="opp${feito&&!andando?' feito':''}">${f?`<img class="opp-foto curso-foto" src="${f}" alt="">`:''}<div class="opp-top"><b>${nomeEst(id)}</b><span class="num">${E.meses}x ${fmt0(p)}</span></div>
         <p class="hint desc">${E.desc}</p>
