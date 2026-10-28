@@ -3,7 +3,7 @@ import os, sys
 from PIL import Image, ImageDraw
 raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 res = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'android/app/src/main/res')
-mask = Image.open(os.path.join(raiz, 'icon-maskable-512.png')).convert('RGBA')
+mask = Image.open(os.path.join(raiz, 'icon-512.png')).convert('RGBA')
 BG = (14, 16, 20)
 dens = {'mdpi': 1, 'hdpi': 1.5, 'xhdpi': 2, 'xxhdpi': 3, 'xxxhdpi': 4}
 for d, k in dens.items():
@@ -13,7 +13,7 @@ for d, k in dens.items():
     r = mask.resize((s, s), Image.LANCZOS); m = Image.new('L', (s, s), 0)
     ImageDraw.Draw(m).ellipse((0, 0, s - 1, s - 1), fill=255); r.putalpha(m)
     r.save(os.path.join(p, 'ic_launcher_round.png'))
-    fg = Image.new('RGBA', (f, f), (0, 0, 0, 0)); inner = round(f * 0.80)
+    fg = Image.new('RGBA', (f, f), (0, 0, 0, 0)); inner = round(f * 0.70)
     fg.paste(mask.resize((inner, inner), Image.LANCZOS), ((f - inner) // 2, (f - inner) // 2))
     fg.save(os.path.join(p, 'ic_launcher_foreground.png'))
 open(os.path.join(res, 'values/ic_launcher_background.xml'), 'w').write(
