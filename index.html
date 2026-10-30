@@ -1373,6 +1373,11 @@ body.pxui .tela .opp-foto{margin-bottom:6px}
 .im-carro{z-index:8}
 /* v398: escolha do visual da corrida: só 2 botões, largura toda */
 .seg.lazer-persp{grid-template-columns:1fr 1fr;display:grid;gap:6px}
+
+/* opção escolhida (profissão, sonho, etc.) bem visível em qualquer tema: fundo dourado claro, contorno forte e selo ✓ */
+body.pxui.suave .escolha.atual{background:#FFF0BE!important;box-shadow:0 0 0 3px #E39B12,0 5px 0 1px #A86F0A,inset 2px 2px 0 0 #FFF9E3!important}
+body.pxui.suave .escolha.atual::after{content:"✓";position:absolute;right:8px;bottom:7px;width:20px;height:20px;border-radius:50%;background:#2F9E5B;color:#fff;font:800 13px/20px Nunito,sans-serif;text-align:center;box-shadow:0 0 0 2px #fff}
+html[data-paleta="noite"] body.pxui.suave .escolha.atual{background:#34457A!important;box-shadow:0 0 0 3px #F2C14E,0 5px 0 1px #A8832A,inset 2px 2px 0 0 #4A5C96!important}
 </style>
 
 <div class="app" id="app"></div>
@@ -3250,7 +3255,7 @@ const ESPECIAIS = {
       return m>=3 ? {tom:'bom', titulo:"The emergency fund cushions the fall", texto:`Your emergency fund covers ${dec1(m)} months of costs. The insurance doesn't pay everything, but you can get through without debt.`}
         : {tom:'ruim', titulo:"Four months in a squeeze", texto:"Unemployment insurance doesn't cover your cost of living. Without an emergency fund, the difference goes into overdraft. Cut your lifestyle now."}; }},
   avalAnual:{tipo:'aviso', titulo:()=>{ const r=s.avalRes||{}; return r.n>=3?"Annual review: standout of the year":r.n===2?"Annual review: all in order":r.alerta?"Annual review: final warning":"Annual review: below expectations"; },
-    texto:()=>{ const r=s.avalRes||{n:0,itens:[]}; const l=r.itens.map(([n,ok,d])=>`${ok?'✓':'✗'} ${n}: ${d}`).join(' · ');
+    texto:()=>{ const r=s.avalRes||{n:0,itens:[]}; const l=r.itens.map(([n,ok,d,x])=>`${ok?'✓':'✗'} ${n}: ${d}${x?' ('+x+')':''}`).join(' · ');
       return `${l}. ${r.n>=3?"You hit all three goals: you earned a performance point and your name is remembered in layoffs.":r.n===2?"Two out of three goals are enough: your job is safe for another year.":r.alerta?"It was the second review in a row below expectations, and the company won't wait for a third.":"One goal (or none) isn't enough. If the next review also comes in below, the position is at risk. Frank talk with the boss: it's time to adjust your routine."}`; },
     aplicar:()=>{ const r=s.avalRes||{n:0};
       return {tom:r.n>=2?'bom':'ruim', titulo:r.n>=3?"Recognition":r.n===2?"Approved":r.alerta?"No third chance":"Yellow flag", texto:r.n>=2?"Next year's goals have already started counting. They show up in the Career tab.":r.alerta?"The company will restructure and your position is on the list.":"Next year's goals have already started counting. They show up in the Career tab."}; }},
@@ -4731,7 +4736,7 @@ function avalItens(){
   const cursoOk=estudando || recente || !aberto || (!early && s.mes<24);
   return [
     ["Deliverables of the year", ganho>=1 || (s.desempenho||0)>=2, ganho>=1?"performance went up":(s.desempenho||0)>=2?"performance is already high":"no standout this year"],
-    ["Balance", media>=50, media>=50?"healthy well-being":"low well-being all year"],
+    ["Balance", media>=50, media>=50?"healthy well-being":"low well-being all year", Math.round(media)+'/50'],
     [early?"Qualification (first year)":"Qualification (every 2 years)", cursoOk, estudando?'in progress':recente?"completed":!aberto?"nothing to do right now":"no course taken"]
   ];
 }
@@ -4905,7 +4910,7 @@ function iniciarMes(){
     if(Math.random()<0.25){ s.aprendeuLimite=true; lic={tom:'bom', titulo:"Fresh start: you learned your limit", texto:"You went back to work lighter. From now on tiredness builds up 25% more slowly: you notice sooner when you're overdoing it."}; }
     else lic={tom:'bom', titulo:"Fresh start", texto:"The leave ended and you came back with energy. Be careful not to repeat the pace that led to burnout."};
     if(empregado() && Math.random()<(s.prof==='professor'||s.prof==='enfermeiro'?0.15:0.4)){ s.agenda.push({mes:s.mes+1, id:'demissao'}); lic={tom:'ruim', titulo:"Came back, but the position already had an owner", texto:"Those who stay away for months lose standing on the team. The company is already moving to cut your position."}; } }
-  s.felSum=(s.felSum||0)+s.fel; s.felN=(s.felN||0)+1;
+  s.felSum=(s.felSum||0)+s.fel; s.felNT=(s.felNT||0)+1;   // média da vida toda: contador próprio (antes dividia o contador da avaliação anual e o dobrava)
   if(s.aposentado && s.conta<custoMensal()*0.5){
     let alvo=custoMensal()*1.0 - s.conta, tirou=0, protegeu=false;
     // bolsa em queda: tira primeiro da reserva, para não vender ações baratas
@@ -4927,6 +4932,7 @@ function iniciarMes(){
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Besides that, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
   s.extrato=ex; s.licao=lic;
+  if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
 }
 
@@ -5069,7 +5075,7 @@ const F3Vitoria = () => !!(s.sonhoFeito && mesesReserva()>=6 && cobertura()>=1);
 /* ================= dois eixos: dinheiro e vida ================= */
 function eixoDinheiro(){ return Math.round(clamp(Math.max(0,cobertura())*60 + Math.min(40, Math.max(0,mesesPatr())/3), 0, 100)); }
 function eixoVida(){
-  const felMed = s.felN ? s.felSum/s.felN : s.fel;
+  const nT=s.felNT||s.mes||0, felMed = nT ? (s.felSum||0)/nT : s.fel;
   let v = felMed*0.4;
   if(morN()>=morMin()) v += Math.min(15, 5+morN()*2.5);
   if(s.casado) v += 10; v += Math.min(10, 5*nFilhos());
@@ -5755,7 +5761,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v401</p>
+    <p class="titulo-versao">version v402</p>
   </div>`;
 }
 function render(){
@@ -5939,7 +5945,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,(s.avalProx||12)-s.mes), ult=s.avalRes;
     return `<section class="card" aria-labelledby="t-met"><h2 id="t-met">Goals of the year</h2>
       <p class="hint">Annual review in ${falta<=0?'soon':falta===1?"1 month":falta+" months"}. Meeting 2 of the 3 goals secures the job; 3 of 3 earns performance.${s.avalFalhas?" <b>Warning: the last review came in below expectations.</b>":''}</p>
-      <div class="reqs">${it.map(([n,ok,d])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?"color:var(--gain)":''}">${d}</b></div>`).join('')}</div>
+      <div class="reqs">${it.map(([n,ok,d,x])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?"color:var(--gain)":''}">${d}${x?' ('+x+')':''}</b></div>`).join('')}</div>
       ${ult?`<p class="hint">Last review: ${ult.n} of 3 goals.</p>`:''}</section>`; })();
   const evoCard=`<section class="card" aria-labelledby="t-evo"><h2 id="t-evo" data-info="carreira">Your career ${ii}</h2>
     <div class="cargo-atual"><span class="label-c">Current position</span><b>${nomeCargo()}</b></div>
@@ -9676,7 +9682,7 @@ const ESPECIAIS = {
       return m>=3 ? {tom:'bom', titulo:'A reserva segura a queda', texto:`Sua reserva cobre ${dec1(m)} meses de custo. O seguro não paga tudo, mas você tem como atravessar sem dívida.`}
         : {tom:'ruim', titulo:'Quatro meses no aperto', texto:'O seguro-desemprego não cobre o seu custo de vida. Sem reserva, a diferença vai para o cheque especial. Corte o estilo de vida agora.'}; }},
   avalAnual:{tipo:'aviso', titulo:()=>{ const r=s.avalRes||{}; return r.n>=3?'Avaliação anual: destaque do ano':r.n===2?'Avaliação anual: tudo em ordem':r.alerta?'Avaliação anual: último aviso':'Avaliação anual: abaixo do esperado'; },
-    texto:()=>{ const r=s.avalRes||{n:0,itens:[]}; const l=r.itens.map(([n,ok,d])=>`${ok?'✓':'✗'} ${n}: ${d}`).join(' · ');
+    texto:()=>{ const r=s.avalRes||{n:0,itens:[]}; const l=r.itens.map(([n,ok,d,x])=>`${ok?'✓':'✗'} ${n}: ${d}${x?' ('+x+')':''}`).join(' · ');
       return `${l}. ${r.n>=3?'Você bateu as três metas: ganhou um ponto de desempenho e o seu nome é lembrado nos cortes.':r.n===2?'Duas de três metas bastam: o seu emprego está seguro por mais um ano.':r.alerta?'Foi a segunda avaliação seguida abaixo do esperado, e a empresa não vai esperar uma terceira.':'Só uma meta (ou nenhuma) não basta. Se a próxima avaliação também vier abaixo, o cargo fica em risco. Conversa franca com o chefe: é hora de ajustar a rotina.'}`; },
     aplicar:()=>{ const r=s.avalRes||{n:0};
       return {tom:r.n>=2?'bom':'ruim', titulo:r.n>=3?'Reconhecimento':r.n===2?'Aprovado(a)':r.alerta?'Sem uma terceira chance':'Sinal amarelo', texto:r.n>=2?'As metas do próximo ano já começaram a contar. Elas aparecem na aba Carreira.':r.alerta?'A empresa vai reestruturar e o seu cargo entra na lista.':'As metas do próximo ano já começaram a contar. Elas aparecem na aba Carreira.'}; }},
@@ -11157,7 +11163,7 @@ function avalItens(){
   const cursoOk=estudando || recente || !aberto || (!early && s.mes<24);
   return [
     ['Entregas do ano', ganho>=1 || (s.desempenho||0)>=2, ganho>=1?'desempenho subiu':(s.desempenho||0)>=2?'desempenho já é alto':'sem destaque no ano'],
-    ['Equilíbrio', media>=50, media>=50?'bem-estar saudável':'bem-estar baixo o ano todo'],
+    ['Equilíbrio', media>=50, media>=50?'bem-estar saudável':'bem-estar baixo o ano todo', Math.round(media)+'/50'],
     [early?'Qualificação (primeiro ano)':'Qualificação (a cada 2 anos)', cursoOk, estudando?'cursando':recente?'concluída':!aberto?'nada a fazer agora':'nenhum curso feito']
   ];
 }
@@ -11331,7 +11337,7 @@ function iniciarMes(){
     if(Math.random()<0.25){ s.aprendeuLimite=true; lic={tom:'bom', titulo:'Recomeço: você aprendeu o seu limite', texto:'Voltou ao trabalho mais leve. A partir de agora o cansaço acumula 25% mais devagar: você percebe antes quando está passando do ponto.'}; }
     else lic={tom:'bom', titulo:'Recomeço', texto:'O afastamento acabou e você voltou com energia. Cuidado para não repetir o ritmo que levou ao esgotamento.'};
     if(empregado() && Math.random()<(s.prof==='professor'||s.prof==='enfermeiro'?0.15:0.4)){ s.agenda.push({mes:s.mes+1, id:'demissao'}); lic={tom:'ruim', titulo:'Voltou, mas o cargo já tinha dono', texto:'Quem fica meses afastado perde espaço na equipe. A empresa já está se movendo para cortar a sua vaga.'}; } }
-  s.felSum=(s.felSum||0)+s.fel; s.felN=(s.felN||0)+1;
+  s.felSum=(s.felSum||0)+s.fel; s.felNT=(s.felNT||0)+1;   // média da vida toda: contador próprio (antes dividia o contador da avaliação anual e o dobrava)
   if(s.aposentado && s.conta<custoMensal()*0.5){
     let alvo=custoMensal()*1.0 - s.conta, tirou=0, protegeu=false;
     // bolsa em queda: tira primeiro da reserva, para não vender ações baratas
@@ -11353,6 +11359,7 @@ function iniciarMes(){
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Além disso, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
   s.extrato=ex; s.licao=lic;
+  if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
 }
 
@@ -11495,7 +11502,7 @@ const F3Vitoria = () => !!(s.sonhoFeito && mesesReserva()>=6 && cobertura()>=1);
 /* ================= dois eixos: dinheiro e vida ================= */
 function eixoDinheiro(){ return Math.round(clamp(Math.max(0,cobertura())*60 + Math.min(40, Math.max(0,mesesPatr())/3), 0, 100)); }
 function eixoVida(){
-  const felMed = s.felN ? s.felSum/s.felN : s.fel;
+  const nT=s.felNT||s.mes||0, felMed = nT ? (s.felSum||0)/nT : s.fel;
   let v = felMed*0.4;
   if(morN()>=morMin()) v += Math.min(15, 5+morN()*2.5);
   if(s.casado) v += 10; v += Math.min(10, 5*nFilhos());
@@ -12181,7 +12188,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v401</p>
+    <p class="titulo-versao">versão v402</p>
   </div>`;
 }
 function render(){
@@ -12365,7 +12372,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,(s.avalProx||12)-s.mes), ult=s.avalRes;
     return `<section class="card" aria-labelledby="t-met"><h2 id="t-met">Metas do ano</h2>
       <p class="hint">Avaliação anual em ${falta<=0?'breve':falta===1?'1 mês':falta+' meses'}. Cumprir 2 das 3 metas garante o emprego; 3 de 3 rende desempenho.${s.avalFalhas?' <b>Atenção: a última avaliação veio abaixo do esperado.</b>':''}</p>
-      <div class="reqs">${it.map(([n,ok,d])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?'color:var(--gain)':''}">${d}</b></div>`).join('')}</div>
+      <div class="reqs">${it.map(([n,ok,d,x])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?'color:var(--gain)':''}">${d}${x?' ('+x+')':''}</b></div>`).join('')}</div>
       ${ult?`<p class="hint">Última avaliação: ${ult.n} de 3 metas.</p>`:''}</section>`; })();
   const evoCard=`<section class="card" aria-labelledby="t-evo"><h2 id="t-evo" data-info="carreira">Sua carreira ${ii}</h2>
     <div class="cargo-atual"><span class="label-c">Cargo atual</span><b>${nomeCargo()}</b></div>
