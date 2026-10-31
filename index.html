@@ -1381,6 +1381,39 @@ html[data-paleta="noite"] body.pxui.suave .escolha.atual{background:#34457A!impo
 
 .polaroid.larga img{aspect-ratio:3/2}
 .foto-sheet .polaroid.larga{width:min(88vw,340px)}
+
+.topo-conta .tc-sub{display:grid;gap:0;font-size:10px;line-height:1.25;color:var(--muted);margin-top:2px}
+.topo-conta .tc-sub b{font-weight:700;color:var(--ink)}
+.topo-conta .tc-sub .pos b{color:#2E8B57}.topo-conta .tc-sub .neg b{color:#D64545}
+html[data-paleta="noite"] .topo-conta .tc-sub b{color:#F3EDDC}
+.topo-conta .tc-sub{justify-items:start;text-align:left;width:100%}
+.topo-conta .tc-sub b{font-size:10.5px!important}
+.topo-conta .tc-sub>span{display:block;white-space:nowrap}
+
+.topo-conta{justify-items:stretch;gap:1px}
+.topo-conta .tc-r{display:flex;align-items:baseline;justify-content:space-between;gap:8px;white-space:nowrap}
+.topo-conta .tc-r small{font-size:10px}
+.topo-conta .tc-r b{font-size:14px!important;font-weight:700;color:var(--ink)}
+.topo-conta .tc-r.pos b{color:#2E8B57}.topo-conta .tc-r.neg b{color:#D64545}
+.topo-conta.neg .tc-r:first-child b{color:var(--loss)}
+html[data-paleta="noite"] .topo-conta .tc-r b{color:#F3EDDC}
+html[data-paleta="noite"] .topo-conta .tc-r.pos b{color:#6FD39A}html[data-paleta="noite"] .topo-conta .tc-r.neg b{color:#FF8A8A}
+/* v404: topo enxuto: bem-estar compacto na linha do mês; Conta, CDB e Fluxo numa faixa de 3 colunas */
+.topo2{grid-template-columns:auto 1fr auto;row-gap:6px}
+.topo2 .topo-fel2{grid-column:3;grid-row:1;grid-template-columns:auto 52px auto;gap:6px;padding:4px 9px}
+.topo2 .topo-fel2 .tf-n,.topo2 .topo-fel2 .tf-st{display:none}
+.topo2 .topo-conta{grid-column:1/-1;grid-row:2;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;padding:4px 4px;justify-items:stretch}
+.topo2 .topo-conta .tc-r{display:grid;justify-items:center;gap:0;line-height:1.15;padding:0 6px;border-left:1px solid rgba(0,0,0,.1);white-space:nowrap}
+.topo2 .topo-conta .tc-r:first-child{border-left:0}
+.topo2 .topo-conta .tc-r small{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.topo2 .topo-conta .tc-r b{font-size:15px!important}
+html[data-paleta="noite"] .topo2 .topo-conta .tc-r{border-left-color:rgba(255,255,255,.14)}
+.topo2{grid-template-columns:auto auto 1fr;column-gap:10px}
+.topo2 .topo-fel2{grid-template-columns:auto 1fr auto;justify-self:stretch;min-width:0}
+.topo2 .topo-fel2 .tf-bar{min-width:36px}
+
+.seg.aporte-seg{display:grid!important;grid-template-columns:repeat(4,1fr);width:100%;gap:6px}
+.seg.aporte-seg button{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap}
 </style>
 
 <div class="app" id="app"></div>
@@ -1419,6 +1452,8 @@ if(window.__LANG==='en'){
 (function(){
 /* ================= utilidades ================= */
 const fmt = v => (Math.abs(v) < 0.005 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:'BRL'});
+const fmtC = v => { const a=Math.abs(v), sg=v<0?'−':'', f=(x,u)=>sg+x.toLocaleString('en-US',{maximumFractionDigits:x<10?2:x<100?1:0})+' '+u;
+  return a<1000 ? sg+'R$ '+Math.round(a) : a<1e6 ? f(a/1e3,'mil') : a<1e9 ? f(a/1e6,'mi') : a<1e12 ? f(a/1e9,'bi') : f(a/1e12,'tri'); };
 const fmt0 = v => (Math.abs(v) < 0.5 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 const pctFmt = v => (v>=0?'+':'−')+Math.abs(v*100).toFixed(1)+'%';
 const pct2 = v => (v*100).toFixed(2)+'%';
@@ -2292,7 +2327,7 @@ function tycMes(a, saz, alea, semRef){
   let cli=0.2*Math.min(...caps)+0.8*caps.reduce((x,y)=>x+y,0)/caps.length;
   const E=tycEfs(a);
   cli*=Math.pow(bonusGestao(a),0.6)*(largado(a)?0.85:1)*(saz||1)*(alea?(0.9+Math.random()*0.2):1)*E.cli;
-  const LM=tycLojaMult(a), rec=cli*EM.tk[L('cardapio')]*f*26*E.tk*LM, varc=rec*EM.varc*E.vc;
+  const LM=tycLojaMult(a), rec=0.88*cli*EM.tk[L('cardapio')]*f*26*E.tk*LM, varc=rec*EM.varc*E.vc;
   const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(tycNmax(a)-1,i0+1)]*(mn-i0))*f*(1+E.fx)*LM;
   if(!semRef && tycEmReforma(a)){ const fx=Math.round(fixo*0.5); return {cli:0, rec:0, varc:0, fixo:fx, lucro:-fx, reforma:true}; }
   return {cli:Math.round(cli*LM), rec:Math.round(rec), varc:Math.round(varc), fixo:Math.round(fixo), lucro:Math.round(rec-varc-fixo)};
@@ -4440,7 +4475,7 @@ const BOL_DEC={
     ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round((Math.max(rendaTotal(),rendaFamilia())*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
       {label:"Put in everything left in the account, all at once", sub:livre>=X?fmt0(livre):"There's no money left beyond the next months' bills", disabled:livre<X, modal:'tycRes', run:()=>{ aplicar('acoes',livre);
         return bolRes('neutro',"Went in all at once at the top","Put it all in at once",`You bought ${fmt0(livre)} in stocks with the market at its highs. If it falls 20% right after, the fall is big and the urge to sell appears.`,[[`${fmt0(livre)} invested in stocks all at once`,null]],'fomo'); }},
-      {label:jaTem?`Increase the scheduled contribution by ${fmt0(aporte)} a month`:`Schedule a contribution of ${fmt0(aporte)} a month`, sub:jaTem?(jaTem>=aporte*3?`Limit reached: the contribution is already at 30% of your income (${fmt0(jaTem)} a month)`:`Today: ${fmt0(jaTem)} a month`):"Every month, only if there's money left beyond the bills", disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
+      {label:jaTem?`Increase the scheduled contribution by ${fmt0(aporte)} a month`:`Schedule a contribution of ${fmt0(aporte)} a month`, sub:jaTem?(jaTem>=aporte*3?`Limit reached: the contribution is already at 30% of your income (${fmt0(jaTem)} a month)`:`Today: ${fmt0(jaTem)} a month`):"Every month, only if there's money left beyond the bills", disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=(s.aportePct?aporteMensal():jaTem)+aporte; s.aportePct=0;
         return bolRes('bom',"You created a rule",jaTem?"Increase the scheduled contribution":"Schedule a monthly contribution",`Every month, ${fmt0(s.aporteAuto)} goes into stocks automatically, as long as there's money left beyond three months of bills. No emotion and no trying to guess the best day.`,[[`Scheduled contribution: ${fmt0(s.aporteAuto)} a month`,true]],'fomo'); }},
       {label:"Wait for the market to fall before getting in", sub:"No cost", modal:'tycRes', run:()=>bolRes('neutro',"Waiting for the perfect moment","Wait for the market to fall","It may fall, it may rise more first. Those who wait for the \"perfect moment\" tend to miss a good part of the rise.",[["Nothing was invested",null]],'fomo')}]; }}
 };
@@ -4840,7 +4875,8 @@ function iniciarMes(){
       else if(tipo==='extra') lic={tom:'bom', titulo:"Extraordinary dividend", texto:`Profit above expectations: the companies paid a bonus and ${fmt(d)} landed in your account.`};
       else if(tipo==='corte') lic={tom:'neutro', titulo:"Dividends cut by the crisis", texto:"With profits falling, the companies reduced payouts. A dividend is not a salary: it varies with results."};
     }
-    if(s.aporteAuto && s.acoesLib){ const x=Math.min(s.aporteAuto, Math.floor(Math.max(0,s.conta-3*custoMensal())/50)*50); if(x>=50){ aplicar('acoes',x); ex.push(["Scheduled stock contribution", -x]); } }
+    { const ap=aporteMensal(); if(ap && s.acoesLib){ const cdbD=prods().cdb?disponivel('cdb'):0, folga=Math.max(0,Math.max(0,s.conta)+cdbD-3*custoMensal()); let x=Math.min(ap, Math.floor(folga/50)*50);
+      if(x>=50){ if(s.conta<x && cdbD>0.5) resgatarLiquido('cdb', x-Math.max(0,s.conta), true); x=Math.min(x, Math.floor(Math.max(0,s.conta)/50)*50); if(x>=50){ aplicar('acoes',x); ex.push(["Scheduled stock contribution", -x]); } } } }
     if(s.piramide) ex.push([`"Arbitrage" app: +5% (can't be withdrawn)`, 0]);
     if(s.conta<0){ const j=-s.conta*T_CHEQUE; s.conta-=j; s.jp+=j; ex.push(["Overdraft interest", -j]); }
   }
@@ -4915,6 +4951,12 @@ function iniciarMes(){
     s.filhos=dep;
     if(custoFilhos()>0) s.fixos[FK]=custoFilhos(); else delete s.fixos[FK];
   }
+  // padrão de vida: quem ganha muito gasta mais (viagens, roupas, escola, equipe da casa). Cresce bem mais devagar que a renda: R$ 50 mil de renda ≈ R$ 40 mil de gasto; R$ 1 mi ≈ R$ 210 mil
+  { const entR=(s.extrato||[]).reduce((a,l)=>a+((l[1]>0 && l[3]!=='transf' && !/resgat|vend|empréstimo|Reserva usada|herança|Herança/i.test(String(l[0])))?l[1]:0),0);
+    s.rendaReal = (s.rendaReal==null||s.mes<=2) ? entR : 0.6*s.rendaReal+0.4*entR; // renda que de fato caiu na conta (o lucro retido nas empresas não paga o padrão de vida)
+    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, mult=({economico:0.7,normal:1,esbanjar:1.4})[s.estilo]||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55)*mult, base=somaFixos()+lazer()-(s.fixos['Padrão de vida']||0), extra=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0;
+    if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
+    else delete s.fixos['Padrão de vida']; }
   for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
@@ -5183,6 +5225,10 @@ function bannerInvestir(){
   const fx = k==='feliz' && ARTE.icones && ARTE.icones['inv-div'] ? `<img class="inv-fx" src="${ARTE.icones['inv-div']}" alt="" aria-hidden="true">` : '';
   return `<div class="inv-banner inv-${k}"><img class="ceo-img" src="${C['inv-'+k]}" alt="">${fx}<p class="inv-leg">${txt}</p></div>`;
 }
+const APORTE_PCT=[0,0.10,0.20,0.30];
+const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
+const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
+const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -5201,12 +5247,15 @@ function linhaProduto(id,p){
   let sobraHtml='';
   if(p.reserva && !trancado && F2()){ const on=!!s.sobraCdb;
     sobraHtml=`<div class="juros-modo"><small>Month's leftover:</small><div class="seg seg-hud" role="group" aria-label="Month's leftover"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Stays in the account<small>you decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Goes to ${p.curto}<small>automatic</small></button></div><p class="hint">Once the month's bills are paid, whatever is left in your checking account goes by itself into ${p.curto}. If something unexpected comes up, the game redeems from here first.</p></div>`; }
+  let aporteHtml='';
+  if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
+    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'você decide':fmt0(aporteDePct(pc))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o government bonds completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctuates every month":"last month "+pctFmt(p.taxa())):pct2(p.taxa())+" a month"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
     ${unid}
     ${acoes}
-    ${modoJuros||sobraHtml?`<div style="flex:1 1 100%;width:100%">${modoJuros}${sobraHtml}</div>`:''}
+    ${modoJuros||sobraHtml||aporteHtml?`<div style="flex:1 1 100%;width:100%">${modoJuros}${sobraHtml}${aporteHtml}</div>`:''}
   </div>`;
 }
 
@@ -5782,7 +5831,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v401</p>
+    <p class="titulo-versao">version v405</p>
   </div>`;
 }
 function render(){
@@ -6107,14 +6156,14 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   app.innerHTML=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
-    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · month ${s.mes} of ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Account</small><b class="num">${fmt0(s.conta)}</b></button>
-    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Well-being ${fz} of 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Well-being</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":faixaFel().nome}</span></button>
+    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} of ${tot}</small></div>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>government bonds</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Fluxo/mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
+    <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Game sections">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   renderModal();
@@ -6961,6 +7010,7 @@ document.addEventListener('click', e=>{
       else { s.habitos[alvo]=s.mes; if(!lst.includes(alvo)) lst.push(alvo); s.licao={tom:'bom', titulo:`Started: ${HABITOS[alvo].nome.toLowerCase()}`, texto:`${HABITOS[alvo].desc} Keep it up for 6 months to become a firm habit.`}; }
       c.habitos=lst; gravarCamp(c); salvar(); render(); break; }
     case 'estilo': s.estilo=alvo; salvar(); render(); break;
+    case 'aportePct': { const pc=Number(alvo)||0; s.aportePct=pc; if(!pc) s.aporteAuto=0; salvar(); render(); break; }
     case 'sobraCdb': s.sobraCdb=(alvo==='1'); salvar(); render(); break;
     case 'jurosModo': { const [pid,modo]=String(alvo).split(':'); (s.jurosConta||(s.jurosConta={}))[pid]=(modo==='conta'); salvar(); render(); break; }
     case 'guardar': case 'resgatar': ui.mov={tipo:a, alvo}; ui.modal='valor'; ui.erro=''; ui.valor=''; render(); break;
@@ -7865,6 +7915,8 @@ window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude
 (function(){
 /* ================= utilidades ================= */
 const fmt = v => (Math.abs(v) < 0.005 ? 0 : v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fmtC = v => { const a=Math.abs(v), sg=v<0?'−':'', f=(x,u)=>sg+x.toLocaleString('pt-BR',{maximumFractionDigits:x<10?2:x<100?1:0})+' '+u;
+  return a<1000 ? sg+'R$ '+Math.round(a) : a<1e6 ? f(a/1e3,'mil') : a<1e9 ? f(a/1e6,'mi') : a<1e12 ? f(a/1e9,'bi') : f(a/1e12,'tri'); };
 const fmt0 = v => (Math.abs(v) < 0.5 ? 0 : v).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 const pctFmt = v => (v>=0?'+':'−')+Math.abs(v*100).toFixed(1).replace('.',',')+'%';
 const pct2 = v => (v*100).toFixed(2).replace('.',',')+'%';
@@ -8738,7 +8790,7 @@ function tycMes(a, saz, alea, semRef){
   let cli=0.2*Math.min(...caps)+0.8*caps.reduce((x,y)=>x+y,0)/caps.length;
   const E=tycEfs(a);
   cli*=Math.pow(bonusGestao(a),0.6)*(largado(a)?0.85:1)*(saz||1)*(alea?(0.9+Math.random()*0.2):1)*E.cli;
-  const LM=tycLojaMult(a), rec=cli*EM.tk[L('cardapio')]*f*26*E.tk*LM, varc=rec*EM.varc*E.vc;
+  const LM=tycLojaMult(a), rec=0.88*cli*EM.tk[L('cardapio')]*f*26*E.tk*LM, varc=rec*EM.varc*E.vc;
   const mn=TYC_KEYS.reduce((x,k)=>x+L(k),0)/5, i0=Math.floor(mn), fixo=(EM.fixo[i0]*(1-(mn-i0))+EM.fixo[Math.min(tycNmax(a)-1,i0+1)]*(mn-i0))*f*(1+E.fx)*LM;
   if(!semRef && tycEmReforma(a)){ const fx=Math.round(fixo*0.5); return {cli:0, rec:0, varc:0, fixo:fx, lucro:-fx, reforma:true}; }
   return {cli:Math.round(cli*LM), rec:Math.round(rec), varc:Math.round(varc), fixo:Math.round(fixo), lucro:Math.round(rec-varc-fixo)};
@@ -10886,7 +10938,7 @@ const BOL_DEC={
     ops:()=>{ const reserva3=3*custoMensal(), livre=Math.round(Math.max(0,s.conta-reserva3)/100)*100, X=bolStake(), aporte=Math.max(C(300),Math.round((Math.max(rendaTotal(),rendaFamilia())*0.1)/50)*50), jaTem=s.aporteAuto||0; return [
       {label:'Colocar tudo que sobrou na conta, de uma vez', sub:livre>=X?fmt0(livre):'Não sobra dinheiro além das contas dos próximos meses', disabled:livre<X, modal:'tycRes', run:()=>{ aplicar('acoes',livre);
         return bolRes('neutro','Entrou de uma vez no topo','Colocar tudo de uma vez',`Você comprou ${fmt0(livre)} em ações com a bolsa nas máximas. Se ela cair 20% logo depois, o tombo é grande e a vontade de vender aparece.`,[[`${fmt0(livre)} aplicados em ações de uma vez`,null]],'fomo'); }},
-      {label:jaTem?`Aumentar o aporte programado em ${fmt0(aporte)} por mês`:`Programar um aporte de ${fmt0(aporte)} por mês`, sub:jaTem?(jaTem>=aporte*3?`Limite atingido: o aporte já está em 30% da sua renda (${fmt0(jaTem)} por mês)`:`Hoje: ${fmt0(jaTem)} por mês`):'Todo mês, só se sobrar dinheiro além das contas', disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=jaTem+aporte;
+      {label:jaTem?`Aumentar o aporte programado em ${fmt0(aporte)} por mês`:`Programar um aporte de ${fmt0(aporte)} por mês`, sub:jaTem?(jaTem>=aporte*3?`Limite atingido: o aporte já está em 30% da sua renda (${fmt0(jaTem)} por mês)`:`Hoje: ${fmt0(jaTem)} por mês`):'Todo mês, só se sobrar dinheiro além das contas', disabled:jaTem>=aporte*3, modal:'tycRes', run:()=>{ s.aporteAuto=(s.aportePct?aporteMensal():jaTem)+aporte; s.aportePct=0;
         return bolRes('bom','Você criou uma regra',jaTem?'Aumentar o aporte programado':'Programar um aporte mensal',`Todo mês, ${fmt0(s.aporteAuto)} vão para ações automaticamente, desde que sobre dinheiro além de três meses de contas. Sem emoção e sem tentar adivinhar o melhor dia.`,[[`Aporte programado: ${fmt0(s.aporteAuto)} por mês`,true]],'fomo'); }},
       {label:'Esperar a bolsa cair para entrar', sub:'Sem custo', modal:'tycRes', run:()=>bolRes('neutro','Esperando o momento perfeito','Esperar a bolsa cair','Pode cair, pode subir mais antes. Quem espera o "momento perfeito" costuma ficar de fora de boa parte da alta.',[['Nada foi investido',null]],'fomo')}]; }}
 };
@@ -11286,7 +11338,8 @@ function iniciarMes(){
       else if(tipo==='extra') lic={tom:'bom', titulo:'Dividendo extraordinário', texto:`Lucro acima do esperado: as empresas pagaram um bônus e ${fmt(d)} caíram na sua conta.`};
       else if(tipo==='corte') lic={tom:'neutro', titulo:'Dividendos cortados pela crise', texto:'Com o lucro em queda, as empresas reduziram os pagamentos. Dividendo não é salário: ele varia com os resultados.'};
     }
-    if(s.aporteAuto && s.acoesLib){ const x=Math.min(s.aporteAuto, Math.floor(Math.max(0,s.conta-3*custoMensal())/50)*50); if(x>=50){ aplicar('acoes',x); ex.push(['Aporte programado em ações', -x]); } }
+    { const ap=aporteMensal(); if(ap && s.acoesLib){ const cdbD=prods().cdb?disponivel('cdb'):0, folga=Math.max(0,Math.max(0,s.conta)+cdbD-3*custoMensal()); let x=Math.min(ap, Math.floor(folga/50)*50);
+      if(x>=50){ if(s.conta<x && cdbD>0.5) resgatarLiquido('cdb', x-Math.max(0,s.conta), true); x=Math.min(x, Math.floor(Math.max(0,s.conta)/50)*50); if(x>=50){ aplicar('acoes',x); ex.push(['Aporte programado em ações', -x]); } } } }
     if(s.piramide) ex.push([`App da "arbitragem": +5% (não dá para sacar)`, 0]);
     if(s.conta<0){ const j=-s.conta*T_CHEQUE; s.conta-=j; s.jp+=j; ex.push(['Juros do cheque especial', -j]); }
   }
@@ -11361,6 +11414,12 @@ function iniciarMes(){
     s.filhos=dep;
     if(custoFilhos()>0) s.fixos[FK]=custoFilhos(); else delete s.fixos[FK];
   }
+  // padrão de vida: quem ganha muito gasta mais (viagens, roupas, escola, equipe da casa). Cresce bem mais devagar que a renda: R$ 50 mil de renda ≈ R$ 40 mil de gasto; R$ 1 mi ≈ R$ 210 mil
+  { const entR=(s.extrato||[]).reduce((a,l)=>a+((l[1]>0 && l[3]!=='transf' && !/resgat|vend|empréstimo|Reserva usada|herança|Herança/i.test(String(l[0])))?l[1]:0),0);
+    s.rendaReal = (s.rendaReal==null||s.mes<=2) ? entR : 0.6*s.rendaReal+0.4*entR; // renda que de fato caiu na conta (o lucro retido nas empresas não paga o padrão de vida)
+    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, mult=({economico:0.7,normal:1,esbanjar:1.4})[s.estilo]||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55)*mult, base=somaFixos()+lazer()-(s.fixos['Padrão de vida']||0), extra=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0;
+    if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
+    else delete s.fixos['Padrão de vida']; }
   for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
@@ -11629,6 +11688,10 @@ function bannerInvestir(){
   const fx = k==='feliz' && ARTE.icones && ARTE.icones['inv-div'] ? `<img class="inv-fx" src="${ARTE.icones['inv-div']}" alt="" aria-hidden="true">` : '';
   return `<div class="inv-banner inv-${k}"><img class="ceo-img" src="${C['inv-'+k]}" alt="">${fx}<p class="inv-leg">${txt}</p></div>`;
 }
+const APORTE_PCT=[0,0.10,0.20,0.30];
+const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
+const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
+const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -11647,12 +11710,15 @@ function linhaProduto(id,p){
   let sobraHtml='';
   if(p.reserva && !trancado && F2()){ const on=!!s.sobraCdb;
     sobraHtml=`<div class="juros-modo"><small>Sobra do mês:</small><div class="seg seg-hud" role="group" aria-label="Sobra do mês"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Fica na conta<small>você decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Vai para o ${p.curto}<small>automático</small></button></div><p class="hint">Depois que as contas do mês são pagas, tudo o que sobrar na conta corrente vai sozinho para o ${p.curto}. Se aparecer um imprevisto, o jogo resgata daqui primeiro.</p></div>`; }
+  let aporteHtml='';
+  if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
+    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'você decide':fmt0(aporteDePct(pc))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o CDB completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?'oscila todo mês':'último mês '+pctFmt(p.taxa())):pct2(p.taxa())+' ao mês'}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
     ${unid}
     ${acoes}
-    ${modoJuros||sobraHtml?`<div style="flex:1 1 100%;width:100%">${modoJuros}${sobraHtml}</div>`:''}
+    ${modoJuros||sobraHtml||aporteHtml?`<div style="flex:1 1 100%;width:100%">${modoJuros}${sobraHtml}${aporteHtml}</div>`:''}
   </div>`;
 }
 
@@ -12228,7 +12294,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v401</p>
+    <p class="titulo-versao">versão v405</p>
   </div>`;
 }
 function render(){
@@ -12554,7 +12620,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><small>Conta</small><b class="num">${fmt0(s.conta)}</b></button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>CDB</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Fluxo/mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?'Esgotado':faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
@@ -13407,6 +13473,7 @@ document.addEventListener('click', e=>{
       else { s.habitos[alvo]=s.mes; if(!lst.includes(alvo)) lst.push(alvo); s.licao={tom:'bom', titulo:`Começou: ${HABITOS[alvo].nome.toLowerCase()}`, texto:`${HABITOS[alvo].desc} Mantenha por 6 meses para virar hábito firme.`}; }
       c.habitos=lst; gravarCamp(c); salvar(); render(); break; }
     case 'estilo': s.estilo=alvo; salvar(); render(); break;
+    case 'aportePct': { const pc=Number(alvo)||0; s.aportePct=pc; if(!pc) s.aporteAuto=0; salvar(); render(); break; }
     case 'sobraCdb': s.sobraCdb=(alvo==='1'); salvar(); render(); break;
     case 'jurosModo': { const [pid,modo]=String(alvo).split(':'); (s.jurosConta||(s.jurosConta={}))[pid]=(modo==='conta'); salvar(); render(); break; }
     case 'guardar': case 'resgatar': ui.mov={tipo:a, alvo}; ui.modal='valor'; ui.erro=''; ui.valor=''; render(); break;
