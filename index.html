@@ -1991,7 +1991,7 @@ function receberAmigos(){
   s.licao={tom:'bom', titulo:"Full house on the weekend", texto:`Barbecue with friends, coworkers and a few new faces. It cost ${fmt0(c)} and influence rose ${g} points.${s.infl>=100?" The bar is full: use your influence in the Income tab!":''}`};
 }
 const CARTAS_INFL = {
-  terreno:{titulo:"Land on the path of the new mall", ok:()=>podeAVista(valInfl(0.12)),
+  terreno:{titulo:"Land on the path of the new mall", custo:()=>valInfl(0.12), ok:()=>podeAVista(valInfl(0.12)),
     txt:()=>`A friend at city hall mentioned: the mall is going up right there. Land for ${fmt0(valInfl(0.12))}; should be worth double in a few months.`,
     run:()=>{ const v=valInfl(0.12), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'terreno', nome:"Land near the new mall", tipo:'terreno', valor:v, custo:v, alvo:Math.round(v*1.9), renda:0, horas:0, desde:s.mes, obra:true}); return `Bought for ${fmt0(v)}. As the mall moves from paper to reality, the land gains value month by month and could get close to ${fmt0(v*1.9)} in a little over a year. Construction gets delayed, so nothing is guaranteed.${t}`; }},
   comprador:{titulo:"An investor wants your business", ok:()=>!!alvoVenda(),
@@ -2000,7 +2000,7 @@ const CARTAS_INFL = {
   desconto:{titulo:"A property from an acquaintance at 20% off", ok:()=>true,
     txt:()=>`An acquaintance needs to sell an office quickly. It shows up on your board at 20% off for 6 months.`,
     run:()=>{ const c=CARTAS.sala; s.ofertas=s.ofertas||[]; s.ofertas.push({uid:s.uid++, id:'sala', preco:Math.round(c.preco*s.idx*0.8/100)*100, renda:Math.round(c.renda*s.idx), expira:s.mes+6, infl:true}); return "The discounted office is on the board, Income tab."; }},
-  socio:{titulo:"Partnership with a chain owner", ok:()=>podeAVista(valInfl(0.1)),
+  socio:{titulo:"Partnership with a chain owner", custo:()=>valInfl(0.1), ok:()=>podeAVista(valInfl(0.1)),
     txt:()=>`The owner of a coffee shop chain wants a partner to open one more location. Entry fee of ${fmt0(valInfl(0.1))}. He has already opened 8 stores; this one will work out.`,
     run:()=>{ const v=valInfl(0.1), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'socio_rede', nome:"Partnership in the coffee shop chain", tipo:'negocio', valor:v, custo:v, renda:Math.round(v*0.02), horas:2, desde:s.mes}); return `You put in ${fmt0(v)} and receive ${fmt0(v*0.02)} a month in profit.${t}`; }},
   indicacao:{titulo:"Referral for a better position", ok:()=>!s.aposentado && !s.empresario && s.desemp===0 && cargoN()<4,
@@ -5834,7 +5834,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v406</p>
+    <p class="titulo-versao">version v407</p>
   </div>`;
 }
 function render(){
@@ -6215,7 +6215,7 @@ function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
   for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
     h+=`<div class="slot"><div class="slot-i"><b>Slot ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Empty'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Save</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Load</button></div></div>`; }
   return h+'</div>'; }
-function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao("Confirm sale?",'Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.',"Confirm sale",()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); }
+function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao("Confirm sale?",'Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.',"Confirm sale",()=>usarCartaInfl(alvo,true),ui.modal); return; } } if(C2.custo && !ok){ const cv=C2.custo(), falta=cv-Math.max(0,s.conta); if(falta>0.5){ const sob=Math.max(0,Math.max(0,s.conta)+liquidoPronto()-cv); pedirConfirmacao('Vender investimentos para pagar?','Isso custa '+fmt0(cv)+' e a conta tem '+fmt0(Math.max(0,s.conta))+'. O jogo vai vender '+fmt0(falta)+' da sua reserva e das ações. Depois da compra sobram cerca de '+fmt0(sob)+' líquidos.','Comprar mesmo assim',()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); }
 function slotSalvar(n,conf){ if(!temJogo()) return; const ant=slotLer(n);
   if(ant && !conf){ pedirConfirmacao('Replace the game?','Replace the game saved in slot '+n+' ('+ant.r+')?','Replace',()=>slotSalvar(n,true),ui.modal); return; }
   salvar(); let ok=true;
@@ -6468,7 +6468,7 @@ function renderModal0(){
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag bom">★ Influence</span><h3 id="m-t">Your contacts brought 3 opportunities</h3>
       <p class="hint">Choose one. All are good; the difference is what fits your plan.</p>
-      <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}</span></button>`).join('')}</div>
+      <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Sua conta não cobre: vai vender investimentos.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Save for later</button></div></div></div>`;
     return; }
   if(ui.modal==='carro'){
@@ -8464,7 +8464,7 @@ function receberAmigos(){
   s.licao={tom:'bom', titulo:'Casa cheia no fim de semana', texto:`Churrasco com amigos, colegas e uns conhecidos novos. Custou ${fmt0(c)} e a influência subiu ${g} pontos.${s.infl>=100?' A barra encheu: use a influência na aba Renda!':''}`};
 }
 const CARTAS_INFL = {
-  terreno:{titulo:'Terreno no caminho do novo shopping', ok:()=>podeAVista(valInfl(0.12)),
+  terreno:{titulo:'Terreno no caminho do novo shopping', custo:()=>valInfl(0.12), ok:()=>podeAVista(valInfl(0.12)),
     txt:()=>`Um amigo da prefeitura comentou: o shopping vai sair ali. Terreno por ${fmt0(valInfl(0.12))}; deve valer o dobro em poucos meses.`,
     run:()=>{ const v=valInfl(0.12), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'terreno', nome:'Terreno perto do novo shopping', tipo:'terreno', valor:v, custo:v, alvo:Math.round(v*1.9), renda:0, horas:0, desde:s.mes, obra:true}); return `Comprou por ${fmt0(v)}. Conforme o shopping for saindo do papel, o terreno valoriza mês a mês e pode chegar perto de ${fmt0(v*1.9)} em pouco mais de um ano. Obras atrasam, então nada é garantido.${t}`; }},
   comprador:{titulo:'Um investidor quer o seu negócio', ok:()=>!!alvoVenda(),
@@ -8473,7 +8473,7 @@ const CARTAS_INFL = {
   desconto:{titulo:'Imóvel de um conhecido com 20% de desconto', ok:()=>true,
     txt:()=>`Um conhecido precisa vender rápido uma sala comercial. Ela aparece no seu mural com 20% de desconto por 6 meses.`,
     run:()=>{ const c=CARTAS.sala; s.ofertas=s.ofertas||[]; s.ofertas.push({uid:s.uid++, id:'sala', preco:Math.round(c.preco*s.idx*0.8/100)*100, renda:Math.round(c.renda*s.idx), expira:s.mes+6, infl:true}); return 'A sala comercial com desconto está no mural, aba Renda.'; }},
-  socio:{titulo:'Sociedade com o dono de uma rede', ok:()=>podeAVista(valInfl(0.1)),
+  socio:{titulo:'Sociedade com o dono de uma rede', custo:()=>valInfl(0.1), ok:()=>podeAVista(valInfl(0.1)),
     txt:()=>`O dono de uma rede de cafeterias quer um sócio para abrir mais uma unidade. Entrada de ${fmt0(valInfl(0.1))}. Ele já abriu 8 lojas; esta vai dar certo.`,
     run:()=>{ const v=valInfl(0.1), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'socio_rede', nome:'Sociedade na rede de cafeterias', tipo:'negocio', valor:v, custo:v, renda:Math.round(v*0.02), horas:2, desde:s.mes}); return `Você entrou com ${fmt0(v)} e recebe ${fmt0(v*0.02)} por mês de lucro.${t}`; }},
   indicacao:{titulo:'Indicação para um cargo melhor', ok:()=>!s.aposentado && !s.empresario && s.desemp===0 && cargoN()<4,
@@ -12307,7 +12307,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v406</p>
+    <p class="titulo-versao">versão v407</p>
   </div>`;
 }
 function render(){
@@ -12688,7 +12688,7 @@ function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
   for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
     h+=`<div class="slot"><div class="slot-i"><b>Espaço ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Vazio'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Salvar</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Carregar</button></div></div>`; }
   return h+'</div>'; }
-function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao('Confirmar venda?','Vender '+a0.nome.toLowerCase()+' por '+fmt0(Math.round(vMerc(a0)*1.4))+'? A empresa deixa de ser sua.','Confirmar venda',()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); }
+function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao('Confirmar venda?','Vender '+a0.nome.toLowerCase()+' por '+fmt0(Math.round(vMerc(a0)*1.4))+'? A empresa deixa de ser sua.','Confirmar venda',()=>usarCartaInfl(alvo,true),ui.modal); return; } } if(C2.custo && !ok){ const cv=C2.custo(), falta=cv-Math.max(0,s.conta); if(falta>0.5){ const sob=Math.max(0,Math.max(0,s.conta)+liquidoPronto()-cv); pedirConfirmacao('Vender investimentos para pagar?','Isso custa '+fmt0(cv)+' e a conta tem '+fmt0(Math.max(0,s.conta))+'. O jogo vai vender '+fmt0(falta)+' da sua reserva e das ações. Depois da compra sobram cerca de '+fmt0(sob)+' líquidos.','Comprar mesmo assim',()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+' Contatos abrem portas; decidir bem continua sendo com você.'}; } ui.modal=null; checarFim(); salvar(); render(); }
 function slotSalvar(n,conf){ if(!temJogo()) return; const ant=slotLer(n);
   if(ant && !conf){ pedirConfirmacao('Substituir o jogo?','Substituir o jogo guardado no espaço '+n+' ('+ant.r+')?','Substituir',()=>slotSalvar(n,true),ui.modal); return; }
   salvar(); let ok=true;
@@ -12941,7 +12941,7 @@ function renderModal0(){
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag bom">★ Influência</span><h3 id="m-t">Seus contatos trouxeram 3 oportunidades</h3>
       <p class="hint">Escolha uma. Todas são boas; a diferença é o que combina com o seu plano.</p>
-      <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}</span></button>`).join('')}</div>
+      <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Sua conta não cobre: vai vender investimentos.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Guardar para depois</button></div></div></div>`;
     return; }
   if(ui.modal==='carro'){
