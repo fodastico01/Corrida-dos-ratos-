@@ -5834,7 +5834,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v408</p>
+    <p class="titulo-versao">version v409</p>
   </div>`;
 }
 function render(){
@@ -6228,7 +6228,7 @@ function slotCarregar(n,ok){ const d=slotLer(n); if(!d) return;
     try{ localStorage.setItem(CHAVE+'-antes-de-carregar',localStorage.getItem(CHAVE)||''); }catch(e){}
     localStorage.setItem(CHAVE,d.s);
     const novo=Object.assign({},sl); for(const k of Object.keys(cur)) if(fixo(k)) novo[k]=cur[k]; gravarCamp(novo);
-    bkMsg('Game loaded. Restarting…'); setTimeout(()=>location.reload(),400);
+    try{ sessionStorage.setItem('corrida-direto','1'); }catch(e){} bkMsg('Game loaded. Restarting…'); setTimeout(()=>location.reload(),400);
   }catch(e){ window.__carregando=false; bkMsg('Could not load that game.'); } }
 /* ================= backup do progresso (exportar e restaurar) ================= */
 const BK_PREF='CDR1:';
@@ -7618,7 +7618,7 @@ function start(data){
   if(s.evento) ui.modal='evento';
   if(s.fim) ui.modal='fim';
   aplicarPrefs();
-  if(!navigator.webdriver && !(data && data.mes)) ui.tela='titulo';
+  { let direto=false; try{ direto=sessionStorage.getItem('corrida-direto')==='1'; sessionStorage.removeItem('corrida-direto'); }catch(e){} if(!navigator.webdriver && !(data && data.mes) && !(direto && temJogo() && temAvatar())) ui.tela='titulo'; }
   render();
 }
 /* ================= clima: folhas, neve, chuva com raios e trovão, confete ================= */
@@ -12307,7 +12307,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v408</p>
+    <p class="titulo-versao">versão v409</p>
   </div>`;
 }
 function render(){
@@ -12701,7 +12701,7 @@ function slotCarregar(n,ok){ const d=slotLer(n); if(!d) return;
     try{ localStorage.setItem(CHAVE+'-antes-de-carregar',localStorage.getItem(CHAVE)||''); }catch(e){}
     localStorage.setItem(CHAVE,d.s);
     const novo=Object.assign({},sl); for(const k of Object.keys(cur)) if(fixo(k)) novo[k]=cur[k]; gravarCamp(novo);
-    bkMsg('Jogo carregado. Reiniciando…'); setTimeout(()=>location.reload(),400);
+    try{ sessionStorage.setItem('corrida-direto','1'); }catch(e){} bkMsg('Jogo carregado. Reiniciando…'); setTimeout(()=>location.reload(),400);
   }catch(e){ window.__carregando=false; bkMsg('Não consegui carregar esse jogo.'); } }
 /* ================= backup do progresso (exportar e restaurar) ================= */
 const BK_PREF='CDR1:';
@@ -14091,7 +14091,7 @@ function start(data){
   if(s.evento) ui.modal='evento';
   if(s.fim) ui.modal='fim';
   aplicarPrefs();
-  if(!navigator.webdriver && !(data && data.mes)) ui.tela='titulo';
+  { let direto=false; try{ direto=sessionStorage.getItem('corrida-direto')==='1'; sessionStorage.removeItem('corrida-direto'); }catch(e){} if(!navigator.webdriver && !(data && data.mes) && !(direto && temJogo() && temAvatar())) ui.tela='titulo'; }
   render();
 }
 /* ================= clima: folhas, neve, chuva com raios e trovão, confete ================= */
