@@ -4629,10 +4629,65 @@ const CASA_EV={
   apr:['workshop','livro','mentor']
 };
 const empregado = () => !s.aposentado && !s.empresario && s.desemp===0;
+
+/* ===== Balanço do ano e planos para o próximo (v421) ===== */
+const tirarSnap = () => ({ mes:s.mes, ano:anoAtual(), pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
+  neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva()), div:Math.round(dividaParcelada()), nAtivos:(s.ativos||[]).length,
+  nEst:Object.keys(s.estudos||{}).length, mr:mesesReserva() });
+const nNegocios = () => (s.ativos||[]).filter(a=>a.tipo==='negocio').length;
+const PLANOS = [
+  {id:'reserva', t:'Ter 6 meses de custo de vida na reserva', mostra:sn=>sn.mr<6, ok:sn=>mesesReserva()>=6},
+  {id:'cdb', t:'Aumentar a reserva (government bonds) em 30%', mostra:()=>true, ok:sn=>valor('cdb')>=Math.max(sn.cdb*1.3, sn.cdb+C(500))},
+  {id:'pat', t:'Aumentar o patrimônio em 20%', mostra:()=>true, ok:sn=>patrimonio()>=(sn.pat>0?sn.pat*1.2:sn.pat+C(5000))},
+  {id:'semneg', t:'Não entrar no cheque especial nenhum mês', mostra:()=>true, ok:()=>!(s.plano&&s.plano.neg)},
+  {id:'fel', t:'Fechar o ano com bem-estar acima de 70', mostra:()=>s.fel<70, ok:()=>s.fel>=70},
+  {id:'divida', t:'Reduzir as dívidas pela metade', mostra:sn=>sn.div>C(500), ok:sn=>dividaParcelada()<=sn.div*0.5},
+  {id:'acoes', t:'Aumentar o valor das ações em 25%', mostra:()=>F2()&&!!s.acoesLib, ok:sn=>valor('acoes')>=Math.max(sn.acoes*1.25, sn.acoes+C(1000))},
+  {id:'rp', t:'Aumentar a renda passiva em 25%', mostra:()=>F2(), ok:sn=>rendaPassiva()>Math.max(sn.rp*1.25, sn.rp)},
+  {id:'bem', t:'Comprar um imóvel ou um negócio', mostra:()=>F2(), ok:sn=>(s.ativos||[]).length>sn.nAtivos},
+  {id:'emp', t:'Aumentar o valor das suas empresas em 25%', mostra:()=>F2()&&nNegocios()>0, ok:sn=>(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)>=sn.neg*1.25 && sn.neg>0},
+  {id:'curso', t:'Começar um curso ou estudo novo', mostra:()=>estudosAbertos().length>0, ok:sn=>Object.keys(s.estudos||{}).length>sn.nEst}
+];
+const planosDisponiveis = () => { const sn=s.snapAno||tirarSnap(); return PLANOS.filter(p=>p.mostra(sn)).slice(0,8); };
+function balCalc(){
+  const sn=s.snapAno, pl=s.plano; if(!sn) return null;
+  const metas=pl&&pl.metas?pl.metas.map(id=>PLANOS.find(x=>x.id===id)).filter(Boolean):[];
+  const res=metas.map(m=>({id:m.id,t:m.t,ok:!!m.ok(sn)})), n=res.filter(r=>r.ok).length;
+  const bem=n?Math.min(15,n*4):0;
+  s.balRes={ano:sn.ano, sn, res, n, bem, plano:metas.length>0, pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
+    neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva())};
+  return s.balRes;
+}
+const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):null; return `<b>${nome}:</b> ${fmt0(a)} → ${fmt0(b)}${pc!==null?` (${d>=0?'+':'−'}${Math.abs(pc)}%)`:''}`; };
+ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
+  titulo:()=>{ const r=s.balRes||{}; return `Balanço de ${r.ano||anoAtual()-1}`; },
+  texto:()=>{ const r=s.balRes; if(!r) return 'Mais um ano se passou.'; const sn=r.sn, L=[];
+    L.push(balLinha("Net worth",sn.pat,r.pat));
+    if(r.sal>0||sn.sal>0) L.push(balLinha("Salary",sn.sal,r.sal));
+    if(F2()) L.push(balLinha("Stocks",sn.acoes,r.acoes));
+    L.push(balLinha("Emergency fund (government bonds)",sn.cdb,r.cdb));
+    if(r.neg>0||sn.neg>0) L.push(balLinha('Empresas',sn.neg,r.neg));
+    L.push(balLinha("Passive income per month",sn.rp,r.rp));
+    let fim; if(!r.plano) fim='Você não tinha metas para o ano. Neste ano, escolha algumas: cumprir pelo menos uma dá bem-estar.';
+    else { fim=r.res.map(x=>`${x.ok?'✓':'✗'} ${x.t}`).join('<br>')+'<br><br>'+(r.n>0?`<b>Você cumpriu ${r.n} of ${r.res.length} ${r.res.length===1?'meta':'metas'}.</b> Bem-estar +${r.bem}.`:'<b>Nenhuma meta cumprida.</b> Não acontece nada, mas o ano passou em branco.'); }
+    return L.join('<br>')+'<br><br>'+fim; },
+  aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0,plano:false};
+    s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.planoAnt=s.plano; s.plano=null; s.planoSel=[];
+    s.filaEv=[...(s.filaEv||[]), 'planos'];
+    return {tom:r.n>0?'bom':'neutro', titulo:r.plano?(r.n>0?'Ano com metas cumpridas':'Ano sem metas cumpridas'):'Balanço do ano', texto:r.plano?(r.n>0?'Quem planeja e cumpre enxerga o próprio progresso. Agora, os planos do próximo ano.':'Não cumprir não tem multa. Mas metas pequenas e claras ajudam a mudar o rumo. Agora, os planos do próximo ano.'):'Agora, os planos do próximo ano.'}; }};
+ESPECIAIS.planos = {tipo:'opcoes', antes:()=>{ s.planoSel=[]; },
+  titulo:()=>`Planos para ${anoAtual()}`,
+  texto:()=>'Escolha até 4 metas para este ano. Cada meta cumprida dá +4 de bem-estar (máximo +15). Cumprindo pelo menos uma, o ano termina em paz. Sem nenhuma, não acontece nada, mas o ano passa em branco.',
+  opcoes:()=>{ const sel=s.planoSel||(s.planoSel=[]), lista=planosDisponiveis();
+    return [...lista.map(p=>({label:`${sel.includes(p.id)?'☑':'☐'} ${p.t}`, sub:sel.includes(p.id)?'Escolhida. Toque para tirar':(sel.length>=4?'Limite de 4 metas':'Toque para escolher'), manter:true, run:()=>{ const i=sel.indexOf(p.id); if(i>=0) sel.splice(i,1); else if(sel.length<4) sel.push(p.id); return null; }})),
+      {label:sel.length?`Fechar os planos (${sel.length} ${sel.length===1?'meta':'metas'})`:'Seguir o ano sem metas', coin:true, run:()=>{ const sn=tirarSnap(); s.snapAno=sn; s.plano={ano:anoAtual(), metas:[...sel], neg:false}; s.planoSel=[];
+        return {tom:'neutro', titulo:sel.length?'Planos feitos':'Ano sem metas', texto:sel.length?'Metas escolhidas. Você acompanha o resultado no balanço da virada do ano.':'Sem metas neste ano. Dá para escolher no próximo balanço.'}; }}]; }};
+
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
+  if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && s.mes-s.snapAno.mes>=6 && !s.fim) return 'balanco';
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -4860,6 +4915,7 @@ function legendaTabuleiro(){
 }
 /* ================= turno ================= */
 function iniciarMes(){
+  if(!s.snapAno && s.iniciado!==false) s.snapAno=tirarSnap(); if(s.plano && s.conta<0) s.plano.neg=true;
   s.mes++; s.vendasAcoes=0; if(mesCal()===1){ s.marcas={}; s.marcasT={}; }
   const ex=[]; let lic=null; const conta0=s.conta;
   if(s.mes>1){
@@ -5361,6 +5417,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     <div class="mc-base"><img src="${B}" alt=""></div></div>`;
 }
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
+  if(id==='balanco' && s.balRes && s.balRes.plano){ const k='balanco-'+(s.balRes.n>0?'bom':'ruim'), f=(lerCamp().avatar||{}).sexo==='f'&&C[k+'-f']?C[k+'-f']:C[k]; if(f) return f; }
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
   if(id==='franqInteresse' && C['tyc-franquia']) return C['tyc-franquia'];
@@ -5374,6 +5431,7 @@ function iconeEvento(id){
   const e=evento(id); if(!e) return '📌';
   const IC={casaCresc:'🌱',casaEstudo:'🎓',casaBolsa:'📈',corte:'✂️',grande:'⭐',oportunidade:'💼',bemmes:'🏪',checkup:'🩺',resistiu:'💡',vitrine:'🛍️',workshop:'🎓',livro:'📚',mentor:'🤝'}; if(id==='franqInteresse') return '🤝'; if(id==='tycDecisao'){ const c=TYC_DEC[s.tycCarta]; return c?c.ic:'☕'; } if(IC[id]) return IC[id];
   if(id==='avaliacao'||id==='curso_fim'||id==='avalAnual') return '⭐';
+  if(id==='balanco') return (s.balRes&&s.balRes.plano)?(s.balRes.n>0?'📰':'🪑'):'📊'; if(id==='planos') return '📝';
   if(id==='crise') return '📉';
   if(id==='demissao') return '📦';
   if(id==='tentacao') return '🛍️';
@@ -5839,7 +5897,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v420</p>
+    <p class="titulo-versao">version v421</p>
   </div>`;
 }
 function render(){
@@ -11109,10 +11167,65 @@ const CASA_EV={
   apr:['workshop','livro','mentor']
 };
 const empregado = () => !s.aposentado && !s.empresario && s.desemp===0;
+
+/* ===== Balanço do ano e planos para o próximo (v421) ===== */
+const tirarSnap = () => ({ mes:s.mes, ano:anoAtual(), pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
+  neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva()), div:Math.round(dividaParcelada()), nAtivos:(s.ativos||[]).length,
+  nEst:Object.keys(s.estudos||{}).length, mr:mesesReserva() });
+const nNegocios = () => (s.ativos||[]).filter(a=>a.tipo==='negocio').length;
+const PLANOS = [
+  {id:'reserva', t:'Ter 6 meses de custo de vida na reserva', mostra:sn=>sn.mr<6, ok:sn=>mesesReserva()>=6},
+  {id:'cdb', t:'Aumentar a reserva (CDB) em 30%', mostra:()=>true, ok:sn=>valor('cdb')>=Math.max(sn.cdb*1.3, sn.cdb+C(500))},
+  {id:'pat', t:'Aumentar o patrimônio em 20%', mostra:()=>true, ok:sn=>patrimonio()>=(sn.pat>0?sn.pat*1.2:sn.pat+C(5000))},
+  {id:'semneg', t:'Não entrar no cheque especial nenhum mês', mostra:()=>true, ok:()=>!(s.plano&&s.plano.neg)},
+  {id:'fel', t:'Fechar o ano com bem-estar acima de 70', mostra:()=>s.fel<70, ok:()=>s.fel>=70},
+  {id:'divida', t:'Reduzir as dívidas pela metade', mostra:sn=>sn.div>C(500), ok:sn=>dividaParcelada()<=sn.div*0.5},
+  {id:'acoes', t:'Aumentar o valor das ações em 25%', mostra:()=>F2()&&!!s.acoesLib, ok:sn=>valor('acoes')>=Math.max(sn.acoes*1.25, sn.acoes+C(1000))},
+  {id:'rp', t:'Aumentar a renda passiva em 25%', mostra:()=>F2(), ok:sn=>rendaPassiva()>Math.max(sn.rp*1.25, sn.rp)},
+  {id:'bem', t:'Comprar um imóvel ou um negócio', mostra:()=>F2(), ok:sn=>(s.ativos||[]).length>sn.nAtivos},
+  {id:'emp', t:'Aumentar o valor das suas empresas em 25%', mostra:()=>F2()&&nNegocios()>0, ok:sn=>(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)>=sn.neg*1.25 && sn.neg>0},
+  {id:'curso', t:'Começar um curso ou estudo novo', mostra:()=>estudosAbertos().length>0, ok:sn=>Object.keys(s.estudos||{}).length>sn.nEst}
+];
+const planosDisponiveis = () => { const sn=s.snapAno||tirarSnap(); return PLANOS.filter(p=>p.mostra(sn)).slice(0,8); };
+function balCalc(){
+  const sn=s.snapAno, pl=s.plano; if(!sn) return null;
+  const metas=pl&&pl.metas?pl.metas.map(id=>PLANOS.find(x=>x.id===id)).filter(Boolean):[];
+  const res=metas.map(m=>({id:m.id,t:m.t,ok:!!m.ok(sn)})), n=res.filter(r=>r.ok).length;
+  const bem=n?Math.min(15,n*4):0;
+  s.balRes={ano:sn.ano, sn, res, n, bem, plano:metas.length>0, pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
+    neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva())};
+  return s.balRes;
+}
+const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):null; return `<b>${nome}:</b> ${fmt0(a)} → ${fmt0(b)}${pc!==null?` (${d>=0?'+':'−'}${Math.abs(pc)}%)`:''}`; };
+ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
+  titulo:()=>{ const r=s.balRes||{}; return `Balanço de ${r.ano||anoAtual()-1}`; },
+  texto:()=>{ const r=s.balRes; if(!r) return 'Mais um ano se passou.'; const sn=r.sn, L=[];
+    L.push(balLinha('Patrimônio',sn.pat,r.pat));
+    if(r.sal>0||sn.sal>0) L.push(balLinha('Salário',sn.sal,r.sal));
+    if(F2()) L.push(balLinha('Ações',sn.acoes,r.acoes));
+    L.push(balLinha('Reserva (CDB)',sn.cdb,r.cdb));
+    if(r.neg>0||sn.neg>0) L.push(balLinha('Empresas',sn.neg,r.neg));
+    L.push(balLinha('Renda passiva por mês',sn.rp,r.rp));
+    let fim; if(!r.plano) fim='Você não tinha metas para o ano. Neste ano, escolha algumas: cumprir pelo menos uma dá bem-estar.';
+    else { fim=r.res.map(x=>`${x.ok?'✓':'✗'} ${x.t}`).join('<br>')+'<br><br>'+(r.n>0?`<b>Você cumpriu ${r.n} de ${r.res.length} ${r.res.length===1?'meta':'metas'}.</b> Bem-estar +${r.bem}.`:'<b>Nenhuma meta cumprida.</b> Não acontece nada, mas o ano passou em branco.'); }
+    return L.join('<br>')+'<br><br>'+fim; },
+  aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0,plano:false};
+    s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.planoAnt=s.plano; s.plano=null; s.planoSel=[];
+    s.filaEv=[...(s.filaEv||[]), 'planos'];
+    return {tom:r.n>0?'bom':'neutro', titulo:r.plano?(r.n>0?'Ano com metas cumpridas':'Ano sem metas cumpridas'):'Balanço do ano', texto:r.plano?(r.n>0?'Quem planeja e cumpre enxerga o próprio progresso. Agora, os planos do próximo ano.':'Não cumprir não tem multa. Mas metas pequenas e claras ajudam a mudar o rumo. Agora, os planos do próximo ano.'):'Agora, os planos do próximo ano.'}; }};
+ESPECIAIS.planos = {tipo:'opcoes', antes:()=>{ s.planoSel=[]; },
+  titulo:()=>`Planos para ${anoAtual()}`,
+  texto:()=>'Escolha até 4 metas para este ano. Cada meta cumprida dá +4 de bem-estar (máximo +15). Cumprindo pelo menos uma, o ano termina em paz. Sem nenhuma, não acontece nada, mas o ano passa em branco.',
+  opcoes:()=>{ const sel=s.planoSel||(s.planoSel=[]), lista=planosDisponiveis();
+    return [...lista.map(p=>({label:`${sel.includes(p.id)?'☑':'☐'} ${p.t}`, sub:sel.includes(p.id)?'Escolhida. Toque para tirar':(sel.length>=4?'Limite de 4 metas':'Toque para escolher'), manter:true, run:()=>{ const i=sel.indexOf(p.id); if(i>=0) sel.splice(i,1); else if(sel.length<4) sel.push(p.id); return null; }})),
+      {label:sel.length?`Fechar os planos (${sel.length} ${sel.length===1?'meta':'metas'})`:'Seguir o ano sem metas', coin:true, run:()=>{ const sn=tirarSnap(); s.snapAno=sn; s.plano={ano:anoAtual(), metas:[...sel], neg:false}; s.planoSel=[];
+        return {tom:'neutro', titulo:sel.length?'Planos feitos':'Ano sem metas', texto:sel.length?'Metas escolhidas. Você acompanha o resultado no balanço da virada do ano.':'Sem metas neste ano. Dá para escolher no próximo balanço.'}; }}]; }};
+
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
+  if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && s.mes-s.snapAno.mes>=6 && !s.fim) return 'balanco';
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -11340,6 +11453,7 @@ function legendaTabuleiro(){
 }
 /* ================= turno ================= */
 function iniciarMes(){
+  if(!s.snapAno && s.iniciado!==false) s.snapAno=tirarSnap(); if(s.plano && s.conta<0) s.plano.neg=true;
   s.mes++; s.vendasAcoes=0; if(mesCal()===1){ s.marcas={}; s.marcasT={}; }
   const ex=[]; let lic=null; const conta0=s.conta;
   if(s.mes>1){
@@ -11841,6 +11955,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     <div class="mc-base"><img src="${B}" alt=""></div></div>`;
 }
 function cenaEvento(id){ const C=(typeof ARTE!=='undefined'&&ARTE.cards)||{};
+  if(id==='balanco' && s.balRes && s.balRes.plano){ const k='balanco-'+(s.balRes.n>0?'bom':'ruim'), f=(lerCamp().avatar||{}).sexo==='f'&&C[k+'-f']?C[k+'-f']:C[k]; if(f) return f; }
   if(id==='tycDecisao'){ const f=C['tyc-'+s.tycCarta]; if(f) return f; }
   if(id==='casaBolsa' && s.acoesLib){ const f=C['bol-'+s.bolCarta]; if(f) return f; }
   if(id==='franqInteresse' && C['tyc-franquia']) return C['tyc-franquia'];
@@ -11854,6 +11969,7 @@ function iconeEvento(id){
   const e=evento(id); if(!e) return '📌';
   const IC={casaCresc:'🌱',casaEstudo:'🎓',casaBolsa:'📈',corte:'✂️',grande:'⭐',oportunidade:'💼',bemmes:'🏪',checkup:'🩺',resistiu:'💡',vitrine:'🛍️',workshop:'🎓',livro:'📚',mentor:'🤝'}; if(id==='franqInteresse') return '🤝'; if(id==='tycDecisao'){ const c=TYC_DEC[s.tycCarta]; return c?c.ic:'☕'; } if(IC[id]) return IC[id];
   if(id==='avaliacao'||id==='curso_fim'||id==='avalAnual') return '⭐';
+  if(id==='balanco') return (s.balRes&&s.balRes.plano)?(s.balRes.n>0?'📰':'🪑'):'📊'; if(id==='planos') return '📝';
   if(id==='crise') return '📉';
   if(id==='demissao') return '📦';
   if(id==='tentacao') return '🛍️';
@@ -12319,7 +12435,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v420</p>
+    <p class="titulo-versao">versão v421</p>
   </div>`;
 }
 function render(){
