@@ -4644,7 +4644,7 @@ function eventoForcado(){
   if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=3) && Math.random()<0.3) return tycSortear();
   return null;
 }
-const evOk=(id,e,solto)=> e && faseOk(e.fases||[1,2,3]) && !(e.tipo==='custo' && e.custo && s.mes<24 && C(e.custo)>6*custoMensal()) && (!e.minMes||s.mes>=e.minMes) && (!e.maxMes||s.mes<=e.maxMes) && !(e.once&&visto(id)) && (!e.profs||e.profs.includes(s.prof))
+const evOk=(id,e,solto)=> e && (s.fase===4 && s.mes<=24 ? (e.fases||[1,2,3]).includes(1) : faseOk(e.fases||[1,2,3])) && !(e.tipo==='custo' && e.custo && s.mes<24 && C(e.custo)>6*custoMensal()) && (!e.minMes||s.mes>=e.minMes) && (!e.maxMes||s.mes<=e.maxMes) && !(e.once&&visto(id)) && (!e.profs||e.profs.includes(s.prof))
   && !(e.trab&&!empregado()) && (solto || !(s.ultEv&&s.ultEv[id]!=null&&s.mes-s.ultEv[id]<(e.cd||12)) && id!==s.ultimoEv) && (!e.cond||e.cond());
 const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1);
 // cursos que dá para começar agora (a casa Estudar oferece com bolsa)
@@ -5836,7 +5836,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v411</p>
+    <p class="titulo-versao">version v412</p>
   </div>`;
 }
 function render(){
@@ -11117,7 +11117,7 @@ function eventoForcado(){
   if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=3) && Math.random()<0.3) return tycSortear();
   return null;
 }
-const evOk=(id,e,solto)=> e && faseOk(e.fases||[1,2,3]) && !(e.tipo==='custo' && e.custo && s.mes<24 && C(e.custo)>6*custoMensal()) && (!e.minMes||s.mes>=e.minMes) && (!e.maxMes||s.mes<=e.maxMes) && !(e.once&&visto(id)) && (!e.profs||e.profs.includes(s.prof))
+const evOk=(id,e,solto)=> e && (s.fase===4 && s.mes<=24 ? (e.fases||[1,2,3]).includes(1) : faseOk(e.fases||[1,2,3])) && !(e.tipo==='custo' && e.custo && s.mes<24 && C(e.custo)>6*custoMensal()) && (!e.minMes||s.mes>=e.minMes) && (!e.maxMes||s.mes<=e.maxMes) && !(e.once&&visto(id)) && (!e.profs||e.profs.includes(s.prof))
   && !(e.trab&&!empregado()) && (solto || !(s.ultEv&&s.ultEv[id]!=null&&s.mes-s.ultEv[id]<(e.cd||12)) && id!==s.ultimoEv) && (!e.cond||e.cond());
 const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1);
 // cursos que dá para começar agora (a casa Estudar oferece com bolsa)
@@ -12309,7 +12309,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v411</p>
+    <p class="titulo-versao">versão v412</p>
   </div>`;
 }
 function render(){
