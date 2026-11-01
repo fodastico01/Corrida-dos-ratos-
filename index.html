@@ -2361,7 +2361,7 @@ function tycFecharMes(a, ex){
   const T=a.tyc, m=tycMes(a, emp(a).saz[mesCal()-1], true);
   T.ult=m; T.meses=(T.meses||0)+1; T.caixa+=m.lucro; if(T.efs) T.efs=T.efs.filter(e=>s.mes<e.ate);
   let ret=0; if(m.lucro>0 && T.caixa>0) ret=Math.min(T.caixa, Math.round(m.lucro*T.ret/100));
-  const retLiq=a.gerente?Math.round(ret*(1-gerCusto())):ret; T.caixa-=ret; s.conta+=retLiq; s.rendaAtivosTot=(s.rendaAtivosTot||0)+retLiq; ret=retLiq;
+  const retLiq=a.gerente?Math.round(ret*(1-gerCusto())):ret; T.caixa-=ret; s.conta+=retLiq; T.retTot=(T.retTot||0)+retLiq; s.rendaAtivosTot=(s.rendaAtivosTot||0)+retLiq; ret=retLiq;
   let aporte=0; if(T.caixa<0){ aporte=-T.caixa; s.conta-=aporte; T.caixa=0; }
   ex.push([`${a.nome}: profit withdrawal`, ret]);
   if(aporte) ex.push([`${a.nome}: you covered the loss`, -aporte]);
@@ -2415,7 +2415,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="There is no surplus to withdraw: cash is at the reserve level."; return; }
-  T.caixa-=v; s.conta+=v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} left the company cash for your account.${modo==='tudo'?" With no reserve, a bad month comes out of your pocket.":" A reserve of about 3 months of costs was left."}`;
 }
 function modalTyc(a){
@@ -2435,29 +2435,32 @@ function modalTyc(a){
     <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
-      <div class="fl"><span>Company cash</span><b>${fmt0(T.caixa)}</b></div>
-      <div class="fl"><span>Last month's profit</span><b>${u?fmt0(u.lucro):"no data yet"}</b></div>
-      <div class="fl"><span>Expected revenue (typical month)</span><b>${fmt0(pv.rec)}</b></div>
-      <div class="fl"><span>(−) Goods and costs that vary with sales</span><b>${fmt0(pv.varc)}</b></div>
-      <div class="fl"><span>(−) Fixed costs (salaries, rent, utilities)</span><b>${fmt0(pv.fixo)}</b></div>
-      <div class="fl"><span>Expected profit (typical month)</span><b>${fmt0(pv.lucro)}</b></div>
+      <div class="fl"><span>Total que você investiu (compra, melhorias e lojas)</span><b>${fmt0(a.custo)}</b></div>
+      <div class="fl"><span>Já voltou para o seu bolso (retiradas e saques)</span><b>${fmt0(T.retTot||0)}</b></div>
+      <div class="fl"><span>Falta recuperar</span><b>${fmt0(Math.max(0,a.custo-(T.retTot||0)))}</b></div>
+      <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
+      <div class="fl"><span>Lucro do último mês</span><b>${u?fmt0(u.lucro):"no data yet"}</b></div>
+      <div class="fl"><span>Receita prevista (mês comum)</span><b>${fmt0(pv.rec)}</b></div>
+      <div class="fl"><span>(−) Mercadoria e custos que variam com as vendas</span><b>${fmt0(pv.varc)}</b></div>
+      <div class="fl"><span>(−) Custos fixos (salários, aluguel, contas)</span><b>${fmt0(pv.fixo)}</b></div>
+      <div class="fl"><span>Lucro previsto (mês comum)</span><b>${fmt0(pv.lucro)}</b></div>
       <div class="fl"><span>${EM.cliRot||"Customers per day"}</span><b>${EM.cliMul?Math.round(pv.cli*EM.cliMul):pv.cli}</b></div>
-      <div class="fl"><span>Your time</span><b>${hm(horasAtivo(a))} h per month</b></div>
+      <div class="fl"><span>Tempo seu</span><b>${hm(horasAtivo(a))} h por mês</b></div>
     </div>
-    <p class="hint">How much of the profit goes into your pocket each month? The rest stays in the company cash for you to reinvest. If the cash can't cover a bad month, the loss comes out of your pocket.</p>
+    <p class="hint">Quanto do lucro vai para o seu bolso todo mês? O resto fica no caixa para você reinvestir. Se o caixa não cobrir um mês ruim, o prejuízo sai do seu bolso.</p>
     <div class="tyc-ret">${[0,25,50,75,100].map(p=>`<button class="btn${T.ret===p?' coin':''}" data-acao="tycRet" data-alvo="${a.uid}:${p}">${p}%</button>`).join('')}</div>
-    <p class="hint">Expected withdrawal: <b>${fmt0(a.renda)}</b> per month.</p>
-    <p class="hint">Money already in the company cash only comes out if you withdraw it here. The suggested reserve is ${fmt0(tycReserva(a))} (3 months of fixed costs: what the cash needs to cover if sales fall).</p>
-    <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Withdraw the surplus (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Withdraw everything</button></div>
+    <p class="hint">Retirada prevista: <b>${fmt0(a.renda)}</b> por mês.</p>
+    <p class="hint">Dinheiro que já está no caixa só sai se você sacar aqui. A reserva sugerida é de ${fmt0(tycReserva(a))} (3 meses de custos fixos: o que o caixa precisa cobrir se as vendas caírem).</p>
+    <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Sacar o excedente (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Sacar tudo</button></div>
     ${tycEfs(a).lista.length?`<p class="hint"><b>In progress:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?"months":"month"})`).join(', ')}</p>`:''}
     ${ui.tycMsg?`<p class="hint tyc-msg">${ui.tycMsg}</p>`:''}
     ${EM.local&&nMin>=tycNmax(a)?`<div class="alerta neutro" role="note"><strong>Business ceiling</strong><p>${EM.teto}</p></div>`:''}
     ${T.obra?(T.obra.reforma?`<div class="alerta ruim" role="note"><strong>🏗️ ${T.obra.reforma.verbo.charAt(0).toUpperCase()+T.obra.reforma.verbo.slice(1)}</strong><p>${EM.set[TYC_KEYS[T.obra.ki]].nome}: ${EM.set[TYC_KEYS[T.obra.ki]].niv[T.niv[T.obra.ki]]}. The company sells nothing until it's ready, in ${Math.max(1,T.obra.ate-s.mes)} ${T.obra.ate-s.mes>1?"months":"month"}. You only pay half of the fixed costs and take no profit.</p></div>`:`<div class="alerta neutro" role="note"><strong>🏗️ Project in progress</strong><p>${EM.set[TYC_KEYS[T.obra.ki]].nome}: ${EM.set[TYC_KEYS[T.obra.ki]].niv[T.niv[T.obra.ki]]}. Finishes in ${Math.max(1,T.obra.ate-s.mes)} ${T.obra.ate-s.mes>1?"months":"month"}. The effect only shows up when it's done.</p></div>`):''}
     ${T.premio&&!a.franqDe?`<div class="alerta bom" role="note"><strong>🏆 ${EM.premio.titulo}</strong><p>${EM.premio.texto?EM.premio.texto(a):''}${(s.franqs||[]).length?` Franchisees: ${s.franqs.length}, with expected royalties of ${fmt0(tycRoyTotal())} per month.`:''}</p></div>`:''}
     ${EM.premio&&!a.franqDe?(()=>{ const n=tycLojas(a), v=tycCustoLoja(a); return `<div class="alerta bom" role="note"><strong>🏪 Stores: ${n} of 3</strong><p>${T.obraLoja?`Store ${n+1} under construction. Finishes in ${Math.max(1,T.obraLoja.ate-s.mes)} ${T.obraLoja.ate-s.mes>1?"months":"month"}. No sales until then.`:n>=3?"You already have the maximum number of stores.":nEq<6?"Unlocks when all departments reach level 6.":`One more store costs ${fmt0(v)} and takes ${TYC_LOJA_MESES[n]} months to be ready, selling nothing. Afterward, the company earns about ${Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100)}% more.`}</p>${tycPodeLoja(a)?`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Build store ${n+1} for ${fmt0(v)}</button></div>`:''}</div>`; })():''}
-    <p class="hint">Rule: a department only rises to level N if all the others are already at level N-1.</p>
+    <p class="hint">Regra: um setor só sobe para o nível N se todos os outros já estiverem no nível N-1.</p>
     ${linhas}
-    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Close</b></button></div></div></div>`;
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fechar</b></button></div></div></div>`;
 }
 const HABITOS = {
   academia:{nome:"Gym", custo:120, horas:4, fel:2, saude:0.5, desc:"Monthly fee and 17 h per month. Cuts the risk of health problems in half."},
@@ -5836,7 +5839,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v417</p>
+    <p class="titulo-versao">version v418</p>
   </div>`;
 }
 function render(){
@@ -8834,7 +8837,7 @@ function tycFecharMes(a, ex){
   const T=a.tyc, m=tycMes(a, emp(a).saz[mesCal()-1], true);
   T.ult=m; T.meses=(T.meses||0)+1; T.caixa+=m.lucro; if(T.efs) T.efs=T.efs.filter(e=>s.mes<e.ate);
   let ret=0; if(m.lucro>0 && T.caixa>0) ret=Math.min(T.caixa, Math.round(m.lucro*T.ret/100));
-  const retLiq=a.gerente?Math.round(ret*(1-gerCusto())):ret; T.caixa-=ret; s.conta+=retLiq; s.rendaAtivosTot=(s.rendaAtivosTot||0)+retLiq; ret=retLiq;
+  const retLiq=a.gerente?Math.round(ret*(1-gerCusto())):ret; T.caixa-=ret; s.conta+=retLiq; T.retTot=(T.retTot||0)+retLiq; s.rendaAtivosTot=(s.rendaAtivosTot||0)+retLiq; ret=retLiq;
   let aporte=0; if(T.caixa<0){ aporte=-T.caixa; s.conta-=aporte; T.caixa=0; }
   ex.push([`${a.nome}: retirada do lucro`, ret]);
   if(aporte) ex.push([`${a.nome}: você cobriu o prejuízo`, -aporte]);
@@ -8888,7 +8891,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg='Não há excedente para retirar: o caixa está no nível da reserva.'; return; }
-  T.caixa-=v; s.conta+=v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} saíram do caixa para a sua conta.${modo==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Ficou uma reserva de cerca de 3 meses de custos.'}`;
 }
 function modalTyc(a){
@@ -8908,6 +8911,9 @@ function modalTyc(a){
     <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
+      <div class="fl"><span>Total que você investiu (compra, melhorias e lojas)</span><b>${fmt0(a.custo)}</b></div>
+      <div class="fl"><span>Já voltou para o seu bolso (retiradas e saques)</span><b>${fmt0(T.retTot||0)}</b></div>
+      <div class="fl"><span>Falta recuperar</span><b>${fmt0(Math.max(0,a.custo-(T.retTot||0)))}</b></div>
       <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
       <div class="fl"><span>Lucro do último mês</span><b>${u?fmt0(u.lucro):'ainda sem dados'}</b></div>
       <div class="fl"><span>Receita prevista (mês comum)</span><b>${fmt0(pv.rec)}</b></div>
@@ -12309,7 +12315,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v417</p>
+    <p class="titulo-versao">versão v418</p>
   </div>`;
 }
 function render(){
