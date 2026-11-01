@@ -1860,7 +1860,7 @@ function moverPara(n, modo, antiga, pag){
     }
     s.casa=0; delete s.fixos["HOA and property tax"];
   }
-  const frete=C(1200); s.conta-=frete;
+  const frete=(n===cur && !morPropria())?0:C(1200); s.conta-=frete;
   let t='';
   if(modo==='alugar'){ s.conta+=credito; s.fixos["Rent"]=aluguelN(n); s.mor={n, propria:false}; }
   else {
@@ -5836,7 +5836,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v410</p>
+    <p class="titulo-versao">version v411</p>
   </div>`;
 }
 function render(){
@@ -5964,11 +5964,11 @@ function render(){
       <p class="hint desc">Per month: ${g.length?g.map(([n,x])=>`${n} +${x}`).join(' · '):'nothing'}. Without cultivating it, influence cools off little by little. Sources: gatherings at home, club (Life tab), MBA, leadership role and owning companies.</p>
     </section>`; })();
   const casaCard = (()=>{ const n=morN(), M=MORADIAS[n], cm=custoMoradia(), cabe=cabeMoradia(), fm=felMoradia();
-    const linhas=MORADIAS.map((X,i)=>{ if(i===n) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
+    const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
-      return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mo</span></div>
-        <div class="opp-dados"><span>Rent ${cabeA?"<b style=\"color:var(--gain)\">up to 30% of income</b>":"<b style=\"color:var(--warn)\">over 30% of income</b>"}</span>${pr&&F2()?`<span>Purchase <b>${fmt0(pr)}</b></span>`:''}<span>Well-being <b>${dif>0?'+':''}${dif}/mo</b></span></div>
-        <div class="conta-acoes"><button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Rent</button>${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">Buy</button>`:''}</div></div>`; }).join('');
+      return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mês</span></div>
+        <div class="opp-dados"><span>Aluguel ${cabeA?"<b style=\"color:var(--gain)\">up to 30% of income</b>":"<b style=\"color:var(--warn)\">over 30% of income</b>"}</span>${pr&&F2()?`<span>Purchase <b>${fmt0(pr)}</b></span>`:''}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
+        <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Alugar</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Comprar a casa em que você mora':"Buy"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Your home ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Owned":"Rented"} · ${fmt0(cm)} per month${morPropria()?" (condo fees, property tax and loan payment)":''}</span></div></div>
       <div class="fl"><span>Housing well-being</span><b>${fm>0?'+':''}${fm}/mo</b></div>
@@ -6476,8 +6476,8 @@ function renderModal0(){
   if(ui.modal==='carro'){
     const n=ui.carro, X=CARROS[n], pr=precoCarro(n), pc=parcCarro(), vel=carN()>0?Math.round(valorCarro()*0.9)-(pc?saldoParc(pc):0):0;
     const ops = n===0 ? [{alvo:'0:-', label:`Sell the car and use bus and ride-hailing`, sub:`${fmt0(Math.max(0,vel))} comes in · transport of ${fmt0(transpBase())} per month`}]
-      : [{alvo:`${n}:avista`, label:"Buy in cash", sub:`${fmt0(Math.max(0,pr-vel))} comes out of your account and investments${carN()>0?" (the current one goes in as trade-in)":''}`, dis:!podeAVista(Math.max(0,pr-vel))},
-         {alvo:`${n}:financiar`, label:"Finance 80% over 48 months", sub:`Down payment of ${fmt0(Math.max(0,pr*0.2-vel))} · installment of ${fmt0(pmt(pr*0.8,0.016,48))} (1.6% a month)`, dis:!podeAVista(Math.max(0,pr*0.2-vel))}];
+      : [{alvo:`${n}:avista`, label:"Buy in cash", sub:pr-vel<0?`Você recebe ${fmt0(vel-pr)} na conta: o seu carro atual vale mais que o novo`:`${fmt0(Math.max(0,pr-vel))} comes out of your account and investments${carN()>0?` (o atual entra na troca por ${fmt0(vel)})`:''}`, dis:!podeAVista(Math.max(0,pr-vel))},
+         {alvo:`${n}:financiar`, label:"Finance 80% over 48 months", sub:`${pr*0.2-vel<0?`Você recebe ${fmt0(vel-pr*0.2)} na conta`:`Entrada de ${fmt0(Math.max(0,pr*0.2-vel))}`} · parcela de ${fmt0(pmt(pr*0.8,0.016,48))} (1,6% ao mês)`, dis:!podeAVista(Math.max(0,pr*0.2-vel))}];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">Car</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
       <p class="hint">${n?`Price ${fmt0(pr)}. Insurance, taxes and fuel: ${fmt0(custoCarro(n))} per month.`:"No car, no insurance, taxes or maintenance."}${carN()>0?` Your current car goes in for ${fmt0(Math.round(valorCarro()*0.9))}${pc?`, after deducting the loan payoff (${fmt0(saldoParc(pc))})`:''}.`:''}</p>
@@ -6489,13 +6489,13 @@ function renderModal0(){
     const ant = morPropria() ? [['vender',"sell the current one"],['alugar',"rent the current one out"]] : [[null,'']];
     if(modo==='alugar') for(const [a,ta] of ant) ops.push({alvo:`${n}:alugar:${a}:-`, label:`Rent for ${fmt0(aluguelN(n))}/month${ta?' and '+ta:''}`, sub:''});
     else for(const [a,ta] of ant){ const cred=a==='vender'?(s.casa||0)*0.94-(parcCasa()?saldoParc(parcCasa()):0):0;
-      ops.push({alvo:`${n}:comprar:${a}:avista`, label:`Buy in cash${ta?' and '+ta:''}`, sub:`${fmt0(Math.max(0,pr-cred))} comes out of your account and investments`, dis:!podeAVista(Math.max(0,pr-cred))});
-      ops.push({alvo:`${n}:comprar:${a}:financiar`, label:`Finance 80% over 20 years${ta?' and '+ta:''}`, sub:`Down payment of ${fmt0(Math.max(0,pr*0.2-cred))} · installment of ${fmt0(pmt(pr*0.8,0.0095,240))}`, dis:!podeAVista(Math.max(0,pr*0.2-cred))}); }
+      ops.push({alvo:`${n}:comprar:${a}:avista`, label:`Buy in cash${ta?' and '+ta:''}`, sub:pr-cred<0?`Sobram ${fmt0(cred-pr)} na sua conta (a antiga casa vale mais que a nova)`:`${fmt0(Math.max(0,pr-cred))} comes out of your account and investments${cred>0?` (a antiga casa entra por ${fmt0(cred)})`:''}`, dis:!podeAVista(Math.max(0,pr-cred))});
+      ops.push({alvo:`${n}:comprar:${a}:financiar`, label:`Finance 80% over 20 years${ta?' and '+ta:''}`, sub:`${pr*0.2-cred<0?`Entram ${fmt0(cred-pr*0.2)} na conta · `:`Entrada de ${fmt0(Math.max(0,pr*0.2-cred))} · `}parcela de ${fmt0(pmt(pr*0.8,0.0095,240))}`, dis:!podeAVista(Math.max(0,pr*0.2-cred))}); }
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag neutro">Move</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
-      <p class="hint">${modo==='comprar'?`Price ${fmt0(pr)}. Condo fees and property tax of ${fmt0(pr*0.0018)} per month.`:`Rent of ${fmt0(aluguelN(n))} per month.`} The move costs ${fmt0(C(1200))}.</p>
+      <span class="tag neutro">Mudança</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
+      <p class="hint">${modo==='comprar'?`Price ${fmt0(pr)}. Condo fees and property tax of ${fmt0(pr*0.0018)} per month.`:`Rent of ${fmt0(aluguelN(n))} per month.`} ${(n===morN() && !morPropria())?'Você já mora nela: não tem custo de mudança.':`A mudança custa ${fmt0(C(1200))}.`}</p>
       <div class="opcoes">${ops.map(o=>`<button class="opcao" data-acao="mudarOk" data-alvo="${o.alvo}" ${o.dis?"disabled style=\"opacity:.45\"":''}><b>${o.label}</b>${o.sub?`<span>${o.sub}</span>`:''}</button>`).join('')}</div>
-      <div class="row"><button class="btn" data-acao="fechar">Cancel</button></div></div></div>`;
+      <div class="row"><button class="btn" data-acao="fechar">Cancelar</button></div></div></div>`;
     return; }
   if(ui.modal==='vitoria'){
     const sobra=cfg().total-s.mes, P=pontuacao();
@@ -8333,7 +8333,7 @@ function moverPara(n, modo, antiga, pag){
     }
     s.casa=0; delete s.fixos['Condomínio e IPTU'];
   }
-  const frete=C(1200); s.conta-=frete;
+  const frete=(n===cur && !morPropria())?0:C(1200); s.conta-=frete;
   let t='';
   if(modo==='alugar'){ s.conta+=credito; s.fixos['Aluguel']=aluguelN(n); s.mor={n, propria:false}; }
   else {
@@ -12309,7 +12309,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v410</p>
+    <p class="titulo-versao">versão v411</p>
   </div>`;
 }
 function render(){
@@ -12437,11 +12437,11 @@ function render(){
       <p class="hint desc">Por mês: ${g.length?g.map(([n,x])=>`${n} +${x}`).join(' · '):'nada'}. Sem cultivar, a influência esfria aos poucos. Fontes: encontros em casa, clube (aba Vida), MBA, cargo de liderança e ter empresas.</p>
     </section>`; })();
   const casaCard = (()=>{ const n=morN(), M=MORADIAS[n], cm=custoMoradia(), cabe=cabeMoradia(), fm=felMoradia();
-    const linhas=MORADIAS.map((X,i)=>{ if(i===n) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
+    const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mês</span></div>
         <div class="opp-dados"><span>Aluguel ${cabeA?'<b style="color:var(--gain)">até 30% da renda</b>':'<b style="color:var(--warn)">passa de 30% da renda</b>'}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
-        <div class="conta-acoes"><button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Alugar</button>${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">Comprar</button>`:''}</div></div>`; }).join('');
+        <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Alugar</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Comprar a casa em que você mora':'Comprar'}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Sua casa ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?'Própria':'Alugada'} · ${fmt0(cm)} por mês${morPropria()?' (condomínio, IPTU e parcela)':''}</span></div></div>
       <div class="fl"><span>Bem-estar da moradia</span><b>${fm>0?'+':''}${fm}/mês</b></div>
@@ -12949,8 +12949,8 @@ function renderModal0(){
   if(ui.modal==='carro'){
     const n=ui.carro, X=CARROS[n], pr=precoCarro(n), pc=parcCarro(), vel=carN()>0?Math.round(valorCarro()*0.9)-(pc?saldoParc(pc):0):0;
     const ops = n===0 ? [{alvo:'0:-', label:`Vender o carro e usar ônibus e aplicativo`, sub:`Entram ${fmt0(Math.max(0,vel))} · transporte de ${fmt0(transpBase())} por mês`}]
-      : [{alvo:`${n}:avista`, label:'Comprar à vista', sub:`${fmt0(Math.max(0,pr-vel))} saem da conta e dos investimentos${carN()>0?' (o atual entra na troca)':''}`, dis:!podeAVista(Math.max(0,pr-vel))},
-         {alvo:`${n}:financiar`, label:'Financiar 80% em 48x', sub:`Entrada de ${fmt0(Math.max(0,pr*0.2-vel))} · parcela de ${fmt0(pmt(pr*0.8,0.016,48))} (1,6% ao mês)`, dis:!podeAVista(Math.max(0,pr*0.2-vel))}];
+      : [{alvo:`${n}:avista`, label:'Comprar à vista', sub:pr-vel<0?`Você recebe ${fmt0(vel-pr)} na conta: o seu carro atual vale mais que o novo`:`${fmt0(Math.max(0,pr-vel))} saem da conta e dos investimentos${carN()>0?` (o atual entra na troca por ${fmt0(vel)})`:''}`, dis:!podeAVista(Math.max(0,pr-vel))},
+         {alvo:`${n}:financiar`, label:'Financiar 80% em 48x', sub:`${pr*0.2-vel<0?`Você recebe ${fmt0(vel-pr*0.2)} na conta`:`Entrada de ${fmt0(Math.max(0,pr*0.2-vel))}`} · parcela de ${fmt0(pmt(pr*0.8,0.016,48))} (1,6% ao mês)`, dis:!podeAVista(Math.max(0,pr*0.2-vel))}];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">Carro</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
       <p class="hint">${n?`Preço ${fmt0(pr)}. Seguro, IPVA e combustível: ${fmt0(custoCarro(n))} por mês.`:'Sem carro, sem seguro, IPVA nem manutenção.'}${carN()>0?` Seu carro atual entra por ${fmt0(Math.round(valorCarro()*0.9))}${pc?`, já descontando a quitação do financiamento (${fmt0(saldoParc(pc))})`:''}.`:''}</p>
@@ -12962,11 +12962,11 @@ function renderModal0(){
     const ant = morPropria() ? [['vender','vender a atual'],['alugar','alugar a atual para outra pessoa']] : [[null,'']];
     if(modo==='alugar') for(const [a,ta] of ant) ops.push({alvo:`${n}:alugar:${a}:-`, label:`Alugar por ${fmt0(aluguelN(n))}/mês${ta?' e '+ta:''}`, sub:''});
     else for(const [a,ta] of ant){ const cred=a==='vender'?(s.casa||0)*0.94-(parcCasa()?saldoParc(parcCasa()):0):0;
-      ops.push({alvo:`${n}:comprar:${a}:avista`, label:`Comprar à vista${ta?' e '+ta:''}`, sub:`${fmt0(Math.max(0,pr-cred))} saem da conta e dos investimentos`, dis:!podeAVista(Math.max(0,pr-cred))});
-      ops.push({alvo:`${n}:comprar:${a}:financiar`, label:`Financiar 80% em 20 anos${ta?' e '+ta:''}`, sub:`Entrada de ${fmt0(Math.max(0,pr*0.2-cred))} · parcela de ${fmt0(pmt(pr*0.8,0.0095,240))}`, dis:!podeAVista(Math.max(0,pr*0.2-cred))}); }
+      ops.push({alvo:`${n}:comprar:${a}:avista`, label:`Comprar à vista${ta?' e '+ta:''}`, sub:pr-cred<0?`Sobram ${fmt0(cred-pr)} na sua conta (a antiga casa vale mais que a nova)`:`${fmt0(Math.max(0,pr-cred))} saem da conta e dos investimentos${cred>0?` (a antiga casa entra por ${fmt0(cred)})`:''}`, dis:!podeAVista(Math.max(0,pr-cred))});
+      ops.push({alvo:`${n}:comprar:${a}:financiar`, label:`Financiar 80% em 20 anos${ta?' e '+ta:''}`, sub:`${pr*0.2-cred<0?`Entram ${fmt0(cred-pr*0.2)} na conta · `:`Entrada de ${fmt0(Math.max(0,pr*0.2-cred))} · `}parcela de ${fmt0(pmt(pr*0.8,0.0095,240))}`, dis:!podeAVista(Math.max(0,pr*0.2-cred))}); }
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">Mudança</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
-      <p class="hint">${modo==='comprar'?`Preço ${fmt0(pr)}. Condomínio e IPTU de ${fmt0(pr*0.0018)} por mês.`:`Aluguel de ${fmt0(aluguelN(n))} por mês.`} A mudança custa ${fmt0(C(1200))}.</p>
+      <p class="hint">${modo==='comprar'?`Preço ${fmt0(pr)}. Condomínio e IPTU de ${fmt0(pr*0.0018)} por mês.`:`Aluguel de ${fmt0(aluguelN(n))} por mês.`} ${(n===morN() && !morPropria())?'Você já mora nela: não tem custo de mudança.':`A mudança custa ${fmt0(C(1200))}.`}</p>
       <div class="opcoes">${ops.map(o=>`<button class="opcao" data-acao="mudarOk" data-alvo="${o.alvo}" ${o.dis?'disabled style="opacity:.45"':''}><b>${o.label}</b>${o.sub?`<span>${o.sub}</span>`:''}</button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Cancelar</button></div></div></div>`;
     return; }
