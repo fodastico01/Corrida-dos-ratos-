@@ -1414,6 +1414,8 @@ html[data-paleta="noite"] .topo2 .topo-conta .tc-r{border-left-color:rgba(255,25
 
 .seg.aporte-seg{display:grid!important;grid-template-columns:repeat(4,1fr);width:100%;gap:6px}
 .seg.aporte-seg button{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap}
+
+.seg.aporte-seg button{font-size:.92rem;line-height:1.25}.seg.aporte-seg button small{display:block;font-size:.72rem;overflow:hidden;text-overflow:ellipsis}
 </style>
 
 <div class="app" id="app"></div>
@@ -5252,7 +5254,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Month's leftover:</small><div class="seg seg-hud" role="group" aria-label="Month's leftover"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Stays in the account<small>you decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Goes to ${p.curto}<small>automatic</small></button></div><p class="hint">Once the month's bills are paid, whatever is left in your checking account goes by itself into ${p.curto}. If something unexpected comes up, the game redeems from here first.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'você decide':fmt0(aporteDePct(pc))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o government bonds completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o government bonds completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctuates every month":"last month "+pctFmt(p.taxa())):pct2(p.taxa())+" a month"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -5834,7 +5836,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v409</p>
+    <p class="titulo-versao">version v410</p>
   </div>`;
 }
 function render(){
@@ -11725,7 +11727,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Sobra do mês:</small><div class="seg seg-hud" role="group" aria-label="Sobra do mês"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Fica na conta<small>você decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Vai para o ${p.curto}<small>automático</small></button></div><p class="hint">Depois que as contas do mês são pagas, tudo o que sobrar na conta corrente vai sozinho para o ${p.curto}. Se aparecer um imprevisto, o jogo resgata daqui primeiro.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'você decide':fmt0(aporteDePct(pc))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o CDB completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o CDB completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?'oscila todo mês':'último mês '+pctFmt(p.taxa())):pct2(p.taxa())+' ao mês'}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -12307,7 +12309,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v409</p>
+    <p class="titulo-versao">versão v410</p>
   </div>`;
 }
 function render(){
