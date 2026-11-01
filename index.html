@@ -4590,7 +4590,7 @@ const CASAS={
   mer:{ic:'🏦',nome:"Finance",cor:'#7DA9CF', txt:"Bank, income tax, easy offers and scams."},
   gop:{ic:'⭐',nome:"Big opportunity",cor:'#D9A520', txt:"A business 25% below price. Only worth it on the spot."},
   cor:{ic:'✂️',nome:"Company layoffs",cor:'#C0574A', txt:"The company will cut staff. The risk depends on the profession."},
-  emp:{ic:'🏪',nome:"Your assets",cor:'#4FA8A0', txt:"News about your properties and businesses."},
+  emp:{ic:'🏪',nome:"Your assets",cor:'#4FA8A0', txt:'Notícias dos seus imóveis e negócios. Sem nenhum bem ainda, aparece uma oportunidade à venda.'},
   opp:{ic:'💼',nome:"Opportunity",cor:'#6BAE88', txt:"A business or property for sale."}
 };
 const CASAS_RUINS=['imp','sau','ten','cor'];
@@ -4660,7 +4660,7 @@ function eventoDaCasa(t, forcar){
   switch(t){
     case 'cal': return null;
     case 'cor': return empregado() && !(s.demitidoEm!=null && s.mes-s.demitidoEm<24) && !(!F2() && s.mes<9) ? 'corte' : null;
-    case 'emp': { if(Math.random()<0.3){ const fq=tycFranqSortear(); if(fq) return fq; } if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=2) && Math.random()<0.5){ const d=tycSortear(); if(d) return d; } const bons=(s.ativos||[]).filter(a=>a.tipo!=='terreno' && !(a.vagoAte>=s.mes)); if(!(s.ativos||[]).length) return null; if(bons.length && Math.random()<0.45){ s.alvoAtivo=bons[Math.floor(Math.random()*bons.length)].uid; return 'bemmes'; } return sortearEventoAtivo(true); }
+    case 'emp': { if(Math.random()<0.3){ const fq=tycFranqSortear(); if(fq) return fq; } if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=2) && Math.random()<0.5){ const d=tycSortear(); if(d) return d; } const bons=(s.ativos||[]).filter(a=>a.tipo!=='terreno' && !(a.vagoAte>=s.mes)); if(!(s.ativos||[]).length) return novaOferta() ? 'oportunidade' : null; if(bons.length && Math.random()<0.45){ s.alvoAtivo=bons[Math.floor(Math.random()*bons.length)].uid; return 'bemmes'; } return sortearEventoAtivo(true); }
     case 'opp': return novaOferta() ? 'oportunidade' : null;
     case 'imo': return novaOferta('imovel') ? 'oportunidade' : null;
     case 'neg': return novaOferta('negocio') ? 'oportunidade' : null;
@@ -5839,7 +5839,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v419</p>
+    <p class="titulo-versao">version v420</p>
   </div>`;
 }
 function render(){
@@ -11070,7 +11070,7 @@ const CASAS={
   mer:{ic:'🏦',nome:'Finanças',cor:'#7DA9CF', txt:'Banco, imposto de renda, propostas fáceis e golpes.'},
   gop:{ic:'⭐',nome:'Grande oportunidade',cor:'#D9A520', txt:'Negócio 25% abaixo do preço. Só vale na hora.'},
   cor:{ic:'✂️',nome:'Corte na empresa',cor:'#C0574A', txt:'A empresa vai cortar gente. O risco depende da profissão.'},
-  emp:{ic:'🏪',nome:'Seus bens',cor:'#4FA8A0', txt:'Notícias dos seus imóveis e negócios.'},
+  emp:{ic:'🏪',nome:'Seus bens',cor:'#4FA8A0', txt:'Notícias dos seus imóveis e negócios. Sem nenhum bem ainda, aparece uma oportunidade à venda.'},
   opp:{ic:'💼',nome:'Oportunidade',cor:'#6BAE88', txt:'Um negócio ou imóvel à venda.'}
 };
 const CASAS_RUINS=['imp','sau','ten','cor'];
@@ -11140,7 +11140,7 @@ function eventoDaCasa(t, forcar){
   switch(t){
     case 'cal': return null;
     case 'cor': return empregado() && !(s.demitidoEm!=null && s.mes-s.demitidoEm<24) && !(!F2() && s.mes<9) ? 'corte' : null;
-    case 'emp': { if(Math.random()<0.3){ const fq=tycFranqSortear(); if(fq) return fq; } if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=2) && Math.random()<0.5){ const d=tycSortear(); if(d) return d; } const bons=(s.ativos||[]).filter(a=>a.tipo!=='terreno' && !(a.vagoAte>=s.mes)); if(!(s.ativos||[]).length) return null; if(bons.length && Math.random()<0.45){ s.alvoAtivo=bons[Math.floor(Math.random()*bons.length)].uid; return 'bemmes'; } return sortearEventoAtivo(true); }
+    case 'emp': { if(Math.random()<0.3){ const fq=tycFranqSortear(); if(fq) return fq; } if((s.ativos||[]).some(a=>a.tyc) && (s.tycDecEm==null||s.mes-s.tycDecEm>=2) && Math.random()<0.5){ const d=tycSortear(); if(d) return d; } const bons=(s.ativos||[]).filter(a=>a.tipo!=='terreno' && !(a.vagoAte>=s.mes)); if(!(s.ativos||[]).length) return novaOferta() ? 'oportunidade' : null; if(bons.length && Math.random()<0.45){ s.alvoAtivo=bons[Math.floor(Math.random()*bons.length)].uid; return 'bemmes'; } return sortearEventoAtivo(true); }
     case 'opp': return novaOferta() ? 'oportunidade' : null;
     case 'imo': return novaOferta('imovel') ? 'oportunidade' : null;
     case 'neg': return novaOferta('negocio') ? 'oportunidade' : null;
@@ -12319,7 +12319,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v419</p>
+    <p class="titulo-versao">versão v420</p>
   </div>`;
 }
 function render(){
