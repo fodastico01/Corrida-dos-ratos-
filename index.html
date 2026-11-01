@@ -2353,7 +2353,7 @@ function tycBloqueio(a,k){
 }
 function tycAtualizar(a){
   const T=a.tyc, pv=tycPrev(a); T.med=T.med==null?pv.lucro:T.med;
-  a.renda=tycEmReforma(a)?0:Math.max(0,Math.round(pv.lucro*T.ret/100));
+  a.renda=tycEmReforma(a)?0:Math.max(0,Math.round(pv.lucro*T.ret/100*(a.gerente?1-gerCusto():1)));
   a.valor=Math.round((Math.max(a.custo*0.6, Math.max(0,T.med)*(emp(a).mult||MULT_VALOR))+T.caixa)/100)*100; a.mercado=a.valor;
   a.horas=emp(a).horas[tycNiv(a,'equipe')-1];
 }
@@ -2361,7 +2361,7 @@ function tycFecharMes(a, ex){
   const T=a.tyc, m=tycMes(a, emp(a).saz[mesCal()-1], true);
   T.ult=m; T.meses=(T.meses||0)+1; T.caixa+=m.lucro; if(T.efs) T.efs=T.efs.filter(e=>s.mes<e.ate);
   let ret=0; if(m.lucro>0 && T.caixa>0) ret=Math.min(T.caixa, Math.round(m.lucro*T.ret/100));
-  T.caixa-=ret; s.conta+=ret; s.rendaAtivosTot=(s.rendaAtivosTot||0)+ret;
+  const retLiq=a.gerente?Math.round(ret*(1-gerCusto())):ret; T.caixa-=ret; s.conta+=retLiq; s.rendaAtivosTot=(s.rendaAtivosTot||0)+retLiq; ret=retLiq;
   let aporte=0; if(T.caixa<0){ aporte=-T.caixa; s.conta-=aporte; T.caixa=0; }
   ex.push([`${a.nome}: profit withdrawal`, ret]);
   if(aporte) ex.push([`${a.nome}: you covered the loss`, -aporte]);
@@ -5836,7 +5836,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v416</p>
+    <p class="titulo-versao">version v417</p>
   </div>`;
 }
 function render(){
@@ -6071,8 +6071,8 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
         return `${a.mercado!=null?`<p class="hint">Market value today: <b>${fmt0(a.mercado)}</b> (3 years of current profit). In net worth, the value starts from what you paid and gradually approaches this number: it rises if the business grows, falls if it shrinks.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} units · `:''}${noTeto?"Reached the ceiling of this location: to grow, open another.":r>0.03?"Growing fast: you're dedicating yourself.":r>0?"Growing slowly.":"Shrinking: nobody is looking after it."} Worth ${fmt0(a.valor)} (about 3 years of profit).</p>
         <div class="conta-acoes"><button class="btn coin" data-acao="expandir" data-alvo="${a.uid}" ${podeAVista(custoExpandir(a))?'':'disabled'}>Open new location (${fmt0(custoExpandir(a))})</button></div>`; })():''}
       ${largado(a)?`<p class="hint" style="color:var(--loss)">You have no time to take care of it: income 30% lower, more breakdowns and more risk of closing. A manager solves it.</p>`:''}
-      ${a.tipo==='negocio'&&!a.tyc&&!a.gerente&&a.horas>1?`<p class="hint">With a manager: takes ${Math.round(gerCusto()*100)}% of the income, but gives back ${hm(a.horas-Math.max(1,Math.round(a.horas*0.25)))} h per month (you still supervise ${hm(Math.max(1,Math.round(a.horas*0.25)))} h), breaks down less, almost never closes, improves over time and the business is worth 25% more when sold.</p>`:''}
-      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Manage company</button>`:''}${a.tipo==='negocio'&&(!a.tyc||s.aposentado)&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Hire manager</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dismiss manager</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Sell now for ${fmt0(vMerc(a)*0.85)}</button></div>
+      ${a.tipo==='negocio'&&!a.gerente&&a.horas>1?`<p class="hint">With a manager: takes ${Math.round(gerCusto()*100)}% of the income, but gives back ${hm(a.horas-Math.max(1,Math.round(a.horas*0.25)))} h per month (you still supervise ${hm(Math.max(1,Math.round(a.horas*0.25)))} h), breaks down less, almost never closes, improves over time and the business is worth 25% more when sold.</p>`:''}
+      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Manage company</button>`:''}${a.tipo==='negocio'&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Hire manager</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dismiss manager</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Sell now for ${fmt0(vMerc(a)*0.85)}</button></div>
     </div>`).join('')}</section>`:'';
 
   const emps=s.parcelas.filter(p=>p.emp);
@@ -8826,7 +8826,7 @@ function tycBloqueio(a,k){
 }
 function tycAtualizar(a){
   const T=a.tyc, pv=tycPrev(a); T.med=T.med==null?pv.lucro:T.med;
-  a.renda=tycEmReforma(a)?0:Math.max(0,Math.round(pv.lucro*T.ret/100));
+  a.renda=tycEmReforma(a)?0:Math.max(0,Math.round(pv.lucro*T.ret/100*(a.gerente?1-gerCusto():1)));
   a.valor=Math.round((Math.max(a.custo*0.6, Math.max(0,T.med)*(emp(a).mult||MULT_VALOR))+T.caixa)/100)*100; a.mercado=a.valor;
   a.horas=emp(a).horas[tycNiv(a,'equipe')-1];
 }
@@ -8834,7 +8834,7 @@ function tycFecharMes(a, ex){
   const T=a.tyc, m=tycMes(a, emp(a).saz[mesCal()-1], true);
   T.ult=m; T.meses=(T.meses||0)+1; T.caixa+=m.lucro; if(T.efs) T.efs=T.efs.filter(e=>s.mes<e.ate);
   let ret=0; if(m.lucro>0 && T.caixa>0) ret=Math.min(T.caixa, Math.round(m.lucro*T.ret/100));
-  T.caixa-=ret; s.conta+=ret; s.rendaAtivosTot=(s.rendaAtivosTot||0)+ret;
+  const retLiq=a.gerente?Math.round(ret*(1-gerCusto())):ret; T.caixa-=ret; s.conta+=retLiq; s.rendaAtivosTot=(s.rendaAtivosTot||0)+retLiq; ret=retLiq;
   let aporte=0; if(T.caixa<0){ aporte=-T.caixa; s.conta-=aporte; T.caixa=0; }
   ex.push([`${a.nome}: retirada do lucro`, ret]);
   if(aporte) ex.push([`${a.nome}: você cobriu o prejuízo`, -aporte]);
@@ -12309,7 +12309,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v416</p>
+    <p class="titulo-versao">versão v417</p>
   </div>`;
 }
 function render(){
@@ -12544,8 +12544,8 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
         return `${a.mercado!=null?`<p class="hint">Valor de mercado hoje: <b>${fmt0(a.mercado)}</b> (3 anos do lucro atual). No patrimônio, o valor parte do que você pagou e se aproxima desse número aos poucos: sobe se o negócio crescer, cai se encolher.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} unidades · `:''}${noTeto?'Chegou ao teto desta unidade: para crescer, abra outra.':r>0.03?'Crescendo rápido: você está se dedicando.':r>0?'Crescendo devagar.':'Encolhendo: falta alguém cuidando.'} Vale ${fmt0(a.valor)} (cerca de 3 anos de lucro).</p>
         <div class="conta-acoes"><button class="btn coin" data-acao="expandir" data-alvo="${a.uid}" ${podeAVista(custoExpandir(a))?'':'disabled'}>Abrir nova unidade (${fmt0(custoExpandir(a))})</button></div>`; })():''}
       ${largado(a)?`<p class="hint" style="color:var(--loss)">Você está sem tempo para cuidar dele: renda 30% menor, mais quebras e mais risco de fechar. Um gerente resolve.</p>`:''}
-      ${a.tipo==='negocio'&&!a.tyc&&!a.gerente&&a.horas>1?`<p class="hint">Com gerente: fica com ${Math.round(gerCusto()*100)}% da renda, mas devolve ${hm(a.horas-Math.max(1,Math.round(a.horas*0.25)))} h por mês (você ainda supervisiona ${hm(Math.max(1,Math.round(a.horas*0.25)))} h), quebra menos, quase não fecha, melhora com o tempo e o negócio vale 25% mais na venda.</p>`:''}
-      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Gerir empresa</button>`:''}${a.tipo==='negocio'&&(!a.tyc||s.aposentado)&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Contratar gerente</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dispensar gerente</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Vender já por ${fmt0(vMerc(a)*0.85)}</button></div>
+      ${a.tipo==='negocio'&&!a.gerente&&a.horas>1?`<p class="hint">Com gerente: fica com ${Math.round(gerCusto()*100)}% da renda, mas devolve ${hm(a.horas-Math.max(1,Math.round(a.horas*0.25)))} h por mês (você ainda supervisiona ${hm(Math.max(1,Math.round(a.horas*0.25)))} h), quebra menos, quase não fecha, melhora com o tempo e o negócio vale 25% mais na venda.</p>`:''}
+      <div class="conta-acoes">${a.tyc?`<button class="btn coin" data-acao="tycAbrir" data-alvo="${a.uid}">Gerir empresa</button>`:''}${a.tipo==='negocio'&&!a.gerente&&a.horas>1?`<button class="btn" data-acao="gerente" data-alvo="${a.uid}">Contratar gerente</button>`:''}${a.gerente?`<button class="btn" data-acao="semgerente" data-alvo="${a.uid}">Dispensar gerente</button>`:''}<button class="btn" data-acao="vender" data-alvo="${a.uid}">Vender já por ${fmt0(vMerc(a)*0.85)}</button></div>
     </div>`).join('')}</section>`:'';
 
   const emps=s.parcelas.filter(p=>p.emp);
