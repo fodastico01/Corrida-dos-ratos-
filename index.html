@@ -4633,7 +4633,7 @@ const empregado = () => !s.aposentado && !s.empresario && s.desemp===0;
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
-  if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; return 'liberdade'; }
+  if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
   if(s.fel<=(temMente()||s.casado?8:15) && (!s.impulsoEm || s.mes-s.impulsoEm>=6)) return 'impulso';
@@ -5839,7 +5839,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v418</p>
+    <p class="titulo-versao">version v419</p>
   </div>`;
 }
 function render(){
@@ -5870,6 +5870,7 @@ function render(){
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Unemployed</strong><p>${s.desemp} ${s.desemp===1?"month":"months"} left until the new job. ${s.seguro>0?`Still ${s.seguro===1?"1 installment left":'restam '+s.seguro+" installments"} of insurance.`:"Unemployment insurance has ended."}</p></div>`;
 
   if(F3() && s.aposentado) alerta=`<div class="alerta bom"><strong>Living off income since ${rotulo(s.aposentouEm)}</strong><p>No salary. Dividends and portfolio withdrawals pay the bills. Keep passive income above 100% of costs.</p><button class="btn" data-acao="voltarRenda" style="margin-top:6px">Go back to work (${fmt0(Math.round(s.salario*0.85))}/mo)</button></div>`+alerta;
+  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
   else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>You can now live off income</strong><p>Passive income covers ${Math.round(cobertura()*100)}% of the cost of living.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?"Leave the businesses to managers and live off income":"Quit your job and live off income"}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button>`:''}</div>`+alerta;
   else if(F3() && s.empresario) alerta=`<div class="alerta neutro"><strong>Owner of your own business</strong><p>You left your job and your career is paused at the position of ${nomeCargo().toLowerCase()}.</p><button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button></div>`+alerta;
   if(F3() && s.semPontos){
@@ -7174,7 +7175,10 @@ document.addEventListener('click', e=>{
     case 'realizar': { const ps=precoSonho(); if(F3() && s.conta+investido()>=ps){ const falta=ps-Math.max(0,s.conta); if(falta>0){ const tot=investido(); for(const id of Object.keys(prods())){ const v=valor(id); if(v>0) calcResgate(id, Math.min(v, falta*v/tot+1), true); } } s.conta-=ps; s.sonhoFeito=s.mes; foto('sonho-'+(s.sonho||'viagem')); s.fel=100;
       s.licao={tom:'bom', titulo:`★ ${sonho().nome}`, texto: cobertura()>=1 ? "Dream realized and passive income still pays your bills. That's what winning the rat race is." : `Dream realized, but passive income fell to ${Math.round(cobertura()*100)}% of the cost of living. Be careful not to have to go back to work.`}; } salvar(); render(); break; }
     case 'voltarRenda': if(F3() && s.aposentado){ s.aposentado=false; s.salario=Math.round(s.salario*0.85); s.voltou=(s.voltou||0)+1; s.fel=clamp(s.fel-10,0,100); s.licao={tom:'neutro', titulo:"Back to work", texto:"You resumed your career with a slightly lower salary than before. Passive income keeps working for you, and you can stop again when it covers the cost of living with room to spare."}; salvar(); render(); } break;
-    case 'aposentar': if(F3() && !s.aposentado){ s.livreEm ||= s.mes; s.licao=aposentar(); salvar(); render(); } break;
+    case 'aposentar': if(F3() && !s.aposentado){
+      const go=()=>{ if(cobertura()>=1) s.livreEm ||= s.mes; s.licao=aposentar(); salvar(); render(); };
+      if(cobertura()<1){ const cob=Math.round(cobertura()*100); pedirConfirmacao(s.empresario?'Deixar os negócios agora?':'Pedir demissão agora?', `Sua renda passiva cobre só ${cob}% do seu custo de vida (${fmt0(rendaPassiva())} of ${fmt0(custoMensal())} por mês). ${s.empresario?'Os gerentes assumem, mas o':'O salário para e o'} que faltar sai da sua reserva e dos seus investimentos, e o dinheiro pode acabar. O jogo só considera você livre quando a cobertura passa de 100%.`, 'Sim, quero parar mesmo assim', ()=>go(), null); }
+      else go(); } break;
     case 'reset':
       if(!ui.resetArmado){ ui.resetArmado=true; render(); break; }
       ui.resetArmado=false; ui.modal=null; novoEstado(1); salvar(); render(); break;
@@ -11109,7 +11113,7 @@ const empregado = () => !s.aposentado && !s.empresario && s.desemp===0;
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
-  if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; return 'liberdade'; }
+  if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
   if(s.fel<=(temMente()||s.casado?8:15) && (!s.impulsoEm || s.mes-s.impulsoEm>=6)) return 'impulso';
@@ -12315,7 +12319,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v418</p>
+    <p class="titulo-versao">versão v419</p>
   </div>`;
 }
 function render(){
@@ -12346,6 +12350,7 @@ function render(){
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Desempregado</strong><p>Faltam ${s.desemp} ${s.desemp===1?'mês':'meses'} até o novo emprego. ${s.seguro>0?`Ainda ${s.seguro===1?'resta 1 parcela':'restam '+s.seguro+' parcelas'} do seguro.`:'O seguro-desemprego acabou.'}</p></div>`;
 
   if(F3() && s.aposentado) alerta=`<div class="alerta bom"><strong>Vivendo de renda desde ${rotulo(s.aposentouEm)}</strong><p>Sem salário. Dividendos e saques da carteira pagam as contas. Mantenha a renda passiva acima de 100% do custo.</p><button class="btn" data-acao="voltarRenda" style="margin-top:6px">Voltar a trabalhar (${fmt0(Math.round(s.salario*0.85))}/mês)</button></div>`+alerta;
+  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
   else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>Você já pode viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios com gerentes e viver de renda':'Pedir demissão e viver de renda'}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Voltar a trabalhar (${fmt0(s.salario)}/mês)</button>`:''}</div>`+alerta;
   else if(F3() && s.empresario) alerta=`<div class="alerta neutro"><strong>Dono do próprio negócio</strong><p>Você deixou o emprego e a carreira ficou pausada no cargo de ${nomeCargo().toLowerCase()}.</p><button class="btn" data-acao="voltarTrab" style="margin-top:6px">Voltar a trabalhar (${fmt0(s.salario)}/mês)</button></div>`+alerta;
   if(F3() && s.semPontos){
@@ -13650,7 +13655,10 @@ document.addEventListener('click', e=>{
     case 'realizar': { const ps=precoSonho(); if(F3() && s.conta+investido()>=ps){ const falta=ps-Math.max(0,s.conta); if(falta>0){ const tot=investido(); for(const id of Object.keys(prods())){ const v=valor(id); if(v>0) calcResgate(id, Math.min(v, falta*v/tot+1), true); } } s.conta-=ps; s.sonhoFeito=s.mes; foto('sonho-'+(s.sonho||'viagem')); s.fel=100;
       s.licao={tom:'bom', titulo:`★ ${sonho().nome}`, texto: cobertura()>=1 ? 'Sonho realizado e a renda passiva ainda paga as suas contas. É isso que é vencer a corrida dos ratos.' : `Sonho realizado, mas a renda passiva caiu para ${Math.round(cobertura()*100)}% do custo de vida. Cuidado para não ter que voltar a trabalhar.`}; } salvar(); render(); break; }
     case 'voltarRenda': if(F3() && s.aposentado){ s.aposentado=false; s.salario=Math.round(s.salario*0.85); s.voltou=(s.voltou||0)+1; s.fel=clamp(s.fel-10,0,100); s.licao={tom:'neutro', titulo:'De volta ao trabalho', texto:'Você retomou a carreira com um salário um pouco menor que o de antes. A renda passiva continua trabalhando por você, e dá para parar de novo quando ela cobrir o custo de vida com folga.'}; salvar(); render(); } break;
-    case 'aposentar': if(F3() && !s.aposentado){ s.livreEm ||= s.mes; s.licao=aposentar(); salvar(); render(); } break;
+    case 'aposentar': if(F3() && !s.aposentado){
+      const go=()=>{ if(cobertura()>=1) s.livreEm ||= s.mes; s.licao=aposentar(); salvar(); render(); };
+      if(cobertura()<1){ const cob=Math.round(cobertura()*100); pedirConfirmacao(s.empresario?'Deixar os negócios agora?':'Pedir demissão agora?', `Sua renda passiva cobre só ${cob}% do seu custo de vida (${fmt0(rendaPassiva())} de ${fmt0(custoMensal())} por mês). ${s.empresario?'Os gerentes assumem, mas o':'O salário para e o'} que faltar sai da sua reserva e dos seus investimentos, e o dinheiro pode acabar. O jogo só considera você livre quando a cobertura passa de 100%.`, 'Sim, quero parar mesmo assim', ()=>go(), null); }
+      else go(); } break;
     case 'reset':
       if(!ui.resetArmado){ ui.resetArmado=true; render(); break; }
       ui.resetArmado=false; ui.modal=null; novoEstado(1); salvar(); render(); break;
