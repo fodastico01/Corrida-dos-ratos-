@@ -3176,13 +3176,13 @@ const EVENTOS = {
       {label:"Tell and fix it", sub:"+1 performance", run:()=>{ s.desempenho=(s.desempenho||0)+1; return {tom:'bom', titulo:"This is how trust is built", texto:"Owning the mistake quickly showed maturity. Bosses like people who don't hide problems."}; }},
       {label:"Stay quiet", sub:"It may work out... or not", run:()=>{ if(Math.random()<0.5){ s.desempenho=Math.max(0,(s.desempenho||0)-2); return {tom:'ruim', titulo:"The mistake came out", texto:"They found out, and worse: that you knew. −2 performance."}; } return {tom:'neutro', titulo:"Nobody noticed", texto:"It slipped by this time. But luck is not a strategy."}; }}
     ]},
-  casamento:{fases:[2,3], peso:4, cd:24, minMes:6, tipo:'opcoes', cond:()=>!s.casado, titulo:()=>(s.recusouCasar||0)?"Love knocked on the door again":"You met someone special", texto:"The relationship got serious and the talk about marriage arrived. Marrying brings partnership, security and a fuller social life. Household costs go up, and you'll need at least a 1-bedroom apartment.",
+  casamento:{boost:'casar', fases:[2,3], peso:4, cd:24, minMes:6, tipo:'opcoes', cond:()=>!s.casado, titulo:()=>(s.recusouCasar||0)?"Love knocked on the door again":"You met someone special", texto:"The relationship got serious and the talk about marriage arrived. Marrying brings partnership, security and a fuller social life. Household costs go up, and you'll need at least a 1-bedroom apartment.",
     opcoes:()=>[
       {label:`Marry at city hall and travel (${fmt0(C(8000))})`, sub:subAVista(C(8000)), disabled:!podeAVista(C(8000)), run:()=>{ const t=pagarAVista(C(8000)); const r=casar(10); r.texto+=t; return r; }},
       {label:`Big party for 200 guests (${fmt0(C(45000))})`, sub:subAVista(C(45000)), disabled:!podeAVista(C(45000)), run:()=>{ const t=pagarAVista(C(45000)); s.infl=clamp((s.infl||0)+15,0,100); const r=casar(16); r.texto+=" The party even brought in contacts."+t; return r; }},
       {label:"Stay single", run:()=>{ s.recusouCasar=(s.recusouCasar||0)+1; s.fel=clamp(s.fel-negar(3),0,100); const c=lerCamp(); c.recusouCasar=s.recusouCasar; gravarCamp(c); return {tom:'neutro', titulo:"Not yet", texto:"That's fine: it's your life. But too much time alone also weighs on you over the years."}; }}
     ]},
-  filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && idadeJog()<=42 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?"A little brother?":"Shall we have a child?", texto:()=>`A child changes everything: with your current income, ${padraoFilho()} add up to about ${fmt0(custoFilho())} a month (around ${Math.round(PCT_FILHO*100)}% of what you earn), and the family will need at least an apartment${nFilhos()?" with 2 bedrooms":''}. In return, a joy no money can buy.`,
+  filhos:{boost:'filho', fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && idadeJog()<=42 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?"A little brother?":"Shall we have a child?", texto:()=>`A child changes everything: with your current income, ${padraoFilho()} add up to about ${fmt0(custoFilho())} a month (around ${Math.round(PCT_FILHO*100)}% of what you earn), and the family will need at least an apartment${nFilhos()?" with 2 bedrooms":''}. In return, a joy no money can buy.`,
     opcoes:()=>[
       {label:"Yes, let's!", coin:true, run:()=>{ idadesF().push(0); s.filhos=nFilhos(); foto(s.filhos>1?'bebe2':'bebe'); s.fixos[FK]=custoFilhos(); s.fel=clamp(s.fel+12,0,100); const c=lerCamp(); c.filhos=s.filhos; c.filhosIdade=idadesF(); gravarCamp(c);
         return {tom:'bom', titulo:s.filhos>1?"Family growing":"A baby is coming!", texto:`The cost of living goes up ${fmt0(custoFilho())} a month (${padraoFilho()}). If your income changes, this spending follows.${morN()<morMin()?" The house will be cramped: see the Home tab.":''} With more people depending on you, the emergency fund and net worth matter even more.`}; }},
@@ -4633,26 +4633,37 @@ const empregado = () => !s.aposentado && !s.empresario && s.desemp===0;
 /* ===== Balanço do ano e planos para o próximo (v421) ===== */
 const tirarSnap = () => ({ mes:s.mes, ano:anoAtual(), pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
   neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva()), div:Math.round(dividaParcelada()), nAtivos:(s.ativos||[]).length,
-  nEst:Object.keys(s.estudos||{}).length, mr:mesesReserva() });
+  nEst:Object.keys(s.estudos||{}).length, mr:mesesReserva(), nFil:idadesF().length });
 const nNegocios = () => (s.ativos||[]).filter(a=>a.tipo==='negocio').length;
+const progFeito = (id,desde) => ((lazP().hist||{})[id]||[]).some(m=>m>=desde);
+const planoTem = id => !!(s.plano && (s.plano.metas||[]).includes(id));
 const PLANOS = [
-  {id:'reserva', t:'Ter 6 meses de custo de vida na reserva', mostra:sn=>sn.mr<6, ok:sn=>mesesReserva()>=6},
-  {id:'cdb', t:'Aumentar a reserva (government bonds) em 30%', mostra:()=>true, ok:sn=>valor('cdb')>=Math.max(sn.cdb*1.3, sn.cdb+C(500))},
-  {id:'pat', t:'Aumentar o patrimônio em 20%', mostra:()=>true, ok:sn=>patrimonio()>=(sn.pat>0?sn.pat*1.2:sn.pat+C(5000))},
-  {id:'semneg', t:'Não entrar no cheque especial nenhum mês', mostra:()=>true, ok:()=>!(s.plano&&s.plano.neg)},
-  {id:'fel', t:'Fechar o ano com bem-estar acima de 70', mostra:()=>s.fel<70, ok:()=>s.fel>=70},
-  {id:'divida', t:'Reduzir as dívidas pela metade', mostra:sn=>sn.div>C(500), ok:sn=>dividaParcelada()<=sn.div*0.5},
-  {id:'acoes', t:'Aumentar o valor das ações em 25%', mostra:()=>F2()&&!!s.acoesLib, ok:sn=>valor('acoes')>=Math.max(sn.acoes*1.25, sn.acoes+C(1000))},
-  {id:'rp', t:'Aumentar a renda passiva em 25%', mostra:()=>F2(), ok:sn=>rendaPassiva()>Math.max(sn.rp*1.25, sn.rp)},
-  {id:'bem', t:'Comprar um imóvel ou um negócio', mostra:()=>F2(), ok:sn=>(s.ativos||[]).length>sn.nAtivos},
-  {id:'emp', t:'Aumentar o valor das suas empresas em 25%', mostra:()=>F2()&&nNegocios()>0, ok:sn=>(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)>=sn.neg*1.25 && sn.neg>0},
-  {id:'curso', t:'Começar um curso ou estudo novo', mostra:()=>estudosAbertos().length>0, ok:sn=>Object.keys(s.estudos||{}).length>sn.nEst}
+  // pessoais (g:'p')
+  {id:'treino', g:'p', ic:'🏃', t:'Treinar com regularidade (8 meses ou mais)', mostra:()=>true, ok:()=>!!(s.plano&&(s.plano.tm||0)>=8)},
+  {id:'cinema', g:'p', ic:'🎬', t:'Ir ao cinema', mostra:()=>true, ok:sn=>progFeito('cinema',sn.mes)},
+  {id:'casar', g:'p', ic:'💍', t:'Encontrar alguém especial e casar', mostra:()=>F2()&&!s.casado, ok:sn=>!!s.casado&&(s.casadoEm||0)>=sn.mes},
+  {id:'filho', g:'p', ic:'👶', t:'Ter um filho', mostra:()=>F2()&&!!s.casado&&nFilhos()<2&&idadeJog()<=42, ok:sn=>idadesF().length>sn.nFil},
+  {id:'viagemint', g:'p', ic:'✈️', t:'Fazer uma viagem internacional', mostra:()=>F2(), ok:sn=>(s.viagens||[]).some(v=>v.id==='exterior'&&v.ano>=sn.ano)||progFeito('aquatico',sn.mes)},
+  {id:'fds', g:'p', ic:'🏞️', t:'Fazer um fim de semana fora', mostra:()=>true, ok:sn=>progFeito('fds',sn.mes)},
+  {id:'jantar', g:'p', ic:'🍽️', t:'Jantar fora com quem você ama', mostra:()=>true, ok:sn=>progFeito('jantar',sn.mes)},
+  {id:'curso', g:'p', ic:'📚', t:'Começar um curso ou estudo novo', mostra:()=>estudosAbertos().length>0, ok:sn=>Object.keys(s.estudos||{}).length>sn.nEst},
+  {id:'fel', g:'p', ic:'😊', t:'Fechar o ano com bem-estar acima de 70', mostra:()=>s.fel<70, ok:()=>s.fel>=70},
+  // financeiras (g:'f')
+  {id:'reserva', g:'f', ic:'🛟', t:'Ter 6 meses de custo de vida na reserva', mostra:sn=>sn.mr<6, ok:sn=>mesesReserva()>=6},
+  {id:'cdb', g:'f', ic:'🏦', t:'Aumentar a reserva (government bonds) em 30%', mostra:()=>true, ok:sn=>valor('cdb')>=Math.max(sn.cdb*1.3, sn.cdb+C(500))},
+  {id:'pat', g:'f', ic:'📈', t:'Aumentar o patrimônio em 20%', mostra:()=>true, ok:sn=>patrimonio()>=(sn.pat>0?sn.pat*1.2:sn.pat+C(5000))},
+  {id:'semneg', g:'f', ic:'🚫', t:'Não entrar no cheque especial nenhum mês', mostra:()=>true, ok:()=>!(s.plano&&s.plano.neg)},
+  {id:'divida', g:'f', ic:'✂️', t:'Reduzir as dívidas pela metade', mostra:sn=>sn.div>C(500), ok:sn=>dividaParcelada()<=sn.div*0.5},
+  {id:'acoes', g:'f', ic:'📊', t:'Aumentar o valor das ações em 25%', mostra:()=>F2()&&!!s.acoesLib, ok:sn=>valor('acoes')>=Math.max(sn.acoes*1.25, sn.acoes+C(1000))},
+  {id:'rp', g:'f', ic:'💸', t:'Aumentar a renda passiva em 25%', mostra:()=>F2(), ok:sn=>rendaPassiva()>Math.max(sn.rp*1.25, sn.rp)},
+  {id:'bem', g:'f', ic:'🏠', t:'Comprar um imóvel ou um negócio', mostra:()=>F2(), ok:sn=>(s.ativos||[]).length>sn.nAtivos},
+  {id:'emp', g:'f', ic:'🏪', t:'Aumentar o valor das suas empresas em 25%', mostra:()=>F2()&&nNegocios()>0, ok:sn=>(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)>=sn.neg*1.25 && sn.neg>0}
 ];
-const planosDisponiveis = () => { const sn=s.snapAno||tirarSnap(); return PLANOS.filter(p=>p.mostra(sn)).slice(0,8); };
+const planosDisponiveis = () => { const sn=s.snapAno||tirarSnap(), L=PLANOS.filter(p=>p.mostra(sn)); return [...L.filter(p=>p.g==='p').slice(0,5), ...L.filter(p=>p.g==='f').slice(0,5)]; };
 function balCalc(){
   const sn=s.snapAno, pl=s.plano; if(!sn) return null;
   const metas=pl&&pl.metas?pl.metas.map(id=>PLANOS.find(x=>x.id===id)).filter(Boolean):[];
-  const res=metas.map(m=>({id:m.id,t:m.t,ok:!!m.ok(sn)})), n=res.filter(r=>r.ok).length;
+  const res=metas.map(m=>({id:m.id,t:`${m.ic} ${m.t}`,ok:!!m.ok(sn)})), n=res.filter(r=>r.ok).length;
   const bem=n?Math.min(15,n*4):0;
   s.balRes={ano:sn.ano, sn, res, n, bem, plano:metas.length>0, pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
     neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva())};
@@ -4673,20 +4684,21 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     return L.join('<br>')+'<br><br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0,plano:false};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.planoAnt=s.plano; s.plano=null; s.planoSel=[];
-    s.filaEv=[...(s.filaEv||[]), 'planos'];
+    s.planoPend=true;
     return {tom:r.n>0?'bom':'neutro', titulo:r.plano?(r.n>0?'Ano com metas cumpridas':'Ano sem metas cumpridas'):'Balanço do ano', texto:r.plano?(r.n>0?'Quem planeja e cumpre enxerga o próprio progresso. Agora, os planos do próximo ano.':'Não cumprir não tem multa. Mas metas pequenas e claras ajudam a mudar o rumo. Agora, os planos do próximo ano.'):'Agora, os planos do próximo ano.'}; }};
 ESPECIAIS.planos = {tipo:'opcoes', antes:()=>{ s.planoSel=[]; },
   titulo:()=>`Planos para ${anoAtual()}`,
-  texto:()=>'Escolha até 4 metas para este ano. Cada meta cumprida dá +4 de bem-estar (máximo +15). Cumprindo pelo menos uma, o ano termina em paz. Sem nenhuma, não acontece nada, mas o ano passa em branco.',
+  texto:()=>'Escolha até 4 metas para este ano, de vida e de dinheiro. Cada meta cumprida dá +4 de bem-estar (máximo +15). Cumprindo pelo menos uma, o ano termina em paz. Sem nenhuma, não acontece nada, mas o ano passa em branco. Metas de casar ou ter filho deixam essas oportunidades mais prováveis.',
   opcoes:()=>{ const sel=s.planoSel||(s.planoSel=[]), lista=planosDisponiveis();
-    return [...lista.map(p=>({label:`${sel.includes(p.id)?'☑':'☐'} ${p.t}`, sub:sel.includes(p.id)?'Escolhida. Toque para tirar':(sel.length>=4?'Limite de 4 metas':'Toque para escolher'), manter:true, run:()=>{ const i=sel.indexOf(p.id); if(i>=0) sel.splice(i,1); else if(sel.length<4) sel.push(p.id); return null; }})),
-      {label:sel.length?`Fechar os planos (${sel.length} ${sel.length===1?'meta':'metas'})`:'Seguir o ano sem metas', coin:true, run:()=>{ const sn=tirarSnap(); s.snapAno=sn; s.plano={ano:anoAtual(), metas:[...sel], neg:false}; s.planoSel=[];
+    return [...lista.map(p=>({label:`${sel.includes(p.id)?'☑':'☐'} ${p.ic} ${p.t}`, sub:sel.includes(p.id)?'Escolhida. Toque para tirar':(sel.length>=4?'Limite de 4 metas':'Toque para escolher'), manter:true, run:()=>{ const i=sel.indexOf(p.id); if(i>=0) sel.splice(i,1); else if(sel.length<4) sel.push(p.id); return null; }})),
+      {label:sel.length?`Fechar os planos (${sel.length} ${sel.length===1?'meta':'metas'})`:'Seguir o ano sem metas', coin:true, run:()=>{ const sn=tirarSnap(); s.snapAno=sn; s.plano={ano:anoAtual(), metas:[...sel], neg:false}; s.planoSel=[]; s.planoPend=false;
         return {tom:'neutro', titulo:sel.length?'Planos feitos':'Ano sem metas', texto:sel.length?'Metas escolhidas. Você acompanha o resultado no balanço da virada do ano.':'Sem metas neste ano. Dá para escolher no próximo balanço.'}; }}]; }};
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
+  if(s.planoPend) return 'planos';
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && s.mes-s.snapAno.mes>=6 && !s.fim) return 'balanco';
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
@@ -4704,7 +4716,7 @@ function eventoForcado(){
 }
 const evOk=(id,e,solto)=> e && (s.fase===4 && s.mes<=24 ? (e.fases||[1,2,3]).includes(1) : faseOk(e.fases||[1,2,3])) && !(e.tipo==='custo' && e.custo && s.mes<24 && C(e.custo)>(s.salario||0)) && (!e.minMes||s.mes>=e.minMes) && (!e.maxMes||s.mes<=e.maxMes) && !(e.once&&visto(id)) && (!e.profs||e.profs.includes(s.prof))
   && !(e.trab&&!empregado()) && (solto || !(s.ultEv&&s.ultEv[id]!=null&&s.mes-s.ultEv[id]<(e.cd||12)) && id!==s.ultimoEv) && (!e.cond||e.cond());
-const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1);
+const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1)*(e.boost && planoTem(e.boost) ? 4 : 1);
 // cursos que dá para começar agora (a casa Estudar oferece com bolsa)
 function estudosAbertos(){
   if((s.estudoAte||0)>s.mes) return [];
@@ -4749,7 +4761,14 @@ const VIAS2=[1,2,3,4,5,6,5,4,3,2,1];
 function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
-  const d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2, de=R.pos%96, para=(de+soma)%96;
+  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço e os planos, e o resto do caminho vem depois
+    const d0=(96-de)%96;
+    if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
+      const mJ=s.mes+kJ, anoJ=Math.floor((cfg().ano0*12+mJ-1)/12);
+      if(anoJ>s.snapAno.ano && s.balAno!==anoJ && mJ-s.snapAno.mes>=6){ R.resto=soma-d0; R.restoD=[d1,d2]; soma=d0; } } }
+  const para=(de+soma)%96;
   let k=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=soma) k++; }
   let tipo=anel()[para], mis=false;
   if(tipo==='mis'){ const A=anel().filter(x=>x!=='mis'&&x!=='cor'&&x!=='gop'); tipo=A[Math.floor(Math.random()*A.length)]; mis=true; }
@@ -4915,7 +4934,7 @@ function legendaTabuleiro(){
 }
 /* ================= turno ================= */
 function iniciarMes(){
-  if(!s.snapAno && s.iniciado!==false) s.snapAno=tirarSnap(); if(s.plano && s.conta<0) s.plano.neg=true;
+  if(!s.snapAno && s.iniciado!==false) s.snapAno=tirarSnap(); if(s.plano && s.conta<0) s.plano.neg=true; if(s.plano && treinando()) s.plano.tm=(s.plano.tm||0)+1;
   s.mes++; s.vendasAcoes=0; if(mesCal()===1){ s.marcas={}; s.marcasT={}; }
   const ex=[]; let lic=null; const conta0=s.conta;
   if(s.mes>1){
@@ -5146,7 +5165,11 @@ function resolver(i, confirmado=false){
     if(r.length) s.licao={...s.licao, efeito:r.join(' · ')}; }
   if(s.conqPend && s.licao && !s.licao.texto.includes(s.conqPend)){ s.licao={...s.licao, texto:s.licao.texto+' '+s.conqPend}; } s.conqPend=null;
   s.evento=null; ui.modal=op.modal||null;
-  checarDesbloqueio(); checarFim(); if(!s.fim) proximoDaFila(); salvar(); render();
+  checarDesbloqueio(); checarFim();
+  if(!s.fim && !s.evento && s.planoPend){ ui.modal=null; abrirUm('planos'); ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; salvar(); render(); return; }   // depois do balanço, os planos do ano
+  if(!s.fim) proximoDaFila();
+  if(!s.fim && !s.evento && !ui.modal && s.rol && s.rol.resto>0){ salvar(); avancar(1); return; }   // o lance parado na virada do ano continua
+  salvar(); render();
 }
 function avancar(n=1){
   if(s.mes>=totalMes()){ s.fim='fim'; ui.modal='fim'; salvar(); render(); return; }
@@ -5897,7 +5920,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v421</p>
+    <p class="titulo-versao">version v422</p>
   </div>`;
 }
 function render(){
@@ -9714,13 +9737,13 @@ const EVENTOS = {
       {label:'Contar e corrigir', sub:'+1 de desempenho', run:()=>{ s.desempenho=(s.desempenho||0)+1; return {tom:'bom', titulo:'Confiança se constrói assim', texto:'Assumir o erro rápido mostrou maturidade. Chefe gosta de quem não esconde problema.'}; }},
       {label:'Ficar quieto(a)', sub:'Pode dar certo... ou não', run:()=>{ if(Math.random()<0.5){ s.desempenho=Math.max(0,(s.desempenho||0)-2); return {tom:'ruim', titulo:'O erro apareceu', texto:'Descobriram, e pior: que você sabia. −2 de desempenho.'}; } return {tom:'neutro', titulo:'Ninguém percebeu', texto:'Desta vez passou. Mas sorte não é estratégia.'}; }}
     ]},
-  casamento:{fases:[2,3], peso:4, cd:24, minMes:6, tipo:'opcoes', cond:()=>!s.casado, titulo:()=>(s.recusouCasar||0)?'O amor bateu à porta de novo':'Você encontrou alguém especial', texto:'O namoro ficou sério e a conversa sobre casamento chegou. Casar dá parceria, segurança e uma vida social mais cheia. Os gastos da casa sobem, e vocês vão precisar de pelo menos um apê de 1 quarto.',
+  casamento:{boost:'casar', fases:[2,3], peso:4, cd:24, minMes:6, tipo:'opcoes', cond:()=>!s.casado, titulo:()=>(s.recusouCasar||0)?'O amor bateu à porta de novo':'Você encontrou alguém especial', texto:'O namoro ficou sério e a conversa sobre casamento chegou. Casar dá parceria, segurança e uma vida social mais cheia. Os gastos da casa sobem, e vocês vão precisar de pelo menos um apê de 1 quarto.',
     opcoes:()=>[
       {label:`Casar no cartório e viajar (${fmt0(C(8000))})`, sub:subAVista(C(8000)), disabled:!podeAVista(C(8000)), run:()=>{ const t=pagarAVista(C(8000)); const r=casar(10); r.texto+=t; return r; }},
       {label:`Festa grande para 200 convidados (${fmt0(C(45000))})`, sub:subAVista(C(45000)), disabled:!podeAVista(C(45000)), run:()=>{ const t=pagarAVista(C(45000)); s.infl=clamp((s.infl||0)+15,0,100); const r=casar(16); r.texto+=' A festa ainda rendeu contatos.'+t; return r; }},
       {label:'Continuar solteiro(a)', run:()=>{ s.recusouCasar=(s.recusouCasar||0)+1; s.fel=clamp(s.fel-negar(3),0,100); const c=lerCamp(); c.recusouCasar=s.recusouCasar; gravarCamp(c); return {tom:'neutro', titulo:'Ainda não', texto:'Tudo bem: a vida é sua. Só que tempo sozinho demais também pesa com os anos.'}; }}
     ]},
-  filhos:{fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && idadeJog()<=42 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?'Um irmãozinho?':'Vamos ter um filho?', texto:()=>`Um filho muda tudo: com a sua renda de hoje, ${padraoFilho()} somam uns ${fmt0(custoFilho())} por mês (cerca de ${Math.round(PCT_FILHO*100)}% do que você ganha), e a família vai precisar de pelo menos um apê${nFilhos()?' de 2 quartos':''}. Em troca, uma alegria que dinheiro nenhum compra.`,
+  filhos:{boost:'filho', fases:[2,3], peso:4, cd:18, tipo:'opcoes', cond:()=>s.casado && nFilhos()<2 && idadeJog()<=42 && s.mes-(s.casadoEm||0)>=6, titulo:()=>nFilhos()?'Um irmãozinho?':'Vamos ter um filho?', texto:()=>`Um filho muda tudo: com a sua renda de hoje, ${padraoFilho()} somam uns ${fmt0(custoFilho())} por mês (cerca de ${Math.round(PCT_FILHO*100)}% do que você ganha), e a família vai precisar de pelo menos um apê${nFilhos()?' de 2 quartos':''}. Em troca, uma alegria que dinheiro nenhum compra.`,
     opcoes:()=>[
       {label:'Sim, vamos!', coin:true, run:()=>{ idadesF().push(0); s.filhos=nFilhos(); foto(s.filhos>1?'bebe2':'bebe'); s.fixos[FK]=custoFilhos(); s.fel=clamp(s.fel+12,0,100); const c=lerCamp(); c.filhos=s.filhos; c.filhosIdade=idadesF(); gravarCamp(c);
         return {tom:'bom', titulo:s.filhos>1?'Família crescendo':'Vem aí um bebê!', texto:`O custo de vida sobe ${fmt0(custoFilho())} por mês (${padraoFilho()}). Se a sua renda mudar, esse gasto acompanha.${morN()<morMin()?' A casa vai ficar apertada: veja na aba Casa.':''} Com mais gente dependendo de você, a reserva e o patrimônio ficam ainda mais importantes.`}; }},
@@ -11171,26 +11194,37 @@ const empregado = () => !s.aposentado && !s.empresario && s.desemp===0;
 /* ===== Balanço do ano e planos para o próximo (v421) ===== */
 const tirarSnap = () => ({ mes:s.mes, ano:anoAtual(), pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
   neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva()), div:Math.round(dividaParcelada()), nAtivos:(s.ativos||[]).length,
-  nEst:Object.keys(s.estudos||{}).length, mr:mesesReserva() });
+  nEst:Object.keys(s.estudos||{}).length, mr:mesesReserva(), nFil:idadesF().length });
 const nNegocios = () => (s.ativos||[]).filter(a=>a.tipo==='negocio').length;
+const progFeito = (id,desde) => ((lazP().hist||{})[id]||[]).some(m=>m>=desde);
+const planoTem = id => !!(s.plano && (s.plano.metas||[]).includes(id));
 const PLANOS = [
-  {id:'reserva', t:'Ter 6 meses de custo de vida na reserva', mostra:sn=>sn.mr<6, ok:sn=>mesesReserva()>=6},
-  {id:'cdb', t:'Aumentar a reserva (CDB) em 30%', mostra:()=>true, ok:sn=>valor('cdb')>=Math.max(sn.cdb*1.3, sn.cdb+C(500))},
-  {id:'pat', t:'Aumentar o patrimônio em 20%', mostra:()=>true, ok:sn=>patrimonio()>=(sn.pat>0?sn.pat*1.2:sn.pat+C(5000))},
-  {id:'semneg', t:'Não entrar no cheque especial nenhum mês', mostra:()=>true, ok:()=>!(s.plano&&s.plano.neg)},
-  {id:'fel', t:'Fechar o ano com bem-estar acima de 70', mostra:()=>s.fel<70, ok:()=>s.fel>=70},
-  {id:'divida', t:'Reduzir as dívidas pela metade', mostra:sn=>sn.div>C(500), ok:sn=>dividaParcelada()<=sn.div*0.5},
-  {id:'acoes', t:'Aumentar o valor das ações em 25%', mostra:()=>F2()&&!!s.acoesLib, ok:sn=>valor('acoes')>=Math.max(sn.acoes*1.25, sn.acoes+C(1000))},
-  {id:'rp', t:'Aumentar a renda passiva em 25%', mostra:()=>F2(), ok:sn=>rendaPassiva()>Math.max(sn.rp*1.25, sn.rp)},
-  {id:'bem', t:'Comprar um imóvel ou um negócio', mostra:()=>F2(), ok:sn=>(s.ativos||[]).length>sn.nAtivos},
-  {id:'emp', t:'Aumentar o valor das suas empresas em 25%', mostra:()=>F2()&&nNegocios()>0, ok:sn=>(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)>=sn.neg*1.25 && sn.neg>0},
-  {id:'curso', t:'Começar um curso ou estudo novo', mostra:()=>estudosAbertos().length>0, ok:sn=>Object.keys(s.estudos||{}).length>sn.nEst}
+  // pessoais (g:'p')
+  {id:'treino', g:'p', ic:'🏃', t:'Treinar com regularidade (8 meses ou mais)', mostra:()=>true, ok:()=>!!(s.plano&&(s.plano.tm||0)>=8)},
+  {id:'cinema', g:'p', ic:'🎬', t:'Ir ao cinema', mostra:()=>true, ok:sn=>progFeito('cinema',sn.mes)},
+  {id:'casar', g:'p', ic:'💍', t:'Encontrar alguém especial e casar', mostra:()=>F2()&&!s.casado, ok:sn=>!!s.casado&&(s.casadoEm||0)>=sn.mes},
+  {id:'filho', g:'p', ic:'👶', t:'Ter um filho', mostra:()=>F2()&&!!s.casado&&nFilhos()<2&&idadeJog()<=42, ok:sn=>idadesF().length>sn.nFil},
+  {id:'viagemint', g:'p', ic:'✈️', t:'Fazer uma viagem internacional', mostra:()=>F2(), ok:sn=>(s.viagens||[]).some(v=>v.id==='exterior'&&v.ano>=sn.ano)||progFeito('aquatico',sn.mes)},
+  {id:'fds', g:'p', ic:'🏞️', t:'Fazer um fim de semana fora', mostra:()=>true, ok:sn=>progFeito('fds',sn.mes)},
+  {id:'jantar', g:'p', ic:'🍽️', t:'Jantar fora com quem você ama', mostra:()=>true, ok:sn=>progFeito('jantar',sn.mes)},
+  {id:'curso', g:'p', ic:'📚', t:'Começar um curso ou estudo novo', mostra:()=>estudosAbertos().length>0, ok:sn=>Object.keys(s.estudos||{}).length>sn.nEst},
+  {id:'fel', g:'p', ic:'😊', t:'Fechar o ano com bem-estar acima de 70', mostra:()=>s.fel<70, ok:()=>s.fel>=70},
+  // financeiras (g:'f')
+  {id:'reserva', g:'f', ic:'🛟', t:'Ter 6 meses de custo de vida na reserva', mostra:sn=>sn.mr<6, ok:sn=>mesesReserva()>=6},
+  {id:'cdb', g:'f', ic:'🏦', t:'Aumentar a reserva (CDB) em 30%', mostra:()=>true, ok:sn=>valor('cdb')>=Math.max(sn.cdb*1.3, sn.cdb+C(500))},
+  {id:'pat', g:'f', ic:'📈', t:'Aumentar o patrimônio em 20%', mostra:()=>true, ok:sn=>patrimonio()>=(sn.pat>0?sn.pat*1.2:sn.pat+C(5000))},
+  {id:'semneg', g:'f', ic:'🚫', t:'Não entrar no cheque especial nenhum mês', mostra:()=>true, ok:()=>!(s.plano&&s.plano.neg)},
+  {id:'divida', g:'f', ic:'✂️', t:'Reduzir as dívidas pela metade', mostra:sn=>sn.div>C(500), ok:sn=>dividaParcelada()<=sn.div*0.5},
+  {id:'acoes', g:'f', ic:'📊', t:'Aumentar o valor das ações em 25%', mostra:()=>F2()&&!!s.acoesLib, ok:sn=>valor('acoes')>=Math.max(sn.acoes*1.25, sn.acoes+C(1000))},
+  {id:'rp', g:'f', ic:'💸', t:'Aumentar a renda passiva em 25%', mostra:()=>F2(), ok:sn=>rendaPassiva()>Math.max(sn.rp*1.25, sn.rp)},
+  {id:'bem', g:'f', ic:'🏠', t:'Comprar um imóvel ou um negócio', mostra:()=>F2(), ok:sn=>(s.ativos||[]).length>sn.nAtivos},
+  {id:'emp', g:'f', ic:'🏪', t:'Aumentar o valor das suas empresas em 25%', mostra:()=>F2()&&nNegocios()>0, ok:sn=>(s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)>=sn.neg*1.25 && sn.neg>0}
 ];
-const planosDisponiveis = () => { const sn=s.snapAno||tirarSnap(); return PLANOS.filter(p=>p.mostra(sn)).slice(0,8); };
+const planosDisponiveis = () => { const sn=s.snapAno||tirarSnap(), L=PLANOS.filter(p=>p.mostra(sn)); return [...L.filter(p=>p.g==='p').slice(0,5), ...L.filter(p=>p.g==='f').slice(0,5)]; };
 function balCalc(){
   const sn=s.snapAno, pl=s.plano; if(!sn) return null;
   const metas=pl&&pl.metas?pl.metas.map(id=>PLANOS.find(x=>x.id===id)).filter(Boolean):[];
-  const res=metas.map(m=>({id:m.id,t:m.t,ok:!!m.ok(sn)})), n=res.filter(r=>r.ok).length;
+  const res=metas.map(m=>({id:m.id,t:`${m.ic} ${m.t}`,ok:!!m.ok(sn)})), n=res.filter(r=>r.ok).length;
   const bem=n?Math.min(15,n*4):0;
   s.balRes={ano:sn.ano, sn, res, n, bem, plano:metas.length>0, pat:Math.round(patrimonio()), sal:Math.round(s.salario||0), acoes:Math.round(valor('acoes')), cdb:Math.round(valor('cdb')),
     neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva())};
@@ -11211,20 +11245,21 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     return L.join('<br>')+'<br><br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0,plano:false};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.planoAnt=s.plano; s.plano=null; s.planoSel=[];
-    s.filaEv=[...(s.filaEv||[]), 'planos'];
+    s.planoPend=true;
     return {tom:r.n>0?'bom':'neutro', titulo:r.plano?(r.n>0?'Ano com metas cumpridas':'Ano sem metas cumpridas'):'Balanço do ano', texto:r.plano?(r.n>0?'Quem planeja e cumpre enxerga o próprio progresso. Agora, os planos do próximo ano.':'Não cumprir não tem multa. Mas metas pequenas e claras ajudam a mudar o rumo. Agora, os planos do próximo ano.'):'Agora, os planos do próximo ano.'}; }};
 ESPECIAIS.planos = {tipo:'opcoes', antes:()=>{ s.planoSel=[]; },
   titulo:()=>`Planos para ${anoAtual()}`,
-  texto:()=>'Escolha até 4 metas para este ano. Cada meta cumprida dá +4 de bem-estar (máximo +15). Cumprindo pelo menos uma, o ano termina em paz. Sem nenhuma, não acontece nada, mas o ano passa em branco.',
+  texto:()=>'Escolha até 4 metas para este ano, de vida e de dinheiro. Cada meta cumprida dá +4 de bem-estar (máximo +15). Cumprindo pelo menos uma, o ano termina em paz. Sem nenhuma, não acontece nada, mas o ano passa em branco. Metas de casar ou ter filho deixam essas oportunidades mais prováveis.',
   opcoes:()=>{ const sel=s.planoSel||(s.planoSel=[]), lista=planosDisponiveis();
-    return [...lista.map(p=>({label:`${sel.includes(p.id)?'☑':'☐'} ${p.t}`, sub:sel.includes(p.id)?'Escolhida. Toque para tirar':(sel.length>=4?'Limite de 4 metas':'Toque para escolher'), manter:true, run:()=>{ const i=sel.indexOf(p.id); if(i>=0) sel.splice(i,1); else if(sel.length<4) sel.push(p.id); return null; }})),
-      {label:sel.length?`Fechar os planos (${sel.length} ${sel.length===1?'meta':'metas'})`:'Seguir o ano sem metas', coin:true, run:()=>{ const sn=tirarSnap(); s.snapAno=sn; s.plano={ano:anoAtual(), metas:[...sel], neg:false}; s.planoSel=[];
+    return [...lista.map(p=>({label:`${sel.includes(p.id)?'☑':'☐'} ${p.ic} ${p.t}`, sub:sel.includes(p.id)?'Escolhida. Toque para tirar':(sel.length>=4?'Limite de 4 metas':'Toque para escolher'), manter:true, run:()=>{ const i=sel.indexOf(p.id); if(i>=0) sel.splice(i,1); else if(sel.length<4) sel.push(p.id); return null; }})),
+      {label:sel.length?`Fechar os planos (${sel.length} ${sel.length===1?'meta':'metas'})`:'Seguir o ano sem metas', coin:true, run:()=>{ const sn=tirarSnap(); s.snapAno=sn; s.plano={ano:anoAtual(), metas:[...sel], neg:false}; s.planoSel=[]; s.planoPend=false;
         return {tom:'neutro', titulo:sel.length?'Planos feitos':'Ano sem metas', texto:sel.length?'Metas escolhidas. Você acompanha o resultado no balanço da virada do ano.':'Sem metas neste ano. Dá para escolher no próximo balanço.'}; }}]; }};
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
+  if(s.planoPend) return 'planos';
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && s.mes-s.snapAno.mes>=6 && !s.fim) return 'balanco';
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
@@ -11242,7 +11277,7 @@ function eventoForcado(){
 }
 const evOk=(id,e,solto)=> e && (s.fase===4 && s.mes<=24 ? (e.fases||[1,2,3]).includes(1) : faseOk(e.fases||[1,2,3])) && !(e.tipo==='custo' && e.custo && s.mes<24 && C(e.custo)>(s.salario||0)) && (!e.minMes||s.mes>=e.minMes) && (!e.maxMes||s.mes<=e.maxMes) && !(e.once&&visto(id)) && (!e.profs||e.profs.includes(s.prof))
   && !(e.trab&&!empregado()) && (solto || !(s.ultEv&&s.ultEv[id]!=null&&s.mes-s.ultEv[id]<(e.cd||12)) && id!==s.ultimoEv) && (!e.cond||e.cond());
-const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1);
+const pesoEv = e => (e.peso||1)*(e.animo && s.fel>=75 ? 2 : 1)*(e.boost && planoTem(e.boost) ? 4 : 1);
 // cursos que dá para começar agora (a casa Estudar oferece com bolsa)
 function estudosAbertos(){
   if((s.estudoAte||0)>s.mes) return [];
@@ -11287,7 +11322,14 @@ const VIAS2=[1,2,3,4,5,6,5,4,3,2,1];
 function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
-  const d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2, de=R.pos%96, para=(de+soma)%96;
+  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço e os planos, e o resto do caminho vem depois
+    const d0=(96-de)%96;
+    if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
+      const mJ=s.mes+kJ, anoJ=Math.floor((cfg().ano0*12+mJ-1)/12);
+      if(anoJ>s.snapAno.ano && s.balAno!==anoJ && mJ-s.snapAno.mes>=6){ R.resto=soma-d0; R.restoD=[d1,d2]; soma=d0; } } }
+  const para=(de+soma)%96;
   let k=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=soma) k++; }
   let tipo=anel()[para], mis=false;
   if(tipo==='mis'){ const A=anel().filter(x=>x!=='mis'&&x!=='cor'&&x!=='gop'); tipo=A[Math.floor(Math.random()*A.length)]; mis=true; }
@@ -11453,7 +11495,7 @@ function legendaTabuleiro(){
 }
 /* ================= turno ================= */
 function iniciarMes(){
-  if(!s.snapAno && s.iniciado!==false) s.snapAno=tirarSnap(); if(s.plano && s.conta<0) s.plano.neg=true;
+  if(!s.snapAno && s.iniciado!==false) s.snapAno=tirarSnap(); if(s.plano && s.conta<0) s.plano.neg=true; if(s.plano && treinando()) s.plano.tm=(s.plano.tm||0)+1;
   s.mes++; s.vendasAcoes=0; if(mesCal()===1){ s.marcas={}; s.marcasT={}; }
   const ex=[]; let lic=null; const conta0=s.conta;
   if(s.mes>1){
@@ -11684,7 +11726,11 @@ function resolver(i, confirmado=false){
     if(r.length) s.licao={...s.licao, efeito:r.join(' · ')}; }
   if(s.conqPend && s.licao && !s.licao.texto.includes(s.conqPend)){ s.licao={...s.licao, texto:s.licao.texto+' '+s.conqPend}; } s.conqPend=null;
   s.evento=null; ui.modal=op.modal||null;
-  checarDesbloqueio(); checarFim(); if(!s.fim) proximoDaFila(); salvar(); render();
+  checarDesbloqueio(); checarFim();
+  if(!s.fim && !s.evento && s.planoPend){ ui.modal=null; abrirUm('planos'); ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; salvar(); render(); return; }   // depois do balanço, os planos do ano
+  if(!s.fim) proximoDaFila();
+  if(!s.fim && !s.evento && !ui.modal && s.rol && s.rol.resto>0){ salvar(); avancar(1); return; }   // o lance parado na virada do ano continua
+  salvar(); render();
 }
 function avancar(n=1){
   if(s.mes>=totalMes()){ s.fim='fim'; ui.modal='fim'; salvar(); render(); return; }
@@ -12435,7 +12481,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v421</p>
+    <p class="titulo-versao">versão v422</p>
   </div>`;
 }
 function render(){
