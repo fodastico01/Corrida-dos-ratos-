@@ -5890,7 +5890,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v430</p>
+    <p class="titulo-versao">version v431</p>
   </div>`;
 }
 function render(){
@@ -5921,7 +5921,7 @@ function render(){
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Unemployed</strong><p>${s.desemp} ${s.desemp===1?"month":"months"} left until the new job. ${s.seguro>0?`Still ${s.seguro===1?"1 installment left":'restam '+s.seguro+" installments"} of insurance.`:"Unemployment insurance has ended."}</p></div>`;
 
   if(F3() && s.aposentado) alerta=`<div class="alerta bom"><strong>Living off income since ${rotulo(s.aposentouEm)}</strong><p>No salary. Dividends and portfolio withdrawals pay the bills. Keep passive income above 100% of costs.</p><button class="btn" data-acao="voltarRenda" style="margin-top:6px">Go back to work (${fmt0(Math.round(s.salario*0.85))}/mo)</button></div>`+alerta;
-  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
+  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado && s.desemp===0) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
   else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>You can now live off income</strong><p>Passive income covers ${Math.round(cobertura()*100)}% of the cost of living.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?"Leave the businesses to managers and live off income":"Quit your job and live off income"}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button>`:''}</div>`+alerta;
   else if(F3() && s.empresario) alerta=`<div class="alerta neutro"><strong>Owner of your own business</strong><p>You left your job and your career is paused at the position of ${nomeCargo().toLowerCase()}.</p><button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button></div>`+alerta;
   if(F3() && s.semPontos){
@@ -6140,12 +6140,14 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   </section>`;
 
   const extratoCard=`<section class="card" aria-labelledby="t-ext">
-    <h2 id="t-ext">Statement for ${rotulo(s.mes)}</h2>
+    <h2 id="t-ext">Extrato de ${rotulo(s.mes)}</h2>
     <div class="recibo">
-      <div class="recibo-cab">MONTH'S ACTIVITY</div>
+      <div class="recibo-cab">MOVIMENTAÇÃO DO MÊS</div>
       ${linhas}
-      <div class="linha total"><span>Result of the month</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
+      <div class="linha total"><span>Resultado de ${rotulo(s.mes)}</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
       ${s.extrato.filter(l=>l[3]).map(([n,v])=>`<div class="linha" style="opacity:.8"><span>${n} <small>(transfer, not an expense)</small></span><span class="v">${v>0?'+':'−'}${fmt(Math.abs(v))}</span></div>`).join('')}
+      ${(()=>{ const fx=fluxo().sobra, dif=Math.round(fx-total), sem=s.desemp>0&&!(s.seguro>0)&&s.extrato.some(l=>/Seguro-desemprego/.test(String(l[0])));
+        return `<div class="linha total" style="margin-top:6px"><span>Previsão de ${rotulo(s.mes+1)} (aparece no topo)</span><span class="v ${fx>=0?'pos':'neg'}">${fx>=0?'+':'−'}${fmt(Math.abs(fx))}</span></div>${sem?`<p class="hint" style="margin:4px 0 0">O seguro-desemprego acabou: o próximo mês não conta mais com essa entrada.</p>`:(Math.abs(dif)>=1?`<p class="hint" style="margin:4px 0 0">A previsão considera só o que se repete todo mês. Entradas e gastos de uma vez, como bônus, imprevistos e compras, ficam de fora.</p>`:'')}`; })()}
     </div>
   </section>`;
   // painel de renda no estilo Timeflow: quanto cada fonte paga e quanto tempo pede
@@ -6217,7 +6219,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} of ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>government bonds</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Fluxo/mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>government bonds</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Próx. mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
@@ -12423,7 +12425,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v430</p>
+    <p class="titulo-versao">versão v431</p>
   </div>`;
 }
 function render(){
@@ -12454,7 +12456,7 @@ function render(){
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Desempregado</strong><p>Faltam ${s.desemp} ${s.desemp===1?'mês':'meses'} até o novo emprego. ${s.seguro>0?`Ainda ${s.seguro===1?'resta 1 parcela':'restam '+s.seguro+' parcelas'} do seguro.`:'O seguro-desemprego acabou.'}</p></div>`;
 
   if(F3() && s.aposentado) alerta=`<div class="alerta bom"><strong>Vivendo de renda desde ${rotulo(s.aposentouEm)}</strong><p>Sem salário. Dividendos e saques da carteira pagam as contas. Mantenha a renda passiva acima de 100% do custo.</p><button class="btn" data-acao="voltarRenda" style="margin-top:6px">Voltar a trabalhar (${fmt0(Math.round(s.salario*0.85))}/mês)</button></div>`+alerta;
-  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
+  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado && s.desemp===0) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
   else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>Você já pode viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios com gerentes e viver de renda':'Pedir demissão e viver de renda'}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Voltar a trabalhar (${fmt0(s.salario)}/mês)</button>`:''}</div>`+alerta;
   else if(F3() && s.empresario) alerta=`<div class="alerta neutro"><strong>Dono do próprio negócio</strong><p>Você deixou o emprego e a carreira ficou pausada no cargo de ${nomeCargo().toLowerCase()}.</p><button class="btn" data-acao="voltarTrab" style="margin-top:6px">Voltar a trabalhar (${fmt0(s.salario)}/mês)</button></div>`+alerta;
   if(F3() && s.semPontos){
@@ -12677,8 +12679,10 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     <div class="recibo">
       <div class="recibo-cab">MOVIMENTAÇÃO DO MÊS</div>
       ${linhas}
-      <div class="linha total"><span>Resultado do mês</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
+      <div class="linha total"><span>Resultado de ${rotulo(s.mes)}</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
       ${s.extrato.filter(l=>l[3]).map(([n,v])=>`<div class="linha" style="opacity:.8"><span>${n} <small>(transferência, não é gasto)</small></span><span class="v">${v>0?'+':'−'}${fmt(Math.abs(v))}</span></div>`).join('')}
+      ${(()=>{ const fx=fluxo().sobra, dif=Math.round(fx-total), sem=s.desemp>0&&!(s.seguro>0)&&s.extrato.some(l=>/Seguro-desemprego/.test(String(l[0])));
+        return `<div class="linha total" style="margin-top:6px"><span>Previsão de ${rotulo(s.mes+1)} (aparece no topo)</span><span class="v ${fx>=0?'pos':'neg'}">${fx>=0?'+':'−'}${fmt(Math.abs(fx))}</span></div>${sem?`<p class="hint" style="margin:4px 0 0">O seguro-desemprego acabou: o próximo mês não conta mais com essa entrada.</p>`:(Math.abs(dif)>=1?`<p class="hint" style="margin:4px 0 0">A previsão considera só o que se repete todo mês. Entradas e gastos de uma vez, como bônus, imprevistos e compras, ficam de fora.</p>`:'')}`; })()}
     </div>
   </section>`;
   // painel de renda no estilo Timeflow: quanto cada fonte paga e quanto tempo pede
@@ -12750,7 +12754,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>CDB</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Fluxo/mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>CDB</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Próx. mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?'Esgotado':faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
