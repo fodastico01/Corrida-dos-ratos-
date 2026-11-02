@@ -5008,7 +5008,7 @@ function iniciarMes(){
   // padrão de vida: quem ganha muito gasta mais (viagens, roupas, escola, equipe da casa). Cresce bem mais devagar que a renda: R$ 50 mil de renda ≈ R$ 40 mil de gasto; R$ 1 mi ≈ R$ 210 mil
   { const entR=(s.extrato||[]).reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf' && !/resgat|vend|empréstimo|Reserva usada|herança|Herança/i.test(String(l[0])))?l[1]:0),0);
     s.rendaReal = (s.rendaReal==null||s.mes<=2) ? entR : 0.6*s.rendaReal+0.4*entR; // renda que de fato caiu na conta (o lucro retido nas empresas não paga o padrão de vida)
-    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, mult=({economico:0.7,normal:1,esbanjar:1.4})[s.estilo]||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55)*mult, base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); if(prevP>0) extra=Math.min(extra, Math.round(prevP*1.03)); }
+    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55), base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); extra=Math.min(extra, Math.round(r*0.35)); extra=prevP>0 ? Math.min(extra, Math.round(prevP*1.03)) : Math.min(extra, Math.round(r*0.08)); }   // teto de 35% da renda recebida; começa pequeno e sobe 3% ao mês; esbanjar mexe só no lazer
     if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
     else delete s.fixos['Padrão de vida']; }
   for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
@@ -5891,7 +5891,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v434</p>
+    <p class="titulo-versao">version v435</p>
   </div>`;
 }
 function render(){
@@ -11545,7 +11545,7 @@ function iniciarMes(){
   // padrão de vida: quem ganha muito gasta mais (viagens, roupas, escola, equipe da casa). Cresce bem mais devagar que a renda: R$ 50 mil de renda ≈ R$ 40 mil de gasto; R$ 1 mi ≈ R$ 210 mil
   { const entR=(s.extrato||[]).reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf' && !/resgat|vend|empréstimo|Reserva usada|herança|Herança/i.test(String(l[0])))?l[1]:0),0);
     s.rendaReal = (s.rendaReal==null||s.mes<=2) ? entR : 0.6*s.rendaReal+0.4*entR; // renda que de fato caiu na conta (o lucro retido nas empresas não paga o padrão de vida)
-    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, mult=({economico:0.7,normal:1,esbanjar:1.4})[s.estilo]||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55)*mult, base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); if(prevP>0) extra=Math.min(extra, Math.round(prevP*1.03)); }
+    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55), base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); extra=Math.min(extra, Math.round(r*0.35)); extra=prevP>0 ? Math.min(extra, Math.round(prevP*1.03)) : Math.min(extra, Math.round(r*0.08)); }   // teto de 35% da renda recebida; começa pequeno e sobe 3% ao mês; esbanjar mexe só no lazer
     if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
     else delete s.fixos['Padrão de vida']; }
   for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
@@ -12428,7 +12428,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v434</p>
+    <p class="titulo-versao">versão v435</p>
   </div>`;
 }
 function render(){
