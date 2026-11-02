@@ -5139,14 +5139,14 @@ function resolver(i, confirmado=false){
   s.evento=null; ui.modal=op.modal||null;
   checarDesbloqueio(); checarFim();
   if(!s.fim) proximoDaFila();
-  if(!s.fim && !s.evento && !ui.modal && s.rol && s.rol.resto>0){ salvar(); avancar(1); return; }   // o lance parado na virada do ano continua
+  if(!s.fim && !s.evento && !ui.modal && s.rol && (s.rol.resto>0 || s.rol.pend)){ salvar(); avancar(1); return; }   // o lance parado na virada do ano continua
   salvar(); render();
 }
 function avancar(n=1){
   if(s.mes>=totalMes()){ s.fim='fim'; ui.modal='fim'; salvar(); render(); return; }
   if(s.avisosEvolucao?.length) s.avisosEvolucao=s.avisosEvolucao.filter(x=>x.tipo==='ceo');   // avisos de conclusão somem ao avançar; só a pergunta do CEO espera resposta
   let dadoUsado=false;
-  if(n===1 && s.mes>=1 && !s.fim){ const k=preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
+  if(n===1 && s.mes>=1 && !s.fim){ const k=(s.rol&&s.rol.pend&&s.rol.pend.resta>=1)?s.rol.pend.resta:preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
   const p0=patrimonio(), m0=s.mes;
   let motivo='', fl=0;
   for(let i=0;i<n && s.mes<totalMes();i++){
@@ -5891,7 +5891,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v433</p>
+    <p class="titulo-versao">version v434</p>
   </div>`;
 }
 function render(){
@@ -11676,14 +11676,14 @@ function resolver(i, confirmado=false){
   s.evento=null; ui.modal=op.modal||null;
   checarDesbloqueio(); checarFim();
   if(!s.fim) proximoDaFila();
-  if(!s.fim && !s.evento && !ui.modal && s.rol && s.rol.resto>0){ salvar(); avancar(1); return; }   // o lance parado na virada do ano continua
+  if(!s.fim && !s.evento && !ui.modal && s.rol && (s.rol.resto>0 || s.rol.pend)){ salvar(); avancar(1); return; }   // o lance parado na virada do ano continua
   salvar(); render();
 }
 function avancar(n=1){
   if(s.mes>=totalMes()){ s.fim='fim'; ui.modal='fim'; salvar(); render(); return; }
   if(s.avisosEvolucao?.length) s.avisosEvolucao=s.avisosEvolucao.filter(x=>x.tipo==='ceo');   // avisos de conclusão somem ao avançar; só a pergunta do CEO espera resposta
   let dadoUsado=false;
-  if(n===1 && s.mes>=1 && !s.fim){ const k=preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
+  if(n===1 && s.mes>=1 && !s.fim){ const k=(s.rol&&s.rol.pend&&s.rol.pend.resta>=1)?s.rol.pend.resta:preLancar(); if(k===0){ turnoSemMes(); ui.aba='inicio'; ui.telaScroll=0; return; } n=k; dadoUsado=true; }
   const p0=patrimonio(), m0=s.mes;
   let motivo='', fl=0;
   for(let i=0;i<n && s.mes<totalMes();i++){
@@ -12428,7 +12428,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v433</p>
+    <p class="titulo-versao">versão v434</p>
   </div>`;
 }
 function render(){
