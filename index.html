@@ -4658,6 +4658,7 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     return L.join('')+'<br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.snapAno=tirarSnap();
+    if(avalDevida()){ avalCalc(); s.filaEv=[...(s.filaEv||[]), 'avalAnual']; }   // v430: a avaliação anual do emprego vem logo depois do balanço
     return {tom:r.n>0?'bom':'neutro', titulo:r.n>0?'Mais um ano de progresso':'Ano difícil', texto:r.n>0?'Quem acompanha os números enxerga o próprio progresso.':'Olhar o balanço sem fugir dele é o primeiro passo para mudar o rumo.'}; }};
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
@@ -4673,7 +4674,7 @@ function eventoForcado(){
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
   if(s.fel<=(temMente()||s.casado?8:15) && (!s.impulsoEm || s.mes-s.impulsoEm>=6)) return 'impulso';
   if(!esgotado() && s.fel<28 && (s.cansaco||0)>=6 && (!s.beiraEm || s.mes-s.beiraEm>=8)){ s.beiraEm=s.mes; return 'beira'; }
-  if(!esgotado() && empregado() && s.mes>=(s.avalProx||12)){ avalCalc(); return 'avalAnual'; }
+  if(avalDevida() && mesCal()<=2 && s.balAno===anoAtual()){ avalCalc(); return 'avalAnual'; }   // v430: só em janeiro, depois do balanço
   if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.25) return 'avaliacao';
   if(valor('acoes')>0 && quedaCart()<=-0.15 && (!s.criseEm || s.mes-s.criseEm>=24)) return 'crise';
   if(!F2() && s.mes===15 && empregado() && !visto('corte') && !visto('demissao')) return 'corte';
@@ -4844,6 +4845,8 @@ function avalItens(){
     [early?"Qualification (first year)":"Qualification (every 2 years)", cursoOk, estudando?'in progress':recente?"completed":!aberto?"nothing to do right now":"no course taken"]
   ];
 }
+const avalProxJan = () => { let m=s.mes+((12-mesCal()+1)%12||12); while(m<(s.avalProx||12)-6) m+=12; return m; };   // a avaliação anual sai junto com o balanço, em janeiro
+const avalDevida = () => !esgotado() && empregado() && s.mes>=(s.avalProx||12)-6;
 function avalCalc(){
   const itens=avalItens(), n=itens.filter(i=>i[1]).length; s.avG=(s.avG||[0,0,0]).map((x,i)=>x+(itens[i][1]?1:0));
   s.avalOk=(s.avalOk||0)+(n>=2?1:0);
@@ -5887,7 +5890,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v429</p>
+    <p class="titulo-versao">version v430</p>
   </div>`;
 }
 function render(){
@@ -6069,7 +6072,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       <div class="eixo"><span>${pix('❤️','mini')} Life</span><div class="prog"><i style="width:${v}%;background:var(--gain)"></i></div><b class="num">${v}</b></div>
     </section>`; })();
   const RQ=reqProx(), lad=CARREIRAS[s.prof]||CARREIRAS.professor;
-  const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,(s.avalProx||12)-s.mes), ult=s.avalRes;
+  const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,avalProxJan()-s.mes), ult=s.avalRes;
     return `<section class="card" aria-labelledby="t-met"><h2 id="t-met">Goals of the year</h2>
       <p class="hint">Annual review in ${falta<=0?'soon':falta===1?"1 month":falta+" months"}. Meeting 2 of the 3 goals secures the job; 3 of 3 earns performance.${s.avalFalhas?" <b>Warning: the last review came in below expectations.</b>":''}</p>
       <div class="reqs">${it.map(([n,ok,d,x])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?"color:var(--gain)":''}">${d}${x?' ('+x+')':''}</b></div>`).join('')}</div>
@@ -11188,6 +11191,7 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     return L.join('')+'<br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.snapAno=tirarSnap();
+    if(avalDevida()){ avalCalc(); s.filaEv=[...(s.filaEv||[]), 'avalAnual']; }   // v430: a avaliação anual do emprego vem logo depois do balanço
     return {tom:r.n>0?'bom':'neutro', titulo:r.n>0?'Mais um ano de progresso':'Ano difícil', texto:r.n>0?'Quem acompanha os números enxerga o próprio progresso.':'Olhar o balanço sem fugir dele é o primeiro passo para mudar o rumo.'}; }};
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
@@ -11203,7 +11207,7 @@ function eventoForcado(){
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
   if(s.fel<=(temMente()||s.casado?8:15) && (!s.impulsoEm || s.mes-s.impulsoEm>=6)) return 'impulso';
   if(!esgotado() && s.fel<28 && (s.cansaco||0)>=6 && (!s.beiraEm || s.mes-s.beiraEm>=8)){ s.beiraEm=s.mes; return 'beira'; }
-  if(!esgotado() && empregado() && s.mes>=(s.avalProx||12)){ avalCalc(); return 'avalAnual'; }
+  if(avalDevida() && mesCal()<=2 && s.balAno===anoAtual()){ avalCalc(); return 'avalAnual'; }   // v430: só em janeiro, depois do balanço
   if(!esgotado() && empregado() && reqProx()?.ok && Math.random()<0.25) return 'avaliacao';
   if(valor('acoes')>0 && quedaCart()<=-0.15 && (!s.criseEm || s.mes-s.criseEm>=24)) return 'crise';
   if(!F2() && s.mes===15 && empregado() && !visto('corte') && !visto('demissao')) return 'corte';
@@ -11374,6 +11378,8 @@ function avalItens(){
     [early?'Qualificação (primeiro ano)':'Qualificação (a cada 2 anos)', cursoOk, estudando?'cursando':recente?'concluída':!aberto?'nada a fazer agora':'nenhum curso feito']
   ];
 }
+const avalProxJan = () => { let m=s.mes+((12-mesCal()+1)%12||12); while(m<(s.avalProx||12)-6) m+=12; return m; };   // a avaliação anual sai junto com o balanço, em janeiro
+const avalDevida = () => !esgotado() && empregado() && s.mes>=(s.avalProx||12)-6;
 function avalCalc(){
   const itens=avalItens(), n=itens.filter(i=>i[1]).length; s.avG=(s.avG||[0,0,0]).map((x,i)=>x+(itens[i][1]?1:0));
   s.avalOk=(s.avalOk||0)+(n>=2?1:0);
@@ -12417,7 +12423,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v429</p>
+    <p class="titulo-versao">versão v430</p>
   </div>`;
 }
 function render(){
@@ -12599,7 +12605,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       <div class="eixo"><span>${pix('❤️','mini')} Vida</span><div class="prog"><i style="width:${v}%;background:var(--gain)"></i></div><b class="num">${v}</b></div>
     </section>`; })();
   const RQ=reqProx(), lad=CARREIRAS[s.prof]||CARREIRAS.professor;
-  const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,(s.avalProx||12)-s.mes), ult=s.avalRes;
+  const metasCard = (!empregado() || esgotado()) ? '' : (()=>{ const it=avalItens(), falta=Math.max(0,avalProxJan()-s.mes), ult=s.avalRes;
     return `<section class="card" aria-labelledby="t-met"><h2 id="t-met">Metas do ano</h2>
       <p class="hint">Avaliação anual em ${falta<=0?'breve':falta===1?'1 mês':falta+' meses'}. Cumprir 2 das 3 metas garante o emprego; 3 de 3 rende desempenho.${s.avalFalhas?' <b>Atenção: a última avaliação veio abaixo do esperado.</b>':''}</p>
       <div class="reqs">${it.map(([n,ok,d,x])=>`<div class="fl"><span>${ok?'✓':'○'} ${n}</span><b style="${ok?'color:var(--gain)':''}">${d}${x?' ('+x+')':''}</b></div>`).join('')}</div>
