@@ -4642,7 +4642,9 @@ function balCalc(){
     neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva())};
   return s.balRes;
 }
-const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):null; return `<b>${nome}:</b> ${fmt0(a)} → ${fmt0(b)}${pc!==null?` (${d>=0?'+':'−'}${Math.abs(pc)}%)`:''}`; };
+const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):null, cor=d>0?'var(--gain)':d<0?'var(--loss)':'#7a6f5c', seta=d>0?'▲':d<0?'▼':'•';
+  const badge=pc!==null?`<b style="color:${cor};white-space:nowrap">${seta} ${d>=0?'+':'−'}${Math.abs(pc)}%</b>`:(d!==0?`<b style="color:${cor}">${seta}</b>`:'');
+  return `<span style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;padding:4px 0;border-bottom:1px dashed rgba(60,40,10,.18)"><b>${nome}</b><span style="text-align:right">${fmt0(a)} → ${fmt0(b)} ${badge}</span></span>`; };
 ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
   titulo:()=>{ const r=s.balRes||{}; return `Balanço de ${r.ano||anoAtual()-1}`; },
   texto:()=>{ const r=s.balRes; if(!r) return 'Mais um ano se passou.'; const sn=r.sn, L=[];
@@ -4652,8 +4654,8 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     L.push(balLinha("Emergency fund (government bonds)",sn.cdb,r.cdb));
     if(r.neg>0||sn.neg>0) L.push(balLinha('Empresas',sn.neg,r.neg));
     L.push(balLinha("Passive income per month",sn.rp,r.rp));
-    const d=r.pat-sn.pat, fim=r.n>0?`<b>Seu patrimônio cresceu ${fmt0(Math.abs(d))} no ano.</b> Ver o próprio progresso faz bem: bem-estar +${r.bem}.`:`<b>Seu patrimônio caiu ${fmt0(Math.abs(d))} no ano.</b> Acontece. O próximo começa agora.`;
-    return L.join('<br>')+'<br><br>'+fim; },
+    const d=r.pat-sn.pat, fim=r.n>0?`<b style="color:var(--gain)">Seu patrimônio cresceu ${fmt0(Math.abs(d))} no ano.</b> Ver o próprio progresso faz bem: bem-estar +${r.bem}.`:`<b style="color:var(--loss)">Seu patrimônio caiu ${fmt0(Math.abs(d))} no ano.</b> Acontece. O próximo começa agora.`;
+    return L.join('')+'<br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.snapAno=tirarSnap();
     return {tom:r.n>0?'bom':'neutro', titulo:r.n>0?'Mais um ano de progresso':'Ano difícil', texto:r.n>0?'Quem acompanha os números enxerga o próprio progresso.':'Olhar o balanço sem fugir dele é o primeiro passo para mudar o rumo.'}; }};
@@ -5882,7 +5884,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v425</p>
+    <p class="titulo-versao">version v426</p>
   </div>`;
 }
 function render(){
@@ -11165,7 +11167,9 @@ function balCalc(){
     neg:Math.round((s.ativos||[]).filter(a=>a.tipo==='negocio').reduce((x,a)=>x+a.valor,0)), rp:Math.round(rendaPassiva())};
   return s.balRes;
 }
-const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):null; return `<b>${nome}:</b> ${fmt0(a)} → ${fmt0(b)}${pc!==null?` (${d>=0?'+':'−'}${Math.abs(pc)}%)`:''}`; };
+const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):null, cor=d>0?'var(--gain)':d<0?'var(--loss)':'#7a6f5c', seta=d>0?'▲':d<0?'▼':'•';
+  const badge=pc!==null?`<b style="color:${cor};white-space:nowrap">${seta} ${d>=0?'+':'−'}${Math.abs(pc)}%</b>`:(d!==0?`<b style="color:${cor}">${seta}</b>`:'');
+  return `<span style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;padding:4px 0;border-bottom:1px dashed rgba(60,40,10,.18)"><b>${nome}</b><span style="text-align:right">${fmt0(a)} → ${fmt0(b)} ${badge}</span></span>`; };
 ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
   titulo:()=>{ const r=s.balRes||{}; return `Balanço de ${r.ano||anoAtual()-1}`; },
   texto:()=>{ const r=s.balRes; if(!r) return 'Mais um ano se passou.'; const sn=r.sn, L=[];
@@ -11175,8 +11179,8 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     L.push(balLinha('Reserva (CDB)',sn.cdb,r.cdb));
     if(r.neg>0||sn.neg>0) L.push(balLinha('Empresas',sn.neg,r.neg));
     L.push(balLinha('Renda passiva por mês',sn.rp,r.rp));
-    const d=r.pat-sn.pat, fim=r.n>0?`<b>Seu patrimônio cresceu ${fmt0(Math.abs(d))} no ano.</b> Ver o próprio progresso faz bem: bem-estar +${r.bem}.`:`<b>Seu patrimônio caiu ${fmt0(Math.abs(d))} no ano.</b> Acontece. O próximo começa agora.`;
-    return L.join('<br>')+'<br><br>'+fim; },
+    const d=r.pat-sn.pat, fim=r.n>0?`<b style="color:var(--gain)">Seu patrimônio cresceu ${fmt0(Math.abs(d))} no ano.</b> Ver o próprio progresso faz bem: bem-estar +${r.bem}.`:`<b style="color:var(--loss)">Seu patrimônio caiu ${fmt0(Math.abs(d))} no ano.</b> Acontece. O próximo começa agora.`;
+    return L.join('')+'<br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.snapAno=tirarSnap();
     return {tom:r.n>0?'bom':'neutro', titulo:r.n>0?'Mais um ano de progresso':'Ano difícil', texto:r.n>0?'Quem acompanha os números enxerga o próprio progresso.':'Olhar o balanço sem fugir dele é o primeiro passo para mudar o rumo.'}; }};
@@ -12405,7 +12409,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v425</p>
+    <p class="titulo-versao">versão v426</p>
   </div>`;
 }
 function render(){
