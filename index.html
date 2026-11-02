@@ -2617,6 +2617,7 @@ function fluxo(){
   if(somaParcelas()) sai.push(["Installments", somaParcelas()]);
   sai.push([`Leisure (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Habits", custoHabitos()]);
+  if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salário e participação no lucro)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
   const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
@@ -5890,7 +5891,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v432</p>
+    <p class="titulo-versao">version v433</p>
   </div>`;
 }
 function render(){
@@ -6309,6 +6310,7 @@ document.addEventListener('change',e=>{ if(e.target&&e.target.id==='bkArq'&&e.ta
 const CEO_PAT=5000000, CEO_PCT=0.05, CEO_MIN_EMP=3;
 const ceo = () => s.ceo || (s.ceo={on:false, auto:false, teto:0, pago:0, feitas:0, gm:0, gv:0, pausa:0});
 const ceoSal = () => C(25000);
+const ceoCustoMes = () => ceoSal()+Math.round(ceoEmps().reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0)*CEO_PCT);
 const ceoLiq = () => Math.max(0,s.conta)+liquidoPronto(); // conta + investimentos que podem ser resgatados na hora
 const ceoEmps = () => (s.ativos||[]).filter(a=>a.tyc && !a.franqDe && !(a.vagoAte>=s.mes));
 const ceoLiberado = () => patrimonio()>=CEO_PAT && ceoEmps().length>=CEO_MIN_EMP;
@@ -6379,11 +6381,11 @@ function ceoCard(){
     if(!lib) return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO</h2>${ceoImg()}<p class="hint">A professional manager handles routine improvements of your companies. Unlocks with net worth of ${fmt0(CEO_PAT)} and at least ${CEO_MIN_EMP} operating companies. You have ${fmt0(pat)} and ${emps.length} ${emps.length===1?'company':'companies'}.</p></section>`;
     return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO</h2>${ceoImg()}<p class="hint">Hire a CEO to upgrade the companies for you. He charges ${fmt0(ceoSal())} per month plus ${Math.round(CEO_PCT*100)}% of the companies' profit and asks you before each improvement. If the company has no cash, he may use your capital. Purchases, sales and crises remain with you.</p><button class="btn coin" data-acao="ceoContratar">Hire CEO</button></section>`;
   }
-  return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO hired</h2>${ceoImg()}
-    <p class="hint">Costs ${fmt0(ceoSal())} per month plus ${Math.round(CEO_PCT*100)}% of the companies' profit. Has already been paid ${fmt0(c.pago||0)} and started ${c.feitas||0} improvements.</p>
-    <div class="seg seg-hud" role="group" aria-label="Approval"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Ask<small>prompt first</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Approve all<small>automatic</small></button></div>
+  return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO contratado</h2>${ceoImg()}
+    <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
+    <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
     ${c.auto?`<p class="hint">Monthly spending limit on automatic:</p><div class="seg seg-hud" role="group" aria-label="Limit">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
-    <button class="btn" data-acao="ceoDispensar">Dismiss CEO</button></section>`;
+    <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
 function avisarEvolucao(tipo,nome,texto,titulo,uid){ s.avisosEvolucao=s.avisosEvolucao||[]; s.avisosEvolucao.push({tipo,nome,texto,titulo,mes:s.mes,uid}); }
@@ -9152,6 +9154,7 @@ function fluxo(){
   if(somaParcelas()) sai.push(['Parcelas', somaParcelas()]);
   sai.push([`Lazer (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(['Hábitos', custoHabitos()]);
+  if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salário e participação no lucro)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
   const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
@@ -12425,7 +12428,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v432</p>
+    <p class="titulo-versao">versão v433</p>
   </div>`;
 }
 function render(){
@@ -12844,6 +12847,7 @@ document.addEventListener('change',e=>{ if(e.target&&e.target.id==='bkArq'&&e.ta
 const CEO_PAT=5000000, CEO_PCT=0.05, CEO_MIN_EMP=3;
 const ceo = () => s.ceo || (s.ceo={on:false, auto:false, teto:0, pago:0, feitas:0, gm:0, gv:0, pausa:0});
 const ceoSal = () => C(25000);
+const ceoCustoMes = () => ceoSal()+Math.round(ceoEmps().reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0)*CEO_PCT);
 const ceoLiq = () => Math.max(0,s.conta)+liquidoPronto(); // conta + investimentos que podem ser resgatados na hora
 const ceoEmps = () => (s.ativos||[]).filter(a=>a.tyc && !a.franqDe && !(a.vagoAte>=s.mes));
 const ceoLiberado = () => patrimonio()>=CEO_PAT && ceoEmps().length>=CEO_MIN_EMP;
@@ -12915,7 +12919,7 @@ function ceoCard(){
     return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO</h2>${ceoImg()}<p class="hint">Contrate um CEO para evoluir as empresas por você. Ele cobra ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas e te pergunta antes de cada melhoria. Se a empresa estiver sem caixa, ele pode usar o seu capital. Compras, vendas e crises continuam com você.</p><button class="btn coin" data-acao="ceoContratar">Contratar CEO</button></section>`;
   }
   return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO contratado</h2>${ceoImg()}
-    <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
+    <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
     <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
     ${c.auto?`<p class="hint">Limite de gasto por mês no automático:</p><div class="seg seg-hud" role="group" aria-label="Limite">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
