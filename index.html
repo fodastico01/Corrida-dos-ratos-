@@ -5884,7 +5884,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v426</p>
+    <p class="titulo-versao">version v427</p>
   </div>`;
 }
 function render(){
@@ -7635,6 +7635,7 @@ function avPeao(){ const c=lerCamp().avatar; return c?avURL(c,4):''; }
 /* ================= início ================= */
 function migrar(x){
   if(!x || !x.mes) return null;
+  { const existe=id=>!!(EVENTOS[id]||ESPECIAIS[id]); if(x.evento && !existe(x.evento)) x.evento=null; x.filaEv=(x.filaEv||[]).filter(existe); x.agenda=(x.agenda||[]).filter(a=>existe(a.id)); delete x.planoPend; }   // v427: carta de planos (v421 a v424) saiu do jogo; saves com ela pendente travavam o botão de jogar
   if(x.habitos && Object.keys(x.habitos).length) x.habitos={}; // hábitos viraram a árvore de crescimento
   (x.ativos||[]).forEach(v=>{ // prazos herdados da fase anterior sem ajuste (ex.: "58 meses"): volta para o calendário desta fase
     const off=x.fase===3?60:x.fase===2?24:0; if(!off) return;
@@ -12409,7 +12410,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v426</p>
+    <p class="titulo-versao">versão v427</p>
   </div>`;
 }
 function render(){
@@ -14160,6 +14161,7 @@ function avPeao(){ const c=lerCamp().avatar; return c?avURL(c,4):''; }
 /* ================= início ================= */
 function migrar(x){
   if(!x || !x.mes) return null;
+  { const existe=id=>!!(EVENTOS[id]||ESPECIAIS[id]); if(x.evento && !existe(x.evento)) x.evento=null; x.filaEv=(x.filaEv||[]).filter(existe); x.agenda=(x.agenda||[]).filter(a=>existe(a.id)); delete x.planoPend; }   // v427: carta de planos (v421 a v424) saiu do jogo; saves com ela pendente travavam o botão de jogar
   if(x.habitos && Object.keys(x.habitos).length) x.habitos={}; // hábitos viraram a árvore de crescimento
   (x.ativos||[]).forEach(v=>{ // prazos herdados da fase anterior sem ajuste (ex.: "58 meses"): volta para o calendário desta fase
     const off=x.fase===3?60:x.fase===2?24:0; if(!off) return;
