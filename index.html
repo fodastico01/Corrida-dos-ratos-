@@ -2044,7 +2044,7 @@ function expandir(uid){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!escala(a)) return; const v=custoExpandir(a); if(!podeAVista(v)) return; const m0=mesesLiq();
   const t=pagarAVista(v); a.rendaBase=a.rendaBase||a.renda; a.unid=(a.unid||1)+1; a.renda+=a.rendaBase; a.valor+=v; a.horas+=CARTAS[a.id]?.dedicacao?3:2; a.custo+=v;
   s.licao={tom:'bom', titulo:`New location: ${a.nome.toLowerCase()}`, texto:`You reinvested ${fmt0(v)} and opened location ${a.unid}. Profit rises right away and the growth ceiling doubles. That's how a company scales: today's profit becomes tomorrow's location. More locations also demand more of your hours, or managers.${t}`};
-  checarDescoberto(m0);
+  /* investir em negócio ou imóvel não deixa mais o jogador "descoberto" (v424): só bens de luxo */
 }
 /* ================= tycoon: cafeteria (setores, travas de nível, caixa próprio) ================= */
 const TYC_KEYS=['equip','cardapio','ambiente','equipe','mkt'];
@@ -2386,7 +2386,7 @@ function tycSubir(uid, ki, fonte){
   a.custo+=c; a.tyc.obra={ki, ate:s.mes+(R?R.meses:TYC_OBRA_MESES), reforma:R?{rotulo:R.rotulo,verbo:R.verbo}:null}; tycAtualizar(a);
   const S=emp(a).set[k];
   ui.tycMsg=R?`🏗️ ${R.rotulo} iniciada: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. A empresa muda de porte e fica ${R.verbo} for ${R.meses} meses, ${tycLojas(a)>1?'com uma loja fechada por vez (as outras seguem vendendo).':'sem vender nada (sobram só metade dos custos fixos).'} Depois volta a render mais.${t}`:`🏗️ Project started: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. Ready in ${TYC_OBRA_MESES} months. Only one project at a time.${t}`;
-  if(fonte!=='caixa') checarDescoberto(m0);
+  /* melhorar empresa com o próprio dinheiro não ativa mais o imprevisto forçado (v424) */
 }
 const TYC_FRANQ_MAX=3;
 const tycFranqs = a => (s.ativos||[]).filter(x=>x.franqDe===a.uid).length;
@@ -2404,7 +2404,7 @@ function tycFranquia(uid){
   const v=tycCustoLoja(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycLojas(a)+1, t=pagarAVista(v), dur=TYC_LOJA_MESES[n-1];
   a.custo+=v; a.tyc.obraLoja={ate:s.mes+dur}; tycAtualizar(a);
   ui.tycMsg=`🏗️ Store ${n} under construction for ${fmt0(v)}. Ready in ${dur} months. Until then it sells nothing, but you keep paying your bills.${t}`;
-  checarDescoberto(m0);
+  /* investir em negócio ou imóvel não deixa mais o jogador "descoberto" (v424): só bens de luxo */
 }
 function tycRetirada(uid, pct){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return;
@@ -5109,7 +5109,7 @@ function comprarOferta(uid, financiar){
   if(gerAuto) txtFin+=' Since you already live off income, a manager took over the daily running of the business.';
   if(!financiar && c.finan) txtFin+=parabensAVista(pv, o.preco, 0.3, 0.0105, 120);
   s.licao={tom:'bom', titulo:`Now you're the owner: ${c.nome.toLowerCase()}`, texto:(c.tyc?`Open management in the Income tab and start improving the business. You choose how much profit to withdraw and how much to reinvest.`:o.renda>0?`Expected income of ${fmt0(o.renda)} per month.`:"It generates no income: the gain depends on selling for more.")+txtFin+vendTxt};
-  checarDescoberto(m0);
+  /* investir em negócio ou imóvel não deixa mais o jogador "descoberto" (v424): só bens de luxo */
 }
 function aposentar(){
   s.aposentado=true; s.aposentouEm=s.mes; foto('liberdade'); s.desemp=0; s.seguro=0; s.fel=clamp(s.fel+20,0,100);
@@ -5920,7 +5920,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v423</p>
+    <p class="titulo-versao">version v424</p>
   </div>`;
 }
 function render(){
@@ -8605,7 +8605,7 @@ function expandir(uid){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!escala(a)) return; const v=custoExpandir(a); if(!podeAVista(v)) return; const m0=mesesLiq();
   const t=pagarAVista(v); a.rendaBase=a.rendaBase||a.renda; a.unid=(a.unid||1)+1; a.renda+=a.rendaBase; a.valor+=v; a.horas+=CARTAS[a.id]?.dedicacao?3:2; a.custo+=v;
   s.licao={tom:'bom', titulo:`Nova unidade: ${a.nome.toLowerCase()}`, texto:`Você reinvestiu ${fmt0(v)} e abriu a unidade ${a.unid}. O lucro sobe na hora e o teto de crescimento dobra. É assim que empresa escala: o lucro de hoje vira a unidade de amanhã. Mais unidades também pedem mais horas suas, ou gerentes.${t}`};
-  checarDescoberto(m0);
+  /* investir em negócio ou imóvel não deixa mais o jogador "descoberto" (v424): só bens de luxo */
 }
 /* ================= tycoon: cafeteria (setores, travas de nível, caixa próprio) ================= */
 const TYC_KEYS=['equip','cardapio','ambiente','equipe','mkt'];
@@ -8947,7 +8947,7 @@ function tycSubir(uid, ki, fonte){
   a.custo+=c; a.tyc.obra={ki, ate:s.mes+(R?R.meses:TYC_OBRA_MESES), reforma:R?{rotulo:R.rotulo,verbo:R.verbo}:null}; tycAtualizar(a);
   const S=emp(a).set[k];
   ui.tycMsg=R?`🏗️ ${R.rotulo} iniciada: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. A empresa muda de porte e fica ${R.verbo} por ${R.meses} meses, ${tycLojas(a)>1?'com uma loja fechada por vez (as outras seguem vendendo).':'sem vender nada (sobram só metade dos custos fixos).'} Depois volta a render mais.${t}`:`🏗️ Obra iniciada: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. Fica pronta em ${TYC_OBRA_MESES} meses. Só uma obra por vez.${t}`;
-  if(fonte!=='caixa') checarDescoberto(m0);
+  /* melhorar empresa com o próprio dinheiro não ativa mais o imprevisto forçado (v424) */
 }
 const TYC_FRANQ_MAX=3;
 const tycFranqs = a => (s.ativos||[]).filter(x=>x.franqDe===a.uid).length;
@@ -8965,7 +8965,7 @@ function tycFranquia(uid){
   const v=tycCustoLoja(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycLojas(a)+1, t=pagarAVista(v), dur=TYC_LOJA_MESES[n-1];
   a.custo+=v; a.tyc.obraLoja={ate:s.mes+dur}; tycAtualizar(a);
   ui.tycMsg=`🏗️ Loja ${n} em construção por ${fmt0(v)}. Fica pronta em ${dur} meses. Até lá ela não vende nada, mas você continua pagando as suas contas.${t}`;
-  checarDescoberto(m0);
+  /* investir em negócio ou imóvel não deixa mais o jogador "descoberto" (v424): só bens de luxo */
 }
 function tycRetirada(uid, pct){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return;
@@ -11670,7 +11670,7 @@ function comprarOferta(uid, financiar){
   if(gerAuto) txtFin+=' Como você já vive de renda, um gerente assumiu o dia a dia do negócio.';
   if(!financiar && c.finan) txtFin+=parabensAVista(pv, o.preco, 0.3, 0.0105, 120);
   s.licao={tom:'bom', titulo:`Agora você é dono: ${c.nome.toLowerCase()}`, texto:(c.tyc?`Abra a gestão na aba Renda e comece a melhorar o negócio. Você escolhe quanto do lucro retirar e quanto reinvestir.`:o.renda>0?`Renda prevista de ${fmt0(o.renda)} por mês.`:'Ele não gera renda: o ganho depende de vender mais caro.')+txtFin+vendTxt};
-  checarDescoberto(m0);
+  /* investir em negócio ou imóvel não deixa mais o jogador "descoberto" (v424): só bens de luxo */
 }
 function aposentar(){
   s.aposentado=true; s.aposentouEm=s.mes; foto('liberdade'); s.desemp=0; s.seguro=0; s.fel=clamp(s.fel+20,0,100);
@@ -12481,7 +12481,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v423</p>
+    <p class="titulo-versao">versão v424</p>
   </div>`;
 }
 function render(){
