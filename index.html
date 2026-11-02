@@ -4664,7 +4664,10 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
-  if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && s.mes-s.snapAno.mes>=6 && !s.fim) return 'balanco';
+  if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
+    if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
+    if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
+  }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -4732,7 +4735,7 @@ function preLancar(){
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
       const mJ=s.mes+kJ, anoJ=Math.floor((cfg().ano0*12+mJ-1)/12);
-      if(anoJ>s.snapAno.ano && s.balAno!==anoJ && mJ-s.snapAno.mes>=6){ R.resto=soma-d0; R.restoD=[d1,d2]; soma=d0; } } }
+      if(anoJ>s.snapAno.ano && s.balAno!==anoJ && mJ-s.snapAno.mes>=4){ R.resto=soma-d0; R.restoD=[d1,d2]; soma=d0; } } }
   const para=(de+soma)%96;
   let k=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=soma) k++; }
   let tipo=anel()[para], mis=false;
@@ -5884,7 +5887,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v427</p>
+    <p class="titulo-versao">version v428</p>
   </div>`;
 }
 function render(){
@@ -11190,7 +11193,10 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 function eventoForcado(){
   const due=s.agenda.find(a=>a.mes<=s.mes);
   if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
-  if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && s.mes-s.snapAno.mes>=6 && !s.fim) return 'balanco';
+  if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
+    if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
+    if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
+  }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -11258,7 +11264,7 @@ function preLancar(){
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
       const mJ=s.mes+kJ, anoJ=Math.floor((cfg().ano0*12+mJ-1)/12);
-      if(anoJ>s.snapAno.ano && s.balAno!==anoJ && mJ-s.snapAno.mes>=6){ R.resto=soma-d0; R.restoD=[d1,d2]; soma=d0; } } }
+      if(anoJ>s.snapAno.ano && s.balAno!==anoJ && mJ-s.snapAno.mes>=4){ R.resto=soma-d0; R.restoD=[d1,d2]; soma=d0; } } }
   const para=(de+soma)%96;
   let k=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=soma) k++; }
   let tipo=anel()[para], mis=false;
@@ -12410,7 +12416,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v427</p>
+    <p class="titulo-versao">versão v428</p>
   </div>`;
 }
 function render(){
