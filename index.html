@@ -4731,6 +4731,7 @@ const VIAS2=[1,2,3,4,5,6,5,4,3,2,1];
 function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
+  { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
   let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
   if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
@@ -5891,7 +5892,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v436</p>
+    <p class="titulo-versao">version v437</p>
   </div>`;
 }
 function render(){
@@ -11268,6 +11269,7 @@ const VIAS2=[1,2,3,4,5,6,5,4,3,2,1];
 function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
+  { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
   let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
   if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
@@ -12428,7 +12430,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v436</p>
+    <p class="titulo-versao">versão v437</p>
   </div>`;
 }
 function render(){
