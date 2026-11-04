@@ -5070,8 +5070,9 @@ function comprarOferta(uid, financiar){
   const c=CARTAS[o.id], pv=precoAVista(o), entrada=financiar?Math.round(o.preco*0.3):pv, m0=mesesLiq();
   if(!podeAVista(entrada)) return;
   const a={uid:s.uid++, id:o.id, nome:c.nome, tipo:c.tipo, valor:o.preco, custo:financiar?o.preco:pv, renda:o.renda, horas:Math.max(1,c.horas-(o.area?AREA.horas:0)), area:!!o.area, desde:s.mes};
-  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:50, meses:0}; tycAtualizar(a); }
-  const gerAuto=!!(s.aposentado && c.tipo==='negocio'); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; }
+  const pad=(s.ceo && s.ceo.on && s.ceo.padrao) || {};   // o CEO aplica a configuração escolhida (retirada e gerente) nas empresas novas
+  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:pad.ret!=null?pad.ret:50, meses:0}; tycAtualizar(a); }
+  const gerAuto=!!(s.aposentado && c.tipo==='negocio') || !!(pad.ger && c.tyc && c.tipo==='negocio' && a.horas>1); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; if(a.tyc) tycAtualizar(a); }
   const vendTxt=pagarAVista(entrada);
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
@@ -5892,7 +5893,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v442</p>
+    <p class="titulo-versao">version v443</p>
   </div>`;
 }
 function render(){
@@ -6377,6 +6378,7 @@ const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-
 // CEO: ações em todas as empresas de uma vez (gerente, retirada, saque)
 function ceoTodas(acao, v){
   const emps=ceoEmps(); if(!emps.length) return; let msg='', tom='bom', tit='';
+  { const c=ceo(); c.padrao=c.padrao||{}; if(acao==='ger') c.padrao.ger=(v==='1'); else if(acao==='ret') c.padrao.ret=Number(v); }   // vale também para as empresas que você comprar depois
   if(acao==='ger'){ let n=0;
     for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
     tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
@@ -11628,8 +11630,9 @@ function comprarOferta(uid, financiar){
   const c=CARTAS[o.id], pv=precoAVista(o), entrada=financiar?Math.round(o.preco*0.3):pv, m0=mesesLiq();
   if(!podeAVista(entrada)) return;
   const a={uid:s.uid++, id:o.id, nome:c.nome, tipo:c.tipo, valor:o.preco, custo:financiar?o.preco:pv, renda:o.renda, horas:Math.max(1,c.horas-(o.area?AREA.horas:0)), area:!!o.area, desde:s.mes};
-  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:50, meses:0}; tycAtualizar(a); }
-  const gerAuto=!!(s.aposentado && c.tipo==='negocio'); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; }
+  const pad=(s.ceo && s.ceo.on && s.ceo.padrao) || {};   // o CEO aplica a configuração escolhida (retirada e gerente) nas empresas novas
+  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:pad.ret!=null?pad.ret:50, meses:0}; tycAtualizar(a); }
+  const gerAuto=!!(s.aposentado && c.tipo==='negocio') || !!(pad.ger && c.tyc && c.tipo==='negocio' && a.horas>1); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; if(a.tyc) tycAtualizar(a); }
   const vendTxt=pagarAVista(entrada);
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
@@ -12450,7 +12453,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v442</p>
+    <p class="titulo-versao">versão v443</p>
   </div>`;
 }
 function render(){
@@ -12935,6 +12938,7 @@ const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-
 // CEO: ações em todas as empresas de uma vez (gerente, retirada, saque)
 function ceoTodas(acao, v){
   const emps=ceoEmps(); if(!emps.length) return; let msg='', tom='bom', tit='';
+  { const c=ceo(); c.padrao=c.padrao||{}; if(acao==='ger') c.padrao.ger=(v==='1'); else if(acao==='ret') c.padrao.ret=Number(v); }   // vale também para as empresas que você comprar depois
   if(acao==='ger'){ let n=0;
     for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
     tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
