@@ -3284,6 +3284,7 @@ const ESPECIAIS = {
     texto:()=>{ const o=ofertaNova(); if(!o) return "The opportunity has passed."; const c=CARTAS[o.id], h=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0));
       return `${c.desc} Costs ${fmt0(o.preco)} and ${o.renda?`earns ${fmt0(o.renda)} per month`:"earns nothing per month"}${h?`, taking ${hm(h)} of your hours per month`:''}. Available until ${rotulo(o.expira)}.${o.area?" It's in your field: you have an advantage.":''}`; },
     opcoes:()=>{ const o=ofertaNova(); return [
+      ...(o && podeAVista(precoAVista(o)) ? [{label:`Comprar agora (${fmt0(precoAVista(o))})`, sub:avisoEmerg(precoAVista(o)), coin:true, run:()=>{ comprarOferta(o.uid,false); return s.licao; }}] : []),
       {label:"See the offer", sub:o?avisoEmerg(precoAVista(o)):'', coin:true, run:()=>{ ui.aba='renda'; ui.telaScroll=0; return s.licao; }},
       {label:"Not now", sub:o?`It's available until ${rotulo(o.expira)}`:'', run:()=>s.licao}]; }},
   grande:{tipo:'opcoes', titulo:()=>`Now or never: ${(CARTAS[s.grande?.id]?.nome||"business").toLowerCase()}`,
@@ -5893,7 +5894,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v443</p>
+    <p class="titulo-versao">version v444</p>
   </div>`;
 }
 function render(){
@@ -9844,6 +9845,7 @@ const ESPECIAIS = {
     texto:()=>{ const o=ofertaNova(); if(!o) return 'A oportunidade já passou.'; const c=CARTAS[o.id], h=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0));
       return `${c.desc} Custa ${fmt0(o.preco)} e ${o.renda?`rende ${fmt0(o.renda)} por mês`:'não rende nada por mês'}${h?`, pedindo ${hm(h)} h suas por mês`:''}. Fica disponível até ${rotulo(o.expira)}.${o.area?' É da sua área: você tem vantagem.':''}`; },
     opcoes:()=>{ const o=ofertaNova(); return [
+      ...(o && podeAVista(precoAVista(o)) ? [{label:`Comprar agora (${fmt0(precoAVista(o))})`, sub:avisoEmerg(precoAVista(o)), coin:true, run:()=>{ comprarOferta(o.uid,false); return s.licao; }}] : []),
       {label:'Ver a oferta', sub:o?avisoEmerg(precoAVista(o)):'', coin:true, run:()=>{ ui.aba='renda'; ui.telaScroll=0; return s.licao; }},
       {label:'Agora não', sub:o?`Ela fica até ${rotulo(o.expira)}`:'', run:()=>s.licao}]; }},
   grande:{tipo:'opcoes', titulo:()=>`Agora ou nunca: ${(CARTAS[s.grande?.id]?.nome||'negócio').toLowerCase()}`,
@@ -12453,7 +12455,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v443</p>
+    <p class="titulo-versao">versão v444</p>
   </div>`;
 }
 function render(){
