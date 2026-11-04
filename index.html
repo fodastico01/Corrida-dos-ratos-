@@ -5892,7 +5892,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v437</p>
+    <p class="titulo-versao">version v438</p>
   </div>`;
 }
 function render(){
@@ -6374,6 +6374,17 @@ function ceoResponder(sim){
   tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
 }
 const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-img" src="${ARTE.ceo}" alt="Your CEO receiving the team folder" width="640" height="317">` : '';
+// CEO: ações em todas as empresas de uma vez (gerente, retirada, saque)
+function ceoTodas(acao, v){
+  const emps=ceoEmps(); if(!emps.length) return; let msg='', tom='bom', tit='';
+  if(acao==='ger'){ let n=0;
+    for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
+    tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
+  else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
+  else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:T.caixa-tycReserva(a), x=Math.floor(val/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
+    tit='Saque nas empresas'; if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?" With no reserve, a bad month comes out of your pocket.":' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+  s.licao={tom, titulo:tit, texto:msg};
+}
 function ceoCard(){
   const c=ceo(), emps=ceoEmps(), pat=patrimonio(), lib=ceoLiberado();
   if(!c.on && !lib && !(emps.length||s.fase>=3)) return '';
@@ -6386,6 +6397,14 @@ function ceoCard(){
     <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
     <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
     ${c.auto?`<p class="hint">Monthly spending limit on automatic:</p><div class="seg seg-hud" role="group" aria-label="Limit">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
+    ${(()=>{ const em=ceoEmps(); if(!em.length) return ''; const comG=em.filter(a=>a.gerente).length, rets=em.map(a=>Math.round(a.tyc.ret||0)), igual=rets.every(x=>x===rets[0]);
+      return `<h3 class="hint" style="margin:12px 0 4px"><b>Em todas as empresas de uma vez</b></h3>
+      <p class="hint">Gerente: ${comG} of ${em.length} empresas com gerente. Ele cobra ${Math.round(GER_CUSTO*100)}% da renda e libera o seu tempo.</p>
+      <div class="seg seg-hud" role="group" aria-label="Gerente em todas"><button data-acao="ceoTodas" data-alvo="ger:1">Gerente em todas</button><button data-acao="ceoTodas" data-alvo="ger:0">Sem gerente</button></div>
+      <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
+      <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
+      <p class="hint">Dinheiro parado no caixa das empresas:</p>
+      <div class="seg seg-hud" role="group" aria-label="Sacar de todas"><button data-acao="ceoTodas" data-alvo="sacar:exc">Sacar excedente<small>deixa a reserva</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo">Sacar tudo<small>sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
@@ -7206,6 +7225,7 @@ document.addEventListener('click', e=>{
     case 'ceoContratar': if(ceoLiberado()){ const c=ceo(); c.on=true; c.auto=false; c.pausa=0; } salvar(); render(); break;
     case 'ceoDispensar': { const c=ceo(); c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); } salvar(); render(); break;
     case 'ceoAuto': ceo().auto=alvo==='1'; salvar(); render(); break;
+    case 'ceoTodas': { const [q,v]=alvo.split(':'); ceoTodas(q,v); salvar(); render(); break; }
     case 'ceoTeto': ceo().teto=Number(alvo)||0; salvar(); render(); break;
     case 'ceoSim': ceoResponder(true); salvar(); render(); break;
     case 'ceoNao': ceoResponder(false); salvar(); render(); break;
@@ -12430,7 +12450,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v437</p>
+    <p class="titulo-versao">versão v438</p>
   </div>`;
 }
 function render(){
@@ -12912,6 +12932,17 @@ function ceoResponder(sim){
   tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
 }
 const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-img" src="${ARTE.ceo}" alt="Seu CEO recebendo a pasta da equipe" width="640" height="317">` : '';
+// CEO: ações em todas as empresas de uma vez (gerente, retirada, saque)
+function ceoTodas(acao, v){
+  const emps=ceoEmps(); if(!emps.length) return; let msg='', tom='bom', tit='';
+  if(acao==='ger'){ let n=0;
+    for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
+    tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
+  else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
+  else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:T.caixa-tycReserva(a), x=Math.floor(val/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
+    tit='Saque nas empresas'; if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+  s.licao={tom, titulo:tit, texto:msg};
+}
 function ceoCard(){
   const c=ceo(), emps=ceoEmps(), pat=patrimonio(), lib=ceoLiberado();
   if(!c.on && !lib && !(emps.length||s.fase>=3)) return '';
@@ -12924,6 +12955,14 @@ function ceoCard(){
     <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
     <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
     ${c.auto?`<p class="hint">Limite de gasto por mês no automático:</p><div class="seg seg-hud" role="group" aria-label="Limite">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
+    ${(()=>{ const em=ceoEmps(); if(!em.length) return ''; const comG=em.filter(a=>a.gerente).length, rets=em.map(a=>Math.round(a.tyc.ret||0)), igual=rets.every(x=>x===rets[0]);
+      return `<h3 class="hint" style="margin:12px 0 4px"><b>Em todas as empresas de uma vez</b></h3>
+      <p class="hint">Gerente: ${comG} de ${em.length} empresas com gerente. Ele cobra ${Math.round(GER_CUSTO*100)}% da renda e libera o seu tempo.</p>
+      <div class="seg seg-hud" role="group" aria-label="Gerente em todas"><button data-acao="ceoTodas" data-alvo="ger:1">Gerente em todas</button><button data-acao="ceoTodas" data-alvo="ger:0">Sem gerente</button></div>
+      <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
+      <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
+      <p class="hint">Dinheiro parado no caixa das empresas:</p>
+      <div class="seg seg-hud" role="group" aria-label="Sacar de todas"><button data-acao="ceoTodas" data-alvo="sacar:exc">Sacar excedente<small>deixa a reserva</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo">Sacar tudo<small>sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
@@ -13744,6 +13783,7 @@ document.addEventListener('click', e=>{
     case 'ceoContratar': if(ceoLiberado()){ const c=ceo(); c.on=true; c.auto=false; c.pausa=0; } salvar(); render(); break;
     case 'ceoDispensar': { const c=ceo(); c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); } salvar(); render(); break;
     case 'ceoAuto': ceo().auto=alvo==='1'; salvar(); render(); break;
+    case 'ceoTodas': { const [q,v]=alvo.split(':'); ceoTodas(q,v); salvar(); render(); break; }
     case 'ceoTeto': ceo().teto=Number(alvo)||0; salvar(); render(); break;
     case 'ceoSim': ceoResponder(true); salvar(); render(); break;
     case 'ceoNao': ceoResponder(false); salvar(); render(); break;
