@@ -1205,6 +1205,11 @@ html[data-paleta="noite"] .k-mis{background:#3B3260!important}
 .mc-op.longo{flex-direction:column;align-items:flex-start;gap:1px}
 .mc-op.longo span{white-space:normal;line-height:1.25}
 .mc-op.coin{background:linear-gradient(#f9e6a0,#f0cf70)}
+/* opções diferentes, tons diferentes: do mais claro ao mais escuro (v446); a opção destacada (coin) continua amarela */
+.mc-ops .mc-op:nth-child(1):not(.coin){background:linear-gradient(#f4e8cb,#ebd9b0);box-shadow:inset 0 1px 0 #fff6de,inset 0 -3px 0 #cfb27a}
+.mc-ops .mc-op:nth-child(2):not(.coin){background:linear-gradient(#efdfbb,#e5d0a3);box-shadow:inset 0 1px 0 #faedcc,inset 0 -3px 0 #c6a96f}
+.mc-ops .mc-op:nth-child(3):not(.coin){background:linear-gradient(#e9d8b0,#dec998);box-shadow:inset 0 1px 0 #f5e7c4,inset 0 -3px 0 #bf9f63}
+.mc-ops .mc-op:nth-child(n+4):not(.coin){background:linear-gradient(#e3d1a6,#d8c18e);box-shadow:inset 0 1px 0 #f0e1bb,inset 0 -3px 0 #b89958}
 .mc-op:active{filter:brightness(.93)}
 .mc-op[disabled]{opacity:.5}
 .mc-base{line-height:0;margin-top:-1px}
@@ -2920,15 +2925,15 @@ function lazerCard(){
     const sub=!lib?`Finish the ${p.req} km race first`:`${quando} · ${m?`best: ${m.pos}th in ${fmtTempo(m.tempo)}`:p.dif}`;
     return `<button class="prova-lin" data-acao="prova" data-alvo="${p.km}" ${pode?'':'disabled'}><span><b>${p.nome}</b><small>${sub}</small></span><span class="prova-v">${!lib?'🔒':ab?fmt0(v):'—'}</span></button>`; }).join('');
   const u=c.ult;
-  return `<section class="card lazer-card" aria-labelledby="t-lazer"><h2 id="t-lazer">🏃 Leisure and health</h2>
-    <div class="humor-hud" role="meter" aria-label="Fitness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Fitness</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
-    <p class="hint">Fitness gives time back: more energy and better organization. Now you get <b>${hm(horasCond())} h per month</b> back (up to ${hm(3)} h at most).</p>
-    <p class="hint">Training costs money (gym, shoes, clothes and transport) and uses free time, but it's good for you: it raises well-being and fitness. The higher your fitness, the calmer and more forgiving the race. Stopping training lowers fitness slowly.</p>
-    <div class="seg seg-hud" role="group" aria-label="Training per week">${seg}</div>
-    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub">Running races</h3>
+  return `<section class="card lazer-card" aria-labelledby="t-lazer"><h2 id="t-lazer">🏃 Lazer e saúde</h2>
+    <div class="humor-hud" role="meter" aria-label="Condicionamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Condicionamento</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
+    <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
+    <p class="hint">Treinar custa dinheiro (academia, tênis, roupa e transporte) e usa tempo livre, mas faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
+    <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
+    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub" id="provas-corrida">Provas de corrida</h3>
     <div class="provas">${provas}</div>
-    ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the waterfront once a year. You can only sign up in the race month.</p>
-    <div class="seg seg-hud lazer-persp" role="group" aria-label="Sneaker drop"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">In perspective<small>coming from the horizon</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Straight line<small>falling straight</small></button></div>
+    ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
+    <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
     ${u?`<p class="hint lazer-ult">Last race (${u.km} km): <b>${u.pos}th place</b> in ${fmtTempo(u.tempo)} · well-being +${u.gf} · fitness +${u.gc}</p>`:"<p class=\"hint\">A race result only adds: first place gives more, and last place still gives a little.</p>"}
   </section>`; }
 function efeitosFel(hl=horasLivres()){
@@ -3284,6 +3289,7 @@ const ESPECIAIS = {
     texto:()=>{ const o=ofertaNova(); if(!o) return "The opportunity has passed."; const c=CARTAS[o.id], h=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0));
       return `${c.desc} Costs ${fmt0(o.preco)} and ${o.renda?`earns ${fmt0(o.renda)} per month`:"earns nothing per month"}${h?`, taking ${hm(h)} of your hours per month`:''}. Available until ${rotulo(o.expira)}.${o.area?" It's in your field: you have an advantage.":''}`; },
     opcoes:()=>{ const o=ofertaNova(); return [
+      ...(o && podeAVista(precoAVista(o)) ? [{label:`Comprar agora (${fmt0(precoAVista(o))})`, sub:avisoEmerg(precoAVista(o)), coin:true, run:()=>{ comprarOferta(o.uid,false); return s.licao; }}] : []),
       {label:"See the offer", sub:o?avisoEmerg(precoAVista(o)):'', coin:true, run:()=>{ ui.aba='renda'; ui.telaScroll=0; return s.licao; }},
       {label:"Not now", sub:o?`It's available until ${rotulo(o.expira)}`:'', run:()=>s.licao}]; }},
   grande:{tipo:'opcoes', titulo:()=>`Now or never: ${(CARTAS[s.grande?.id]?.nome||"business").toLowerCase()}`,
@@ -5070,8 +5076,9 @@ function comprarOferta(uid, financiar){
   const c=CARTAS[o.id], pv=precoAVista(o), entrada=financiar?Math.round(o.preco*0.3):pv, m0=mesesLiq();
   if(!podeAVista(entrada)) return;
   const a={uid:s.uid++, id:o.id, nome:c.nome, tipo:c.tipo, valor:o.preco, custo:financiar?o.preco:pv, renda:o.renda, horas:Math.max(1,c.horas-(o.area?AREA.horas:0)), area:!!o.area, desde:s.mes};
-  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:50, meses:0}; tycAtualizar(a); }
-  const gerAuto=!!(s.aposentado && c.tipo==='negocio'); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; }
+  const pad=(s.ceo && s.ceo.on && s.ceo.padrao) || {};   // o CEO aplica a configuração escolhida (retirada e gerente) nas empresas novas
+  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:pad.ret!=null?pad.ret:50, meses:0}; tycAtualizar(a); }
+  const gerAuto=!!(s.aposentado && c.tipo==='negocio') || !!(pad.ger && c.tyc && c.tipo==='negocio' && a.horas>1); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; if(a.tyc) tycAtualizar(a); }
   const vendTxt=pagarAVista(entrada);
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
@@ -5892,7 +5899,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v437</p>
+    <p class="titulo-versao">version v447</p>
   </div>`;
 }
 function render(){
@@ -6209,7 +6216,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     return `<section class="card sonho-card ${podeSonho?'pronto':''}"><div class="sc-top">${ic}<div><span class="label-c">Your dream</span><b>${sonho().nome}</b><span class="num sc-v">${s.sonhoFeito?"":tem>=ps?`✓ You already have the ${fmt0(ps)}`:`${fmt0(tem)} of ${fmt0(ps)}`}</span></div></div><div class="sc-bar"><i style="width:${pct}%"></i></div><p class="hint">${st}</p>${btn}</section>`; })();
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
-    inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="aba" data-alvo="vida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' and ')}</b><p class="hint">Registration open this month only. Tap to see it in the Life tab.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Year board">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Statement for ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
+    inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' and ')}</b><p class="hint">Inscrições abertas só neste mês. Toque para ver na aba Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Year board">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Statement for ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
     dinheiro: `<section class="hud" aria-label="Month status">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: loans and installments</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Where your money comes from (per hour)</summary>${rendaCard}</details>`,
@@ -6230,6 +6237,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
+  if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
   montarCena();
   animarPeao();
@@ -6374,6 +6382,18 @@ function ceoResponder(sim){
   tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
 }
 const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-img" src="${ARTE.ceo}" alt="Your CEO receiving the team folder" width="640" height="317">` : '';
+// CEO: ações em todas as empresas de uma vez (gerente, retirada, saque)
+function ceoTodas(acao, v){
+  const emps=ceoEmps(); if(!emps.length) return; let msg='', tom='bom', tit='';
+  { const c=ceo(); c.padrao=c.padrao||{}; if(acao==='ger') c.padrao.ger=(v==='1'); else if(acao==='ret') c.padrao.ret=Number(v); }   // vale também para as empresas que você comprar depois
+  if(acao==='ger'){ let n=0;
+    for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
+    tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
+  else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
+  else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:(T.caixa-tycReserva(a))*(isNaN(Number(v))?1:Number(v)/100), x=Math.floor(Math.max(0,val)/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
+    tit='Saque nas empresas'; { const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n, p:String(v)}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?" With no reserve, a bad month comes out of your pocket.":' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+  s.licao={tom, titulo:tit, texto:msg};
+}
 function ceoCard(){
   const c=ceo(), emps=ceoEmps(), pat=patrimonio(), lib=ceoLiberado();
   if(!c.on && !lib && !(emps.length||s.fase>=3)) return '';
@@ -6386,6 +6406,14 @@ function ceoCard(){
     <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
     <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
     ${c.auto?`<p class="hint">Monthly spending limit on automatic:</p><div class="seg seg-hud" role="group" aria-label="Limit">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
+    ${(()=>{ const em=ceoEmps(); if(!em.length) return ''; const cxTot=em.reduce((x,a)=>x+Math.max(0,a.tyc.caixa||0),0), cxExc=em.reduce((x,a)=>x+Math.max(0,Math.floor(((a.tyc.caixa||0)-tycReserva(a))/100)*100),0), comG=em.filter(a=>a.gerente).length, rets=em.map(a=>Math.round(a.tyc.ret||0)), igual=rets.every(x=>x===rets[0]);
+      return `<h3 class="hint" style="margin:12px 0 4px"><b>Em todas as empresas de uma vez</b></h3>
+      <p class="hint">Gerente: ${comG} of ${em.length} empresas com gerente. O gerente de cada empresa cobra ${Math.round(gerCusto()*100)}% da renda dela e libera o seu tempo (o CEO cobra à parte, ${Math.round(CEO_PCT*100)}% do lucro).</p>
+      <div class="seg seg-hud" role="group" aria-label="Gerente em todas"><button data-acao="ceoTodas" data-alvo="ger:1" aria-pressed="${comG===em.length}">Gerente em todas</button><button data-acao="ceoTodas" data-alvo="ger:0" aria-pressed="${comG===0}">Sem gerente</button></div>
+      <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
+      <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
+      <p class="hint">Dinheiro nos caixas das empresas: <b>${fmt0(cxTot)}</b>. Dá para sacar <b>${fmt0(cxExc)}</b> sem mexer na reserva de 3 meses de custos. Escolha quanto sacar:</p>${ceo().ultSaque?(ceo().ultSaque.v>0?`<p class="hint">✅ Último saque: <b>${fmt0(ceo().ultSaque.v)}</b> de ${ceo().ultSaque.n} empresa${ceo().ultSaque.n>1?'s':''}, em ${rotulo(ceo().ultSaque.mes)}.</p>`:`<p class="hint">Última escolha em ${rotulo(ceo().ultSaque.mes)}: não havia dinheiro nos caixas para sacar.</p>`):''}
+      <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}" aria-pressed="${(ceo().ultSaque||{}).p===String(p)}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc" aria-pressed="${(ceo().ultSaque||{}).p==='exc'}">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo" aria-pressed="${(ceo().ultSaque||{}).p==='tudo'}">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
@@ -7052,6 +7080,7 @@ document.addEventListener('click', e=>{
       if(!p) break; if(A<=0){ erroEl.textContent="Enter a value greater than zero."; break; }
       if(!podeAVista(A)){ erroEl.textContent=`You have ${fmt(Math.max(0,s.conta)+investido())} between account and investments.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
+    case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
     case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='en'?'en':'pt'); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
@@ -7206,6 +7235,7 @@ document.addEventListener('click', e=>{
     case 'ceoContratar': if(ceoLiberado()){ const c=ceo(); c.on=true; c.auto=false; c.pausa=0; } salvar(); render(); break;
     case 'ceoDispensar': { const c=ceo(); c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); } salvar(); render(); break;
     case 'ceoAuto': ceo().auto=alvo==='1'; salvar(); render(); break;
+    case 'ceoTodas': { const [q,v]=alvo.split(':'); ceoTodas(q,v); salvar(); render(); break; }
     case 'ceoTeto': ceo().teto=Number(alvo)||0; salvar(); render(); break;
     case 'ceoSim': ceoResponder(true); salvar(); render(); break;
     case 'ceoNao': ceoResponder(false); salvar(); render(); break;
@@ -9463,7 +9493,7 @@ function lazerCard(){
     <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
     <p class="hint">Treinar custa dinheiro (academia, tênis, roupa e transporte) e usa tempo livre, mas faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
-    ${(livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub">Provas de corrida</h3>
+    ${(livre-3<9?'<p class="hint">Pouco tempo livre para treinar: libere horas (menos trabalho, estudo ou vícios) para escolher um treino.</p>':'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub" id="provas-corrida">Provas de corrida</h3>
     <div class="provas">${provas}</div>
     ${(usada?'<p class="hint">Você já correu neste mês.</p>':'')+bonusCorridaHtml()}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
@@ -9822,6 +9852,7 @@ const ESPECIAIS = {
     texto:()=>{ const o=ofertaNova(); if(!o) return 'A oportunidade já passou.'; const c=CARTAS[o.id], h=Math.max(c.horas>0?1:0,c.horas-(o.area?AREA.horas:0));
       return `${c.desc} Custa ${fmt0(o.preco)} e ${o.renda?`rende ${fmt0(o.renda)} por mês`:'não rende nada por mês'}${h?`, pedindo ${hm(h)} h suas por mês`:''}. Fica disponível até ${rotulo(o.expira)}.${o.area?' É da sua área: você tem vantagem.':''}`; },
     opcoes:()=>{ const o=ofertaNova(); return [
+      ...(o && podeAVista(precoAVista(o)) ? [{label:`Comprar agora (${fmt0(precoAVista(o))})`, sub:avisoEmerg(precoAVista(o)), coin:true, run:()=>{ comprarOferta(o.uid,false); return s.licao; }}] : []),
       {label:'Ver a oferta', sub:o?avisoEmerg(precoAVista(o)):'', coin:true, run:()=>{ ui.aba='renda'; ui.telaScroll=0; return s.licao; }},
       {label:'Agora não', sub:o?`Ela fica até ${rotulo(o.expira)}`:'', run:()=>s.licao}]; }},
   grande:{tipo:'opcoes', titulo:()=>`Agora ou nunca: ${(CARTAS[s.grande?.id]?.nome||'negócio').toLowerCase()}`,
@@ -11608,8 +11639,9 @@ function comprarOferta(uid, financiar){
   const c=CARTAS[o.id], pv=precoAVista(o), entrada=financiar?Math.round(o.preco*0.3):pv, m0=mesesLiq();
   if(!podeAVista(entrada)) return;
   const a={uid:s.uid++, id:o.id, nome:c.nome, tipo:c.tipo, valor:o.preco, custo:financiar?o.preco:pv, renda:o.renda, horas:Math.max(1,c.horas-(o.area?AREA.horas:0)), area:!!o.area, desde:s.mes};
-  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:50, meses:0}; tycAtualizar(a); }
-  const gerAuto=!!(s.aposentado && c.tipo==='negocio'); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; }
+  const pad=(s.ceo && s.ceo.on && s.ceo.padrao) || {};   // o CEO aplica a configuração escolhida (retirada e gerente) nas empresas novas
+  if(c.tyc){ a.tyc={niv:[1,1,1,1,1], caixa:0, ret:pad.ret!=null?pad.ret:50, meses:0}; tycAtualizar(a); }
+  const gerAuto=!!(s.aposentado && c.tipo==='negocio') || !!(pad.ger && c.tyc && c.tipo==='negocio' && a.horas>1); if(gerAuto){ a.gerente=true; a.gerDesde=s.mes; if(a.tyc) tycAtualizar(a); }
   const vendTxt=pagarAVista(entrada);
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
@@ -12430,7 +12462,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v437</p>
+    <p class="titulo-versao">versão v447</p>
   </div>`;
 }
 function render(){
@@ -12747,7 +12779,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     return `<section class="card sonho-card ${podeSonho?'pronto':''}"><div class="sc-top">${ic}<div><span class="label-c">Seu sonho</span><b>${sonho().nome}</b><span class="num sc-v">${s.sonhoFeito?"":tem>=ps?`✓ Você já tem os ${fmt0(ps)}`:`${fmt0(tem)} de ${fmt0(ps)}`}</span></div></div><div class="sc-bar"><i style="width:${pct}%"></i></div><p class="hint">${st}</p>${btn}</section>`; })();
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
-    inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="aba" data-alvo="vida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' e ')}</b><p class="hint">Inscrições abertas só neste mês. Toque para ver na aba Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
+    inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' e ')}</b><p class="hint">Inscrições abertas só neste mês. Toque para ver na aba Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
     dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
@@ -12768,6 +12800,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
+  if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
   montarCena();
   animarPeao();
@@ -12912,6 +12945,18 @@ function ceoResponder(sim){
   tycSubir(a.uid,av.ki,fonte); if(a.tyc.obra){ c.feitas=(c.feitas||0)+1; c.pausa=0; }
 }
 const ceoImg = () => (typeof ARTE!=='undefined' && ARTE.ceo) ? `<img class="ceo-img" src="${ARTE.ceo}" alt="Seu CEO recebendo a pasta da equipe" width="640" height="317">` : '';
+// CEO: ações em todas as empresas de uma vez (gerente, retirada, saque)
+function ceoTodas(acao, v){
+  const emps=ceoEmps(); if(!emps.length) return; let msg='', tom='bom', tit='';
+  { const c=ceo(); c.padrao=c.padrao||{}; if(acao==='ger') c.padrao.ger=(v==='1'); else if(acao==='ret') c.padrao.ret=Number(v); }   // vale também para as empresas que você comprar depois
+  if(acao==='ger'){ let n=0;
+    for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
+    tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
+  else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
+  else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:(T.caixa-tycReserva(a))*(isNaN(Number(v))?1:Number(v)/100), x=Math.floor(Math.max(0,val)/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
+    tit='Saque nas empresas'; { const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n, p:String(v)}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+  s.licao={tom, titulo:tit, texto:msg};
+}
 function ceoCard(){
   const c=ceo(), emps=ceoEmps(), pat=patrimonio(), lib=ceoLiberado();
   if(!c.on && !lib && !(emps.length||s.fase>=3)) return '';
@@ -12924,6 +12969,14 @@ function ceoCard(){
     <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
     <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
     ${c.auto?`<p class="hint">Limite de gasto por mês no automático:</p><div class="seg seg-hud" role="group" aria-label="Limite">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
+    ${(()=>{ const em=ceoEmps(); if(!em.length) return ''; const cxTot=em.reduce((x,a)=>x+Math.max(0,a.tyc.caixa||0),0), cxExc=em.reduce((x,a)=>x+Math.max(0,Math.floor(((a.tyc.caixa||0)-tycReserva(a))/100)*100),0), comG=em.filter(a=>a.gerente).length, rets=em.map(a=>Math.round(a.tyc.ret||0)), igual=rets.every(x=>x===rets[0]);
+      return `<h3 class="hint" style="margin:12px 0 4px"><b>Em todas as empresas de uma vez</b></h3>
+      <p class="hint">Gerente: ${comG} de ${em.length} empresas com gerente. O gerente de cada empresa cobra ${Math.round(gerCusto()*100)}% da renda dela e libera o seu tempo (o CEO cobra à parte, ${Math.round(CEO_PCT*100)}% do lucro).</p>
+      <div class="seg seg-hud" role="group" aria-label="Gerente em todas"><button data-acao="ceoTodas" data-alvo="ger:1" aria-pressed="${comG===em.length}">Gerente em todas</button><button data-acao="ceoTodas" data-alvo="ger:0" aria-pressed="${comG===0}">Sem gerente</button></div>
+      <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
+      <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
+      <p class="hint">Dinheiro nos caixas das empresas: <b>${fmt0(cxTot)}</b>. Dá para sacar <b>${fmt0(cxExc)}</b> sem mexer na reserva de 3 meses de custos. Escolha quanto sacar:</p>${ceo().ultSaque?(ceo().ultSaque.v>0?`<p class="hint">✅ Último saque: <b>${fmt0(ceo().ultSaque.v)}</b> de ${ceo().ultSaque.n} empresa${ceo().ultSaque.n>1?'s':''}, em ${rotulo(ceo().ultSaque.mes)}.</p>`:`<p class="hint">Última escolha em ${rotulo(ceo().ultSaque.mes)}: não havia dinheiro nos caixas para sacar.</p>`):''}
+      <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}" aria-pressed="${(ceo().ultSaque||{}).p===String(p)}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc" aria-pressed="${(ceo().ultSaque||{}).p==='exc'}">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo" aria-pressed="${(ceo().ultSaque||{}).p==='tudo'}">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
@@ -13590,6 +13643,7 @@ document.addEventListener('click', e=>{
       if(!p) break; if(A<=0){ erroEl.textContent='Digite um valor maior que zero.'; break; }
       if(!podeAVista(A)){ erroEl.textContent=`Você tem ${fmt(Math.max(0,s.conta)+investido())} entre conta e investimentos.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
+    case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
     case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='en'?'en':'pt'); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
@@ -13744,6 +13798,7 @@ document.addEventListener('click', e=>{
     case 'ceoContratar': if(ceoLiberado()){ const c=ceo(); c.on=true; c.auto=false; c.pausa=0; } salvar(); render(); break;
     case 'ceoDispensar': { const c=ceo(); c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); } salvar(); render(); break;
     case 'ceoAuto': ceo().auto=alvo==='1'; salvar(); render(); break;
+    case 'ceoTodas': { const [q,v]=alvo.split(':'); ceoTodas(q,v); salvar(); render(); break; }
     case 'ceoTeto': ceo().teto=Number(alvo)||0; salvar(); render(); break;
     case 'ceoSim': ceoResponder(true); salvar(); render(); break;
     case 'ceoNao': ceoResponder(false); salvar(); render(); break;
