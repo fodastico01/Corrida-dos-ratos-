@@ -5892,7 +5892,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v440</p>
+    <p class="titulo-versao">version v441</p>
   </div>`;
 }
 function render(){
@@ -6382,7 +6382,7 @@ function ceoTodas(acao, v){
     tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
   else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
   else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:(T.caixa-tycReserva(a))*(isNaN(Number(v))?1:Number(v)/100), x=Math.floor(Math.max(0,val)/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
-    tit='Saque nas empresas'; if(tot>0){ const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?" With no reserve, a bad month comes out of your pocket.":' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+    tit='Saque nas empresas'; if(tot>0){ const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n, p:String(v)}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?" With no reserve, a bad month comes out of your pocket.":' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
   s.licao={tom, titulo:tit, texto:msg};
 }
 function ceoCard(){
@@ -6404,7 +6404,7 @@ function ceoCard(){
       <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
       <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
       <p class="hint">Dinheiro nos caixas das empresas: <b>${fmt0(cxTot)}</b>. Dá para sacar <b>${fmt0(cxExc)}</b> sem mexer na reserva de 3 meses de custos. Escolha quanto sacar:</p>${ceo().ultSaque?`<p class="hint">✅ Último saque: <b>${fmt0(ceo().ultSaque.v)}</b> de ${ceo().ultSaque.n} empresa${ceo().ultSaque.n>1?'s':''}, em ${rotulo(ceo().ultSaque.mes)}.</p>`:''}
-      <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
+      <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}" aria-pressed="${(ceo().ultSaque||{}).p===String(p)}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc" aria-pressed="${(ceo().ultSaque||{}).p==='exc'}">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo" aria-pressed="${(ceo().ultSaque||{}).p==='tudo'}">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
@@ -12450,7 +12450,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v440</p>
+    <p class="titulo-versao">versão v441</p>
   </div>`;
 }
 function render(){
@@ -12940,7 +12940,7 @@ function ceoTodas(acao, v){
     tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
   else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
   else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:(T.caixa-tycReserva(a))*(isNaN(Number(v))?1:Number(v)/100), x=Math.floor(Math.max(0,val)/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
-    tit='Saque nas empresas'; if(tot>0){ const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+    tit='Saque nas empresas'; if(tot>0){ const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n, p:String(v)}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
   s.licao={tom, titulo:tit, texto:msg};
 }
 function ceoCard(){
@@ -12962,7 +12962,7 @@ function ceoCard(){
       <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
       <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
       <p class="hint">Dinheiro nos caixas das empresas: <b>${fmt0(cxTot)}</b>. Dá para sacar <b>${fmt0(cxExc)}</b> sem mexer na reserva de 3 meses de custos. Escolha quanto sacar:</p>${ceo().ultSaque?`<p class="hint">✅ Último saque: <b>${fmt0(ceo().ultSaque.v)}</b> de ${ceo().ultSaque.n} empresa${ceo().ultSaque.n>1?'s':''}, em ${rotulo(ceo().ultSaque.mes)}.</p>`:''}
-      <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
+      <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}" aria-pressed="${(ceo().ultSaque||{}).p===String(p)}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc" aria-pressed="${(ceo().ultSaque||{}).p==='exc'}">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo" aria-pressed="${(ceo().ultSaque||{}).p==='tudo'}">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
 /* ================= balões de evolução (estudo e habilidade concluídos) ================= */
