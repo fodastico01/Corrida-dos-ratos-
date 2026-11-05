@@ -8563,8 +8563,8 @@ function receberAmigos(){
 }
 const CARTAS_INFL = {
   terreno:{titulo:'Terreno no caminho do novo shopping', custo:()=>valInfl(0.12), ok:()=>podeAVista(valInfl(0.12)),
-    txt:()=>`Um amigo da prefeitura comentou que o shopping deve sair ali, com obras previstas para os próximos 2 anos. Terreno por ${fmt0(valInfl(0.12))}; pode valorizar bastante, mas ninguém garante nada.`,
-    run:()=>{ const v=valInfl(0.12), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'terreno', nome:'Terreno perto do novo shopping', tipo:'terreno', valor:v, custo:v, alvo:Math.round(v*1.9), renda:0, horas:0, desde:s.mes, obra:true}); return `Comprou por ${fmt0(v)}. Se o shopping sair do papel nos próximos 2 anos, o terreno pode valorizar bastante. Obras atrasam e projetos mudam, então nada é garantido.${t}`; }},
+    txt:()=>`Um amigo da prefeitura comentou: o shopping vai sair ali. Terreno por ${fmt0(valInfl(0.12))}; pode valorizar bastante.`,
+    run:()=>{ const v=valInfl(0.12), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'terreno', nome:'Terreno perto do novo shopping', tipo:'terreno', valor:v, custo:v, alvo:Math.round(v*1.9), renda:0, horas:0, desde:s.mes, obra:true}); return `Comprou por ${fmt0(v)}. Conforme o shopping for saindo do papel, o terreno valoriza mês a mês. Obras atrasam, então nada é garantido.${t}`; }},
   comprador:{titulo:'Um investidor quer o seu negócio', ok:()=>!!alvoVenda(),
     txt:()=>{ const a=alvoVenda(); return `Ele ouviu falar da sua ${a.nome.toLowerCase()} num jantar e oferece ${fmt0(vMerc(a)*1.4)}, 40% acima do que vale.`; },
     run:()=>{ const a=alvoVenda(), p=Math.round(vMerc(a)*1.4), r=venderAtivo(a,p); return `Vendeu por ${fmt0(p)}: lucro de ${fmt0(r.lucro)} sobre o que você pagou.`; }},
