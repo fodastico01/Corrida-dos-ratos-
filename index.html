@@ -1304,7 +1304,7 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 .ritmo-bonus{position:absolute;left:10px;right:10px;top:10px;z-index:6;background:#2f8f5b;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;line-height:1.35;box-shadow:0 6px 18px -6px rgba(0,0,0,.5);animation:revela .6s ease-out;cursor:pointer}
 .ritmo-bonus.sem{background:#6b7280}
 
-.saldo-faixa{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;margin:0 auto;width:max-content;z-index:60;display:flex;gap:6px 12px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 16px);padding:6px 12px;border-radius:10px;background:linear-gradient(#F8ECC8,#EBD79F);color:#3A2F1C;border:2px solid #C9A24B;outline:2px solid #3B2E1A;font-family:var(--display);font-size:12px;line-height:1.2;box-shadow:0 3px 0 #3B2E1A;pointer-events:none}
+.saldo-faixa{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;margin:0 auto;width:max-content;z-index:60;display:flex;gap:6px 12px;flex-wrap:nowrap;justify-content:center;max-width:calc(100vw - 16px);padding:6px 12px;border-radius:10px;background:linear-gradient(#F8ECC8,#EBD79F);color:#3A2F1C;border:2px solid #C9A24B;outline:2px solid #3B2E1A;font-family:var(--display);font-size:12px;line-height:1.2;box-shadow:0 3px 0 #3B2E1A;pointer-events:none}
 .saldo-faixa span{white-space:nowrap;opacity:.95}
 .saldo-faixa b{font-weight:800}
 .saldo-faixa b.neg{color:#B23B2E}
@@ -1577,8 +1577,8 @@ const CARTAS = {
     desc:"Earns nothing. If the avenue gets built, it can be worth triple. If not, it's stuck."}
 };
 const EMPRESTIMOS = {
-  pessoal:{nome:"Personal loan", taxa:0.03, n:24, txt:"3% a month in 24 installments. Limit of 4 salaries."},
-  garantia:{nome:"Loan secured by property", taxa:0.014, n:120, txt:"1.4% a month in 120 installments. Limit of 50% of the value of your properties."}
+  pessoal:{nome:"Personal loan", taxa:0.03, abertura:0.03, n:24, txt:"3% a month in 24 installments, plus a 3% opening fee. Limit of 10 salaries."},
+  garantia:{nome:"Loan secured by property", taxa:0.014, abertura:0.015, n:120, txt:"1.4% a month in 120 installments. Limit of 50% of the value of your properties."}
 };
 const META_PATR = 30, META_PATR_B = 18; // Fase 2: patrimônio em meses de custo
 const TENTACOES = [
@@ -2639,13 +2639,14 @@ const quitavel = p => p.nome!=="Capitalization bond";
 const dividaEmp = tipo => s.parcelas.filter(p=>p.emp===tipo).reduce((x,p)=>x+saldoParc(p),0);
 const valorImoveis = () => (s.ativos||[]).filter(a=>a.tipo==='imovel').reduce((x,a)=>x+a.valor,0) + (s.casa||0);
 function limiteEmp(tipo){
-  if(tipo==='pessoal'){ const base = s.desemp>0 ? 0 : s.aposentado ? 4*rendaPassiva() : 4*s.salario; return Math.max(0, Math.floor((base - dividaEmp('pessoal'))/100)*100); }
+  if(tipo==='pessoal'){ const base = s.desemp>0 ? 0 : s.aposentado ? 10*rendaPassiva() : 10*s.salario; return Math.max(0, Math.floor((base - dividaEmp('pessoal'))/100)*100); }
   return Math.max(0, Math.floor((0.5*valorImoveis() - dividaEmp('garantia'))/100)*100);
 }
+const empCobrirV = () => { const ab=EMPRESTIMOS.pessoal.abertura||0; return Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/(1-ab)/100)*100); };   // com a taxa de abertura, pede um pouco mais para realmente cobrir o buraco
 function pegarEmprestimo(tipo, v){
   const E=EMPRESTIMOS[tipo]; if(!E || v<=0 || v>limiteEmp(tipo)+0.5) return;
   const p=pmt(v,E.taxa,E.n); // sem arredondar: quitando na hora, o saldo devedor é exatamente o valor pego
-  s.conta+=v; s.parcelas.push({uid:s.uid++, emp:tipo, nome:E.nome, valor:p, restante:E.n, total:E.n, taxa:E.taxa, juros:(p*E.n-v)/E.n});
+  const ab=Math.round(v*(E.abertura||0)); s.conta+=v-ab; s.parcelas.push({uid:s.uid++, emp:tipo, nome:E.nome, valor:p, restante:E.n, total:E.n, taxa:E.taxa, juros:(p*E.n-v)/E.n});
   s.emprestou=(s.emprestou||0)+v;
   const jt=p*E.n-v, ganho=E.taxa*100;
   s.licao={tom:'neutro', titulo:`${fmt0(v)} in the account, ${E.n}x of ${fmt(p)}`, texto:`In total you will pay back ${fmt0(p*E.n)}, of which ${fmt0(jt)} is interest. Good debt is the kind that buys something that earns more than ${dec1(ganho)}% a month. Debt for consumption only makes you poorer. And borrowed money is not an emergency fund: while there is an outstanding balance, it is deducted from your reserve.`};
@@ -5921,7 +5922,7 @@ function render(){
   if(neg){
     const fontes=Object.entries(prods()).filter(([id,p])=>disponivel(id)>0.5 && !(p.trava&&!s.acoesLib));
     alerta+=`<div class="alerta ruim"><strong>Overdraft: ${fmt(s.conta)}</strong><p>Next month this balance charges ${fmt(-s.conta*T_CHEQUE)} in interest. ${fontes.length?"Cover it now by selling an investment:":"You have no investments to cover with. Cut leisure to get out faster."}</p>
-      ${limiteEmp('pessoal')>=Math.min(-s.conta,100)?`<p class="hint" style="margin-top:6px">${fontes.length?"Or swap":"You can swap"} the 8% debt for a personal loan at 3% a month:</p><div class="cobrir"><button class="btn" data-acao="empCobrir"><b>Loan of ${fmt0(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100))}</b><span>24x of ${fmt(pmt(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100),0.03,24))}</span></button></div>`:''}
+      ${limiteEmp('pessoal')>=Math.min(-s.conta,100)?`<p class="hint" style="margin-top:6px">${fontes.length?"Or swap":"You can swap"} the 8% debt for a personal loan at 3% a month:</p><div class="cobrir"><button class="btn" data-acao="empCobrir"><b>Loan of ${fmt0(empCobrirV())}</b><span>24x of ${fmt(pmt(empCobrirV(),0.03,24))}</span></button></div>`:''}
       ${fontes.length?`<div class="cobrir">${fontes.map(([id,p])=>{ const d=disponivel(id), tudo=d>=-s.conta; return `<button class="btn ${p.reserva?'coin':''}" data-acao="cobrir" data-alvo="${id}"><b>Cover with ${p.curto}</b><span>${tudo?`clears the account · you have ${fmt0(d)}`:`covers ${fmt0(d)} of ${fmt0(-s.conta)}`}</span></button>`; }).join('')}</div>`:''}</div>`;
   }
   if(esgotado()) alerta+=`<div class="alerta ruim"><strong>On leave for burnout</strong><p>${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?"month":"months"} left. Salary at 50%, treatment costs every month, no side income and no promotion. When you return, the risk of layoff is high. Well-being doesn't go above 40 until you recover.</p></div>`;
@@ -6459,7 +6460,7 @@ function renderConfirmOperacao(){
   } else if(pend.tipo==='emp'){
     const L=EMPRESTIMOS[pend.emp], parcela=pmt(pend.valor,L.taxa,L.n), total=parcela*L.n;
     titulo="Confirm loan?"; botao="Confirm loan";
-    html=`<p>${escHtml(L.nome)}</p><div class="info-lista"><div class="fl"><span>You receive</span><b>${fmt0(pend.valor)}</b></div><div class="fl"><span>Installments</span><b>${L.n}x of ${fmt(parcela)}</b></div><div class="fl"><span>Interest per month</span><b>${dec1(100*L.taxa)}%</b></div><div class="fl"><span>Total to repay</span><b>${fmt0(total)}</b></div><div class="fl"><span>Total interest</span><b>${fmt0(total-pend.valor)}</b></div></div><p class="hint">${escHtml(L.txt)}</p>`;
+    html=`<p>${escHtml(L.nome)}</p><div class="info-lista"><div class="fl"><span>Loan amount</span><b>${fmt0(pend.valor)}</b></div><div class="fl"><span>Opening fee (taxes, bank fee and insurance)</span><b>−${fmt0(Math.round(pend.valor*(L.abertura||0)))}</b></div><div class="fl"><span>You receive in your account</span><b>${fmt0(pend.valor-Math.round(pend.valor*(L.abertura||0)))}</b></div><div class="fl"><span>Installments</span><b>${L.n}x of ${fmt(parcela)}</b></div><div class="fl"><span>Interest per month</span><b>${dec1(100*L.taxa)}% (${dec1(100*(Math.pow(1+L.taxa,12)-1))}% a year)</b></div><div class="fl"><span>Total to repay</span><b>${fmt0(total)}</b></div><div class="fl"><span>Total cost of credit</span><b>${fmt0(total-(pend.valor-Math.round(pend.valor*(L.abertura||0))))}</b></div></div><p class="hint">${escHtml(L.txt)}</p>`;
   } else {
     const ativo=s.ativos.find(a=>a.uid===pend.uid); if(!ativo){ cancelarConfirmOperacao(); return; }
     const fin=ativo.finUid?s.parcelas.find(p=>p.uid===ativo.finUid):null, divida=fin?saldoParc(fin):0;
@@ -6473,7 +6474,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   if(!ov || !MODAIS_SALDO.includes(ui.modal) || !s || !s.iniciado) return;
   const P=prods(), it=[["Account",s.conta]]; if(P.cdb) it.push(["Emergency fund",valor('cdb')]); if(P.acoes) it.push(["Stocks",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Your money right now');
-  d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); }
+  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' B': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -6763,9 +6764,9 @@ function renderModal0(){
   if(ui.modal==='emp'){
     const blocos=Object.entries(EMPRESTIMOS).map(([tipo,E])=>{ const lim=limiteEmp(tipo);
       if(tipo==='garantia' && valorImoveis()<=0) return `<div class="emp-bloco"><b>${E.nome}</b><p class="hint">Available when you own a property.</p></div>`;
-      const valores=[1000,3000,5000,10000,20000,50000,100000,200000].filter(v=>v<=lim); if(lim>=100 && !valores.includes(lim)) valores.push(lim);
+      const valores=[1000,3000,5000,10000,20000,50000,100000,200000,500000,1000000,2000000,5000000].filter(v=>v<=lim); if(lim>=100 && !valores.includes(lim)) valores.push(lim);
       return `<div class="emp-bloco"><b>${E.nome}</b><p class="hint">${E.txt} Available: ${fmt0(lim)}.</p>
-        <div class="opcoes">${valores.length?valores.map(v=>{ const pp=pmt(v,E.taxa,E.n); return `<button class="opcao" data-acao="emp" data-alvo="${tipo}:${v}"><b>${fmt0(v)}${v===lim&&![1000,3000,5000,10000,20000,50000,100000,200000].includes(v)?" (maximum)":''}</b><span>${E.n}x of ${fmt(pp)} · repays ${fmt0(pp*E.n)} in total</span></button>`; }).join(''):"<p class=\"hint\">No limit available.</p>"}</div></div>`; }).join('');
+        <div class="opcoes">${valores.length?valores.map(v=>{ const pp=pmt(v,E.taxa,E.n); return `<button class="opcao" data-acao="emp" data-alvo="${tipo}:${v}"><b>${fmt0(v)}${v===lim&&![1000,3000,5000,10000,20000,50000,100000,200000,500000,1000000,2000000,5000000].includes(v)?" (maximum)":''}</b><span>${E.n}x of only ${fmt(pp)} · repays ${fmt0(pp*E.n)} in total</span></button>`; }).join(''):"<p class=\"hint\">No limit available.</p>"}</div></div>`; }).join('');
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">Bank</span><h3 id="m-t">How much do you want to borrow?</h3>
       <p class="hint">Compare the interest with what the money will earn. Overdraft costs 8% a month, credit card installments 4%.</p>
@@ -7223,7 +7224,7 @@ document.addEventListener('click', e=>{
     case 'continuarLivre': { s.venceuEm=s.venceuEm||s.mes; s.ptsFinal=pontuacao(); s.notaVitoria=notaFinal(); s.semPontos=true; ui.modal=null; salvar(); render(); break; }
     case 'abrirEmp': ui.modal='emp'; render(); break;
     case 'emp': { const [tipo,v]=alvo.split(':'); prepararConfirmacaoEmp(tipo, Number(v), 'emp'); break; }
-    case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
+    case 'empCobrir': { const v=empCobrirV(); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
     case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-en-snapB')||localStorage.getItem('corrida-en-snapA'); if(!t){ bkMsg("There's no automatic copy on this device yet."); break; } const o=JSON.parse(t); pedirConfirmacao('Go back in the game?',"Go back the game to "+(o.mes?("month "+o.mes):"an earlier copy")+"? Progress after that will be lost.",'Go back',()=>{ try{ localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg("Copy restored. Restarting…"); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg("I couldn't restore the copy."); } },ui.modal); }catch(e){ bkMsg("I couldn't restore the copy."); } break; }
@@ -8140,8 +8141,8 @@ const CARTAS = {
     desc:'Não rende nada. Se a avenida sair, pode valer o triplo. Se não sair, encalha.'}
 };
 const EMPRESTIMOS = {
-  pessoal:{nome:'Empréstimo pessoal', taxa:0.03, n:24, txt:'3% ao mês em 24 parcelas. Limite de 4 salários.'},
-  garantia:{nome:'Empréstimo com garantia de imóvel', taxa:0.014, n:120, txt:'1,4% ao mês em 120 parcelas. Limite de 50% do valor dos seus imóveis.'}
+  pessoal:{nome:'Empréstimo pessoal', taxa:0.03, abertura:0.03, n:24, txt:'3% ao mês em 24 parcelas, mais 3% de taxa de abertura. Limite de 10 salários.'},
+  garantia:{nome:'Empréstimo com garantia de imóvel', taxa:0.014, abertura:0.015, n:120, txt:'1,4% ao mês em 120 parcelas. Limite de 50% do valor dos seus imóveis.'}
 };
 const META_PATR = 30, META_PATR_B = 18; // Fase 2: patrimônio em meses de custo
 const TENTACOES = [
@@ -8562,8 +8563,8 @@ function receberAmigos(){
 }
 const CARTAS_INFL = {
   terreno:{titulo:'Terreno no caminho do novo shopping', custo:()=>valInfl(0.12), ok:()=>podeAVista(valInfl(0.12)),
-    txt:()=>`Um amigo da prefeitura comentou: o shopping vai sair ali. Terreno por ${fmt0(valInfl(0.12))}; deve valer o dobro em poucos meses.`,
-    run:()=>{ const v=valInfl(0.12), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'terreno', nome:'Terreno perto do novo shopping', tipo:'terreno', valor:v, custo:v, alvo:Math.round(v*1.9), renda:0, horas:0, desde:s.mes, obra:true}); return `Comprou por ${fmt0(v)}. Conforme o shopping for saindo do papel, o terreno valoriza mês a mês e pode chegar perto de ${fmt0(v*1.9)} em pouco mais de um ano. Obras atrasam, então nada é garantido.${t}`; }},
+    txt:()=>`Um amigo da prefeitura comentou: o shopping vai sair ali. Terreno por ${fmt0(valInfl(0.12))}; pode valorizar bastante.`,
+    run:()=>{ const v=valInfl(0.12), t=pagarAVista(v); s.ativos.push({uid:s.uid++, id:'terreno', nome:'Terreno perto do novo shopping', tipo:'terreno', valor:v, custo:v, alvo:Math.round(v*1.9), renda:0, horas:0, desde:s.mes, obra:true}); return `Comprou por ${fmt0(v)}. Conforme o shopping for saindo do papel, o terreno valoriza mês a mês. Obras atrasam, então nada é garantido.${t}`; }},
   comprador:{titulo:'Um investidor quer o seu negócio', ok:()=>!!alvoVenda(),
     txt:()=>{ const a=alvoVenda(); return `Ele ouviu falar da sua ${a.nome.toLowerCase()} num jantar e oferece ${fmt0(vMerc(a)*1.4)}, 40% acima do que vale.`; },
     run:()=>{ const a=alvoVenda(), p=Math.round(vMerc(a)*1.4), r=venderAtivo(a,p); return `Vendeu por ${fmt0(p)}: lucro de ${fmt0(r.lucro)} sobre o que você pagou.`; }},
@@ -9202,13 +9203,14 @@ const quitavel = p => p.nome!=='Título de capitalização';
 const dividaEmp = tipo => s.parcelas.filter(p=>p.emp===tipo).reduce((x,p)=>x+saldoParc(p),0);
 const valorImoveis = () => (s.ativos||[]).filter(a=>a.tipo==='imovel').reduce((x,a)=>x+a.valor,0) + (s.casa||0);
 function limiteEmp(tipo){
-  if(tipo==='pessoal'){ const base = s.desemp>0 ? 0 : s.aposentado ? 4*rendaPassiva() : 4*s.salario; return Math.max(0, Math.floor((base - dividaEmp('pessoal'))/100)*100); }
+  if(tipo==='pessoal'){ const base = s.desemp>0 ? 0 : s.aposentado ? 10*rendaPassiva() : 10*s.salario; return Math.max(0, Math.floor((base - dividaEmp('pessoal'))/100)*100); }
   return Math.max(0, Math.floor((0.5*valorImoveis() - dividaEmp('garantia'))/100)*100);
 }
+const empCobrirV = () => { const ab=EMPRESTIMOS.pessoal.abertura||0; return Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/(1-ab)/100)*100); };   // com a taxa de abertura, pede um pouco mais para realmente cobrir o buraco
 function pegarEmprestimo(tipo, v){
   const E=EMPRESTIMOS[tipo]; if(!E || v<=0 || v>limiteEmp(tipo)+0.5) return;
   const p=pmt(v,E.taxa,E.n); // sem arredondar: quitando na hora, o saldo devedor é exatamente o valor pego
-  s.conta+=v; s.parcelas.push({uid:s.uid++, emp:tipo, nome:E.nome, valor:p, restante:E.n, total:E.n, taxa:E.taxa, juros:(p*E.n-v)/E.n});
+  const ab=Math.round(v*(E.abertura||0)); s.conta+=v-ab; s.parcelas.push({uid:s.uid++, emp:tipo, nome:E.nome, valor:p, restante:E.n, total:E.n, taxa:E.taxa, juros:(p*E.n-v)/E.n});
   s.emprestou=(s.emprestou||0)+v;
   const jt=p*E.n-v, ganho=E.taxa*100;
   s.licao={tom:'neutro', titulo:`${fmt0(v)} na conta, ${E.n}x de ${fmt(p)}`, texto:`No total você vai devolver ${fmt0(p*E.n)}, sendo ${fmt0(jt)} de juros. Dívida boa é a que compra algo que rende mais de ${dec1(ganho)}% ao mês. Dívida para consumo só empobrece. E dinheiro emprestado não é reserva de emergência: enquanto houver saldo devedor, ele é descontado da sua reserva.`};
@@ -12484,7 +12486,7 @@ function render(){
   if(neg){
     const fontes=Object.entries(prods()).filter(([id,p])=>disponivel(id)>0.5 && !(p.trava&&!s.acoesLib));
     alerta+=`<div class="alerta ruim"><strong>Cheque especial: ${fmt(s.conta)}</strong><p>No próximo mês esse saldo cobra ${fmt(-s.conta*T_CHEQUE)} de juros. ${fontes.length?'Cubra agora vendendo um investimento:':'Você não tem investimentos para cobrir. Corte o lazer para sair mais rápido.'}</p>
-      ${limiteEmp('pessoal')>=Math.min(-s.conta,100)?`<p class="hint" style="margin-top:6px">${fontes.length?'Ou troque':'Você pode trocar'} a dívida de 8% por um empréstimo pessoal de 3% ao mês:</p><div class="cobrir"><button class="btn" data-acao="empCobrir"><b>Empréstimo de ${fmt0(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100))}</b><span>24x de ${fmt(pmt(Math.min(limiteEmp('pessoal'),Math.ceil(-s.conta/100)*100),0.03,24))}</span></button></div>`:''}
+      ${limiteEmp('pessoal')>=Math.min(-s.conta,100)?`<p class="hint" style="margin-top:6px">${fontes.length?'Ou troque':'Você pode trocar'} a dívida de 8% por um empréstimo pessoal de 3% ao mês:</p><div class="cobrir"><button class="btn" data-acao="empCobrir"><b>Empréstimo de ${fmt0(empCobrirV())}</b><span>24x de ${fmt(pmt(empCobrirV(),0.03,24))}</span></button></div>`:''}
       ${fontes.length?`<div class="cobrir">${fontes.map(([id,p])=>{ const d=disponivel(id), tudo=d>=-s.conta; return `<button class="btn ${p.reserva?'coin':''}" data-acao="cobrir" data-alvo="${id}"><b>Cobrir com ${p.curto}</b><span>${tudo?`zera a conta · tem ${fmt0(d)}`:`cobre ${fmt0(d)} de ${fmt0(-s.conta)}`}</span></button>`; }).join('')}</div>`:''}</div>`;
   }
   if(esgotado()) alerta+=`<div class="alerta ruim"><strong>Afastado(a) por esgotamento</strong><p>Faltam ${s.esgotAte-s.mes+1} ${s.esgotAte-s.mes+1===1?'mês':'meses'}. Salário a 50%, gastos de tratamento todo mês, sem renda extra e sem promoção. Ao voltar, o risco de demissão é alto. O bem-estar não passa de 40 até você se recuperar.</p></div>`;
@@ -13022,7 +13024,7 @@ function renderConfirmOperacao(){
   } else if(pend.tipo==='emp'){
     const L=EMPRESTIMOS[pend.emp], parcela=pmt(pend.valor,L.taxa,L.n), total=parcela*L.n;
     titulo='Confirmar empréstimo?'; botao='Confirmar empréstimo';
-    html=`<p>${escHtml(L.nome)}</p><div class="info-lista"><div class="fl"><span>Você recebe</span><b>${fmt0(pend.valor)}</b></div><div class="fl"><span>Parcelas</span><b>${L.n}x de ${fmt(parcela)}</b></div><div class="fl"><span>Juros por mês</span><b>${dec1(100*L.taxa)}%</b></div><div class="fl"><span>Total a devolver</span><b>${fmt0(total)}</b></div><div class="fl"><span>Total de juros</span><b>${fmt0(total-pend.valor)}</b></div></div><p class="hint">${escHtml(L.txt)}</p>`;
+    html=`<p>${escHtml(L.nome)}</p><div class="info-lista"><div class="fl"><span>Valor do empréstimo</span><b>${fmt0(pend.valor)}</b></div><div class="fl"><span>Taxa de abertura (IOF, tarifa e seguro)</span><b>−${fmt0(Math.round(pend.valor*(L.abertura||0)))}</b></div><div class="fl"><span>Você recebe na conta</span><b>${fmt0(pend.valor-Math.round(pend.valor*(L.abertura||0)))}</b></div><div class="fl"><span>Parcelas</span><b>${L.n}x de ${fmt(parcela)}</b></div><div class="fl"><span>Juros por mês</span><b>${dec1(100*L.taxa)}% (${dec1(100*(Math.pow(1+L.taxa,12)-1))}% ao ano)</b></div><div class="fl"><span>Total a devolver</span><b>${fmt0(total)}</b></div><div class="fl"><span>Custo total do crédito</span><b>${fmt0(total-(pend.valor-Math.round(pend.valor*(L.abertura||0))))}</b></div></div><p class="hint">${escHtml(L.txt)}</p>`;
   } else {
     const ativo=s.ativos.find(a=>a.uid===pend.uid); if(!ativo){ cancelarConfirmOperacao(); return; }
     const fin=ativo.finUid?s.parcelas.find(p=>p.uid===ativo.finUid):null, divida=fin?saldoParc(fin):0;
@@ -13036,7 +13038,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   if(!ov || !MODAIS_SALDO.includes(ui.modal) || !s || !s.iniciado) return;
   const P=prods(), it=[['Conta',s.conta]]; if(P.cdb) it.push(['Reserva',valor('cdb')]); if(P.acoes) it.push(['Ações',valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Seu dinheiro agora');
-  d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); }
+  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' bi': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' mi' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -13326,9 +13328,9 @@ function renderModal0(){
   if(ui.modal==='emp'){
     const blocos=Object.entries(EMPRESTIMOS).map(([tipo,E])=>{ const lim=limiteEmp(tipo);
       if(tipo==='garantia' && valorImoveis()<=0) return `<div class="emp-bloco"><b>${E.nome}</b><p class="hint">Disponível quando você tiver um imóvel.</p></div>`;
-      const valores=[1000,3000,5000,10000,20000,50000,100000,200000].filter(v=>v<=lim); if(lim>=100 && !valores.includes(lim)) valores.push(lim);
+      const valores=[1000,3000,5000,10000,20000,50000,100000,200000,500000,1000000,2000000,5000000].filter(v=>v<=lim); if(lim>=100 && !valores.includes(lim)) valores.push(lim);
       return `<div class="emp-bloco"><b>${E.nome}</b><p class="hint">${E.txt} Disponível: ${fmt0(lim)}.</p>
-        <div class="opcoes">${valores.length?valores.map(v=>{ const pp=pmt(v,E.taxa,E.n); return `<button class="opcao" data-acao="emp" data-alvo="${tipo}:${v}"><b>${fmt0(v)}${v===lim&&![1000,3000,5000,10000,20000,50000,100000,200000].includes(v)?' (máximo)':''}</b><span>${E.n}x de ${fmt(pp)} · devolve ${fmt0(pp*E.n)} no total</span></button>`; }).join(''):'<p class="hint">Sem limite disponível.</p>'}</div></div>`; }).join('');
+        <div class="opcoes">${valores.length?valores.map(v=>{ const pp=pmt(v,E.taxa,E.n); return `<button class="opcao" data-acao="emp" data-alvo="${tipo}:${v}"><b>${fmt0(v)}${v===lim&&![1000,3000,5000,10000,20000,50000,100000,200000,500000,1000000,2000000,5000000].includes(v)?' (máximo)':''}</b><span>${E.n}x de apenas ${fmt(pp)} · devolve ${fmt0(pp*E.n)} no total</span></button>`; }).join(''):'<p class="hint">Sem limite disponível.</p>'}</div></div>`; }).join('');
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">Banco</span><h3 id="m-t">Quanto você quer pegar emprestado?</h3>
       <p class="hint">Compare os juros com o que o dinheiro vai render. Cheque especial custa 8% ao mês, cartão parcelado 4%.</p>
@@ -13786,7 +13788,7 @@ document.addEventListener('click', e=>{
     case 'continuarLivre': { s.venceuEm=s.venceuEm||s.mes; s.ptsFinal=pontuacao(); s.notaVitoria=notaFinal(); s.semPontos=true; ui.modal=null; salvar(); render(); break; }
     case 'abrirEmp': ui.modal='emp'; render(); break;
     case 'emp': { const [tipo,v]=alvo.split(':'); prepararConfirmacaoEmp(tipo, Number(v), 'emp'); break; }
-    case 'empCobrir': { const v=Math.min(limiteEmp('pessoal'), Math.ceil(-s.conta/100)*100); prepararConfirmacaoEmp('pessoal', v); break; }
+    case 'empCobrir': { const v=empCobrirV(); prepararConfirmacaoEmp('pessoal', v); break; }
     case 'cancelarConfirmOperacao': if(e.target===b||b.tagName==='BUTTON') cancelarConfirmOperacao(); break;
     case 'concluirConfirmOperacao': concluirConfirmOperacao(); break;
     case 'snapVoltar': { try{ const t=localStorage.getItem('corrida-snapPre')||localStorage.getItem('corrida-snapB')||localStorage.getItem('corrida-snapA'); if(!t){ bkMsg('Ainda não há cópia automática neste aparelho.'); break; } const o=JSON.parse(t); pedirConfirmacao('Voltar o jogo?','Voltar o jogo para '+(o.mes?('o mês '+o.mes):'uma cópia anterior')+'? O progresso depois disso será perdido.','Voltar',()=>{ try{ localStorage.setItem(CHAVE,t); if(t===localStorage.getItem('corrida-snapPre')) localStorage.removeItem('corrida-snapPre'); bkMsg('Cópia restaurada. Reiniciando…'); setTimeout(()=>location.reload(),600); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } },ui.modal); }catch(e){ bkMsg('Não consegui restaurar a cópia.'); } break; }
