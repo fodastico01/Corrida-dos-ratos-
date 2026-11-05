@@ -1304,7 +1304,7 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 .ritmo-bonus{position:absolute;left:10px;right:10px;top:10px;z-index:6;background:#2f8f5b;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;line-height:1.35;box-shadow:0 6px 18px -6px rgba(0,0,0,.5);animation:revela .6s ease-out;cursor:pointer}
 .ritmo-bonus.sem{background:#6b7280}
 
-.saldo-faixa{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;margin:0 auto;width:max-content;z-index:60;display:flex;gap:6px 12px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 16px);padding:6px 12px;border-radius:10px;background:linear-gradient(#F8ECC8,#EBD79F);color:#3A2F1C;border:2px solid #C9A24B;outline:2px solid #3B2E1A;font-family:var(--display);font-size:12px;line-height:1.2;box-shadow:0 3px 0 #3B2E1A;pointer-events:none}
+.saldo-faixa{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;margin:0 auto;width:max-content;z-index:60;display:flex;gap:6px 12px;flex-wrap:nowrap;justify-content:center;max-width:calc(100vw - 16px);padding:6px 12px;border-radius:10px;background:linear-gradient(#F8ECC8,#EBD79F);color:#3A2F1C;border:2px solid #C9A24B;outline:2px solid #3B2E1A;font-family:var(--display);font-size:12px;line-height:1.2;box-shadow:0 3px 0 #3B2E1A;pointer-events:none}
 .saldo-faixa span{white-space:nowrap;opacity:.95}
 .saldo-faixa b{font-weight:800}
 .saldo-faixa b.neg{color:#B23B2E}
@@ -6474,7 +6474,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   if(!ov || !MODAIS_SALDO.includes(ui.modal) || !s || !s.iniciado) return;
   const P=prods(), it=[["Account",s.conta]]; if(P.cdb) it.push(["Emergency fund",valor('cdb')]); if(P.acoes) it.push(["Stocks",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Your money right now');
-  d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); }
+  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' B': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -13038,7 +13038,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   if(!ov || !MODAIS_SALDO.includes(ui.modal) || !s || !s.iniciado) return;
   const P=prods(), it=[['Conta',s.conta]]; if(P.cdb) it.push(['Reserva',valor('cdb')]); if(P.acoes) it.push(['Ações',valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Seu dinheiro agora');
-  d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); }
+  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' bi': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' mi' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
