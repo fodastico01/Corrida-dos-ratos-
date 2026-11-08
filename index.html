@@ -1569,6 +1569,8 @@ const CARTAS = {
     desc:"A vaccine and wound-care clinic to manage: cold storage, services, space, staff and outreach. Lots of health regulations and lots of trust."},
   saas:{fases:[2,3], tipo:'negocio', tyc:true, area:'programador', nome:"Easy Manager", preco:40000, renda:800, horas:8, varia:0, risco:0.05, pesos:{comprador:3,conserto:1},
     desc:"A system sold by monthly subscription. Each new subscriber costs almost nothing, so profit scales, but the product has to evolve."},
+  ead:{fases:[2,3], tipo:'negocio', tyc:true, area:'professor', nome:"Know-How Online", preco:45000, renda:800, horas:8, varia:0, risco:0.04, pesos:{comprador:3,conserto:1},
+    desc:"An online college and course platform. Each new student costs little, so profit scales, but dropouts, quality and competition need constant attention."},
   cafeteria:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:"Coffee Den", preco:30000, renda:800, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
     desc:"A real coffee shop to manage: you upgrade equipment, menu, ambience, staff and marketing, and watch the business grow."},
   geek:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:"Player's Chest", preco:10000, renda:550, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:1},
@@ -2291,6 +2293,24 @@ TYC_EMP.saas={
     niv:["Just you coding", "A freelance dev", "Two devs", "Customer support", "Senior dev", "Tech lead", "Product team", "Team of 15 people", "Trained team of 30 people"]},
   mkt:{nome:"Acquisition", ic:'📣', peso:0.7, ef:"How many new subscribers arrive per day.",
     niv:["Referrals from acquaintances", "Website and blog", "LinkedIn content", "Paid ads", "Active sales", "Partnerships with consultancies", "Industry events", "Recognized brand", "Market reference"]}
+  }
+};
+/* ===== online college (e-learning) ===== */
+TYC_EMP.ead={
+  arte:'ead', ofertaImg:'ead-oferta', ofertaNome:"Online college and learning platform", negocio:'faculdade online', porte:["Course platform", "Online college", "Education group"], tagPorte:p=>p, digital:true, mult:50, cliRot:"Enrolled students", cliMul:26,
+  varc:0.2, dem:[1.4, 2.1, 2.9, 3.7, 4.6, 5.5, 6.5, 7.3, 8.0], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[79, 89, 119, 159, 219, 289, 379, 489, 629],
+  fixo:[1500, 2400, 3900, 6200, 10200, 16500, 26000, 38500, 54500], saz:[1.25, 1.05, 0.95, 0.95, 1.0, 0.9, 1.1, 1.0, 0.95, 0.95, 0.9, 0.85], horas:[8, 8, 7, 7, 6, 5, 4, 3, 2], custo:[5500, 8000, 11000, 14000, 17500, 21500, 26000, 31000], premio:null,
+  set:{
+  equip:{nome:"Learning platform", ic:'💻', peso:1.4, ef:"How many students the platform serves well, without freezing or losing classes.",
+    niv:["Recorded classes in shared folders", "Hired learning platform", "Online tests and grades", "Mobile app", "Digital library", "Virtual labs", "AI-powered study tracks", "Integrated digital certificates", "Complete learning ecosystem"]},
+  cardapio:{nome:"Courses", ic:'🎓', peso:0.9, ef:"How much each student pays per month, on average.",
+    niv:["Short open courses", "Skills training courses", "Technical courses", "Associate degree", "Full bachelor's degree", "Postgraduate programs", "MBA and specializations", "Custom corporate courses", "Full portfolio with market recognition"]},
+  ambiente:{nome:"Studio and servers", ic:'🎥', peso:1.4, ef:"How many students can watch at the same time without the platform going down.",
+    niv:["Recording with a phone and microphone", "Simple studio with lighting", "Dedicated video server", "Professional studio", "Live streaming with chat", "Video delivery network", "Multiple studios", "Redundant infrastructure", "Global digital campus"]},
+  equipe:{nome:"Teachers and tutors", ic:'🧑‍🏫', peso:0.6, ef:"How many students are well served. A bigger payroll follows, but you work less.",
+    niv:["Just you teaching", "One guest teacher", "Tutors to answer questions", "Course coordination", "Faculty with master's degrees", "Doctors and researchers", "Academic coordination", "Student support center", "Dean's office and academic board"]},
+  mkt:{nome:"Student recruitment", ic:'📣', peso:0.7, ef:"How many new students enroll per day.",
+    niv:["Referrals from alumni", "Website and social media", "Free video channel", "Paid ads", "Local hubs and recruiting partners", "Company partnerships", "Scholarships and online entrance exam", "Well-known education brand", "Reference in distance learning"]}
   }
 };
 /* ===== clínica de vacinas ===== */
@@ -4227,7 +4247,44 @@ Object.assign(TYC_DEC,{
  sa_cs:tycCard('📞',"Big customer asks for customization","A customer promises to pay a lot but wants features just for him.",[
   TO("Accept and develop",0.08,0.6,TR('bom',"Anchor customer","The contract paid for the development and brought referrals.",["Anchor customer",12,{cli:1.08,tk:1.06}]),TR('ruim',"Crooked product","The development diverted focus from the main product.",["Lost focus",8,{cli:0.93}])),
   TO("Charge separately as a project",0.02,0.7,TR('bom',"Profitable project","You charged for the extra work.",null,0.08),TR('neutro',"Customer gave up","He wouldn't agree to pay.")),
-  TO("Decline",0,null,TR('neutro',"Focus on the product","You kept the product simple and the same for everyone."))])
+  TO("Decline",0,null,TR('neutro',"Focus on the product","You kept the product simple and the same for everyone."))]),
+ /* ---- ead ---- */
+ ea_evasao:tycCard('🚪',"Many students are dropping out","Dropouts went up and half of the new students disappear after the first month.",[
+  TO("Set up active follow-up of students",0.04,0.7,TR('bom',"Engaged students","A weekly contact brought back those who were fading away.",["Fewer dropouts",10,{cli:1.06}]),TR('neutro',"Little effect","Few students answered the messages.")),
+  TO("Give a discount to those who stay",0,0.5,TR('neutro',"Some stayed","Part of the students stayed, with a lower tuition.",["Retention discount",6,{tk:0.95,cli:1.03}]),TR('ruim',"It didn't help","They left anyway.",["High dropouts",6,{cli:0.93}])),
+  TO("Ignore it",0,null,TR('ruim',"The class emptied","Without action, the dropouts continued.",["High dropouts",8,{cli:0.9}]))]),
+ ea_queda:tycCard('⚡',"The platform went down during exam week","Thousands of students couldn't log in to take the test.",[
+  TO("Migrate to redundant servers",0.12,0.8,TR('bom',"Stable platform","More stability and less risk in the next exams.",["Redundant infrastructure",24,{cli:1.04}]),TR('neutro',"Hard migration","The migration created new problems.",["Hard migration",4,{cli:0.97}])),
+  TO("Restart and reschedule the exams",0.01,0.5,TR('neutro',"Back to normal","The students accepted the new date."),TR('ruim',"Irritated students","Some canceled their enrollment.",["Exam outage",6,{cli:0.93}])),
+  TO("Give everyone an extra week",0.02,null,TR('bom',"Trust kept","The gesture kept the students' goodwill.",["Compensation",3,{cli:1.01}]))]),
+ ea_conc:tycCard('🏁',"Education group launches a very low tuition","A big group launched similar courses for a third of your price.",[
+  TO("Strengthen support and quality",0.05,0.65,TR('bom',"Loyal students","Those who value teaching stayed with you.",["Loyal students",10,{cli:1.03}]),TR('ruim',"Lost enrollments","Part of the students moved for the price.",["Strong competitor",6,{cli:0.92}])),
+  TO("Lower the tuition",0,null,TR('neutro',"Held the base","More students stayed, with a lower margin.",["Price war",8,{tk:0.92}])),
+  TO("Launch a course it doesn't have",0.1,0.6,TR('bom',"Stood out","The new course became a selling point.",["Exclusive course",12,{cli:1.1,tk:1.05}]),TR('neutro',"Little effect","Students weren't interested."))]),
+ ea_cola:tycCard('🕵️',"Students cheating on online tests","A group sold answer keys and the grades of a class look suspicious.",[
+  TO("Invest in monitored exams",0.06,0.75,TR('bom',"Respected diploma","The market began to trust your graduates more.",["Monitored exams",18,{cli:1.04,tk:1.03}]),TR('neutro',"Students complained","Part of the students found the monitoring invasive.",["Monitored exams",6,{cli:0.98}])),
+  TO("Redo the class's exams",0.02,null,TR('neutro',"Problem contained","The results counted again, but it was hard work.")),
+  TO("Pretend you didn't see",0,0.4,TR('neutro',"Nobody noticed","This time it went unnoticed."),TR('ruim',"Damaged reputation","The case made the news and candidates gave up.",["Damaged reputation",10,{cli:0.88}]))]),
+ ea_reg:tycCard('📋',"Regulator evaluation","A higher education evaluation will look at your course, faculty and infrastructure.",[
+  TO("Hire more qualified professors",0.1,0.8,TR('bom',"High grade","The good grade became a selling point for enrollments.",["High grade",24,{cli:1.08,tk:1.04}]),TR('neutro',"Average grade","The grade improved, but without standing out.",["Improved grade",12,{cli:1.02}])),
+  TO("Prepare only the paperwork",0.02,0.5,TR('neutro',"Barely passed","The evaluation came out average."),TR('ruim',"Low grade","The low grade scared off candidates.",["Low grade",12,{cli:0.9}])),
+  TO("Leave it as it is",0,0.35,TR('neutro',"Passed","This time it worked out."),TR('ruim',"Enrollments suspended","The regulator limited new enrollments until you fix it.",["Restricted enrollments",6,{cli:0.8}],-0.05))]),
+ ea_prec:tycCard('💰',"Raise the tuition","Your courses improved a lot and the price is still the same.",[
+  TO("Raise for new students",0,0.75,TR('bom',"Higher ticket","New students accepted the new price.",["Price raised",12,{tk:1.08}]),TR('neutro',"Fewer sign-ups","Fewer new students enrolled.",["Price raised",12,{tk:1.08,cli:0.96}])),
+  TO("Raise for everyone",0,0.55,TR('bom',"More revenue","Students accepted the increase.",["Price raised",12,{tk:1.12}]),TR('ruim',"Cancellations","Part of the students suspended their course.",["Price raised",12,{tk:1.12,cli:0.9}])),
+  TO("Keep the price",0,null,TR('neutro',"No change","The old price continues."))]),
+ ea_corp:tycCard('🏢',"A company wants to train hundreds of employees","A big company proposes a custom course contract for its team.",[
+  TO("Build the custom course",0.08,0.7,TR('bom',"Contract closed","The contract paid for the development and brought referrals.",["Corporate contract",12,{cli:1.08,tk:1.05}],0.1),TR('neutro',"Tight project","The course took more work than expected.",["Corporate contract",6,{cli:1.03}])),
+  TO("Offer the ready catalog",0.01,0.6,TR('bom',"Quick sale","The company bought seats in what already existed.",["Corporate seats",6,{cli:1.04}]),TR('neutro',"No interest","It wanted something customized.")),
+  TO("Decline",0,null,TR('neutro',"Focus on students","You kept your focus on the current audience."))]),
+ ea_prof:tycCard('🧑‍🏫',"Star professor asks for a share","The most-watched professor got an offer from a competitor and wants part of the revenue.",[
+  TO("Give a share of the tuition",0,null,TR('bom',"He stayed","The professor started thinking like an owner.",["Valued professor",24,{cli:1.05}],-0.05)),
+  TO("Offer a performance bonus",0.05,null,TR('bom',"Middle ground","The bonus kept him for a while.",["Professor bonus",12,{cli:1.02}])),
+  TO("Decline",0,0.5,TR('neutro',"He stayed","This time he stayed."),TR('ruim',"He left","He left and took some students with him.",["Professor left",8,{cli:0.88}]))]),
+ ea_inad:tycCard('📉',"Student default skyrocketed","Many students are late with the tuition and the numbers don't add up.",[
+  TO("Renegotiate with smaller installments",0.02,0.7,TR('bom',"Cash recovered","Most went back to paying on time.",["Lower default",6,{cli:1.02}],0.03),TR('neutro',"Little return","Few accepted the renegotiation.")),
+  TO("Block access for those who owe",0,0.5,TR('neutro',"Paid to come back","Part paid to return, part disappeared.",["Access blocked",4,{cli:0.97}]),TR('ruim',"Students left","Many canceled for good.",["Access blocked",6,{cli:0.9}])),
+  TO("Wait",0,null,TR('ruim',"Hole in the cash","The default piled up.",["High default",6,{cli:0.97}],-0.04))])
 });
 Object.assign(TYC_LIC,{
  ec_frete:{livro:null, ideia:"Shipping is part of the price the customer sees. Free shipping above a set amount raises the average ticket, but only works if the margin can handle it."},
@@ -4249,10 +4306,20 @@ Object.assign(TYC_LIC,{
  sa_dev:{livro:null, ideia:"Whoever builds the product takes the knowledge away. Equity or a results bonus retains talent without inflating fixed cost."},
  sa_lgpd:{livro:null, ideia:"Compliance opens bigger markets. Promising what the product doesn't do yet destroys a corporate customer's trust."},
  sa_queda:{livro:null, ideia:"Infrastructure must be redundant when the customer depends on you during business hours. An outage costs more than the extra server."},
- sa_cs:{livro:null, ideia:"Customization for one customer diverts the product. Charge for the project separately and keep the product the same for everyone."}
+ sa_cs:{livro:null, ideia:"Customization for one customer diverts the product. Charge for the project separately and keep the product the same for everyone."},
+ ea_evasao:{livro:null, ideia:"In online teaching, enrolling is the easy part. A student who disappears stops paying, and following up with those falling behind costs less than attracting another."},
+ ea_queda:{livro:null, ideia:"When thousands of people depend on the platform on the same day, the outage costs more than the extra server. Redundancy is insurance, not an expense."},
+ ea_conc:{livro:"Competitive Strategy, by Michael Porter", ideia:"Against a big group, don't compete on price alone. Differentiate by what it doesn't do well: close support, niche and perceived quality."},
+ ea_cola:{livro:null, ideia:"A diploma is worth the trust the market has in it. Pretending you didn't see the fraud saves money today and destroys the reputation that sustains the business."},
+ ea_reg:{livro:null, ideia:"In a regulated business, complying with the rules is part of the product. Whoever invests before the inspection gains trust, and whoever waits risks the operation."},
+ ea_prec:{livro:"Predictably Irrational, by Dan Ariely", ideia:"A new price weighs less on someone who isn't a customer yet. Raising the price for the whole base requires a clear improvement that the student notices."},
+ ea_corp:{livro:null, ideia:"A company contract brings volume and predictability, but too much customization diverts focus. Charging for the project separately and reusing the content protects the margin."},
+ ea_prof:{livro:null, ideia:"In education, the professor attracts the student. A share or a performance bonus aligns interests and keeps talent without inflating fixed cost."},
+ ea_inad:{livro:null, ideia:"Default is a hidden cost for anyone who sells in installments. Renegotiating early recovers more than waiting, and cutting access without talking scares away those who could come back."}
 });
 TYC_EMP.ecommerce.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ec_'));
 TYC_EMP.saas.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('sa_'));
+TYC_EMP.ead.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ea_'));
 
 /* ===== clínica de vacinas: cartas ===== */
 Object.assign(TYC_DEC,{
@@ -5478,7 +5545,7 @@ const CASA_POS={x:160,y:1196};
 const LOTES=[[780,352],[662,414],[746,466],[76,694]];
 const POOL_NEG=['oficina','academia','shopping','escritorio'];
 // o desenho do lote combina com o negócio (clínica = hospital, lavanderia = fábrica com chaminé soltando vapor...)
-const SPR_NEG={vending:'mercado',bike:'oficina',lavanderia:'fabrica',acai:'cafeteria',ecommerce:'escritorio',lavajato:'oficina',foodtruck:'feira',estacionamento:'banco',lojaroupa:'lojas',cursinho:'escola',vacinas:'hospital',saas:'escritorio',socio_rede:'cafeteria',cafeteria:'cafeteria'};
+const SPR_NEG={vending:'mercado',bike:'oficina',lavanderia:'fabrica',acai:'cafeteria',ecommerce:'escritorio',lavajato:'oficina',foodtruck:'feira',estacionamento:'banco',lojaroupa:'lojas',cursinho:'escola',vacinas:'hospital',saas:'escritorio',ead:'escritorio',socio_rede:'cafeteria',cafeteria:'cafeteria'};
 function casaDoJogador(){
   const n=morN(), own=morPropria(); // cada moradia tem a sua casa: o apê de 2 quartos usa casa2b quando existir, e a casa de 3 quartos alugada é mais simples que a própria
   const k=[ 'casa1','casa2', mpImg('casa2b')?'casa2b':'casa2', own?'casa4':'casa3', 'casa5' ][n]||'casa1'; return k;
@@ -8012,7 +8079,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { tycAtualizar, tycPrev, TYC_LIC, trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 // título e explicação da escolha do visual da corrida (antes só aparecia o par de botões)
 function lazerCardComIntro(){ return lazerCard().replace('<div class="seg seg-hud lazer-persp"', `<h3 class="lazer-sub">Race view</h3><p class="hint">During the race you tap to the rhythm of the shoes falling down the screen. Choose how they appear:</p><div class="seg seg-hud lazer-persp"`); }
 window.claude?.hot?.snapshot?.(()=>s);
@@ -8133,6 +8200,8 @@ const CARTAS = {
     desc:'Uma clínica de vacinas e curativos para administrar: frio, serviços, espaço, equipe e captação. Muita regra sanitária e muita confiança.'},
   saas:{fases:[2,3], tipo:'negocio', tyc:true, area:'programador', nome:'Gestão Fácil', preco:40000, renda:800, horas:8, varia:0, risco:0.05, pesos:{comprador:3,conserto:1},
     desc:'Um sistema vendido por mensalidade. Cada novo assinante custa quase nada, então o lucro escala, mas o produto precisa evoluir.'},
+  ead:{fases:[2,3], tipo:'negocio', tyc:true, area:'professor', nome:'Saber Online', preco:45000, renda:800, horas:8, varia:0, risco:0.04, pesos:{comprador:3,conserto:1},
+    desc:'Uma faculdade e plataforma de cursos online. Cada novo aluno custa pouco, então o lucro escala, mas evasão, qualidade e concorrência pedem atenção o tempo todo.'},
   cafeteria:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Toca do Café', preco:30000, renda:800, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
     desc:'Uma cafeteria de verdade para administrar: você melhora equipamento, cardápio, ambiente, equipe e marketing, e vê o negócio crescer.'},
   geek:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:'Baú do Jogador', preco:10000, renda:550, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:1},
@@ -8855,6 +8924,24 @@ TYC_EMP.saas={
     niv:['Só você programando', 'Um dev freelancer', 'Dois devs', 'Suporte ao cliente', 'Dev sênior', 'Líder técnico', 'Time de produto', 'Equipe de 15 pessoas', 'Equipe de 30 pessoas treinada']},
   mkt:{nome:'Aquisição', ic:'📣', peso:0.7, ef:'Quantos assinantes novos chegam por dia.',
     niv:['Indicações de conhecidos', 'Site e blog', 'Conteúdo no LinkedIn', 'Anúncios pagos', 'Vendas ativas', 'Parcerias com consultorias', 'Eventos do setor', 'Marca reconhecida', 'Referência no mercado']}
+  }
+};
+/* ===== faculdade online (EAD) ===== */
+TYC_EMP.ead={
+  arte:'ead', ofertaImg:'ead-oferta', ofertaNome:'Faculdade e plataforma de ensino online', negocio:'faculdade online', porte:['Plataforma de cursos', 'Faculdade online', 'Grupo educacional'], tagPorte:p=>p, digital:true, mult:50, cliRot:'Alunos matriculados', cliMul:26,
+  varc:0.2, dem:[1.4, 2.1, 2.9, 3.7, 4.6, 5.5, 6.5, 7.3, 8.0], cap:{equip:1.12, ambiente:1.10, equipe:1.08, mkt:1.0}, tk:[79, 89, 119, 159, 219, 289, 379, 489, 629],
+  fixo:[1500, 2400, 3900, 6200, 10200, 16500, 26000, 38500, 54500], saz:[1.25, 1.05, 0.95, 0.95, 1.0, 0.9, 1.1, 1.0, 0.95, 0.95, 0.9, 0.85], horas:[8, 8, 7, 7, 6, 5, 4, 3, 2], custo:[5500, 8000, 11000, 14000, 17500, 21500, 26000, 31000], premio:null,
+  set:{
+  equip:{nome:'Plataforma de ensino', ic:'💻', peso:1.4, ef:'Quantos alunos a plataforma atende bem, sem travar nem perder aula.',
+    niv:['Aulas gravadas em pastas compartilhadas', 'Plataforma de ensino contratada', 'Provas e notas online', 'Aplicativo para celular', 'Biblioteca digital', 'Laboratórios virtuais', 'Trilhas com inteligência artificial', 'Certificação digital integrada', 'Ecossistema completo de ensino']},
+  cardapio:{nome:'Cursos', ic:'🎓', peso:0.9, ef:'Quanto cada aluno paga por mês, em média.',
+    niv:['Cursos livres curtos', 'Cursos de capacitação', 'Cursos técnicos', 'Graduação tecnóloga', 'Graduação completa', 'Pós-graduação', 'MBA e especializações', 'Cursos corporativos sob medida', 'Portfólio completo com reconhecimento do mercado']},
+  ambiente:{nome:'Estúdio e servidores', ic:'🎥', peso:1.4, ef:'Quantos alunos assistem ao mesmo tempo sem a plataforma cair.',
+    niv:['Gravação com celular e microfone', 'Estúdio simples com iluminação', 'Servidor de vídeo dedicado', 'Estúdio profissional', 'Transmissão ao vivo com chat', 'Rede de entrega de vídeo', 'Múltiplos estúdios', 'Infraestrutura redundante', 'Campus digital global']},
+  equipe:{nome:'Professores e tutores', ic:'🧑‍🏫', peso:0.6, ef:'Quantos alunos são bem atendidos. Folha maior acompanha, mas você trabalha menos.',
+    niv:['Só você dando as aulas', 'Um professor convidado', 'Tutores para tirar dúvidas', 'Coordenação de curso', 'Corpo docente com mestres', 'Doutores e pesquisadores', 'Coordenação acadêmica', 'Central de atendimento ao aluno', 'Reitoria e conselho acadêmico']},
+  mkt:{nome:'Captação de alunos', ic:'📣', peso:0.7, ef:'Quantos alunos novos se matriculam por dia.',
+    niv:['Indicação de ex-alunos', 'Site e redes sociais', 'Canal de vídeos gratuitos', 'Anúncios pagos', 'Polos e parceiros de captação', 'Convênios com empresas', 'Bolsas e vestibular online', 'Marca conhecida na educação', 'Referência em ensino a distância']}
   }
 };
 /* ===== clínica de vacinas ===== */
@@ -10791,7 +10878,44 @@ Object.assign(TYC_DEC,{
  sa_cs:tycCard('📞','Cliente grande pede customização','Um cliente promete pagar muito mas quer funcionalidades só para ele.',[
   TO('Aceitar e desenvolver',0.08,0.6,TR('bom','Cliente âncora','O contrato pagou o desenvolvimento e trouxe indicações.',['Cliente âncora',12,{cli:1.08,tk:1.06}]),TR('ruim','Produto torto','O desenvolvimento desviou o foco do produto principal.',['Foco perdido',8,{cli:0.93}])),
   TO('Cobrar à parte como projeto',0.02,0.7,TR('bom','Projeto lucrativo','Você cobrou pelo trabalho extra.',null,0.08),TR('neutro','Cliente desistiu','Ele não aceitou pagar.')),
-  TO('Recusar',0,null,TR('neutro','Foco no produto','Você manteve o produto simples e igual para todos.'))])
+  TO('Recusar',0,null,TR('neutro','Foco no produto','Você manteve o produto simples e igual para todos.'))]),
+ /* ---- ead ---- */
+ ea_evasao:tycCard('🚪','Muitos alunos abandonando o curso','A evasão subiu e metade dos novos alunos some depois do primeiro mês.',[
+  TO('Criar acompanhamento ativo dos alunos',0.04,0.7,TR('bom','Alunos engajados','Um contato semanal trouxe de volta quem estava sumindo.',['Menos evasão',10,{cli:1.06}]),TR('neutro','Pouco efeito','Poucos alunos responderam às mensagens.')),
+  TO('Dar desconto para quem continuar',0,0.5,TR('neutro','Alguns ficaram','Parte dos alunos ficou, com mensalidade menor.',['Desconto de permanência',6,{tk:0.95,cli:1.03}]),TR('ruim','Não adiantou','Eles saíram mesmo assim.',['Evasão alta',6,{cli:0.93}])),
+  TO('Ignorar',0,null,TR('ruim','A turma esvaziou','Sem ação, a evasão continuou.',['Evasão alta',8,{cli:0.9}]))]),
+ ea_queda:tycCard('⚡','A plataforma caiu na semana de provas','Milhares de alunos ficaram sem conseguir entrar para fazer a avaliação.',[
+  TO('Migrar para servidores redundantes',0.12,0.8,TR('bom','Plataforma estável','Mais estabilidade e menos risco nas próximas provas.',['Infra redundante',24,{cli:1.04}]),TR('neutro','Migração difícil','A migração gerou novos problemas.',['Migração difícil',4,{cli:0.97}])),
+  TO('Reiniciar e remarcar as provas',0.01,0.5,TR('neutro','Voltou ao normal','Os alunos aceitaram a nova data.'),TR('ruim','Alunos irritados','Alguns cancelaram a matrícula.',['Queda na prova',6,{cli:0.93}])),
+  TO('Dar uma semana a mais de prazo a todos',0.02,null,TR('bom','Confiança mantida','O gesto manteve a boa vontade dos alunos.',['Compensação',3,{cli:1.01}]))]),
+ ea_conc:tycCard('🏁','Grupo educacional lança mensalidade baixíssima','Um grande grupo lançou cursos parecidos por um terço do seu preço.',[
+  TO('Reforçar o atendimento e a qualidade',0.05,0.65,TR('bom','Alunos fiéis','Quem valoriza o ensino ficou com você.',['Alunos fiéis',10,{cli:1.03}]),TR('ruim','Perdeu matrículas','Parte dos alunos migrou pelo preço.',['Concorrente forte',6,{cli:0.92}])),
+  TO('Baixar a mensalidade',0,null,TR('neutro','Segurou a base','Mais alunos ficaram, com margem menor.',['Guerra de preços',8,{tk:0.92}])),
+  TO('Lançar um curso que ele não tem',0.1,0.6,TR('bom','Diferenciou','O novo curso virou argumento de matrícula.',['Curso exclusivo',12,{cli:1.1,tk:1.05}]),TR('neutro','Pouco efeito','Os alunos não se interessaram.'))]),
+ ea_cola:tycCard('🕵️','Alunos colando nas provas online','Um grupo vendeu gabaritos e as notas de uma turma ficaram suspeitas.',[
+  TO('Investir em prova monitorada',0.06,0.75,TR('bom','Diploma respeitado','O mercado passou a confiar mais nos seus formados.',['Prova monitorada',18,{cli:1.04,tk:1.03}]),TR('neutro','Alunos reclamaram','Parte dos alunos achou a vigilância invasiva.',['Prova monitorada',6,{cli:0.98}])),
+  TO('Refazer as provas da turma',0.02,null,TR('neutro','Problema contido','Os resultados voltaram a valer, mas deu trabalho.')),
+  TO('Fingir que não viu',0,0.4,TR('neutro','Ninguém notou','Dessa vez passou batido.'),TR('ruim','Reputação arranhada','O caso virou notícia e candidatos desistiram.',['Reputação arranhada',10,{cli:0.88}]))]),
+ ea_reg:tycCard('📋','Avaliação do órgão regulador','Uma avaliação da educação superior vai olhar seu curso, corpo docente e infraestrutura.',[
+  TO('Contratar mais professores titulados',0.1,0.8,TR('bom','Nota alta','A nota boa virou argumento nas matrículas.',['Nota alta',24,{cli:1.08,tk:1.04}]),TR('neutro','Nota mediana','A nota saiu melhor, mas sem destaque.',['Nota melhorada',12,{cli:1.02}])),
+  TO('Preparar só a documentação',0.02,0.5,TR('neutro','Passou raspando','A avaliação saiu na média.'),TR('ruim','Nota baixa','A nota baixa assustou candidatos.',['Nota baixa',12,{cli:0.9}])),
+  TO('Deixar como está',0,0.35,TR('neutro','Passou','Dessa vez deu certo.'),TR('ruim','Matrículas suspensas','O órgão regulador limitou novas matrículas até regularizar.',['Matrículas restritas',6,{cli:0.8}],-0.05))]),
+ ea_prec:tycCard('💰','Reajustar a mensalidade','Seus cursos melhoraram muito e o preço continua o mesmo.',[
+  TO('Reajustar para novos alunos',0,0.75,TR('bom','Ticket maior','Os novos alunos aceitaram o preço novo.',['Preço reajustado',12,{tk:1.08}]),TR('neutro','Menos entrada','Menos alunos novos se matricularam.',['Preço reajustado',12,{tk:1.08,cli:0.96}])),
+  TO('Reajustar para todos',0,0.55,TR('bom','Receita maior','Os alunos aceitaram o reajuste.',['Preço reajustado',12,{tk:1.12}]),TR('ruim','Cancelamentos','Parte dos alunos trancou o curso.',['Preço reajustado',12,{tk:1.12,cli:0.9}])),
+  TO('Manter o preço',0,null,TR('neutro','Sem mudança','O preço antigo continua.'))]),
+ ea_corp:tycCard('🏢','Empresa quer treinar centenas de funcionários','Uma grande empresa propõe um contrato de cursos sob medida para a equipe.',[
+  TO('Montar o curso sob medida',0.08,0.7,TR('bom','Contrato fechado','O contrato pagou o desenvolvimento e trouxe indicações.',['Contrato corporativo',12,{cli:1.08,tk:1.05}],0.1),TR('neutro','Projeto apertado','O curso deu mais trabalho que o previsto.',['Contrato corporativo',6,{cli:1.03}])),
+  TO('Oferecer o catálogo pronto',0.01,0.6,TR('bom','Venda rápida','A empresa comprou vagas do que já existia.',['Vagas corporativas',6,{cli:1.04}]),TR('neutro','Sem interesse','Ela queria algo personalizado.')),
+  TO('Recusar',0,null,TR('neutro','Foco nos alunos','Você manteve o foco no público atual.'))]),
+ ea_prof:tycCard('🧑‍🏫','Professor estrela pede participação','O professor mais assistido recebeu proposta de uma concorrente e quer uma parte da receita.',[
+  TO('Dar participação nas mensalidades',0,null,TR('bom','Ele ficou','O professor passou a pensar como dono.',['Professor valorizado',24,{cli:1.05}],-0.05)),
+  TO('Oferecer bônus por resultado',0.05,null,TR('bom','Meio-termo','O bônus manteve ele por um tempo.',['Bônus ao professor',12,{cli:1.02}])),
+  TO('Recusar',0,0.5,TR('neutro','Ele ficou','Dessa vez ficou.'),TR('ruim','Ele saiu','Ele saiu e levou parte dos alunos junto.',['Professor saiu',8,{cli:0.88}]))]),
+ ea_inad:tycCard('📉','Inadimplência dos alunos disparou','Muitos alunos atrasam a mensalidade e a conta não fecha.',[
+  TO('Renegociar com parcelas menores',0.02,0.7,TR('bom','Caixa recuperado','A maioria voltou a pagar em dia.',['Inadimplência menor',6,{cli:1.02}],0.03),TR('neutro','Pouco retorno','Poucos aceitaram a renegociação.')),
+  TO('Bloquear o acesso de quem deve',0,0.5,TR('neutro','Pagaram para voltar','Parte pagou para voltar, parte sumiu.',['Acesso bloqueado',4,{cli:0.97}]),TR('ruim','Alunos saíram','Muitos cancelaram de vez.',['Acesso bloqueado',6,{cli:0.9}])),
+  TO('Esperar',0,null,TR('ruim','Rombo no caixa','A inadimplência acumulou.',['Inadimplência alta',6,{cli:0.97}],-0.04))])
 });
 Object.assign(TYC_LIC,{
  ec_frete:{livro:null, ideia:'O frete é parte do preço que o cliente enxerga. Frete grátis acima de um valor eleva o ticket médio, mas só funciona se a margem comportar.'},
@@ -10813,10 +10937,20 @@ Object.assign(TYC_LIC,{
  sa_dev:{livro:null, ideia:'Quem constrói o produto leva o conhecimento embora. Participação ou bônus por resultado prende talento sem inflar o custo fixo.'},
  sa_lgpd:{livro:null, ideia:'Conformidade abre mercados maiores. Prometer o que o produto ainda não faz destrói a confiança do cliente corporativo.'},
  sa_queda:{livro:null, ideia:'Infraestrutura precisa ser redundante quando o cliente depende de você no horário comercial. A queda custa mais que o servidor extra.'},
- sa_cs:{livro:null, ideia:'Customização para um cliente só desvia o produto. Cobre o projeto à parte e mantenha o produto igual para todos.'}
+ sa_cs:{livro:null, ideia:'Customização para um cliente só desvia o produto. Cobre o projeto à parte e mantenha o produto igual para todos.'},
+ ea_evasao:{livro:null, ideia:'Em ensino online, matricular é a parte fácil. O aluno que some deixa de pagar, e acompanhar quem está ficando para trás custa menos que atrair outro.'},
+ ea_queda:{livro:null, ideia:'Quando milhares de pessoas dependem da plataforma no mesmo dia, a queda custa mais que o servidor extra. Redundância é seguro, não gasto.'},
+ ea_conc:{livro:'Estratégia Competitiva, de Michael Porter', ideia:'Contra um grande grupo, não dispute só preço. Diferencie pelo que ele não faz bem: atendimento próximo, nicho e qualidade percebida.'},
+ ea_cola:{livro:null, ideia:'Diploma vale pela confiança que o mercado tem nele. Fingir que não viu a fraude economiza hoje e destrói a reputação que sustenta o negócio.'},
+ ea_reg:{livro:null, ideia:'Em negócio regulado, estar em dia com as regras é parte do produto. Quem investe antes da fiscalização ganha confiança, e quem espera arrisca a operação.'},
+ ea_prec:{livro:'Previsivelmente Irracional, de Dan Ariely', ideia:'Preço novo pesa menos em quem ainda não é cliente. Reajustar a base inteira exige uma melhoria clara que o aluno percebe.'},
+ ea_corp:{livro:null, ideia:'Contrato com empresa dá volume e previsibilidade, mas customizar demais desvia o foco. Cobrar o projeto à parte e reaproveitar o conteúdo protege a margem.'},
+ ea_prof:{livro:null, ideia:'Em educação, o professor atrai o aluno. Participação ou bônus por resultado alinha os interesses e prende o talento sem inflar o custo fixo.'},
+ ea_inad:{livro:null, ideia:'Inadimplência é custo escondido de quem vende parcelado. Renegociar cedo recupera mais que esperar, e cortar o acesso sem conversa espanta quem poderia voltar.'}
 });
 TYC_EMP.ecommerce.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ec_'));
 TYC_EMP.saas.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('sa_'));
+TYC_EMP.ead.dec=Object.keys(TYC_DEC).filter(k=>k.startsWith('ea_'));
 
 /* ===== clínica de vacinas: cartas ===== */
 Object.assign(TYC_DEC,{
@@ -12042,7 +12176,7 @@ const CASA_POS={x:160,y:1196};
 const LOTES=[[780,352],[662,414],[746,466],[76,694]];
 const POOL_NEG=['oficina','academia','shopping','escritorio'];
 // o desenho do lote combina com o negócio (clínica = hospital, lavanderia = fábrica com chaminé soltando vapor...)
-const SPR_NEG={vending:'mercado',bike:'oficina',lavanderia:'fabrica',acai:'cafeteria',ecommerce:'escritorio',lavajato:'oficina',foodtruck:'feira',estacionamento:'banco',lojaroupa:'lojas',cursinho:'escola',vacinas:'hospital',saas:'escritorio',socio_rede:'cafeteria',cafeteria:'cafeteria'};
+const SPR_NEG={vending:'mercado',bike:'oficina',lavanderia:'fabrica',acai:'cafeteria',ecommerce:'escritorio',lavajato:'oficina',foodtruck:'feira',estacionamento:'banco',lojaroupa:'lojas',cursinho:'escola',vacinas:'hospital',saas:'escritorio',ead:'escritorio',socio_rede:'cafeteria',cafeteria:'cafeteria'};
 function casaDoJogador(){
   const n=morN(), own=morPropria(); // cada moradia tem a sua casa: o apê de 2 quartos usa casa2b quando existir, e a casa de 3 quartos alugada é mais simples que a própria
   const k=[ 'casa1','casa2', mpImg('casa2b')?'casa2b':'casa2', own?'casa4':'casa3', 'casa5' ][n]||'casa1'; return k;
@@ -14576,7 +14710,7 @@ const VIDA=(()=>{
 })();
 window.__vida=VIDA; VIDA.iniciar();
 
-document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
+document.body.classList.add('pxui','suave'); window.__MI = MES_INI; window.__corrida = { tycAtualizar, tycPrev, TYC_LIC, trocarEmojis, get s(){ return s; }, concluirProva, efeitosFel, PROGRAMAS, progPode, progCusto, progGanho, fazerPrograma, estudosAbertos, iniciarEstudo, patrimonio, resgatarLiquido, custoHolding, ceoMes, ceoCard, ceoResponder, ceoLiberado, ceo, render, avRender, avCfg, AV_W, AV_H, AV_CAT, tycFranquia, comprarLuxo, venderLuxo, LUXO, checarMarcosPatr, tycConcluirObra, tycReforma, tycCustoTot, tycReforma, tycCustoTot, tycLojas, tycPodeLoja, totalMes, tycFranqSortear, tycFranqMes, tycRoyTotal, TYC_DEC, tycSortear, abrirUm, tycEfs, anel, MAPAS, mapa96, CASA_EV, ESPECIAIS, pctCorte, prepararGrande, novaOferta, jogarDado, mesesLiq, estudosAbertos, salvar, get ui(){ return ui; }, fluxo, trocarCarro, felCarro, carN, eixoVida, EVENTOS, iniciarEstudo, reqProx, CARTAS_INFL, moverPara, expandir, avancar, efeitosFel, novoEstado, aplicar, calcResgate, resgatarLiquido, opcoesDe, resolver, notaFinal, valor, mesesPatr, mesesReserva, patrimonio, rendaPassiva, cobertura, aposentar, CARTAS, comprarOferta, horasLivres, rendaAtivos, podeConcluir, pontuacao, pegarEmprestimo, quitarEmprestimo, limiteEmp, tycMes, tycSubir, tycRetirada, tycBloqueio, tycCusto, TYC_EMP };
 // título e explicação da escolha do visual da corrida (antes só aparecia o par de botões)
 function lazerCardComIntro(){ return lazerCard().replace('<div class="seg seg-hud lazer-persp"', `<h3 class="lazer-sub">Visual da corrida</h3><p class="hint">Durante a prova você toca no ritmo dos tênis que descem na tela. Escolha como eles aparecem:</p><div class="seg seg-hud lazer-persp"`); }
 window.claude?.hot?.snapshot?.(()=>s);
