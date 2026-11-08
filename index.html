@@ -4962,7 +4962,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.dadoFace=null; ui.modalPend=ui.modal; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -7136,7 +7136,10 @@ document.addEventListener('click', e=>{
     case 'comecar': s.iniciado=true; salvar(); if(s.mes===1 && s.rol?.mes===1) iniciarGiro(); else render(); break;
     case 'fase': ui.modal=null; novoEstado(Number(alvo)); salvar(); render(); break;
     case 'menu': ui.modal=null; novoEstado(1); salvar(); render(); break;
-    case 'avancar': if(ui.girando) break; if(!s.fim && !s.evento){ const r=reservaCobre(); if(s.conta<0 && r && ui.negOk!==s.mes){ ui.modal='negAvancar'; ui.negN=Number(alvo)||1; render(); } else avancar(Number(alvo)||1); } break;
+    case 'avancar': if(ui.girando && performance.now()-(ui.giroT0||0)>6000){ ui.girando=false; ui.giro=null; ui.peaoTimer=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; }   // animação travada (app em segundo plano): destrava
+      if(ui.girando) break;
+      if(s.evento && !ui.modal && !s.fim){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok){ ui.modal='evento'; render(); break; } s.evento=null; }   // carta pendente sem janela aberta: reabre em vez de ficar parado
+      if(!s.fim && !s.evento){ const r=reservaCobre(); if(s.conta<0 && r && ui.negOk!==s.mes){ ui.modal='negAvancar'; ui.negN=Number(alvo)||1; render(); } else avancar(Number(alvo)||1); } break;
     case 'negCobrir': { const id=reservaCobre(); ui.modal=null; if(id){ resgatarLiquido(id, -s.conta, true); if(Math.abs(s.conta)<0.01) s.conta=0; } avancar(ui.negN||1); break; }
     case 'negSeguir': { ui.negOk=s.mes; ui.modal=null; avancar(ui.negN||1); break; }
     case 'irContas': { ui.aba='investir'; ui.telaScroll=0; try{ localStorage.setItem('corrida-aba','investir'); }catch(e){} render(); break; }
@@ -11593,7 +11596,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia('(prefers-reduced-motion: reduce)').matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.dadoFace=null; ui.modalPend=ui.modal; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -13767,7 +13770,10 @@ document.addEventListener('click', e=>{
     case 'comecar': s.iniciado=true; salvar(); if(s.mes===1 && s.rol?.mes===1) iniciarGiro(); else render(); break;
     case 'fase': ui.modal=null; novoEstado(Number(alvo)); salvar(); render(); break;
     case 'menu': ui.modal=null; novoEstado(1); salvar(); render(); break;
-    case 'avancar': if(ui.girando) break; if(!s.fim && !s.evento){ const r=reservaCobre(); if(s.conta<0 && r && ui.negOk!==s.mes){ ui.modal='negAvancar'; ui.negN=Number(alvo)||1; render(); } else avancar(Number(alvo)||1); } break;
+    case 'avancar': if(ui.girando && performance.now()-(ui.giroT0||0)>6000){ ui.girando=false; ui.giro=null; ui.peaoTimer=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; }   // animação travada (app em segundo plano): destrava
+      if(ui.girando) break;
+      if(s.evento && !ui.modal && !s.fim){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok){ ui.modal='evento'; render(); break; } s.evento=null; }   // carta pendente sem janela aberta: reabre em vez de ficar parado
+      if(!s.fim && !s.evento){ const r=reservaCobre(); if(s.conta<0 && r && ui.negOk!==s.mes){ ui.modal='negAvancar'; ui.negN=Number(alvo)||1; render(); } else avancar(Number(alvo)||1); } break;
     case 'negCobrir': { const id=reservaCobre(); ui.modal=null; if(id){ resgatarLiquido(id, -s.conta, true); if(Math.abs(s.conta)<0.01) s.conta=0; } avancar(ui.negN||1); break; }
     case 'negSeguir': { ui.negOk=s.mes; ui.modal=null; avancar(ui.negN||1); break; }
     case 'irContas': { ui.aba='investir'; ui.telaScroll=0; try{ localStorage.setItem('corrida-aba','investir'); }catch(e){} render(); break; }
