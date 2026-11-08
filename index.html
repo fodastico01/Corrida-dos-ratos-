@@ -4964,7 +4964,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -5679,7 +5679,7 @@ function animarPeao(){
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
     document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
-  const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; render(); };
+  const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
     const quadro=now=>{ const k=Math.min(1,(now-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; pôr(de+n*e,true);
@@ -5974,6 +5974,7 @@ function telaTitulo(){
 }
 function render(){
   if(window.__corridaMudo) return;
+  if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
   if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
@@ -11600,7 +11601,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia('(prefers-reduced-motion: reduce)').matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -12315,7 +12316,7 @@ function animarPeao(){
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
     document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
-  const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; render(); };
+  const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
     const quadro=now=>{ const k=Math.min(1,(now-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; pôr(de+n*e,true);
@@ -12610,6 +12611,7 @@ function telaTitulo(){
 }
 function render(){
   if(window.__corridaMudo) return;
+  if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
   if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
