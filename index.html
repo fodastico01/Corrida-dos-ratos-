@@ -2908,6 +2908,8 @@ function tempoReg(tipo){ try{ if(!s||!s.iniciado) return; const t=s.tempo||(s.te
 let _tAtv=Date.now();
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{ _tAtv=Date.now(); },{passive:true}));
 setInterval(()=>{ try{ if(document.visibilityState==='visible' && Date.now()-_tAtv<60000 && !window.__corridaMudo) tempoReg('ms'); }catch(e){} },1000);
+function destravaGiro(forca){ try{ if(ui.girando && (forca || performance.now()-(ui.giroT0||0)>7000)){ ui.girando=false; ui.giro=null; ui.peaoTimer=null; ui.camPt=null; ui.dadoFace=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(s && s.evento && !ui.modal) ui.modal='evento'; render(); return true; } }catch(e){} return false; }   // animação do dado que não terminou (app em segundo plano ou aba pausada): destrava sozinha
+setInterval(()=>{ if(ui.girando) destravaGiro(false); },1500);
 const tempoFmt = ms => { const t=Math.round(ms/1000), m=Math.floor(t/60), q=t%60; return m+' min '+String(q).padStart(2,'0')+' s'; };
 function tempoCard(){
   const t=(s&&s.tempo)||{}, ks=Object.keys(t).sort((a,b)=>{ const [f1,y1]=a.split('-').map(Number), [f2,y2]=b.split('-').map(Number); return f1-f2||y1-y2; });
@@ -7136,7 +7138,7 @@ document.addEventListener('click', e=>{
     case 'comecar': s.iniciado=true; salvar(); if(s.mes===1 && s.rol?.mes===1) iniciarGiro(); else render(); break;
     case 'fase': ui.modal=null; novoEstado(Number(alvo)); salvar(); render(); break;
     case 'menu': ui.modal=null; novoEstado(1); salvar(); render(); break;
-    case 'avancar': if(ui.girando && performance.now()-(ui.giroT0||0)>6000){ ui.girando=false; ui.giro=null; ui.peaoTimer=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; }   // animação travada (app em segundo plano): destrava
+    case 'avancar': destravaGiro(false);
       if(ui.girando) break;
       if(s.evento && !ui.modal && !s.fim){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok){ ui.modal='evento'; render(); break; } s.evento=null; }   // carta pendente sem janela aberta: reabre em vez de ficar parado
       if(!s.fim && !s.evento){ const r=reservaCobre(); if(s.conta<0 && r && ui.negOk!==s.mes){ ui.modal='negAvancar'; ui.negN=Number(alvo)||1; render(); } else avancar(Number(alvo)||1); } break;
@@ -7276,7 +7278,7 @@ document.addEventListener('click', e=>{
     case 'corridaSair': ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); break;
     case 'fechar': ui.modal=null; ui.erro=''; ui.fotoNova=false; render(); break;
     case 'verFoto': ui.foto=alvo; ui.fotoFlash=false; ui.fotoNova=false; ui.modal='foto'; renderModal(); break;
-    case 'opcao': { if(ui.girando) break; if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break;
+    case 'opcao': { destravaGiro(false); if(ui.girando) break; if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break;
       if(s.evento==='corte'){ if(ui.corteAnim) break; s.corteR=Math.random(); const mk=document.getElementById('marcCorte');
         if(mk && !window.__corridaMudo && !matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.corteAnim=true; document.querySelectorAll('#modal .opcao').forEach(b=>b.disabled=true);
           const barra=mk.parentElement, n=14, fim=s.corteR, p=pctCorte(); let i=0;
@@ -9542,6 +9544,8 @@ function tempoReg(tipo){ try{ if(!s||!s.iniciado) return; const t=s.tempo||(s.te
 let _tAtv=Date.now();
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{ _tAtv=Date.now(); },{passive:true}));
 setInterval(()=>{ try{ if(document.visibilityState==='visible' && Date.now()-_tAtv<60000 && !window.__corridaMudo) tempoReg('ms'); }catch(e){} },1000);
+function destravaGiro(forca){ try{ if(ui.girando && (forca || performance.now()-(ui.giroT0||0)>7000)){ ui.girando=false; ui.giro=null; ui.peaoTimer=null; ui.camPt=null; ui.dadoFace=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(s && s.evento && !ui.modal) ui.modal='evento'; render(); return true; } }catch(e){} return false; }   // animação do dado que não terminou (app em segundo plano ou aba pausada): destrava sozinha
+setInterval(()=>{ if(ui.girando) destravaGiro(false); },1500);
 const tempoFmt = ms => { const t=Math.round(ms/1000), m=Math.floor(t/60), q=t%60; return m+' min '+String(q).padStart(2,'0')+' s'; };
 function tempoCard(){
   const t=(s&&s.tempo)||{}, ks=Object.keys(t).sort((a,b)=>{ const [f1,y1]=a.split('-').map(Number), [f2,y2]=b.split('-').map(Number); return f1-f2||y1-y2; });
@@ -13770,7 +13774,7 @@ document.addEventListener('click', e=>{
     case 'comecar': s.iniciado=true; salvar(); if(s.mes===1 && s.rol?.mes===1) iniciarGiro(); else render(); break;
     case 'fase': ui.modal=null; novoEstado(Number(alvo)); salvar(); render(); break;
     case 'menu': ui.modal=null; novoEstado(1); salvar(); render(); break;
-    case 'avancar': if(ui.girando && performance.now()-(ui.giroT0||0)>6000){ ui.girando=false; ui.giro=null; ui.peaoTimer=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; }   // animação travada (app em segundo plano): destrava
+    case 'avancar': destravaGiro(false);
       if(ui.girando) break;
       if(s.evento && !ui.modal && !s.fim){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok){ ui.modal='evento'; render(); break; } s.evento=null; }   // carta pendente sem janela aberta: reabre em vez de ficar parado
       if(!s.fim && !s.evento){ const r=reservaCobre(); if(s.conta<0 && r && ui.negOk!==s.mes){ ui.modal='negAvancar'; ui.negN=Number(alvo)||1; render(); } else avancar(Number(alvo)||1); } break;
@@ -13910,7 +13914,7 @@ document.addEventListener('click', e=>{
     case 'corridaSair': ui.modal=null; ui.corrida=null; if(musicaOn()) try{ MUS.ligar(); }catch(e){} render(); break;
     case 'fechar': ui.modal=null; ui.erro=''; ui.fotoNova=false; render(); break;
     case 'verFoto': ui.foto=alvo; ui.fotoFlash=false; ui.fotoNova=false; ui.modal='foto'; renderModal(); break;
-    case 'opcao': { if(ui.girando) break; if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break;
+    case 'opcao': { destravaGiro(false); if(ui.girando) break; if(!window.__corridaMudo && performance.now()-(window.__tModal||0)<350) break;
       if(s.evento==='corte'){ if(ui.corteAnim) break; s.corteR=Math.random(); const mk=document.getElementById('marcCorte');
         if(mk && !window.__corridaMudo && !matchMedia('(prefers-reduced-motion: reduce)').matches){ ui.corteAnim=true; document.querySelectorAll('#modal .opcao').forEach(b=>b.disabled=true);
           const barra=mk.parentElement, n=14, fim=s.corteR, p=pctCorte(); let i=0;
