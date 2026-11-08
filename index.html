@@ -5088,7 +5088,9 @@ function iniciarMes(){
     const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55), base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); extra=Math.min(extra, Math.round(r*0.35*Math.min(1,Math.pow(50000*idx/Math.max(r,1),0.35)))); extra=prevP>0 ? Math.min(extra, Math.round(prevP*1.03)) : Math.min(extra, Math.round(r*0.08)); }   // teto de 35% da renda recebida até R$ 50 mil (em valor de hoje), caindo para ~30% em R$ 80 mil e ~12% em R$ 1 mi; começa pequeno e sobe 3% ao mês; esbanjar mexe só no lazer
     if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
     else delete s.fixos['Padrão de vida']; }
-  for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
+  { const _b=new Set(["Rent","Groceries","Transport","Utilities and internet","Subscriptions and apps","Car (payment and insurance)","Car insurance and taxes","Couple's expenses","HOA and property tax",CK]), _pv=!!s.fixos['Padrão de vida']; let _bs=0;   // com Padrão de vida, os gastos básicos aparecem somados numa linha (o total não muda)
+    for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; if(_pv && _b.has(n)) _bs+=v; else ex.push([n,-v]); }
+    if(_bs>0) ex.push(["Cost of living (home, groceries, car and bills)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
   const est=ESTILOS[s.estilo];
@@ -11725,7 +11727,9 @@ function iniciarMes(){
     const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55), base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); extra=Math.min(extra, Math.round(r*0.35*Math.min(1,Math.pow(50000*idx/Math.max(r,1),0.35)))); extra=prevP>0 ? Math.min(extra, Math.round(prevP*1.03)) : Math.min(extra, Math.round(r*0.08)); }   // teto de 35% da renda recebida até R$ 50 mil (em valor de hoje), caindo para ~30% em R$ 80 mil e ~12% em R$ 1 mi; começa pequeno e sobe 3% ao mês; esbanjar mexe só no lazer
     if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
     else delete s.fixos['Padrão de vida']; }
-  for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; ex.push([n,-v]); }
+  { const _b=new Set(["Aluguel","Mercado","Transporte","Luz, água e internet","Assinaturas e apps","Carro (parcela e seguro)","Seguro e IPVA do carro","Gastos do casal","Condomínio e IPTU",CK]), _pv=!!s.fixos['Padrão de vida']; let _bs=0;   // com Padrão de vida, os gastos básicos aparecem somados numa linha (o total não muda)
+    for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; if(_pv && _b.has(n)) _bs+=v; else ex.push([n,-v]); }
+    if(_bs>0) ex.push(["Custo de vida (casa, mercado, carro e contas)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
   const est=ESTILOS[s.estilo];
