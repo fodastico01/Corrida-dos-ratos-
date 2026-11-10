@@ -6400,7 +6400,7 @@ const ceoLiberado = () => patrimonio()>=CEO_PAT && ceoEmps().length>=CEO_MIN_EMP
 const ceoTetos = () => [C(1000000), C(5000000), 0];
 function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata para a mais cara
   const L=[];
-  const emRef=ceoEmps().some(tycEmReforma); // reforma de porte para a empresa de vender por meses: o CEO faz uma de cada vez, para a renda não zerar
+  const emRef=ceoRefCheia(); // reforma de porte: a empresa para de vender durante a obra; o limite de reformas ao mesmo tempo é proporcional ao número de empresas (1 a cada 4), para a renda não zerar
   for(const a of ceoEmps()){ if(a.tyc.obra) continue; const T=a.tyc;
     for(let ki=0;ki<TYC_KEYS.length;ki++){ const k=TYC_KEYS[ki]; if(tycBloqueio(a,k)) continue;
       if(emRef && tycReforma(a,ki)) continue;
@@ -6410,6 +6410,7 @@ function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata pa
       if(fonte) L.push({a,ki,k,c,fonte}); } }
   return L.sort((x,y)=>x.c-y.c);
 }
+const ceoRefCheia = () => { const E=ceoEmps(); return E.filter(tycEmReforma).length >= Math.max(1,Math.floor(E.length/4)); };
 function ceoMotivo(a){
   const c=ceo(), T=a.tyc; if(!c.auto) return "in \"ask\" mode he proposes one upgrade at a time, for the cheapest company.";
   if(T.obra){ const m=Math.max(1,T.obra.ate-s.mes); return `construction in progress, ends in ${m} ${m>1?'months':'month'}. Then he starts the next one.`; }
@@ -6418,7 +6419,7 @@ function ceoMotivo(a){
   const L=TYC_KEYS.map((k,ki)=>({k,ki})).filter(x=>!tycBloqueio(a,x.k)).map(x=>({...x,c:tycCustoTot(a,x.k)})).filter(x=>x.c>0).sort((x,y)=>x.c-y.c);
   if(!L.length) return tycPodeLoja(a) ? (ceoLojaV(a) ? "all areas maxed. He will propose a new store." : "all areas maxed. Only a new store is left, but your account has no room for it.") : "all areas at maximum level.";
   const o=L[0], S=emp(a).set[o.k], n=T.niv[o.ki];
-  if(tycReforma(a,o.ki) && ceoEmps().some(tycEmReforma)) return "in line: another company is being renovated (one at a time).";
+  if(tycReforma(a,o.ki) && ceoRefCheia()) return "in line: the limit of simultaneous size renovations was reached (1 per 4 companies).";
   const fonte=(T.caixa-o.c>=tycReserva(a))?'caixa':(ceoLiq()-o.c>=Math.max(o.c*2,C(200000))?'conta':null);
   if(!fonte) return `no room: for ${S.nome} (${fmt0(o.c)}) your account and investments need to hold ${fmt0(o.c+Math.max(o.c*2,C(200000)))}.`;
   if(c.teto && c.gm===s.mes && c.gv+o.c>c.teto) return "this month's spending cap has been reached.";
@@ -6444,7 +6445,7 @@ function ceoMes(ex){
     const lojaUid=((s.avisosEvolucao||[]).find(x=>x.tipo==='ceo' && x.loja)||{}).uid;
     for(const o of ops){ if(lojaPend && o.a.uid===lojaUid) continue; if(usadas.has(o.a.uid)) continue; if(o.a.tyc.obra) continue; if(o.a.tyc.obraLoja && tycReforma(o.a,o.ki)) continue; // não começa reforma de porte enquanto uma loja nova está em construção
       if(c.teto && c.gv+o.c>c.teto) continue;
-      if(tycReforma(o.a,o.ki) && ceoEmps().some(tycEmReforma)) continue;
+      if(tycReforma(o.a,o.ki) && ceoRefCheia()) continue;
       if(o.fonte==='conta' && ceoLiq()-o.c<Math.max(o.c*2,C(200000))) continue;
       if(o.fonte==='caixa' && o.a.tyc.caixa-o.c<tycReserva(o.a)) continue;
       const S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
@@ -13055,7 +13056,7 @@ const ceoLiberado = () => patrimonio()>=CEO_PAT && ceoEmps().length>=CEO_MIN_EMP
 const ceoTetos = () => [C(1000000), C(5000000), 0];
 function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata para a mais cara
   const L=[];
-  const emRef=ceoEmps().some(tycEmReforma); // reforma de porte para a empresa de vender por meses: o CEO faz uma de cada vez, para a renda não zerar
+  const emRef=ceoRefCheia(); // reforma de porte: a empresa para de vender durante a obra; o limite de reformas ao mesmo tempo é proporcional ao número de empresas (1 a cada 4), para a renda não zerar
   for(const a of ceoEmps()){ if(a.tyc.obra) continue; const T=a.tyc;
     for(let ki=0;ki<TYC_KEYS.length;ki++){ const k=TYC_KEYS[ki]; if(tycBloqueio(a,k)) continue;
       if(emRef && tycReforma(a,ki)) continue;
@@ -13065,6 +13066,7 @@ function ceoOpcoes(){ // melhorias de rotina possíveis agora, da mais barata pa
       if(fonte) L.push({a,ki,k,c,fonte}); } }
   return L.sort((x,y)=>x.c-y.c);
 }
+const ceoRefCheia = () => { const E=ceoEmps(); return E.filter(tycEmReforma).length >= Math.max(1,Math.floor(E.length/4)); };
 function ceoMotivo(a){
   const c=ceo(), T=a.tyc; if(!c.auto) return 'no modo "perguntar" ele propõe uma melhoria por vez, para a empresa mais barata.';
   if(T.obra){ const m=Math.max(1,T.obra.ate-s.mes); return `obra em andamento, termina em ${m} ${m>1?'meses':'mês'}. Depois ele começa a próxima.`; }
@@ -13073,7 +13075,7 @@ function ceoMotivo(a){
   const L=TYC_KEYS.map((k,ki)=>({k,ki})).filter(x=>!tycBloqueio(a,x.k)).map(x=>({...x,c:tycCustoTot(a,x.k)})).filter(x=>x.c>0).sort((x,y)=>x.c-y.c);
   if(!L.length) return tycPodeLoja(a) ? (ceoLojaV(a) ? 'todos os setores no máximo. Ele vai propor uma loja nova.' : 'todos os setores no máximo. Só falta uma loja nova, mas a sua conta não tem folga para ela.') : 'todos os setores no nível máximo.';
   const o=L[0], S=emp(a).set[o.k], n=T.niv[o.ki];
-  if(tycReforma(a,o.ki) && ceoEmps().some(tycEmReforma)) return 'na fila: outra empresa está em reforma de porte (uma de cada vez).';
+  if(tycReforma(a,o.ki) && ceoRefCheia()) return 'na fila: o limite de reformas de porte ao mesmo tempo foi atingido (1 a cada 4 empresas).';
   const fonte=(T.caixa-o.c>=tycReserva(a))?'caixa':(ceoLiq()-o.c>=Math.max(o.c*2,C(200000))?'conta':null);
   if(!fonte) return `sem folga: para ${S.nome} (${fmt0(o.c)}) a sua conta e investimentos precisam ter ${fmt0(o.c+Math.max(o.c*2,C(200000)))}.`;
   if(c.teto && c.gm===s.mes && c.gv+o.c>c.teto) return 'o teto de gasto deste mês já foi atingido.';
@@ -13099,7 +13101,7 @@ function ceoMes(ex){
     const lojaUid=((s.avisosEvolucao||[]).find(x=>x.tipo==='ceo' && x.loja)||{}).uid;
     for(const o of ops){ if(lojaPend && o.a.uid===lojaUid) continue; if(usadas.has(o.a.uid)) continue; if(o.a.tyc.obra) continue; if(o.a.tyc.obraLoja && tycReforma(o.a,o.ki)) continue; // não começa reforma de porte enquanto uma loja nova está em construção
       if(c.teto && c.gv+o.c>c.teto) continue;
-      if(tycReforma(o.a,o.ki) && ceoEmps().some(tycEmReforma)) continue;
+      if(tycReforma(o.a,o.ki) && ceoRefCheia()) continue;
       if(o.fonte==='conta' && ceoLiq()-o.c<Math.max(o.c*2,C(200000))) continue;
       if(o.fonte==='caixa' && o.a.tyc.caixa-o.c<tycReserva(o.a)) continue;
       const S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
