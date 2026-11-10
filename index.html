@@ -5840,7 +5840,7 @@ const MUS=(()=>{
     const tom=ctx.createBiquadFilter(); tom.type='lowpass'; tom.frequency.value=6500;
     const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-16; comp.knee.value=18; comp.ratio.value=3; comp.attack.value=0.02; comp.release.value=0.3; master.connect(tom); tom.connect(comp); comp.connect(ctx.destination);
     // reverb de sala
-    rev=ctx.createConvolver(); const n=Math.round(ctx.sampleRate*2.3), ir=ctx.createBuffer(2,n,ctx.sampleRate);
+    rev=ctx.createConvolver(); const n=Math.round(ctx.sampleRate*1.8), ir=ctx.createBuffer(2,n,ctx.sampleRate);
     for(let c=0;c<2;c++){ const d=ir.getChannelData(c); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.8); }
     rev.buffer=ir; const wet=ctx.createGain(); wet.gain.value=0.36; rev.connect(wet); wet.connect(master);
     seco=ctx.createGain(); seco.gain.value=0.8; seco.connect(master);
@@ -5873,7 +5873,7 @@ const MUS=(()=>{
   function vibra(m,t,dur,vel){
     const f=hz(m), o=ctx.createOscillator(), o4=ctx.createOscillator(), g4=ctx.createGain(), amp=ctx.createGain(), trem=ctx.createOscillator(), tg=ctx.createGain();
     o.frequency.value=f; o4.frequency.value=f*4; g4.gain.setValueAtTime(0.25,t); g4.gain.exponentialRampToValueAtTime(0.01,t+0.25);
-    trem.frequency.value=5.2; tg.gain.value=0.25;
+    trem.frequency.value=5.2; tg.gain.setValueAtTime(0.25,t+dur+0.2); tg.gain.linearRampToValueAtTime(0,t+dur+1.35);
     const pico=0.06*vel; amp.gain.setValueAtTime(0,t); amp.gain.linearRampToValueAtTime(pico,t+0.004); amp.gain.exponentialRampToValueAtTime(0.0001,t+dur+1.4);
     const mix=ctx.createGain(); mix.gain.value=1; o.connect(mix); o4.connect(g4); g4.connect(mix); mix.connect(amp);
     trem.connect(tg); tg.connect(amp.gain);
@@ -5916,8 +5916,8 @@ const MUS=(()=>{
     lp.type='lowpass'; lp.frequency.value=3200;
     [[1,1],[2,0.55],[3,0.3],[4,0.12]].forEach(([r,g])=>{ const o=ctx.createOscillator(), og=ctx.createGain(); o.frequency.value=f*r; og.gain.value=g; o.connect(og); og.connect(mix); o.start(t); o.stop(fim+0.4); });
     amp.gain.setValueAtTime(0.0001,t); amp.gain.linearRampToValueAtTime(vol,t+0.06); amp.gain.setValueAtTime(vol,fim); amp.gain.exponentialRampToValueAtTime(0.0001,fim+0.3);
-    trem.frequency.value=6.2; tg.gain.value=vol*0.22; trem.connect(tg); tg.connect(amp.gain); trem.start(t); trem.stop(fim+0.4);
-    mix.connect(lp); lp.connect(amp); saidaP(amp,-0.25,0.3);
+    const am=ctx.createGain(); am.gain.value=0.85; trem.frequency.value=6.2; tg.gain.value=0.15; trem.connect(tg); tg.connect(am.gain); trem.start(t); trem.stop(fim+0.4);
+    mix.connect(lp); lp.connect(am); am.connect(amp); saidaP(amp,-0.25,0.3);
   }
   // metais: golpe curto ou crescendo longo, filtro que abre
   function metal(m,t,dur,vol,crescendo,pan){
@@ -5935,7 +5935,7 @@ const MUS=(()=>{
     o.connect(amp); o2.connect(g2); g2.connect(amp); saidaP(amp,pan,0.6); o.start(t); o2.start(t); o.stop(t+1.7); o2.stop(t+1.7);
   }
   function caixa(t,vel){ const s=ctx.createBufferSource(); s.buffer=ruido; const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1800; bp.Q.value=0.8; const a=ctx.createGain();
-    a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.011*vel,t+0.003); a.gain.exponentialRampToValueAtTime(0.0001,t+0.16); s.connect(bp); bp.connect(a); saida(a,0.25); s.start(t,Math.random()); s.stop(t+0.2); }
+    a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.008*vel,t+0.003); a.gain.exponentialRampToValueAtTime(0.0001,t+0.16); s.connect(bp); bp.connect(a); saida(a,0.25); s.start(t,Math.random()); s.stop(t+0.2); }
   function chocalho(t,vel){ const s=ctx.createBufferSource(); s.buffer=ruido; const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6500; const a=ctx.createGain();
     a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.0032*vel,t+0.004); a.gain.exponentialRampToValueAtTime(0.0001,t+0.07); s.connect(hp); hp.connect(a); saida(a,0.1); s.start(t,Math.random()); s.stop(t+0.1); }
   let ultV=72;
@@ -5943,24 +5943,24 @@ const MUS=(()=>{
     const nivel = pos<4 ? 1 : pos<12 ? 2 : 3;      // cada coro cresce: leve, cheio, pleno
     const voz=VOZ[q].map(i=>base+i);
     // cordas: acorde sustentado o compasso inteiro, aberto entre esquerda e direita; sempre presente
-    const vc=[0.014,0.019,0.024][nivel-1], pans=[-0.5,-0.15,0.2,0.55];
+    const vc=[0.009,0.012,0.015][nivel-1], pans=[-0.5,-0.15,0.2,0.55];
     voz.forEach((m,i)=>corda(clampN(m+12,57,79),t+rnd(0,0.03),4*BAT+0.25,vc,pans[i%4],1700+nivel*350));
     // cello e contrabaixo de cordas na fundamental
-    corda(40+((raiz-4+12)%12),t,4*BAT+0.2,0.026,-0.2,900);
+    corda(40+((raiz-4+12)%12),t,4*BAT+0.2,0.017,-0.2,900);
     // violino: linha cantada em notas longas nos compassos sem melodia do vibrafone
     if(nivel>=2 && !temMel && Math.random()<0.7){
       const tons=TONS[q].map(i=>raiz+i), notas=[]; for(let o=60;o<=84;o+=12) for(const x of tons){ const mm=o+x%12; if(mm>=65 && mm<=83) notas.push(mm); }
       notas.sort((a,b)=>a-b); let idx=notas.reduce((bi,m,i)=>Math.abs(m-ultV)<Math.abs(notas[bi]-ultV)?i:bi,0);
       const frases=Math.random()<0.5?[[0,4]]:[[0,2],[2,2]];
-      for(const [b,d] of frases){ idx=Math.max(0,Math.min(notas.length-1,idx+pick([-2,-1,1,1,2]))); ultV=notas[idx]; corda(ultV,t+b*BAT,d*BAT,0.034,0.3,2600); }
+      for(const [b,d] of frases){ idx=Math.max(0,Math.min(notas.length-1,idx+pick([-2,-1,1,1,2]))); ultV=notas[idx]; corda(ultV,t+b*BAT,d*BAT,0.022,0.3,2600); }
     }
     // órgão: tapete quente em compassos alternados
-    if(nivel>=2 && n%2===0) voz.slice(0,3).forEach(m=>orgao(clampN(m,48,64),t,8*BAT,0.02));
+    if(nivel>=2 && n%2===0) voz.slice(0,3).forEach(m=>orgao(clampN(m,48,64),t,8*BAT,0.013));
     // metais: crescendo no início do final do coro, golpes sincopados no nível pleno
-    if(pos===12){ voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t,4*BAT,0.03,true,[-0.35,0,0.35][i])); }
-    else if(nivel===3 && Math.random()<0.55){ const bt=pick([2+SW,3,1+SW]); voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t+bt*BAT,0.28,0.036,false,[-0.35,0,0.35][i])); }
+    if(pos===12){ voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t,4*BAT,0.02,true,[-0.35,0,0.35][i])); }
+    else if(nivel===3 && Math.random()<0.55){ const bt=pick([2+SW,3,1+SW]); voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t+bt*BAT,0.28,0.024,false,[-0.35,0,0.35][i])); }
     // harpa: arpejo subindo no começo de frases
-    if(nivel>=2 && pos%4===0 && Math.random()<0.55){ const arp=voz.map(m=>clampN(m+12,60,84)).sort((a,b)=>a-b); arp.forEach((m,i)=>harpa(m,t+i*BAT*0.5,0.05,-0.4+i*0.25)); }
+    if(nivel>=2 && pos%4===0 && Math.random()<0.55){ const arp=voz.map(m=>clampN(m+12,60,84)).sort((a,b)=>a-b); arp.forEach((m,i)=>harpa(m,t+i*BAT*0.5,0.033,-0.4+i*0.25)); }
     // percussão leve: caixa de vassourinha no 2 e no 4, chocalho em colcheias
     if(nivel>=2){ caixa(t+1*BAT,0.7*rnd(0.8,1)); caixa(t+3*BAT,0.9*rnd(0.8,1)); for(let b=0;b<4;b++){ chocalho(t+b*BAT,0.8); chocalho(t+(b+SW)*BAT,0.5); } }
   }
@@ -12573,7 +12573,7 @@ const MUS=(()=>{
     const tom=ctx.createBiquadFilter(); tom.type='lowpass'; tom.frequency.value=6500;
     const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-16; comp.knee.value=18; comp.ratio.value=3; comp.attack.value=0.02; comp.release.value=0.3; master.connect(tom); tom.connect(comp); comp.connect(ctx.destination);
     // reverb de sala
-    rev=ctx.createConvolver(); const n=Math.round(ctx.sampleRate*2.3), ir=ctx.createBuffer(2,n,ctx.sampleRate);
+    rev=ctx.createConvolver(); const n=Math.round(ctx.sampleRate*1.8), ir=ctx.createBuffer(2,n,ctx.sampleRate);
     for(let c=0;c<2;c++){ const d=ir.getChannelData(c); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.8); }
     rev.buffer=ir; const wet=ctx.createGain(); wet.gain.value=0.36; rev.connect(wet); wet.connect(master);
     seco=ctx.createGain(); seco.gain.value=0.8; seco.connect(master);
@@ -12606,7 +12606,7 @@ const MUS=(()=>{
   function vibra(m,t,dur,vel){
     const f=hz(m), o=ctx.createOscillator(), o4=ctx.createOscillator(), g4=ctx.createGain(), amp=ctx.createGain(), trem=ctx.createOscillator(), tg=ctx.createGain();
     o.frequency.value=f; o4.frequency.value=f*4; g4.gain.setValueAtTime(0.25,t); g4.gain.exponentialRampToValueAtTime(0.01,t+0.25);
-    trem.frequency.value=5.2; tg.gain.value=0.25;
+    trem.frequency.value=5.2; tg.gain.setValueAtTime(0.25,t+dur+0.2); tg.gain.linearRampToValueAtTime(0,t+dur+1.35);
     const pico=0.06*vel; amp.gain.setValueAtTime(0,t); amp.gain.linearRampToValueAtTime(pico,t+0.004); amp.gain.exponentialRampToValueAtTime(0.0001,t+dur+1.4);
     const mix=ctx.createGain(); mix.gain.value=1; o.connect(mix); o4.connect(g4); g4.connect(mix); mix.connect(amp);
     trem.connect(tg); tg.connect(amp.gain);
@@ -12649,8 +12649,8 @@ const MUS=(()=>{
     lp.type='lowpass'; lp.frequency.value=3200;
     [[1,1],[2,0.55],[3,0.3],[4,0.12]].forEach(([r,g])=>{ const o=ctx.createOscillator(), og=ctx.createGain(); o.frequency.value=f*r; og.gain.value=g; o.connect(og); og.connect(mix); o.start(t); o.stop(fim+0.4); });
     amp.gain.setValueAtTime(0.0001,t); amp.gain.linearRampToValueAtTime(vol,t+0.06); amp.gain.setValueAtTime(vol,fim); amp.gain.exponentialRampToValueAtTime(0.0001,fim+0.3);
-    trem.frequency.value=6.2; tg.gain.value=vol*0.22; trem.connect(tg); tg.connect(amp.gain); trem.start(t); trem.stop(fim+0.4);
-    mix.connect(lp); lp.connect(amp); saidaP(amp,-0.25,0.3);
+    const am=ctx.createGain(); am.gain.value=0.85; trem.frequency.value=6.2; tg.gain.value=0.15; trem.connect(tg); tg.connect(am.gain); trem.start(t); trem.stop(fim+0.4);
+    mix.connect(lp); lp.connect(am); am.connect(amp); saidaP(amp,-0.25,0.3);
   }
   // metais: golpe curto ou crescendo longo, filtro que abre
   function metal(m,t,dur,vol,crescendo,pan){
@@ -12668,7 +12668,7 @@ const MUS=(()=>{
     o.connect(amp); o2.connect(g2); g2.connect(amp); saidaP(amp,pan,0.6); o.start(t); o2.start(t); o.stop(t+1.7); o2.stop(t+1.7);
   }
   function caixa(t,vel){ const s=ctx.createBufferSource(); s.buffer=ruido; const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1800; bp.Q.value=0.8; const a=ctx.createGain();
-    a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.011*vel,t+0.003); a.gain.exponentialRampToValueAtTime(0.0001,t+0.16); s.connect(bp); bp.connect(a); saida(a,0.25); s.start(t,Math.random()); s.stop(t+0.2); }
+    a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.008*vel,t+0.003); a.gain.exponentialRampToValueAtTime(0.0001,t+0.16); s.connect(bp); bp.connect(a); saida(a,0.25); s.start(t,Math.random()); s.stop(t+0.2); }
   function chocalho(t,vel){ const s=ctx.createBufferSource(); s.buffer=ruido; const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6500; const a=ctx.createGain();
     a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.0032*vel,t+0.004); a.gain.exponentialRampToValueAtTime(0.0001,t+0.07); s.connect(hp); hp.connect(a); saida(a,0.1); s.start(t,Math.random()); s.stop(t+0.1); }
   let ultV=72;
@@ -12676,24 +12676,24 @@ const MUS=(()=>{
     const nivel = pos<4 ? 1 : pos<12 ? 2 : 3;      // cada coro cresce: leve, cheio, pleno
     const voz=VOZ[q].map(i=>base+i);
     // cordas: acorde sustentado o compasso inteiro, aberto entre esquerda e direita; sempre presente
-    const vc=[0.014,0.019,0.024][nivel-1], pans=[-0.5,-0.15,0.2,0.55];
+    const vc=[0.009,0.012,0.015][nivel-1], pans=[-0.5,-0.15,0.2,0.55];
     voz.forEach((m,i)=>corda(clampN(m+12,57,79),t+rnd(0,0.03),4*BAT+0.25,vc,pans[i%4],1700+nivel*350));
     // cello e contrabaixo de cordas na fundamental
-    corda(40+((raiz-4+12)%12),t,4*BAT+0.2,0.026,-0.2,900);
+    corda(40+((raiz-4+12)%12),t,4*BAT+0.2,0.017,-0.2,900);
     // violino: linha cantada em notas longas nos compassos sem melodia do vibrafone
     if(nivel>=2 && !temMel && Math.random()<0.7){
       const tons=TONS[q].map(i=>raiz+i), notas=[]; for(let o=60;o<=84;o+=12) for(const x of tons){ const mm=o+x%12; if(mm>=65 && mm<=83) notas.push(mm); }
       notas.sort((a,b)=>a-b); let idx=notas.reduce((bi,m,i)=>Math.abs(m-ultV)<Math.abs(notas[bi]-ultV)?i:bi,0);
       const frases=Math.random()<0.5?[[0,4]]:[[0,2],[2,2]];
-      for(const [b,d] of frases){ idx=Math.max(0,Math.min(notas.length-1,idx+pick([-2,-1,1,1,2]))); ultV=notas[idx]; corda(ultV,t+b*BAT,d*BAT,0.034,0.3,2600); }
+      for(const [b,d] of frases){ idx=Math.max(0,Math.min(notas.length-1,idx+pick([-2,-1,1,1,2]))); ultV=notas[idx]; corda(ultV,t+b*BAT,d*BAT,0.022,0.3,2600); }
     }
     // órgão: tapete quente em compassos alternados
-    if(nivel>=2 && n%2===0) voz.slice(0,3).forEach(m=>orgao(clampN(m,48,64),t,8*BAT,0.02));
+    if(nivel>=2 && n%2===0) voz.slice(0,3).forEach(m=>orgao(clampN(m,48,64),t,8*BAT,0.013));
     // metais: crescendo no início do final do coro, golpes sincopados no nível pleno
-    if(pos===12){ voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t,4*BAT,0.03,true,[-0.35,0,0.35][i])); }
-    else if(nivel===3 && Math.random()<0.55){ const bt=pick([2+SW,3,1+SW]); voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t+bt*BAT,0.28,0.036,false,[-0.35,0,0.35][i])); }
+    if(pos===12){ voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t,4*BAT,0.02,true,[-0.35,0,0.35][i])); }
+    else if(nivel===3 && Math.random()<0.55){ const bt=pick([2+SW,3,1+SW]); voz.slice(0,3).forEach((m,i)=>metal(clampN(m+12,58,74),t+bt*BAT,0.28,0.024,false,[-0.35,0,0.35][i])); }
     // harpa: arpejo subindo no começo de frases
-    if(nivel>=2 && pos%4===0 && Math.random()<0.55){ const arp=voz.map(m=>clampN(m+12,60,84)).sort((a,b)=>a-b); arp.forEach((m,i)=>harpa(m,t+i*BAT*0.5,0.05,-0.4+i*0.25)); }
+    if(nivel>=2 && pos%4===0 && Math.random()<0.55){ const arp=voz.map(m=>clampN(m+12,60,84)).sort((a,b)=>a-b); arp.forEach((m,i)=>harpa(m,t+i*BAT*0.5,0.033,-0.4+i*0.25)); }
     // percussão leve: caixa de vassourinha no 2 e no 4, chocalho em colcheias
     if(nivel>=2){ caixa(t+1*BAT,0.7*rnd(0.8,1)); caixa(t+3*BAT,0.9*rnd(0.8,1)); for(let b=0;b<4;b++){ chocalho(t+b*BAT,0.8); chocalho(t+(b+SW)*BAT,0.5); } }
   }
