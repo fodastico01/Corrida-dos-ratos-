@@ -4848,6 +4848,7 @@ function turnoSemMes(){
   const R=s.rol; aplicarPend(R); s.licao=null; s.filaEv=[]; s.evento=null;
   const fila=filaDoTurno(false);
   if(fila.length) abrirUm(fila[0]);
+  try{ const _ex=[]; ceoMelhorias(_ex); if(_ex.length) s.ceoExPend=(s.ceoExPend||[]).concat(_ex); }catch(e){}   // CEO age em toda jogada, mesmo sem virar o mês
   salvar(); iniciarGiro();
 }
 function abrirUm(ev){ tempoReg('car'); s.evento=ev; s.vistos.push(ev); (s.ultEv||(s.ultEv={}))[ev]=s.mes; s.ultimoEv=ev; evento(ev).antes?.(); ui.modal='evento'; }
@@ -6427,18 +6428,11 @@ function ceoMotivo(a){
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
 const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
-function ceoMes(ex){
-  const c=ceo(); if(!c.on) return;
-  const emps=ceoEmps(); if(!emps.length) return;
-  const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
-  if(ceoLiq()<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(["CEO: dismissed for lack of cash to pay the salary",0]); s.licao={tom:'ruim', titulo:"The CEO left", texto:"Your account had no slack to pay his salary. A professional manager only pays off when the account can bear his cost and the month's expenses. You can hire again in the Income tab when there is cash."}; return; }
-  pagarAVista(v); c.pago=(c.pago||0)+v; ex.push(["CEO: salary and profit sharing",-v]);
-  if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
-    if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
-      (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Open a new store?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
-        texto:'The company is polished in every area. Store '+(n+1)+' custa '+fmt0(v)+' e leva '+dur+' meses para ficar pronta; a loja nova não vende nesse período, mas as atuais continuam funcionando. Depois, a empresa passa a render cerca de '+pct+'% a mais. O dinheiro sai do seu capital.'}); } }
+// melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
+function ceoMelhorias(ex){
+  const c=ceo(); if(!c.on||!c.auto) return;
   const ops=ceoOpcoes();
-  if(c.auto){
+  {
     if(c.gm!==s.mes){ c.gm=s.mes; c.gv=0; }
     const lojaPend=(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo' && x.loja);   // com a pergunta da loja aberta, o CEO não inicia melhoria só NAQUELA empresa (a obra travava a loja e a pergunta voltava a cada turno); as outras seguem normalmente
     const usadas=new Set();
@@ -6453,6 +6447,21 @@ function ceoMes(ex){
       usadas.add(o.a.uid); c.gv+=o.c; c.feitas=(c.feitas||0)+1;
       ex.push([`CEO: ${o.a.nome}, ${S.nome} (${S.niv[n]})${o.fonte==='caixa'?'':" · from your capital"}`, o.fonte==='caixa'?0:-o.c]);
     }
+  }
+}
+function ceoMes(ex){
+  const c=ceo(); if(!c.on) return;
+  if((s.ceoExPend||[]).length){ s.ceoExPend.forEach(l=>ex.push(l)); s.ceoExPend=[]; }
+  const emps=ceoEmps(); if(!emps.length) return;
+  const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
+  if(ceoLiq()<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(["CEO: dismissed for lack of cash to pay the salary",0]); s.licao={tom:'ruim', titulo:"The CEO left", texto:"Your account had no slack to pay his salary. A professional manager only pays off when the account can bear his cost and the month's expenses. You can hire again in the Income tab when there is cash."}; return; }
+  pagarAVista(v); c.pago=(c.pago||0)+v; ex.push(["CEO: salary and profit sharing",-v]);
+  if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
+    if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
+      (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Open a new store?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
+        texto:'The company is polished in every area. Store '+(n+1)+' custa '+fmt0(v)+' e leva '+dur+' meses para ficar pronta; a loja nova não vende nesse período, mas as atuais continuam funcionando. Depois, a empresa passa a render cerca de '+pct+'% a mais. O dinheiro sai do seu capital.'}); } }
+  const ops=ceoOpcoes();
+  if(c.auto){ ceoMelhorias(ex);
   } else if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausa||0) && ops.length){
     const o=ops[0], S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
     (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', titulo:"🧑‍💼 Want me to upgrade it?", nome:o.a.nome, uid:o.a.uid, ki:o.ki, fonte:o.fonte, c:o.c, mes:s.mes,
@@ -11504,6 +11513,7 @@ function turnoSemMes(){
   const R=s.rol; aplicarPend(R); s.licao=null; s.filaEv=[]; s.evento=null;
   const fila=filaDoTurno(false);
   if(fila.length) abrirUm(fila[0]);
+  try{ const _ex=[]; ceoMelhorias(_ex); if(_ex.length) s.ceoExPend=(s.ceoExPend||[]).concat(_ex); }catch(e){}   // CEO age em toda jogada, mesmo sem virar o mês
   salvar(); iniciarGiro();
 }
 function abrirUm(ev){ tempoReg('car'); s.evento=ev; s.vistos.push(ev); (s.ultEv||(s.ultEv={}))[ev]=s.mes; s.ultimoEv=ev; evento(ev).antes?.(); ui.modal='evento'; }
@@ -13083,18 +13093,11 @@ function ceoMotivo(a){
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
 const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
-function ceoMes(ex){
-  const c=ceo(); if(!c.on) return;
-  const emps=ceoEmps(); if(!emps.length) return;
-  const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
-  if(ceoLiq()<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(['CEO: dispensado por falta de caixa para pagar o salário',0]); s.licao={tom:'ruim', titulo:'O CEO foi embora', texto:'A sua conta não tinha folga para pagar o salário dele. Gestor profissional só compensa quando a conta aguenta o custo dele e as despesas do mês. Você pode contratar de novo na aba Renda quando houver caixa.'}; return; }
-  pagarAVista(v); c.pago=(c.pago||0)+v; ex.push(['CEO: salário e participação nos lucros',-v]);
-  if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
-    if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
-      (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Abrir uma nova loja?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
-        texto:'A empresa está redonda em todos os setores. A loja '+(n+1)+' custa '+fmt0(v)+' e leva '+dur+' meses para ficar pronta; a loja nova não vende nesse período, mas as atuais continuam funcionando. Depois, a empresa passa a render cerca de '+pct+'% a mais. O dinheiro sai do seu capital.'}); } }
+// melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
+function ceoMelhorias(ex){
+  const c=ceo(); if(!c.on||!c.auto) return;
   const ops=ceoOpcoes();
-  if(c.auto){
+  {
     if(c.gm!==s.mes){ c.gm=s.mes; c.gv=0; }
     const lojaPend=(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo' && x.loja);   // com a pergunta da loja aberta, o CEO não inicia melhoria só NAQUELA empresa (a obra travava a loja e a pergunta voltava a cada turno); as outras seguem normalmente
     const usadas=new Set();
@@ -13109,6 +13112,21 @@ function ceoMes(ex){
       usadas.add(o.a.uid); c.gv+=o.c; c.feitas=(c.feitas||0)+1;
       ex.push([`CEO: ${o.a.nome}, ${S.nome} (${S.niv[n]})${o.fonte==='caixa'?'':' · do seu capital'}`, o.fonte==='caixa'?0:-o.c]);
     }
+  }
+}
+function ceoMes(ex){
+  const c=ceo(); if(!c.on) return;
+  if((s.ceoExPend||[]).length){ s.ceoExPend.forEach(l=>ex.push(l)); s.ceoExPend=[]; }
+  const emps=ceoEmps(); if(!emps.length) return;
+  const lucro=emps.reduce((x,a)=>x+Math.max(0,(a.tyc.ult&&a.tyc.ult.lucro)||0),0), v=ceoSal()+Math.round(lucro*CEO_PCT);
+  if(ceoLiq()<v*3){ c.on=false; c.auto=false; s.avisosEvolucao=(s.avisosEvolucao||[]).filter(x=>x.tipo!=='ceo'); ex.push(['CEO: dispensado por falta de caixa para pagar o salário',0]); s.licao={tom:'ruim', titulo:'O CEO foi embora', texto:'A sua conta não tinha folga para pagar o salário dele. Gestor profissional só compensa quando a conta aguenta o custo dele e as despesas do mês. Você pode contratar de novo na aba Renda quando houver caixa.'}; return; }
+  pagarAVista(v); c.pago=(c.pago||0)+v; ex.push(['CEO: salário e participação nos lucros',-v]);
+  if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
+    if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
+      (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Abrir uma nova loja?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
+        texto:'A empresa está redonda em todos os setores. A loja '+(n+1)+' custa '+fmt0(v)+' e leva '+dur+' meses para ficar pronta; a loja nova não vende nesse período, mas as atuais continuam funcionando. Depois, a empresa passa a render cerca de '+pct+'% a mais. O dinheiro sai do seu capital.'}); } }
+  const ops=ceoOpcoes();
+  if(c.auto){ ceoMelhorias(ex);
   } else if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausa||0) && ops.length){
     const o=ops[0], S=emp(o.a).set[o.k], n=o.a.tyc.niv[o.ki];
     (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', titulo:'🧑‍💼 Quer que eu suba?', nome:o.a.nome, uid:o.a.uid, ki:o.ki, fonte:o.fonte, c:o.c, mes:s.mes,
