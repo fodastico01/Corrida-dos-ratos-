@@ -3144,7 +3144,8 @@ const EVENTOS = {
     ]},
   estresse:{saude:true, peso:6, cd:8, tipo:'custo', custo:1200, cond:()=>s.fel<(temMente()?22:30), titulo:"Your body sent the bill", texto:"Insomnia, back pain and a trip to the ER. The doctor told you to slow down. Low well-being for too long becomes a health problem."},
   /* ---- imprevistos grandes da Fase 3 ---- */
-  enchente:{fases:[3], peso:2, cd:48, tipo:'custo', custo:12000, titulo:"The storm flooded the garage", texto:"Water rose half a meter. Car in the shop, furniture lost and insurance doesn't cover floods."},
+  enchente:{fases:[3], peso:2, cd:48, cond:()=>carN()>0, tipo:'custo', custo:12000, titulo:"The storm flooded the garage", texto:"Water rose half a meter. Car in the shop, furniture lost and insurance doesn't cover floods."},
+  temporal:{fases:[3], peso:2, cd:48, cond:()=>carN()===0, tipo:'custo', custo:6000, titulo:"The storm flooded the house", texto:"Water came in through the door and rose to knee height. Furniture and appliances lost, and insurance doesn't cover floods."},
   internacao:{saude:true, fases:[3], peso:2, once:true, minMes:30, tipo:'custo', custo:13000, titulo:"Emergency hospitalization", texto:"An appendicitis turned into complications. The plan covered the surgery, but the extra ICU days and fees were on you."},
   malhafina:{fases:[3], peso:1, once:true, minMes:12, tipo:'custo', custo:3500, cond:()=>mesCal()>=5&&mesCal()<=10, titulo:"Caught in the tax audit", texto:"A medical expense without a receipt. Tax owed, fine and interest."},
   golpe:{fases:[2,3], peso:1, once:true, minMes:8, tipo:'custo', custo:4500, titulo:"The fake-relative scam", texto:"\"Mom, I changed my number, I need to pay an urgent bill.\" It was a scam, and Pix doesn't come back. Be wary of rush and new numbers."},
@@ -4698,7 +4699,7 @@ const MAPAS={
 };
 const anel = () => MAPAS[Math.min(3,s.fase||1)];
 const CASA_EV={
-  imp:['pneu','geladeira','multa','vet','notebook','infiltracao','mecanico','vazamento','luz','batida','maquina','assalto','material','enchente','aluguel','celular','reforma','carrovelho'],
+  imp:['pneu','geladeira','multa','vet','notebook','infiltracao','mecanico','vazamento','luz','batida','maquina','assalto','material','enchente','temporal','aluguel','celular','reforma','carrovelho'],
   sau:['dentista','oculos','cirurgia','exames','estresse','internacao','burnout'],
   ten:['mega','tv','gadget','vitrine'],
   vid:['casamento','show','feriado','emprestimo_amigo','aniversario','filhos','festa_filho','almoco','lar','heranca','pais','irmao','desapego'],
@@ -5818,6 +5819,7 @@ const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Mint",'#F5F3EF','#A9DDBF'],ouro:["Gold and navy",'#F3ECDC','#F0B83C'],ceu:["Sky and sand",'#E4EEF7','#F4B942'],noite:["Night",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
+if(typeof ARTE!=='undefined' && ARTE.cards && !ARTE.cards.temporal) ARTE.cards.temporal=ARTE.cards.vazamento||ARTE.cards.infiltracao||ARTE.cards.enchente;   // arte provisória da carta do temporal sem carro
 if(typeof ARTE!=='undefined' && ARTE.verso) document.head.insertAdjacentHTML('beforeend', `<style>.cx-baralho i,.cx-verso{background:url(${ARTE.verso}) center/100% 100% no-repeat!important;border:0!important;border-radius:14px!important}.cx-baralho img,.cx-verso img{display:none!important}.cx-baralho{width:100px!important;height:164px!important}.cx-baralho.usado{width:58px!important;height:95px!important}.cx-baralho i{border-radius:9px!important}</style>`);
 const aplicarPrefs = () => { const p=prefs(), h=document.documentElement; h.classList.toggle('letra-grande', !!p.letraGrande); const c=PALETAS[p.cor]?p.cor:'menta'; if(c==='menta') delete h.dataset.paleta; else h.dataset.paleta=c; const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',PALETAS[c][1]); };
 /* ================= trilha: lounge jazz gerado na hora (Web Audio) ================= */
@@ -9892,7 +9894,8 @@ const EVENTOS = {
     ]},
   estresse:{saude:true, peso:6, cd:8, tipo:'custo', custo:1200, cond:()=>s.fel<(temMente()?22:30), titulo:'O corpo cobrou a conta', texto:'Insônia, dor nas costas e uma ida ao pronto-socorro. O médico mandou desacelerar. Bem-estar baixo por muito tempo vira problema de saúde.'},
   /* ---- imprevistos grandes da Fase 3 ---- */
-  enchente:{fases:[3], peso:2, cd:48, tipo:'custo', custo:12000, titulo:'O temporal alagou a garagem', texto:'A água subiu meio metro. Carro no conserto, móveis perdidos e o seguro não cobre enchente.'},
+  enchente:{fases:[3], peso:2, cd:48, cond:()=>carN()>0, tipo:'custo', custo:12000, titulo:'O temporal alagou a garagem', texto:'A água subiu meio metro. Carro no conserto, móveis perdidos e o seguro não cobre enchente.'},
+  temporal:{fases:[3], peso:2, cd:48, cond:()=>carN()===0, tipo:'custo', custo:6000, titulo:'O temporal alagou a casa', texto:'A água entrou pela porta e subiu até o joelho. Móveis e eletrodomésticos perdidos e o seguro não cobre enchente.'},
   internacao:{saude:true, fases:[3], peso:2, once:true, minMes:30, tipo:'custo', custo:13000, titulo:'Internação de emergência', texto:'Uma apendicite virou complicação. O plano cobriu a cirurgia, mas os dias extras de UTI e os honorários ficaram por sua conta.'},
   malhafina:{fases:[3], peso:1, once:true, minMes:12, tipo:'custo', custo:3500, cond:()=>mesCal()>=5&&mesCal()<=10, titulo:'Caiu na malha fina', texto:'Uma despesa médica sem recibo. Imposto devido, multa e juros.'},
   golpe:{fases:[2,3], peso:1, once:true, minMes:8, tipo:'custo', custo:4500, titulo:'Golpe do falso parente', texto:'"Mãe, troquei de número, preciso pagar um boleto urgente". Era golpe, e o Pix não volta. Desconfie de pressa e de número novo.'},
@@ -11446,7 +11449,7 @@ const MAPAS={
 };
 const anel = () => MAPAS[Math.min(3,s.fase||1)];
 const CASA_EV={
-  imp:['pneu','geladeira','multa','vet','notebook','infiltracao','mecanico','vazamento','luz','batida','maquina','assalto','material','enchente','aluguel','celular','reforma','carrovelho'],
+  imp:['pneu','geladeira','multa','vet','notebook','infiltracao','mecanico','vazamento','luz','batida','maquina','assalto','material','enchente','temporal','aluguel','celular','reforma','carrovelho'],
   sau:['dentista','oculos','cirurgia','exames','estresse','internacao','burnout'],
   ten:['mega','tv','gadget','vitrine'],
   vid:['casamento','show','feriado','emprestimo_amigo','aniversario','filhos','festa_filho','almoco','lar','heranca','pais','irmao','desapego'],
@@ -12566,6 +12569,7 @@ const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:['Menta','#F5F3EF','#A9DDBF'],ouro:['Ouro e marinho','#F3ECDC','#F0B83C'],ceu:['Céu e areia','#E4EEF7','#F4B942'],noite:['Noite','#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
+if(typeof ARTE!=='undefined' && ARTE.cards && !ARTE.cards.temporal) ARTE.cards.temporal=ARTE.cards.vazamento||ARTE.cards.infiltracao||ARTE.cards.enchente;   // arte provisória da carta do temporal sem carro
 if(typeof ARTE!=='undefined' && ARTE.verso) document.head.insertAdjacentHTML('beforeend', `<style>.cx-baralho i,.cx-verso{background:url(${ARTE.verso}) center/100% 100% no-repeat!important;border:0!important;border-radius:14px!important}.cx-baralho img,.cx-verso img{display:none!important}.cx-baralho{width:100px!important;height:164px!important}.cx-baralho.usado{width:58px!important;height:95px!important}.cx-baralho i{border-radius:9px!important}</style>`);
 const aplicarPrefs = () => { const p=prefs(), h=document.documentElement; h.classList.toggle('letra-grande', !!p.letraGrande); const c=PALETAS[p.cor]?p.cor:'menta'; if(c==='menta') delete h.dataset.paleta; else h.dataset.paleta=c; const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',PALETAS[c][1]); };
 /* ================= trilha: lounge jazz gerado na hora (Web Audio) ================= */
