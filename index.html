@@ -1458,10 +1458,11 @@ const RITMO_HTML_EN="<title>Mice Run<\/title>\n<meta name=\"claude:viewport-fit-
 if(window.__LANG==='en'){
 (function(){
 /* ================= utilidades ================= */
-const fmt = v => (Math.abs(v) < 0.005 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:'BRL'});
+const PAIS = {cod:'US', moeda:'USD', simb:'$', inflacao:false};   // perfil do país: moeda, símbolo e se há inflação (só o Brasil tem)
+const fmt = v => (Math.abs(v) < 0.005 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:PAIS.moeda});
 const fmtC = v => { const a=Math.abs(v), sg=v<0?'−':'', f=(x,u)=>sg+x.toLocaleString('en-US',{maximumFractionDigits:x<10?2:x<100?1:0})+' '+u;
-  return a<1000 ? sg+'R$ '+Math.round(a) : a<1e6 ? f(a/1e3,'mil') : a<1e9 ? f(a/1e6,'mi') : a<1e12 ? f(a/1e9,'bi') : f(a/1e12,'tri'); };
-const fmt0 = v => (Math.abs(v) < 0.5 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+  return a<1000 ? sg+PAIS.simb+Math.round(a) : a<1e6 ? f(a/1e3,'k') : a<1e9 ? f(a/1e6,'M') : a<1e12 ? f(a/1e9,'B') : f(a/1e12,'T'); };
+const fmt0 = v => (Math.abs(v) < 0.5 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:PAIS.moeda,maximumFractionDigits:0});
 const pctFmt = v => (v>=0?'+':'−')+Math.abs(v*100).toFixed(1)+'%';
 const pct2 = v => (v*100).toFixed(2)+'%';
 const dec1 = v => v.toFixed(1);
@@ -1632,6 +1633,7 @@ const umOuVarios = (q,U) => Math.abs(q-1)<1e-6 ? U.um : U.varios;
 const lerCotas = txt => { const n=parseInt(String(txt||'').replace(/\D/g,''),10); return isFinite(n)&&n>0 ? n : 0; };
 const precoMedio = id => qtd(id)>1e-9 ? custoDe(id)/qtd(id) : 0;
 const dec1q = v => v.toLocaleString('en-US',{maximumFractionDigits: v<10?2:1});
+if(!PAIS.inflacao && !HIST.__real){ HIST.__real=1; for(let i=0;i<HIST.ipca.length;i++){ const p=HIST.ipca[i]||0; for(const k of ['acoes','ouro','cdi']) if(HIST[k]) HIST[k][i]=(1+HIST[k][i])/(1+p)-1; HIST.ipca[i]=0; } }   // sem inflação: tudo em moeda constante (retornos reais)
 function mercadoInicial(h){
   const k=((h%NH)+NH)%NH, cdiM=HIST.cdi[k];
   return {h:k, h0:k, cdiMes:cdiM, selic:(Math.pow(1+cdiM,12)-1)*100, ipca:HIST.ipca[k], retAcoes:null, retOuro:null, ipca12:[], nivel:1, pico:1, pxA:PX_ACOES0, pxO:PX_OURO0};
@@ -2994,14 +2996,14 @@ const MARCOS = [
   {id:'acao', nome:"Partner in the big companies", txt:"Your first share of stocks.", ok:()=>qtd('acoes')>=1-1e-6},
   {id:'imovel', nome:"First tenant", txt:"Now someone pays rent to you.", fases:[2,3], ok:()=>(s.ativos||[]).some(a=>a.tipo==='imovel')},
   {id:'semdivida', nome:"Debt-free", txt:"All installments paid off.", ok:()=>s.teveDivida && !s.parcelas.some(p=>p.nome!=="Capitalization bond")},
-  {id:'p100', nome:"Your first R$ 100 thousand", txt:"The first big net worth milestone. From here on, interest works faster.", fases:[2,3], ok:()=>patrimonio()>=100000, prog:()=>[patrimonio(),100000,fmtR]},
+  {id:'p100', nome:"Your first $100 thousand", txt:"The first big net worth milestone. From here on, interest works faster.", fases:[2,3], ok:()=>patrimonio()>=100000, prog:()=>[patrimonio(),100000,fmtR]},
   {id:'r25', nome:"Passive income pays 25% of the bills", txt:"A quarter of your cost of living already comes from your investments.", fases:[2,3], ok:()=>cobertura()>=0.25, prog:()=>[cobertura()*100,25,v=>Math.round(v)+"% of 25%"]},
-  {id:'p250', nome:"R$ 250k", txt:"A quarter-million in net worth.", fases:[2,3], ok:()=>patrimonio()>=250000, prog:()=>[patrimonio(),250000,fmtR]},
+  {id:'p250', nome:"$250k", txt:"A quarter-million in net worth.", fases:[2,3], ok:()=>patrimonio()>=250000, prog:()=>[patrimonio(),250000,fmtR]},
   {id:'r50', nome:"Half the bills", txt:"Your passive income already pays half of your cost of living.", fases:[3], ok:()=>cobertura()>=0.5, prog:()=>[cobertura()*100,50,v=>Math.round(v)+"% of 50%"]},
-  {id:'p500', nome:"R$ 500k", txt:"Half a million built.", fases:[3], ok:()=>patrimonio()>=500000, prog:()=>[patrimonio(),500000,fmtR]},
+  {id:'p500', nome:"$500k", txt:"Half a million built.", fases:[3], ok:()=>patrimonio()>=500000, prog:()=>[patrimonio(),500000,fmtR]},
   {id:'r75', nome:"Almost free", txt:"Passive income covers 75% of the bills.", fases:[3], ok:()=>cobertura()>=0.75, prog:()=>[cobertura()*100,75,v=>Math.round(v)+"% of 75%"]},
   {id:'casa', nome:"Own home", txt:"You have a place of your own.", fases:[2,3], ok:()=>morPropria()},
-  {id:'p1m', nome:"First million", txt:"R$ 1 million in net worth.", fases:[3], ok:()=>patrimonio()>=1000000, prog:()=>[patrimonio(),1000000,fmtR]}
+  {id:'p1m', nome:"First million", txt:"$1 million in net worth.", fases:[3], ok:()=>patrimonio()>=1000000, prog:()=>[patrimonio(),1000000,fmtR]}
 ];
 const marcoDaFase = m => faseOk(m.fases||[1,2,3]);
 function checarMarcos(){
@@ -3079,7 +3081,7 @@ const EVENTOS = {
   cirurgia:{saude:true, fases:[2,3], peso:1, tipo:'custo', custo:3800, once:true, titulo:"Health plan co-payment", texto:"A simple surgery, but the co-payment and tests outside coverage add up to a lot."},
   freela:{animo:true, peso:2, cd:8, cond:()=>!s.aposentado, tipo:'ganho', ganho:700, titulo:"Weekend freelance gig", texto:"An acquaintance needed help on a project and paid under the table."},
   restituicao:{peso:4, tipo:'ganho', ganho:480, cond:()=>mesCal()>=5 && mesCal()<=8 && !s.rest[anoAtual()], titulo:"Income tax refund", texto:"The batch was released and the money landed in your account.", aoRodar:()=>{ s.rest[anoAtual()]=1; }},
-  aluguel:{fases:[1], peso:1, tipo:'aviso', once:true, minMes:8, titulo:"Rent adjustment", texto:"Contract anniversary. The landlord applied the index and rent goes up R$ 90 from next month.",
+  aluguel:{fases:[1], peso:1, tipo:'aviso', once:true, minMes:8, titulo:"Rent adjustment", texto:"Contract anniversary. The landlord applied the index and rent goes up $90 from next month.",
     aplicar:()=>{ s.fixos["Rent"] += 90; return {tom:'neutro', titulo:"Cost of living went up", texto:"Adjustments happen every year. Your emergency fund goal also grows, because it is measured in months of costs."}; }},
   tv:{peso:2, tipo:'opcoes', once:true, minMes:3, titulo:"Black Friday", texto:()=>`65" 4K TV in 12x of ${fmt0(C(249))} "interest-free". Paying upfront it's ${fmt0(C(2590))}. In installments, the bill comes to ${fmt0(C(249)*12)}.`,
     opcoes:()=>[
@@ -6657,7 +6659,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   if(!ov || !MODAIS_SALDO.includes(ui.modal) || !s || !s.iniciado) return;
   const P=prods(), it=[["Account",s.conta]]; if(P.cdb) it.push(["Emergency fund",valor('cdb')]); if(P.acoes) it.push(["Stocks",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Your money right now');
-  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' B': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -7026,7 +7028,7 @@ function atualizarPreview(){
   if(v<=0){ el.innerHTML="<span>Enter an amount to see the tax.</span>"; return; }
   const r=calcResgate(alvo, v, false);
   let nota='';
-  if(prod(alvo).ir==='acoes') nota = (s.vendasAcoes||0)+v<=20000 ? "Stock sales up to R$ 20 thousand a month are exempt." : "Above R$ 20 thousand a month: 15% income tax on the profit.";
+  if(prod(alvo).ir==='acoes') nota = (s.vendasAcoes||0)+v<=20000 ? "Stock sales up to $20 thousand a month are exempt." : "Above $20 thousand a month: 15% income tax on the profit.";
   if(prod(alvo).ir==='regressivo') nota="The longer invested, the lower the tax.";
   if(prod(alvo).ir==='fii') nota="REITs (FIIs): 20% on the sale profit. Monthly rents are exempt.";
   el.innerHTML=`<span>Profit on this sale: <b>${fmt(r.ganho)}</b> · Tax: <b>${fmt(r.ir)}</b></span><span>You receive <b>${fmt(r.liq)}</b>. ${nota}</span>`;
@@ -7138,7 +7140,7 @@ function renderFim(){
     if(s.vendaForcada) lic.push(`Was forced to sell assets in a rush ${s.vendaForcada===1?"once":s.vendaForcada+" times"}${s.perdaForcada?`, losing ${fmt0(s.perdaForcada)} in the discount`:''}.`);
     if(s.rendaAtivosTot) lic.push(`Properties and businesses paid ${fmt0(s.rendaAtivosTot)} in income.`);
     if(s.perdaAtivos) lic.push(`Lost ${fmt0(s.perdaAtivos)} in businesses that closed.`);
-    lic.push(`Cumulative inflation was ${dec1(infl*100)}%: what cost R$ 100 now costs ${fmt(100*s.idx)}.`);
+    lic.push(`Cumulative inflation was ${dec1(infl*100)}%: what cost $100 used to cost ${fmt(100*s.idx)}.`);
     if(s.perdaGolpe) lic.push(`Lost ${fmt(s.perdaGolpe)} in the pyramid.`);
     if(s.crises) lic.push(s.vendeuNaCrise ? "Sold in a crisis and missed the recovery." : `Went through ${s.crises>1?s.crises+" sharp drops":"a sharp drop"} of the market without selling.`);
     if(s.jp>1) lic.push(`Paid ${fmt(s.jp)} in interest on installments and overdraft.`);
