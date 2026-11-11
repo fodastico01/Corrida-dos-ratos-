@@ -1517,7 +1517,7 @@ const PROFISSOES = {
     fixos:{"Rent":1500,"Groceries":950,"Transport":450,"Utilities and internet":330,"Student loan payment":520},
     extra:{nome:"Extra shift", valor:1500, horas:12, desc:"Two 12-hour shifts a month at another hospital. The best extra income in the game, but tiring."},
     promo1:{titulo:"Department coordination", pct:0.12}, promo2:{titulo:"Nursing supervision", pct:0.15}, curso:"ICU specialization",
-    txt:"Good salary, student loan (FIES) to pay off and extra shifts always available. Overworking with low well-being leads to burnout."},
+    txt:"Good salary, federal student loan to pay off and extra shifts always available. Overworking with low well-being leads to burnout."},
   programador:{nome:"Programmer", dif:"Risky", salario:8500, horas:40, demissao:1.6,
     fixos:{"Rent":2600,"Groceries":1300,"Car (payment and insurance)":1650,"Utilities and internet":450,"Subscriptions and apps":300},
     extra:{nome:"International freelance (in dollars)", valor:2500, horas:10, varia:0.25, desc:"Projects for a foreign company. The amount changes every month with the exchange rate."},
@@ -1546,9 +1546,9 @@ const CARTAS = {
   bike:{fases:[1,2], tipo:'negocio', tyc:true, nome:"Bike Delivery", preco:7000, renda:450, horas:5, varia:0, risco:0.035, pesos:{comprador:1,conserto:4},
     desc:"Electric bikes rented to delivery riders. High return, but bikes break and sometimes disappear."},
   kitnet:{fases:[2,3], tipo:'imovel', nome:"Studio apartment near the university", preco:140000, renda:700, horas:1, finan:true, risco:0.04, pesos:{comprador:3,vacancia:5},
-    desc:"Rent every month. The property and the rent follow inflation; the loan payment does not."},
+    desc:"Rent every month. The property keeps its value; the loan payment stays fixed."},
   sala:{fases:[2,3], tipo:'imovel', nome:"Downtown office", preco:260000, renda:1450, horas:1, finan:true, risco:0.04, pesos:{comprador:3,vacancia:5},
-    desc:"Rents better than residential, but sits empty longer. Value and rent rise with inflation."},
+    desc:"Rents better than residential, but sits empty longer. Value and rent hold up over time."},
   lavanderia:{fases:[2,3], tipo:'negocio', tyc:true, nome:"Wash & Go", preco:45000, renda:1000, horas:8, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
     desc:"A self-service laundromat to manage: machines, services, space, staff and customers. Lots of capital in machines, little labor."},
   acai:{fases:[1,2,3], tipo:'negocio', tyc:true, nome:"Açaí Spot", preco:22000, renda:700, horas:12, varia:0, risco:0.03, pesos:{comprador:2,conserto:3},
@@ -1646,13 +1646,13 @@ const PRODUTOS = {
     cdb:{nome:"Daily-liquidity government bonds", curto:"Gov. bonds", cor:'--c-rf', reserva:true, ir:'isento', verbos:["Save","Withdraw"],
       taxa:()=>cdi()*0.85, info:()=>`Fixed income · ${pct2(cdi()*0.85)} a month (85% of the base rate) · counts as emergency fund`},
     acoes:{nome:"Stock market", curto:"Stocks", cor:'--c-rv', variavel:true, ir:'isento', div:'tri', trava:true, verbos:["Buy","Sell"],
-      taxa:()=>s.mk.retAcoes, info:()=>`A basket of the largest companies, in reais · ${s.mk.retAcoes===null?"fluctuates every month":"last month "+pctFmt(s.mk.retAcoes)}<br>Dividends in Mar, Jun, Sep and Dec${s.divTotal>0?" · received "+fmt(s.divTotal):''}`}
+      taxa:()=>s.mk.retAcoes, info:()=>`A basket of the largest companies, in dollars · ${s.mk.retAcoes===null?"fluctuates every month":"last month "+pctFmt(s.mk.retAcoes)}<br>Dividends in Mar, Jun, Sep and Dec${s.divTotal>0?" · received "+fmt(s.divTotal):''}`}
   },
   2:{
     cdb:{nome:"Emergency fund · government bonds", curto:"Emergency fund", cor:'--c-rf', reserva:true, ir:'isento', verbos:["Save","Withdraw"],
       taxa:()=>cdi()*0.85, info:()=>`Fixed income · ${pct2(cdi()*0.85)} a month (85% of the base rate) · withdraw instantly`},
     acoes:{nome:"Growth · stock market", curto:"Stocks", cor:'--c-rv', variavel:true, ir:'isento', div:'tri', verbos:["Buy","Sell"],
-      taxa:()=>s.mk.retAcoes, info:()=>`A basket of the largest companies, in reais · ${s.mk.retAcoes===null?"fluctuates every month":"last month "+pctFmt(s.mk.retAcoes)} · variable dividends in Mar, Jun, Sep and Dec${s.divTotal>0?` · have already paid ${fmt0(s.divTotal)} into your account`:''}`}
+      taxa:()=>s.mk.retAcoes, info:()=>`A basket of the largest companies, in dollars · ${s.mk.retAcoes===null?"fluctuates every month":"last month "+pctFmt(s.mk.retAcoes)} · variable dividends in Mar, Jun, Sep and Dec${s.divTotal>0?` · have already paid ${fmt0(s.divTotal)} into your account`:''}`}
   }
 };
 PRODUTOS[3] = PRODUTOS[2]; PRODUTOS[4] = PRODUTOS[2];
@@ -1950,7 +1950,7 @@ function comprarLuxo(id){
   const X=LUXO[id]; if(!X || (s.luxo||{})[id]) return; const v=luxoPreco(id); if(!podeAVista(v)) return;
   const m0=mesesLiq(), t=pagarAVista(v); s.luxo=s.luxo||{}; s.luxo[id]={valor:v, mes:s.mes}; foto('luxo-'+id);
   s.fixos[luxoKey(id)]=Math.round(luxoCustoMes(id)); s.fel=clamp(s.fel+X.fel,0,100);
-  s.licao={tom:'bom', titulo:`It's yours now: ${X.nome.toLowerCase()}`, texto:`It cost ${fmt0(v)} and will cost ${fmt0(luxoCustoMes(id))} a month to maintain. ${X.movel?"Assets like this lose value every year.":"Property follows inflation, but earns nothing."}${t}`};
+  s.licao={tom:'bom', titulo:`It's yours now: ${X.nome.toLowerCase()}`, texto:`It cost ${fmt0(v)} and will cost ${fmt0(luxoCustoMes(id))} a month to maintain. ${X.movel?"Assets like this lose value every year.":"Property holds its value, but earns nothing."}${t}`};
   checarDescoberto(m0);
 }
 function venderLuxo(id){
@@ -1972,7 +1972,7 @@ function luxoCard(){
   const P=patrimonio(), prox=MARCOS_PATR.find(m=>P<m), pct=prox?clamp(P/prox*100,0,100):100;
   const linhas=Object.keys(LUXO).map(id=>{ const X=LUXO[id], tem=(s.luxo||{})[id], pr=luxoPreco(id);
     return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${tem?"Your":fmt0(pr)}</span></div>
-      <div class="opp-dados"><span>${X.onde}</span><span>Cost <b>${fmt0(luxoCustoMes(id))}/mo</b></span><span>${X.movel?"Loses value":"Follows inflation"}</span></div>
+      <div class="opp-dados"><span>${X.onde}</span><span>Cost <b>${fmt0(luxoCustoMes(id))}/mo</b></span><span>${X.movel?"Loses value":"Holds value"}</span></div>
       <div class="conta-acoes">${tem?`<button class="btn" data-acao="luxoVende" data-alvo="${id}">Sell for ${fmt0(Math.round(tem.valor*0.88/1000)*1000)}</button>`:`<button class="btn coin" data-acao="luxoCompra" data-alvo="${id}" ${podeAVista(pr)?'':'disabled'}>Buy in cash</button>`}</div></div>`; }).join('');
   return `<section class="card" aria-labelledby="t-luxo"><h2 id="t-luxo">Luxury showcase</h2>
     ${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['luxo-vitrine'])?`<img class="ceo-img" src="${ARTE.cards['luxo-vitrine']}" alt="Your luxury wealth: mansion, sports car, yacht, helicopter and jet" width="1280" height="640">`:''}
@@ -2277,7 +2277,7 @@ TYC_EMP.ecommerce={
   equipe:{nome:"Staff", ic:'🧑‍💼', peso:0.6, ef:"How many orders are well served. Higher payroll comes with it, but you work less.",
     niv:["Just you", "A helper to pack", "Online attendant", "Picking and shipping", "Purchasing manager", "Operations manager", "Marketing team", "Team of 15 people", "Trained team of 30 people"]},
   mkt:{nome:"Traffic", ic:'📣', peso:0.7, ef:"How many visitors become customers per day.",
-    niv:["Word of mouth and Instagram", "Groups and communities", "Instagram ads", "Google and SEO", "Email marketing", "Influencers", "Affiliate program", "Black Friday campaign", "Brand known across Brazil"]}
+    niv:["Word of mouth and Instagram", "Groups and communities", "Instagram ads", "Google and SEO", "Email marketing", "Influencers", "Affiliate program", "Black Friday campaign", "Brand known nationwide"]}
   }
 };
 TYC_EMP.saas={
@@ -2637,7 +2637,7 @@ function fluxo(){
   if(s.desemp>0) ent.push(["Unemployment insurance", s.seguro>0?valSeguro():0]);
   else if(trabalha){ ent.push(["Salary", s.salario]);
     if(prof().comissao){ const sz=SAZ_COM[prox]||1; ent.push([`Commission expected in ${NM}${sz<1?" (slow month)":sz>1?" (year-end)":''}`, Math.round(s.salario*prof().comissao*sz)]); }
-    if(prox===12) ent.push(["13th salary", s.salario]); }
+    if(prox===12) ent.push(["Year-end bonus", s.salario]); }
   if(temExtra()) ent.push([prof().extra.nome, valorExtra()]);
   if(rendaAtivos()) ent.push(["Properties and businesses", rendaAtivos()]);
   if(s.rendaNegocio) ent.push(["Coffee shop", s.rendaNegocio]);
@@ -2729,7 +2729,7 @@ function amortizar(uid, A, modo){
   const t=pagarAVista(A), m=r[modo], pago=p.total-p.restante;
   p.valor=m.valor; p.restante=m.n; p.total=pago+m.n; p.juros=(m.valor*m.n-r.SD2)/m.n;
   s.licao = modo==='prazo'
-    ? {tom:'bom', titulo:`${r.prazo.some} fewer installments`, texto:`With ${fmt0(A)} you eliminated the last ${r.prazo.some} installments and saved ${fmt0(m.eco)} in interest. The last installments are the ones that accumulate the most interest: every real you prepay today erases much more than a real down the road.${t}`}
+    ? {tom:'bom', titulo:`${r.prazo.some} fewer installments`, texto:`With ${fmt0(A)} you eliminated the last ${r.prazo.some} installments and saved ${fmt0(m.eco)} in interest. The last installments are the ones that accumulate the most interest: every dollar you prepay today erases much more than a dollar down the road.${t}`}
     : {tom:'bom', titulo:`Installment dropped to ${fmt(m.valor)}`, texto:`The term stays the same, but more money is left each month. Interest savings: ${fmt0(m.eco)}. Shortening the term, it would be ${fmt0(r.prazo.eco)}.${t}`};
 }
 const nDedicacao = () => (s.ativos||[]).filter(a=>CARTAS[a.id]?.dedicacao).length;
@@ -2787,7 +2787,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Started: ${nomeEst(id)}`, texto:`${E.meses} months studying ${hm(E.horas)} h per month. In the end, the salary rises ${Math.round(E.aum*100)}% (today that would be ${fmt0(ganhoAum(aumEst(id)))} more per month), and the raise follows inflation along with the salary.${aVista?` 👏 Congrats on paying upfront! In installments, the course would cost ${fmt0(total)}; paying upfront you saved ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Started: ${nomeEst(id)}`, texto:`${E.meses} months studying ${hm(E.horas)} h per month. In the end, the salary rises ${Math.round(E.aum*100)}% (today that would be ${fmt0(ganhoAum(aumEst(id)))} more per month), and the raise stays in your salary from then on.${aVista?` 👏 Congrats on paying upfront! In installments, the course would cost ${fmt0(total)}; paying upfront you saved ${fmt0(total-v)}.`:''}${t}`};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -3060,7 +3060,7 @@ const EVENTOS = {
       {label:`${T.sim}: ${fmt0(v)}`, sub:"Comes out of the checking account", run:()=>{ s.conta-=v; s.tentN=(s.tentN||0)+1; s.tentGasto=(s.tentGasto||0)+v; s.fel=clamp(s.fel+8,0,100);
         return {tom:'neutro', titulo:"Idle money invites spending", texto:`It was nice, but ${fmt0(v)} left at once. Whoever leaves spare money in the checking account always finds somewhere to spend it. Whoever invests every month doesn't even see the temptation go by.`}; }},
       {label:"No, that money has another destination", sub:'', run:()=>{ s.tentN=(s.tentN||0)+1;
-        return {tom:'bom', titulo:"Now give it a purpose", texto:`You resisted, but ${fmt0(parado())} is still sitting in the checking account, earning nothing and losing to inflation. Go to Invest and put that money to work.`}; }}
+        return {tom:'bom', titulo:"Now give it a purpose", texto:`You resisted, but ${fmt0(parado())} is still sitting in the checking account, earning nothing. Go to Invest and put that money to work.`}; }}
     ]; }},
   mega:{peso:3, cd:10, minMes:3, tipo:'opcoes', titulo:"The Mega-Sena jackpot has rolled over!", texto:"The prize passed 100 million. At work it's all anyone talks about, and everyone already knows what they'd do with the money.",
     opcoes:()=>{ const sp=Math.round(6*(s.idx||1)), bo=Math.round(120*(s.idx||1)), fv=v=>Math.round(v*((Math.pow(1.005,240)-1)/0.005));
@@ -3069,7 +3069,7 @@ const EVENTOS = {
       return [
         {label:`Play a simple game: ${fmt0(sp)}`, sub:"Comes out of the checking account", run:()=>perdeu(sp, "None of the six numbers. The chance of winning with a simple game is 1 in 50,063,860, far smaller than being struck by lightning.")},
         {label:`Join the office pool: ${fmt0(bo)}`, sub:"A share of 20 · comes out of the checking account", run:()=>perdeu(bo, "The pool played 10-number games and the group's odds rose to about 1 in 120 thousand. It sounds much better, but the prize would be split by 20 and the share cost 20 times more.")},
-        {label:"Don't bet", sub:'', run:()=>({tom:'bom', titulo:"Betting is not a plan", texto:"The lottery sells a dream for a few reais, and is almost always a tax on hope. The path that works is boring and certain: emergency fund, assets and time."})}
+        {label:"Don't bet", sub:'', run:()=>({tom:'bom', titulo:"Betting is not a plan", texto:"The lottery sells a dream for a few dollars, and is almost always a tax on hope. The path that works is boring and certain: emergency fund, assets and time."})}
       ]; }},
   pneu:{peso:2, cd:14, cond:()=>carN()>0, tipo:'custo', custo:980, titulo:"Torn tire on the way home from work", texto:"Torn on the side, can't be repaired. Two new tires and an alignment."},
   dentista:{peso:2, cd:18, tipo:'custo', custo:900, titulo:"Toothache", texto:"The dentist confirmed: root canal treatment. The plan doesn't cover it."},
@@ -3150,7 +3150,7 @@ const EVENTOS = {
   temporal:{fases:[3], peso:2, cd:48, cond:()=>carN()===0, tipo:'custo', custo:6000, titulo:"The storm flooded the house", texto:"Water came in through the door and rose to knee height. Furniture and appliances lost, and insurance doesn't cover floods."},
   internacao:{saude:true, fases:[3], peso:2, once:true, minMes:30, tipo:'custo', custo:13000, titulo:"Emergency hospitalization", texto:"An appendicitis turned into complications. The plan covered the surgery, but the extra ICU days and fees were on you."},
   malhafina:{fases:[3], peso:1, once:true, minMes:12, tipo:'custo', custo:3500, cond:()=>mesCal()>=5&&mesCal()<=10, titulo:"Caught in the tax audit", texto:"A medical expense without a receipt. Tax owed, fine and interest."},
-  golpe:{fases:[2,3], peso:1, once:true, minMes:8, tipo:'custo', custo:4500, titulo:"The fake-relative scam", texto:"\"Mom, I changed my number, I need to pay an urgent bill.\" It was a scam, and Pix doesn't come back. Be wary of rush and new numbers."},
+  golpe:{fases:[2,3], peso:1, once:true, minMes:8, tipo:'custo', custo:4500, titulo:"The fake-relative scam", texto:"\"Mom, I changed my number, I need to pay an urgent bill.\" It was a scam, and a mobile payment doesn't come back. Be wary of rush and new numbers."},
   reforma:{fases:[3], peso:2, once:true, minMes:24, tipo:'opcoes', titulo:"The house is asking for a renovation", texto:"Ceiling leak, floor coming loose and the kitchen falling apart.",
     opcoes:()=>[
       (()=>{ const v=C(40000); return {label:`Full renovation: ${fmt0(v)}`, sub:`${subAVista(v)} · well-being rises for a good while`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100); addConforto("Renovated house",4,1,12);
@@ -3260,7 +3260,7 @@ const EVENTOS = {
   daytrade:{fases:[3], peso:2, tipo:'opcoes', once:true, minMes:4, titulo:"\"Live off the market with day trading\"", texto:()=>`An influencer sells a course promising daily income trading on the stock market. ${fmt0(C(4000))} for the course, and he suggests starting with ${fmt0(C(15000))}.`,
     opcoes:()=>[
       {label:"Buy the course and trade", sub:`${fmt0(C(19000))} comes out of your account`, run:()=>{ s.conta-=C(19000); const sobra=Math.round(C(15000)*0.2); s.conta+=sobra; s.perdaGolpe=(s.perdaGolpe||0)+C(19000)-sobra;
-        return {tom:'ruim', titulo:"97% lose money", texto:`After three months of trading, ${fmt0(sobra)} was left. Studies of Brazilian day traders show almost all who persist lose money. Passive income comes from owning assets, not from betting every day.`}; }},
+        return {tom:'ruim', titulo:"97% lose money", texto:`After three months of trading, ${fmt0(sobra)} was left. Studies of retail day traders show almost all who persist lose money. Passive income comes from owning assets, not from betting every day.`}; }},
       {label:"Decline", sub:"Stick with the plan", run:()=>({tom:'bom', titulo:"The one who profits is the one selling the course", texto:"If day trading were easy income, nobody would need to sell a course. Patience pays more than adrenaline."})}
     ]},
   vitrine:{peso:3, cd:3, tipo:'opcoes', titulo:"Flash sale", texto:()=>{ const it=["a wireless headset","a running shoe","a new air fryer","a skincare kit","a new jacket"][s.mes%5]; return `"Today only!" The app sent ${it} for ${fmt0(vVitrine())}. The cart is ready, just one tap left.`; },
@@ -3341,7 +3341,7 @@ const ESPECIAIS = {
         return {tom:'bom', titulo:"Time back", texto:"Less money, more life. Tiredness starts to fall in the coming months if you keep free time."}; }}] : []),
       {label:"Push on", sub:"Risky", run:()=>({tom:'ruim', titulo:"At the limit", texto:"You decided to hold on. If well-being doesn't rise, your body will decide for you."})}
     ]; }},
-  esgotamento:{tipo:'aviso', titulo:"Burnout: on medical leave", texto:()=>{ const n=duracaoEsgot(); return `You couldn't get out of bed. The doctor put you on leave for ${n} months: salary reduced to 50% (the INSS benefit pays much less than the salary), expensive treatment, no commission, no side income and no chance of promotion in that period.${temMente()?" Therapy helped cut the time in half.":''}`; },
+  esgotamento:{tipo:'aviso', titulo:"Burnout: on medical leave", texto:()=>{ const n=duracaoEsgot(); return `You couldn't get out of bed. The doctor put you on leave for ${n} months: salary reduced to 50% (the disability benefit pays much less than the salary), expensive treatment, no commission, no side income and no chance of promotion in that period.${temMente()?" Therapy helped cut the time in half.":''}`; },
     aplicar:()=>{ const n=duracaoEsgot(); s.esgotAte=s.mes+n-1; s.esgotN=(s.esgotN||0)+1; s.mesesBaixo=0; s.fel=Math.min(s.fel,40);
       return {tom:'ruim', titulo:"The body sent the bill", texto:`It's ${n} months of recovery. Without an emergency fund, the salary difference goes into overdraft. Free time, vacation and therapy help you avoid coming back here.`}; }},
   demissao:{tipo:'aviso', titulo:()=>s.prof==='programador'?"Layoff wave in tech":"The company cut your department", texto:()=>`You receive severance (${fmt0(Math.round(s.salario*1.2))}) and are entitled to ${Math.min((s.mes-(s.empDesde||1))>=12?3:2,prof().recoloca||4)} unemployment insurance payments of ${fmt0(valSeguro())}. Re-employment should take ${prof().recoloca||4} months${prof().recoloca?": retail always has openings":''}${(prof().recoloca||4)>3?", so there will be a month with no income at all":''}.`,
@@ -3372,7 +3372,7 @@ const ESPECIAIS = {
       return {tom:'ruim', titulo:"It was a pyramid", texto:"The profit only existed in the app. Scam signs: high guaranteed return, rush to join, rewards for referring friends and hard withdrawals."}; }},
   titulo_fim:{tipo:'aviso', titulo:"The capitalization bond matured", texto:"You didn't win the draw. The bank returned what you paid, adjusted by the TR.",
     aplicar:()=>{ const v=s.tituloValor||0; s.conta+=v; s.tituloValor=0;
-      return {tom:'neutro', titulo:`${fmt(v)} back, with no return`, texto:"In 2 years, inflation ate part of this money's purchasing power. In government bonds it would have earned around 20%."}; }},
+      return {tom:'neutro', titulo:`${fmt(v)} back, with no return`, texto:"In 2 years, this money earned nothing. In government bonds it would have earned around 10%."}; }},
   liberdade:{tipo:'opcoes', titulo:"You're out of the rat race!", texto:()=>`Your investments can already pay ${fmt(rendaPassiva())} per month, more than your cost of living of ${fmt(custoMensal())}. At ${idadeJog()} years old, working became optional. It's the exit from the rat race that Robert Kiyosaki describes in Rich Dad Poor Dad: your assets pay your expenses.`,
     opcoes:()=>[
       {label:s.empresario?"Leave the businesses to managers and live off income":"Quit your job and live off income", sub:s.empresario?"You stop working · the portfolio and the managers handle the rest":"Salary stops · the portfolio pays the bills", coin:true, run:()=>aposentar()},
@@ -3384,7 +3384,7 @@ const ESPECIAIS = {
       {label:"Go back to work", sub:`Salary of ${fmt0(Math.round(s.salario*0.85))} (a bit lower than before)`, run:()=>{ s.aposentado=false; s.salario=Math.round(s.salario*0.85); s.voltou=(s.voltou||0)+1; s.fel=clamp(s.fel-10,0,100);
         return {tom:'ruim', titulo:"Back in the race", texto:"Stopping with passive income right at the limit is risky: a crisis or a new expense undoes the math. Build it up again and stop with room to spare."}; }},
       {label:"Cut spending and keep living off income", sub:"Frugal lifestyle · well-being drops", run:()=>{ s.estilo='economico'; s.fel=clamp(s.fel-12,0,100);
-        return {tom:'neutro', titulo:"Tightening the belt", texto:"Spending less is the fastest way to balance the books: every real cut reduces withdrawals and lets your wealth work."}; }}
+        return {tom:'neutro', titulo:"Tightening the belt", texto:"Spending less is the fastest way to balance the books: every dollar cut reduces withdrawals and lets your wealth work."}; }}
     ]},
   negocio_fim:{tipo:'aviso', titulo:"Coffee shop result", texto:()=>s.negocioRes?.texto||'',
     antes:()=>{ const r=Math.random(), v=s.negocio?.valor||C(50000);
@@ -3405,7 +3405,7 @@ const ESPECIAIS = {
       if(idE && ESTUDOS[idE].emp){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idE])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); s.estudoAumPct=0;
         if(idE==='holding') return {tom:'bom', titulo:'Family holding created', texto:`Your investments now sit in a family-owned company. Tax on gains drops 35%, and the holding costs ${fmt0(custoHolding())} a month for accountant, lawyer and management. At a fortune this size, the tax savings are usually far bigger than the cost. With a small fortune, the fixed cost would eat the advantage.`};
         return {tom:'bom', titulo:"Owner who studies, company that lasts", texto:"Most small businesses fail in the first few years from lack of management, not lack of will. What you learned applies to every business you have and the ones you'll still have."}; }
-      const p=s.estudoAumPct||0.1; s.salario=Math.round(s.salario*(1+p)); s.estudoAumPct=0; const idC=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome); if(idC==='pos'||idC==='mba') foto('formatura'); if(idC){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idC])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); } return {tom:'bom', titulo:"The best investment was in you", texto:"The raise is a percentage and becomes part of the salary: every year it's adjusted for inflation along with the rest. The course was expensive at the start, but the raise pays for itself in under a year and continues forever."}; }}
+      const p=s.estudoAumPct||0.1; s.salario=Math.round(s.salario*(1+p)); s.estudoAumPct=0; const idC=Object.keys(ESTUDOS).find(k=>nomeEst(k)===s.estudoNome); if(idC==='pos'||idC==='mba') foto('formatura'); if(idC){ s.cursosOk=[...new Set([...(s.cursosOk||[]),idC])]; const c=lerCamp(); c.cursosOk=s.cursosOk; gravarCamp(c); } return {tom:'bom', titulo:"The best investment was in you", texto:"The raise is a percentage and becomes part of the salary: it stays in your salary and compounds with every future raise. The course was expensive at the start, but the raise pays for itself in under a year and continues forever."}; }}
 };
 const alvoAtivo = () => (s.ativos||[]).find(a=>a.uid===s.alvoAtivo);
 // terreno: mostra quanto já valorizou e o que renderia vender agora, para decidir se vale a pena
@@ -3553,7 +3553,7 @@ const TYC_DEC={
         ?(tycEf(a,"Barter promotion",2,{cli:1.1}),{tom:'bom',titulo:"It worked",texto:"She liked it, posted, and the cost was very low."})
         :{tom:'neutro',titulo:"No return",texto:"She accepted the coffees, but the post had little reach. You lost almost nothing."}),
       tycOp(a,"Decline","no cost",0,()=>({tom:'neutro',titulo:"No promotion",texto:"You preferred not to risk the cash."}))]; }},
-  aluguel:{ic:'🏠', titulo:"Landlord asks for a rent increase", texto:a=>`The owner of the spot wants to raise the rent above inflation. Moving is expensive, and the spot is good.`,
+  aluguel:{ic:'🏠', titulo:"Landlord asks for a rent increase", texto:a=>`The owner of the spot wants to raise the rent well above the market. Moving is expensive, and the spot is good.`,
     ops:a=>{ const pv=tycPrev(a); return [
       tycOp(a,"Accept the increase","higher fixed cost for two years",0,()=>(tycEf(a,"Rent adjusted",24,{fx:0.05}),{tom:'neutro',titulo:"Accepted",texto:"No fight and no risk, but the monthly fixed cost rose."})),
       tycOp(a,"Negotiate","may come out cheaper or pricier",0,()=>tycSorte(0.55)
@@ -3598,7 +3598,7 @@ const TYC_DEC={
       tycOp(a,"Raise 4% and improve the packaging","smaller increase with perceived value",tycR(pv.rec*0.03),()=>tycSorte(0.8)
         ?(tycEf(a,"Price adjusted",12,{tk:1.04}),{tom:'bom',titulo:"Increase accepted",texto:"With an improvement the customer can see, the increase passed almost unnoticed."})
         :{tom:'neutro',titulo:"No difference",texto:"The increase passed, but the gain was small compared to the cost."}),
-      tycOp(a,"Keep the price","no risk, thin margin",0,()=>({tom:'neutro',titulo:"Same price",texto:"Inflation keeps eroding the margin without you noticing."}))]; }},
+      tycOp(a,"Keep the price","no risk, thin margin",0,()=>({tom:'neutro',titulo:"Same price",texto:"Costs keep creeping up and the margin shrinks without you noticing."}))]; }},
   urgencia:{ic:'⏰', titulo:"Limited-time promotion", texto:a=>`You want to run a price promotion. There's more than one way to set it up.`,
     ops:a=>{ const pv=tycPrev(a); return [
       tycOp(a,"Offer that ends in two days","creates urgency",tycR(pv.rec*0.02),()=>tycSorte(0.7)
@@ -3826,7 +3826,7 @@ Object.assign(TYC_DEC,{
   TO("Offer a plan for apartment buildings",0.03,0.6,TR('bom',"Partnership closed","You signed with the building manager and started serving several buildings.",["Contract with apartment buildings",10,{cli:1.08}]),TR('neutro',"No response","The building managers didn't reply.")),
   TO("Lower the price",0,null,TR('neutro',"Lost margin","The customer stayed, but the ticket fell.",["Price war",6,{tk:0.93}])),
   TO("Ignore",0,0.45,TR('neutro',"It was temporary","The residents came back."),TR('ruim',"Lost customers","Traffic dropped.",["Customers migrated",8,{cli:0.9}]))]),
- lv_pix:tycCard('📱',"Swap tokens for app payment","The machines use tokens. A Pix payment system allows control and promotions.",[
+ lv_pix:tycCard('📱',"Swap tokens for app payment","The machines use tokens. A mobile payment system allows control and promotions.",[
   TO("Install the system",0.12,0.8,TR('bom',"Full control","Fewer lost tokens, usage data and easy promotions.",["Digital payment",24,{cli:1.05,fx:-0.01}]),TR('neutro',"Customers were puzzled","Some customers took a while to get used to it.",["Slow transition",4,{cli:0.97}])),
   TO("Keep the tokens",0,null,TR('neutro',"No change","The old system keeps working."))]),
  lv_cliente:tycCard('🧺',"Customer complains about a stained garment","The customer says the machine stained an expensive piece.",[
@@ -3886,7 +3886,7 @@ Object.assign(TYC_DEC,{
   TO("Cameras and anti-theft tags",0.07,null,TR('bom',"Store protected","The thefts stopped.")),
   TO("Hire weekend security",0.04,0.7,TR('bom',"Thefts decreased","A security presence deters."),TR('neutro',"There was still theft","The presence only helped partly.")),
   TO("Do nothing",0,0.4,TR('neutro',"Stopped on its own","Lucky this time."),TR('ruim',"Thefts continued","The loss was bigger.",null,-0.08))]),
- rp_aluguel:tycCard('🏠',"Landlord raises the rent","Rent rose well above inflation.",[
+ rp_aluguel:tycCard('🏠',"Landlord raises the rent","Rent rose well above the market.",[
   TO("Negotiate the increase",0,0.55,TR('bom',"Reached an agreement","You showed your record as a good payer and the landlord gave in.",["Rent reduced",12,{fx:-0.03}]),TR('neutro',"No agreement","He didn't give in.")),
   TO("Move location",0.15,0.5,TR('bom',"Better spot","Less rent and more traffic.",["New spot",12,{cli:1.1,fx:-0.03}]),TR('ruim',"Customers got lost","The move confused customers.",["Location change",6,{cli:0.9}])),
   TO("Accept the increase",0,null,TR('ruim',"Pricier rent","Fixed cost rose.",["Higher rent",24,{fx:0.05}]))])
@@ -4043,8 +4043,8 @@ Object.assign(TYC_DEC,{
   TO("Promotion to turn over stock",0.01,0.7,TR('bom',"Stock turned over","Sales helped avoid the loss.",null,0.03),TR('neutro',"Leftover","Some products expired.",null,-0.02)),
   TO("Donate and record the loss",0,null,TR('neutro',"Controlled loss","Lost the stock, but with a good image.",null,-0.03)),
   TO("Sell expired products",0,0.3,TR('neutro',"Nobody noticed","This time nobody noticed."),TR('ruim',"Customer got sick","Report and heavy fine.",["Reputation damaged",8,{cli:0.8}],-0.15))]),
- vd_pix:tycCard('📱',"Accept Pix and card at the machine","Customers no longer carry coins.",[
-  TO("Install a card and Pix reader",0.08,0.8,TR('bom',"Bigger sales","Those without cash started buying.",["Digital payment",24,{cli:1.12}]),TR('neutro',"High fee","The card fee weighed.",["Digital payment",12,{cli:1.06,vc:1.03}])),
+ vd_pix:tycCard('📱',"Accept mobile pay and card at the machine","Customers no longer carry coins.",[
+  TO("Install a card and mobile pay reader",0.08,0.8,TR('bom',"Bigger sales","Those without cash started buying.",["Digital payment",24,{cli:1.12}]),TR('neutro',"High fee","The card fee weighed.",["Digital payment",12,{cli:1.06,vc:1.03}])),
   TO("Keep coins only",0,null,TR('ruim',"Lose sales","Many customers without coins.",["Coins only",12,{cli:0.92}]))]),
  vd_conc:tycCard('🥤',"Convenience store opens at the hospital","A convenience store opens with better prices and variety.",[
   TO("Lower the price",0,null,TR('neutro',"Held on","Traffic stayed, margin fell.",["Price war",6,{tk:0.93}])),
@@ -4148,7 +4148,7 @@ Object.assign(TYC_LIC,{
  vd_ponto:{livro:"Getting to Yes, by Roger Fisher and William Ury", ideia:"Whoever gives you the spot has power: without a spot, the business doesn't exist. Have an alternative before negotiating."},
  vd_vandalismo:{livro:null, ideia:"An asset in a public place suffers vandalism. Protection and insurance are part of the cost of the business."},
  vd_validade:{livro:null, ideia:"Perishable stock is money with an expiration date. Turning it over quickly is better than discarding, and selling expired goods is a health risk and a lawsuit."},
- vd_pix:{livro:null, ideia:"The payment method defines who buys. Accepting Pix and card widens the audience, at the cost of a fee."},
+ vd_pix:{livro:null, ideia:"The payment method defines who buys. Accepting mobile pay and card widens the audience, at the cost of a fee."},
  vd_conc:{livro:null, ideia:"Convenience is the machine's advantage. Against stores, differentiate by product or by location."},
  vd_roubo:{livro:null, ideia:"Cash attracts skimming. Controlling and reconciling the numbers avoids the loss and the fight."},
  cs_prof:{livro:null, ideia:"The teacher is the prep course's product. Aligning his earnings with yours keeps him from taking the students away."},
@@ -5007,7 +5007,7 @@ function iniciarMes(){
       const {dy,tipo}=sortearDividendo(), d=va*dy;
       s.conta+=d; s.divTotal+=d; s.divVistos++;
       ex.push([`Dividends ${tipo==='extra'?'+ extra ':tipo==='corte'?"reduced ":''}(${pct2(dy)})`, d]);
-      if(s.divVistos===1) lic={tom:'bom', titulo:"Your first dividends", texto:`The companies shared their profit and ${fmt(d)} landed in your account. American companies pay little dividend (1% to 3% a year) and prefer to reinvest. In Brazil, it's common to pay 5% to 8%.`};
+      if(s.divVistos===1) lic={tom:'bom', titulo:"Your first dividends", texto:`The companies shared their profit and ${fmt(d)} landed in your account. American companies pay little dividend (1% to 3% a year) and prefer to reinvest. `};
       else if(tipo==='extra') lic={tom:'bom', titulo:"Extraordinary dividend", texto:`Profit above expectations: the companies paid a bonus and ${fmt(d)} landed in your account.`};
       else if(tipo==='corte') lic={tom:'neutro', titulo:"Dividends cut by the crisis", texto:"With profits falling, the companies reduced payouts. A dividend is not a salary: it varies with results."};
     }
@@ -5030,8 +5030,8 @@ function iniciarMes(){
     s.salario=Math.round(s.salario*f);
     if(s.carro?.valor) s.carro.valor=Math.round(s.carro.valor*0.88);
     luxoAnual(f);
-    ex.push([`Annual inflation adjustment (${pctFmt(f-1)})`, 0]);
-    lic={tom:'neutro', titulo:`Inflation of ${dec1((f-1)*100)}% for the year`, texto:"Rent, groceries and bills went up, and the salary was adjusted by the same index. Money sitting in the account lost that much purchasing power."};
+    if(PAIS.inflacao){ ex.push([`Annual inflation adjustment (${pctFmt(f-1)})`, 0]);
+    lic={tom:'neutro', titulo:`Inflation of ${dec1((f-1)*100)}% for the year`, texto:"Rent, groceries and bills went up, and the salary was adjusted by the same index. Money sitting in the account lost that much purchasing power."}; }
   }
   if(F2() && s.mes>1 && s.conta>custoMensal()){
     const pm=Math.pow(1+Math.max(0,ipca12()),1/12)-1, perda=s.conta*pm;
@@ -5056,7 +5056,7 @@ function iniciarMes(){
   } else {
     { const sv=Math.round(s.salario*fatorFel()); s.conta+=sv; ex.push([sv<s.salario?"Net salary (reduced earnings: low well-being)":sv>s.salario?'Net salary (higher pay: great well-being)':"Net salary", sv]); }
     if(s.greveDevido){ s.conta+=s.greveDevido; ex.push(["Back pay from the strike", s.greveDevido]); s.greveDevido=0; }
-    if(mesCal()===12){ s.conta+=s.salario; ex.push(["13th salary", s.salario]); }
+    if(mesCal()===12){ s.conta+=s.salario; ex.push(["Year-end bonus", s.salario]); }
     if(prof().comissao){ const c=Math.round(s.salario*prof().comissao*(SAZ_COM[mesCal()]||1)*(0.7+Math.random()*0.6)); s.conta+=c; ex.push([`Sales commission${mesCal()>=11?" (year-end)":mesCal()<=2?" (slow month)":''}`, c]); }
     if(prof().progressao && s.mes>1 && (s.mes-1)%24===0){ const a=Math.round(s.salario*prof().progressao); s.salario+=a; ex.push([`Career progression (+${Math.round(prof().progressao*100)}%)`, 0]);
       lic={tom:'bom', titulo:"Career progression", texto:`Two more years on the job and salary rose ${fmt0(a)} per month. Slowly and steadily: by investing this raise, it becomes wealth.`}; }
@@ -5160,7 +5160,7 @@ function comprarOferta(uid, financiar){
   let txtFin='';
   if(financiar){ const pv=o.preco-entrada, p=Math.round(pmt(pv,0.0105,120)); a.finUid=s.uid++;
     s.parcelas.push({uid:a.finUid, nome:"Mortgage: "+c.nome, valor:p, restante:120, total:120, taxa:0.0105, juros:(p*120-pv)/120});
-    txtFin=` The payment is ${fmt0(p)} and the rent is ${fmt0(o.renda)}: ${o.renda>=p?"the property pays for itself.":`you cover ${fmt0(p-o.renda)} a month out of your own pocket. With interest at 13% a year, financing to rent out rarely pays off in Brazil.`}`; }
+    txtFin=` The payment is ${fmt0(p)} and the rent is ${fmt0(o.renda)}: ${o.renda>=p?"the property pays for itself.":`you cover ${fmt0(p-o.renda)} a month out of your own pocket. With interest at 13% a year, financing to rent out rarely pays off.`}`; }
   s.ativos.push(a); s.ofertas=s.ofertas.filter(x=>x.uid!==uid); s.comprouAtivos=(s.comprouAtivos||0)+1; if(c.tipo==='negocio') foto('negocio'); else if(c.tipo==='imovel') foto('imovel');
   if(!financiar && pv<o.preco) txtFin=` Paying in cash, you negotiated ${fmt0(o.preco-pv)} off.`;
   if(gerAuto) txtFin+=' Since you already live off income, a manager took over the daily running of the business.';
@@ -5386,7 +5386,7 @@ function linhaProduto(id,p){
   let modoJuros='';
   if(p.reserva && !trancado){ const paga=!!(s.jurosConta||{})[id], r=p.taxa(), reinv=v*(Math.pow(1+r,12)-1), simples=v*r*12;
     modoJuros=`<div class="juros-modo"><small>Monthly yield:</small><div class="seg seg-hud" role="group" aria-label="Where the yield goes"><button data-acao="jurosModo" data-alvo="${id}:reinv" aria-pressed="${!paga}">Reinvest<small>adds to the ${p.curto}</small></button><button data-acao="jurosModo" data-alvo="${id}:conta" aria-pressed="${paga}">Paid to account<small>every month</small></button></div>
-      <details class="mais"><summary>Which one to choose?</summary><p class="hint"><b>Reinvest</b>: the yield stays in the ${p.curto} and starts earning too. That's compound interest: it grows slowly at first and accelerates over time. <b>Paid to account</b>: the yield becomes cash in hand every month, like a dividend. It feels like income, but the ${p.curto} stops growing on its own, and money sitting in the account loses to inflation. ${v>0.5?`With today's balance, in 12 months: reinvesting earns about <b>${fmt(reinv)}</b>; receiving it in the account, <b>${fmt(simples)}</b>. You can switch at any time.`:"You can switch at any time."}</p></details></div>`; }
+      <details class="mais"><summary>Which one to choose?</summary><p class="hint"><b>Reinvest</b>: the yield stays in the ${p.curto} and starts earning too. That's compound interest: it grows slowly at first and accelerates over time. <b>Paid to account</b>: the yield becomes cash in hand every month, like a dividend. It feels like income, but the ${p.curto} stops growing on its own, and money sitting in the account earns nothing. ${v>0.5?`With today's balance, in 12 months: reinvesting earns about <b>${fmt(reinv)}</b>; receiving it in the account, <b>${fmt(simples)}</b>. You can switch at any time.`:"You can switch at any time."}</p></details></div>`; }
   let sobraHtml='';
   if(p.reserva && !trancado && F2()){ const on=!!s.sobraCdb;
     sobraHtml=`<div class="juros-modo"><small>Month's leftover:</small><div class="seg seg-hud" role="group" aria-label="Month's leftover"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Stays in the account<small>you decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Goes to ${p.curto}<small>automatic</small></button></div><p class="hint">Once the month's bills are paid, whatever is left in your checking account goes by itself into ${p.curto}. If something unexpected comes up, the game redeems from here first.</p></div>`; }
@@ -5524,9 +5524,9 @@ function iconeEvento(id){
 }
 function fixosCasa(m){
   const L=[];
-  if(m===12) L.push(['🎁',"13th salary"]);
+  if(m===12) L.push(['🎁',"Year-end bonus"]);
   if(MESES_DIV.includes(m) && (s.acoesLib||F2())) L.push(['💵',"Dividends"]);
-  if(m===1 && F2()) L.push(['📈',"Inflation adjustment"]);
+  if(m===1 && F2() && PAIS.inflacao) L.push(['📈',"Inflation adjustment"]);
   return L;
 }
 const CAT_SOC = ['aniversario','casamento','festa_filho','almoco','show','feriado','ferias','mega','amigo_paga','filhos','festa','emprestimo_amigo','irmao','pais'];
@@ -6141,7 +6141,7 @@ function render(){
     <div class="stats">
       <div data-info="patr"><span class="label">Net worth ${ii}</span><b>${fmt0(patrimonio())}</b></div>
       <div><span class="label">Age</span><b>${idadeJog()} years</b></div>
-      <div><span class="label">Base rate · inflation</span><b>${dec1(s.mk.selic)}% · ${(s.mk.ipca12||[]).length?dec1(ipca12()*100)+'%':'—'}</b></div>
+      <div><span class="label">${PAIS.inflacao?'Base rate · inflation':'Base rate'}</span><b>${dec1(s.mk.selic)}%${PAIS.inflacao?' · '+((s.mk.ipca12||[]).length?dec1(ipca12()*100)+'%':'—'):''}</b></div>
     </div>
     ${alocacao().html}
     ${medRes(rotRes("Emergency fund (government bonds)"))}`;
@@ -6162,7 +6162,7 @@ function render(){
     <div class="stats stats3">
       <div data-info="custo"><span class="label">Cost/month ${ii}</span><b>${fmt0(custoMensal())}</b></div>
       <div data-info="selic"><span class="label">Base rate ${ii}</span><b>${dec1(s.mk.selic)}%</b></div>
-      <div data-info="inflacao"><span class="label">Inflation ${ii}</span><b>${(s.mk.ipca12||[]).length?dec1(ipca12()*100)+'%':'—'}</b></div>
+      ${PAIS.inflacao?`<div data-info="inflacao"><span class="label">Inflation ${ii}</span><b>${(s.mk.ipca12||[]).length?dec1(ipca12()*100)+'%':'—'}</b></div>`:''}
     </div>
     ${alocacao().html}
     ${medRes(rotRes("Emergency fund (government bonds)"))}
@@ -6292,7 +6292,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Your properties and businesses</h2>
     ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Income <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Time <b>${hm(horasAtivo(a))} h/mo</b>${a.gerente?" (supervision)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>With manager</span>":'')}${a.area?"<span>Your field</span>":''}${a.finUid?"<span>Financed</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Appreciated <b>${pctFmt(a.valor/a.custo-1)}</b> since purchase</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Rent adjusted <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
-      ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Fixed payment of ${fmt0(pp.valor)} against rent of ${fmt0(rendaAtivo(a))}: with inflation, rent rises and the payment doesn't, so the debt weighs less each year.</p>`:''; })():''}
+      ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Fixed payment of ${fmt0(pp.valor)} against rent of ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': with inflation, rent rises and the payment doesn\'t, so the debt weighs less each year.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
         return `${a.mercado!=null?`<p class="hint">Market value today: <b>${fmt0(a.mercado)}</b> (3 years of current profit). In net worth, the value starts from what you paid and gradually approaches this number: it rises if the business grows, falls if it shrinks.</p>`:''}<p class="hint">📈 ${a.unid>1?`${a.unid} units · `:''}${noTeto?"Reached the ceiling of this location: to grow, open another.":r>0.03?"Growing fast: you're dedicating yourself.":r>0?"Growing slowly.":"Shrinking: nobody is looking after it."} Worth ${fmt0(a.valor)} (about 3 years of profit).</p>
         <div class="conta-acoes"><button class="btn coin" data-acao="expandir" data-alvo="${a.uid}" ${podeAVista(custoExpandir(a))?'':'disabled'}>Open new location (${fmt0(custoExpandir(a))})</button></div>`; })():''}
@@ -6790,7 +6790,7 @@ function renderModal0(){
       <span class="tag neutro">Phase 3 · Financial freedom</span>
       <p>You are ${idadeJog()} years old and start with <b>${fmt(s.inicioPatr||patrimonio())}</b>. The goal now is just one: make investments pay your bills.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Grade"])?'open':''}><summary>How to play this phase</summary><ul class="regras">
-        <li><b>Passive income</b> is how much you can take from the portfolio every month without the money running out: about 0.4% of what's invested per month (around 5% a year, the famous "4% rule" adapted to Brazilian interest rates).</li>
+        <li><b>Passive income</b> is how much you can take from the portfolio every month without the money running out: about 0.4% of what's invested per month (around 5% a year, the famous "4% rule" adapted to this game's interest rates).</li>
         <li>When passive income exceeds the cost of living, you are <b>out of the rat race</b> and can quit your job.</li>
         <li>Living off income, the salary stops and the portfolio pays the bills. If it shrinks too much, you go back to work.</li>
         <li>Life also happens: children, own home, career, businesses and crises.</li>
@@ -6820,9 +6820,9 @@ function renderModal0(){
       <p>You start with what you built in Phase 1: <b>${fmt(s.inicioPatr||patrimonio())}</b>. Now you have 5 years to make this money grow.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Grade"])?'open':''}><summary>How to play this phase</summary><ul class="regras">
         <li><b>Emergency fund:</b> safe and available instantly. It earns little, but saves you from setbacks.</li>
-        <li><b>Stock market:</b> a basket of the largest companies, in reais. They pay dividends and grow over the long term, but can plunge in a crisis.</li>
-        <li><b>Real market:</b> stocks, interest and inflation follow what really happened, month by month, from a year drawn between 2000 and 2026. At the end you find out which era you lived through.</li>
-        <li><b>Inflation:</b> every January bills and salary go up. Money sitting in the account loses value.</li>
+        <li><b>Stock market:</b> a basket of the largest companies, in dollars. They pay dividends and grow over the long term, but can plunge in a crisis.</li>
+        <li><b>Real market:</b> stocks and interest follow what really happened, month by month, from a year drawn between 2000 and 2026. At the end you find out which era you lived through.</li>
+        ${PAIS.inflacao?'<li><b>Inflation:</b> every January bills and salary go up. Money sitting in the account loses value.</li>':''}
         <li><b>Goal:</b> net worth of ${META_PATR} months of living costs (grade A) or ${META_PATR_B} (grade B), without letting the emergency fund fall below 6 months. Money sitting in the checking account doesn't count: it has to be invested.</li>
       </ul>
       <p class="hint">${pix('📖','mini')} In <b>Rich Dad Poor Dad</b>, Robert Kiyosaki explains it simply: an asset puts money in your pocket (stocks, rented properties, businesses); a liability takes it out (financed car, gadgets, installments). In this phase, every choice between the two counts.</p></details>
@@ -6904,8 +6904,8 @@ function renderModal0(){
     const max = tipo==='guardar' ? Math.max(0,s.conta) : disponivel(alvo);
     const titulo = tipo==='guardar' ? `How much of the balance ${p.verbos[0]==="Save"?'guardar':p.verbos[0]==="Buy"?'investir':'aplicar'}?` : `How much ${p.verbos[1].toLowerCase()}?`;
     let aviso='';
-    if(alvo==='acoes'&&tipo==='guardar') aviso="The 500 largest US companies, in reais. Pays dividends 4 times a year and grows over the long term, but has fallen more than 30% in crises like 2008 and 2020. Doesn't count as an emergency fund.";
-    if(alvo==='ouro'&&tipo==='guardar') aviso="Gold pays no interest or dividends: you only gain by selling higher. In reais, it rises with inflation and with the dollar. It has had years of huge gains and years of going nowhere, so it doesn't work as an emergency fund.";
+    if(alvo==='acoes'&&tipo==='guardar') aviso="The 500 largest US companies, in dollars. Pays dividends 4 times a year and grows over the long term, but has fallen more than 30% in crises like 2008 and 2020. Doesn't count as an emergency fund.";
+    if(alvo==='ouro'&&tipo==='guardar') aviso="Gold pays no interest or dividends: you only gain by selling higher. It tends to rise when markets panic. It has had years of huge gains and years of going nowhere, so it doesn't work as an emergency fund.";
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">${tipo==='guardar'?"Checking account → "+p.curto:p.curto+" → Checking account"}</span>
       <h3 id="m-t">${titulo}</h3>
@@ -7047,7 +7047,7 @@ const FINAIS = [
   {id:'ausente', nome:"Rich and absent", ok:()=>eixoDinheiro()>=60 && s.casado && eixoVida()<55,
     txt:()=>`Built a net worth of ${fmt0(patrimonio())}, but worked so much that he missed school presentations, birthdays and conversations. The family kept the money; he kept the longing.`},
   {id:'sonho', nome:"The dream realized", ok:()=>s.sonhoFeito && eixoVida()>=55,
-    txt:()=>`Realized the dream of ${(SONHOS[s.sonho]?.nome||"a lifetime").toLowerCase()}. Told that story at every party, and every real saved was worth it.`},
+    txt:()=>`Realized the dream of ${(SONHOS[s.sonho]?.nome||"a lifetime").toLowerCase()}. Told that story at every party, and every dollar saved was worth it.`},
   {id:'suficiente', nome:"Enough", ok:()=>cobertura()>=1 && eixoVida()>=45,
     txt:()=>`Was never the richest on the street, but stopped working when he wanted and lived without fear of bills. Found out early that having enough is different from always wanting more.`},
   {id:'amigos', nome:"Well connected", ok:()=>(s.usouInfl||0)>=3 || (s.infl||0)>=90,
@@ -7134,13 +7134,13 @@ function renderFim(){
       D:"Five years and almost nothing accumulated. The rat race won this time: the money came in and went out.",
       E:"The overdraft passed the limit and even selling everything you had wasn't enough to cover it. High interest destroys any plan."}[nota];
     if(nota==='C' && pm>=META_PATR_B) frase="You gathered money, but left the emergency fund aside. Without at least 3 months in government bonds, a setback forces you to sell an investment at the wrong time.";
-    if(s.conta>3*custoMensal()) lic.push(`${fmt(s.conta)} sat in the checking account, earning nothing while inflation rose.`);
+    if(s.conta>3*custoMensal()) lic.push(`${fmt(s.conta)} sat in the checking account, earning nothing while it could have been working.`);
     lic.push(`Your investments earned ${fmt(ganhoInv)}, of which ${fmt(s.divTotal)} in dividends.`);
     if(s.emprestou) lic.push(`Borrowed ${fmt0(s.emprestou)} from the bank.`);
     if(s.vendaForcada) lic.push(`Was forced to sell assets in a rush ${s.vendaForcada===1?"once":s.vendaForcada+" times"}${s.perdaForcada?`, losing ${fmt0(s.perdaForcada)} in the discount`:''}.`);
     if(s.rendaAtivosTot) lic.push(`Properties and businesses paid ${fmt0(s.rendaAtivosTot)} in income.`);
     if(s.perdaAtivos) lic.push(`Lost ${fmt0(s.perdaAtivos)} in businesses that closed.`);
-    lic.push(`Cumulative inflation was ${dec1(infl*100)}%: what cost $100 used to cost ${fmt(100*s.idx)}.`);
+    if(PAIS.inflacao) lic.push(`Cumulative inflation was ${dec1(infl*100)}%: what cost $100 used to cost ${fmt(100*s.idx)}.`);
     if(s.perdaGolpe) lic.push(`Lost ${fmt(s.perdaGolpe)} in the pyramid.`);
     if(s.crises) lic.push(s.vendeuNaCrise ? "Sold in a crisis and missed the recovery." : `Went through ${s.crises>1?s.crises+" sharp drops":"a sharp drop"} of the market without selling.`);
     if(s.jp>1) lic.push(`Paid ${fmt(s.jp)} in interest on installments and overdraft.`);
@@ -7201,10 +7201,10 @@ const INFO = {
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Checking account",s.conta],["Emergency fund (government bonds)",reserva()],["Stocks",valor('acoes')],["Other investments",out],["Properties and businesses",valorAtivos()],["Your home",s.casa||0],["Your car",s.carro?.valor||0],["Debts",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Net worth: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
       <p>Equals <b>${dec1(mesesPatr())} months</b> of your cost of living.</p><p class="hint">Net worth is everything you have minus everything you owe. House and car count, but don't pay your bills; what generates income is investments and businesses.</p>`}; },
-  conta:()=>({t:`Checking account: ${fmt0(s.conta)}`, h:s.conta<0?`<p>You are in <b>overdraft</b>, with one of the most expensive interest rates in the country. Cover it as soon as possible by withdrawing investments (Invest tab).</p>`:`<p>Money in the checking account <b>earns nothing</b> and loses to inflation every month.</p><p class="hint">Keep only what's needed for the month and invest the rest in the Invest tab: emergency fund first, then the rest.</p>`}),
+  conta:()=>({t:`Checking account: ${fmt0(s.conta)}`, h:s.conta<0?`<p>You are in <b>overdraft</b>, with one of the most expensive interest rates in the country. Cover it as soon as possible by withdrawing investments (Invest tab).</p>`:`<p>Money in the checking account <b>earns nothing</b>.</p><p class="hint">Keep only what's needed for the month and invest the rest in the Invest tab: emergency fund first, then the rest.</p>`}),
   reserva:()=>({t:`Emergency fund: ${dec1(mesesReserva())} months`, h:`${fl("Liquid emergency fund",fmt0(reservaLiq()))}${fl("Cost of living per month",fmt0(custoMensal()))}<p>The emergency fund covers <b>${dec1(mesesReserva())} months</b> without income.</p><p class="hint">Minimum: 3 months. Goal: 6 months. It's the money for setbacks: layoff, illness, repairs. It stays in a safe, quick-withdrawal investment (government bonds), not in stocks, which may be falling just when you need it.</p>`}),
-  mesesPatr:()=>({t:`Net worth invested: ${dec1(mesesMeta())} months of costs`, h:`<p>Your net worth of ${fmt0(patrimonio())} divided by the cost of living of ${fmt0(custoMensal())} per month.</p>${parado()>0?`<p><b>${fmt0(parado())}</b> is sitting in the checking account. Up to 1 month of costs in the account is normal; what exceeds that doesn't count toward the goal, because it earns nothing and inflation eats it.${s.perdaInfl>=1?` Inflation has already taken ${fmt0(s.perdaInfl)} of this money's purchasing power.`:''}</p>`:''}<p class="hint">${META_PATR_B} months earns grade B; ${META_PATR}, grade A. You can raise it from both sides: investing more or spending less per month.</p>`}),
-  custo:()=>({t:`Cost of living: ${fmt0(custoMensal())} per month`, h:`<div class="info-lista">${Object.entries(s.fixos).map(([n,v])=>fl(n,fmt0(v))).join('')}${somaParcelas()?fl("Installments",fmt0(somaParcelas())):''}${fl("Leisure",fmt0(lazer()))}${custoHabitos()?fl("Habits",fmt0(custoHabitos())):''}</div><p class="hint">Every extra real of fixed cost raises the emergency fund you need and the net worth required to live off income.</p>`}),
+  mesesPatr:()=>({t:`Net worth invested: ${dec1(mesesMeta())} months of costs`, h:`<p>Your net worth of ${fmt0(patrimonio())} divided by the cost of living of ${fmt0(custoMensal())} per month.</p>${parado()>0?`<p><b>${fmt0(parado())}</b> is sitting in the checking account. Up to 1 month of costs in the account is normal; what exceeds that doesn't count toward the goal, because it earns nothing.${s.perdaInfl>=1?` Inflation has already taken ${fmt0(s.perdaInfl)} of this money's purchasing power.`:''}</p>`:''}<p class="hint">${META_PATR_B} months earns grade B; ${META_PATR}, grade A. You can raise it from both sides: investing more or spending less per month.</p>`}),
+  custo:()=>({t:`Cost of living: ${fmt0(custoMensal())} per month`, h:`<div class="info-lista">${Object.entries(s.fixos).map(([n,v])=>fl(n,fmt0(v))).join('')}${somaParcelas()?fl("Installments",fmt0(somaParcelas())):''}${fl("Leisure",fmt0(lazer()))}${custoHabitos()?fl("Habits",fmt0(custoHabitos())):''}</div><p class="hint">Every extra dollar of fixed cost raises the emergency fund you need and the net worth required to live off income.</p>`}),
   juros:()=>({t:`Interest paid: ${fmt0(s.jp||0)}`, h:`<p>Everything you've already paid in interest: overdraft, installment plans and loans.</p><p class="hint">Interest paid works against you. Interest received (investments) works in your favor.</p>`}),
   selic:()=>({t:`Base interest rate: ${dec1(s.mk.selic)}% a year`, h:`<p>The country's base interest rate. Government bonds and the emergency fund earn close to it.</p><p class="hint">High base rate: fixed income earns more and stocks tend to suffer. Low base rate: the opposite.</p>`}),
   inflacao:()=>({t:`Inflation: ${(s.mk.ipca12||[]).length?dec1(ipca12()*100)+'%':'—'} in 12 months`, h:`<p>How much prices rose over the last year. Every January, salary and bills are adjusted by it.</p><p class="hint">Money sitting in the account loses that much purchasing power.</p>`}),
@@ -7219,7 +7219,7 @@ const INFO = {
   estudos:()=>({t:"Studies", h:`<p class="hint">One course at a time. It costs money and time now, but the salary raise, as a percentage, stays forever. Paying upfront comes out 15% cheaper.</p>`})
 };
 const DESC_PROD = {
-  cdb:"Fixed income: the bank pays interest on your money, around 85% of the base rate. It doesn't fall in value and can be withdrawn instantly, which is why it's the place for the emergency fund. It earns a little above inflation: it's safety, not wealth-building.",
+  cdb:"Fixed income: the bank pays interest on your money, around 85% of the base rate. It doesn't fall in value and can be withdrawn instantly, which is why it's the place for the emergency fund. It earns a little more than a checking account: it's safety, not wealth-building.",
   acoes:"You become a partner, in tiny pieces, of the 500 largest US companies. The value goes up and down every month, and drops of 20% to 40% happen. Over the long term, historically, it earns the most. Only put in money that can wait for years, and never the emergency fund.",
   ouro:"Pays no interest or dividends. It tends to rise during crises or when the dollar soars, so it protects the portfolio in bad times. Good in a small part of your net worth, not as the main investment."
 };
@@ -7273,7 +7273,7 @@ document.addEventListener('click', e=>{
     case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='en'?'en':'pt'); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
-      s.licao={tom:'neutro', titulo:"Now you are an entrepreneur", texto:`The salary of ${fmt0(s.salario)} stops from next month. In return, you gained ${hm(prof().horas)} hours per month to look after the businesses: with you no longer absent, they stop earning less. The emergency fund becomes even more important, because a business doesn't pay a 13th salary or vacation.`};
+      s.licao={tom:'neutro', titulo:"Now you are an entrepreneur", texto:`The salary of ${fmt0(s.salario)} stops from next month. In return, you gained ${hm(prof().horas)} hours per month to look after the businesses: with you no longer absent, they stop earning less. The emergency fund becomes even more important, because a business has no year-end bonus or paid vacation.`};
       salvar(); render(); break; }
     case 'voltarTrab': { s.empresario=false; s.cargoDesde=s.mes; const c=lerCamp(); c.empresario=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:"Back at the job", texto:`The salary of ${fmt0(s.salario)} returns next month, and with it the ${hm(prof().horas)} work hours per month. If there are many businesses, time will get tight again.`};
