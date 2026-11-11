@@ -1,0 +1,32 @@
+{
+ "name": "Corrida dos Ratos",
+ "short_name": "Corrida dos Ratos",
+ "description": "Jogo de educação financeira: fundo de emergência, investimento e liberdade financeira.",
+ "lang": "pt-PT",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#0E1014",
+ "theme_color": "#F5F3EF",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
