@@ -5938,6 +5938,14 @@ const MUS=(()=>{
     a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.008*vel,t+0.003); a.gain.exponentialRampToValueAtTime(0.0001,t+0.16); s.connect(bp); bp.connect(a); saida(a,0.25); s.start(t,Math.random()); s.stop(t+0.2); }
   function chocalho(t,vel){ const s=ctx.createBufferSource(); s.buffer=ruido; const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6500; const a=ctx.createGain();
     a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.0032*vel,t+0.004); a.gain.exponentialRampToValueAtTime(0.0001,t+0.07); s.connect(hp); hp.connect(a); saida(a,0.1); s.start(t,Math.random()); s.stop(t+0.1); }
+  // piano agudo: martelo claro, brilho nas oitavas de cima, decaimento longo
+  function pianoAgudo(m,t,vol,pan){
+    const f=hz(m), amp=ctx.createGain(), lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=5200;
+    amp.gain.setValueAtTime(0.0001,t); amp.gain.linearRampToValueAtTime(vol,t+0.003); amp.gain.exponentialRampToValueAtTime(vol*0.3,t+0.35); amp.gain.exponentialRampToValueAtTime(0.0001,t+2.2);
+    [[1,'triangle',1,2.2],[2,'sine',0.45,1.2],[3,'sine',0.18,0.5],[4.01,'sine',0.08,0.25]].forEach(([r,tp,g,d])=>{ const o=ctx.createOscillator(), og=ctx.createGain(); o.type=tp; o.frequency.value=f*r; og.gain.setValueAtTime(g,t); og.gain.exponentialRampToValueAtTime(0.001,t+d); o.connect(og); og.connect(lp); o.start(t); o.stop(t+2.3); });
+    lp.connect(amp); saidaP(amp,pan,0.5);
+  }
+  let ultP=84;
   let ultV=72;
   function camadas(n,t,q,raiz,base,pos,temMel){
     const nivel = pos<4 ? 1 : pos<12 ? 2 : 3;      // cada coro cresce: leve, cheio, pleno
@@ -5953,6 +5961,13 @@ const MUS=(()=>{
       notas.sort((a,b)=>a-b); let idx=notas.reduce((bi,m,i)=>Math.abs(m-ultV)<Math.abs(notas[bi]-ultV)?i:bi,0);
       const frases=Math.random()<0.5?[[0,4]]:[[0,2],[2,2]];
       for(const [b,d] of frases){ idx=Math.max(0,Math.min(notas.length-1,idx+pick([-2,-1,1,1,2]))); ultV=notas[idx]; corda(ultV,t+b*BAT,d*BAT,0.022,0.3,2600); }
+    }
+    // piano nas oitavas agudas: notas soltas e sincopadas, mais presente quando o vibrafone cala
+    if(nivel>=2 && Math.random()<(temMel?0.35:0.8)){
+      const tons=TONS[q].map(i=>raiz+i), notas=[]; for(let o=60;o<=96;o+=12) for(const x of tons){ const mm=o+x%12; if(mm>=76 && mm<=96) notas.push(mm); }
+      notas.sort((a,b)=>a-b); let ip=notas.reduce((bi,m,i)=>Math.abs(m-ultP)<Math.abs(notas[bi]-ultP)?i:bi,0);
+      let ps=pick([0.5,1,1+SW,2]); const qt=Math.floor(rnd(2,5));
+      for(let k=0;k<qt && ps<4;k++){ ip=Math.max(0,Math.min(notas.length-1,ip+pick([-2,-1,1,1,2,3]))); ultP=notas[ip]; pianoAgudo(ultP,t+ps*BAT+rnd(0,0.01),rnd(0.035,0.055),0.25+rnd(-0.1,0.1)); ps+=pick([SW,1,1,1.5]); }
     }
     // órgão: tapete quente em compassos alternados
     if(nivel>=2 && n%2===0) voz.slice(0,3).forEach(m=>orgao(clampN(m,48,64),t,8*BAT,0.013));
@@ -12671,6 +12686,14 @@ const MUS=(()=>{
     a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.008*vel,t+0.003); a.gain.exponentialRampToValueAtTime(0.0001,t+0.16); s.connect(bp); bp.connect(a); saida(a,0.25); s.start(t,Math.random()); s.stop(t+0.2); }
   function chocalho(t,vel){ const s=ctx.createBufferSource(); s.buffer=ruido; const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6500; const a=ctx.createGain();
     a.gain.setValueAtTime(0.0001,t); a.gain.linearRampToValueAtTime(0.0032*vel,t+0.004); a.gain.exponentialRampToValueAtTime(0.0001,t+0.07); s.connect(hp); hp.connect(a); saida(a,0.1); s.start(t,Math.random()); s.stop(t+0.1); }
+  // piano agudo: martelo claro, brilho nas oitavas de cima, decaimento longo
+  function pianoAgudo(m,t,vol,pan){
+    const f=hz(m), amp=ctx.createGain(), lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=5200;
+    amp.gain.setValueAtTime(0.0001,t); amp.gain.linearRampToValueAtTime(vol,t+0.003); amp.gain.exponentialRampToValueAtTime(vol*0.3,t+0.35); amp.gain.exponentialRampToValueAtTime(0.0001,t+2.2);
+    [[1,'triangle',1,2.2],[2,'sine',0.45,1.2],[3,'sine',0.18,0.5],[4.01,'sine',0.08,0.25]].forEach(([r,tp,g,d])=>{ const o=ctx.createOscillator(), og=ctx.createGain(); o.type=tp; o.frequency.value=f*r; og.gain.setValueAtTime(g,t); og.gain.exponentialRampToValueAtTime(0.001,t+d); o.connect(og); og.connect(lp); o.start(t); o.stop(t+2.3); });
+    lp.connect(amp); saidaP(amp,pan,0.5);
+  }
+  let ultP=84;
   let ultV=72;
   function camadas(n,t,q,raiz,base,pos,temMel){
     const nivel = pos<4 ? 1 : pos<12 ? 2 : 3;      // cada coro cresce: leve, cheio, pleno
@@ -12686,6 +12709,13 @@ const MUS=(()=>{
       notas.sort((a,b)=>a-b); let idx=notas.reduce((bi,m,i)=>Math.abs(m-ultV)<Math.abs(notas[bi]-ultV)?i:bi,0);
       const frases=Math.random()<0.5?[[0,4]]:[[0,2],[2,2]];
       for(const [b,d] of frases){ idx=Math.max(0,Math.min(notas.length-1,idx+pick([-2,-1,1,1,2]))); ultV=notas[idx]; corda(ultV,t+b*BAT,d*BAT,0.022,0.3,2600); }
+    }
+    // piano nas oitavas agudas: notas soltas e sincopadas, mais presente quando o vibrafone cala
+    if(nivel>=2 && Math.random()<(temMel?0.35:0.8)){
+      const tons=TONS[q].map(i=>raiz+i), notas=[]; for(let o=60;o<=96;o+=12) for(const x of tons){ const mm=o+x%12; if(mm>=76 && mm<=96) notas.push(mm); }
+      notas.sort((a,b)=>a-b); let ip=notas.reduce((bi,m,i)=>Math.abs(m-ultP)<Math.abs(notas[bi]-ultP)?i:bi,0);
+      let ps=pick([0.5,1,1+SW,2]); const qt=Math.floor(rnd(2,5));
+      for(let k=0;k<qt && ps<4;k++){ ip=Math.max(0,Math.min(notas.length-1,ip+pick([-2,-1,1,1,2,3]))); ultP=notas[ip]; pianoAgudo(ultP,t+ps*BAT+rnd(0,0.01),rnd(0.035,0.055),0.25+rnd(-0.1,0.1)); ps+=pick([SW,1,1,1.5]); }
     }
     // órgão: tapete quente em compassos alternados
     if(nivel>=2 && n%2===0) voz.slice(0,3).forEach(m=>orgao(clampN(m,48,64),t,8*BAT,0.013));
