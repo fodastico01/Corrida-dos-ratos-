@@ -1434,6 +1434,11 @@ window.__LANG=(function(){
   const n=((navigator.languages&&navigator.languages[0])||navigator.language||'pt').toLowerCase();
   return n.indexOf('pt')===0 ? 'pt' : 'en';
 })();
+window.__PAIS=(function(){
+  try{ const p=localStorage.getItem('corrida-pais'); if(p==='GB'||p==='US') return p; }catch(e){}
+  const n=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase();
+  return /^en-gb/.test(n) ? 'GB' : 'US';
+})();
 (function(){
   const L=window.__LANG, d=document;
   d.documentElement.lang = L==='en' ? 'en' : 'pt-BR';
@@ -1447,8 +1452,10 @@ window.__LANG=(function(){
   us+='<rect width="12.5" height="10.8" fill="#3C3B6E"/>';
   for(let r=0;r<4;r++) for(let c=0;c<4;c++) us+='<rect x="'+(1.4+c*2.8+(r%2?1.4:0)).toFixed(1)+'" y="'+(1.3+r*2.4).toFixed(1)+'" width="1" height="1" fill="#fff"/>';
   us+='</svg>';
-  const btn=(l,svg,nome)=>'<button data-acao="idioma" data-alvo="'+l+'" aria-pressed="'+(L===l)+'" aria-label="'+nome+'" title="'+nome+'">'+svg+'</button>';
-  window.__flagsBtns=()=>btn('pt',BR,'Português (Brasil)')+btn('en',us,'English');
+  const gb='<svg viewBox="0 0 28 20" aria-hidden="true" focusable="false"><rect width="28" height="20" fill="#012169"/><path d="M0 0L28 20M28 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0L28 20M28 0L0 20" stroke="#C8102E" stroke-width="1.4"/><path d="M14 0V20M0 10H28" stroke="#fff" stroke-width="6.5"/><path d="M14 0V20M0 10H28" stroke="#C8102E" stroke-width="3.6"/></svg>';
+  const P=window.__PAIS;
+  const btn=(l,svg,nome,on)=>'<button data-acao="idioma" data-alvo="'+l+'" aria-pressed="'+on+'" aria-label="'+nome+'" title="'+nome+'">'+svg+'</button>';
+  window.__flagsBtns=()=>btn('pt',BR,'Português (Brasil)',L==='pt')+btn('en',us,'English (US)',L==='en'&&P==='US')+btn('gb',gb,'English (UK)',L==='en'&&P==='GB');
   window.__flagsTitulo=()=>'<div class="lang-flags" role="group" aria-label="Language / Idioma">'+window.__flagsBtns()+'</div>';
 })();
 /* arte em pixel (gerada a partir das imagens do Gemini, grade 128x128) */
@@ -1458,7 +1465,8 @@ const RITMO_HTML_EN="<title>Mice Run<\/title>\n<meta name=\"claude:viewport-fit-
 if(window.__LANG==='en'){
 (function(){
 /* ================= utilidades ================= */
-const PAIS = {cod:'US', moeda:'USD', simb:'$', inflacao:false};   // perfil do país: moeda, símbolo e se há inflação (só o Brasil tem)
+const PAISES = {US:{moeda:'USD', simb:'$', inflacao:false}, GB:{moeda:'GBP', simb:'£', inflacao:false}};
+const PAIS = Object.assign({cod:window.__PAIS||'US'}, PAISES[window.__PAIS]||PAISES.US);   // perfil do país: moeda, símbolo e se há inflação (só o Brasil tem)
 const fmt = v => (Math.abs(v) < 0.005 ? 0 : v).toLocaleString('en-US',{style:'currency',currency:PAIS.moeda});
 const fmtC = v => { const a=Math.abs(v), sg=v<0?'−':'', f=(x,u)=>sg+x.toLocaleString('en-US',{maximumFractionDigits:x<10?2:x<100?1:0})+' '+u;
   return a<1000 ? sg+PAIS.simb+Math.round(a) : a<1e6 ? f(a/1e3,'k') : a<1e9 ? f(a/1e6,'M') : a<1e12 ? f(a/1e9,'B') : f(a/1e12,'T'); };
@@ -1477,7 +1485,7 @@ function parabensAVista(pago, preco, entPct, taxa, n){
 const MESES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function lerValor(txt){ // "1350", "1,350", "1,350.50", "1350.5", "R$ 1,350.00", also "1350,50"
-  let x=String(txt||'').replace(/[R$\s]/g,'');
+  let x=String(txt||'').replace(/[R$£\s]/g,'');
   if(x.includes('.')&&x.includes(',')){ if(x.lastIndexOf('.')>x.lastIndexOf(',')) x=x.replace(/,/g,''); else x=x.replace(/\./g,'').replace(',','.'); }
   else if(x.includes(',')){ if(/^\d+,\d{1,2}$/.test(x)) x=x.replace(',','.'); else x=x.replace(/,/g,''); }
   const v=parseFloat(x);
@@ -1965,7 +1973,7 @@ function checarMarcosPatr(){
   if(patrimonio()>=1e12) foto('trilhao');
   if(!s.posJogo && s.fase<4) return;
   s.marcosPatr=s.marcosPatr||[]; const P=patrimonio();
-  for(const m of MARCOS_PATR){ if(P>=m && !s.marcosPatr.includes(m)){ s.marcosPatr.push(m); avisarEvolucao('marco',"Net worth",`Your net worth passed ${fmt0(m)}.${m>=1e12?' Você é trilionário(a): o foguete já está na plataforma.':m>=1e9?" You are a billionaire.":''}`,"🏆 Net worth milestone"); } }
+  for(const m of MARCOS_PATR){ if(P>=m && !s.marcosPatr.includes(m)){ s.marcosPatr.push(m); avisarEvolucao('marco',"Net worth",`Your net worth passed ${fmt0(m)}.${m>=1e12?' You are a trillionaire: the rocket is already on the pad.':m>=1e9?" You are a billionaire.":''}`,"🏆 Net worth milestone"); } }
 }
 function luxoCard(){
   if(!(s.posJogo || s.fase===4)) return '';
@@ -2342,7 +2350,7 @@ function tycReforma(a,ki){
   const T=a.tyc, n=T.niv[ki], mn=Math.min(...T.niv);
   if(n!==mn || T.niv.filter(x=>x===mn).length!==1 || n>=tycNmax(a)) return null;
   const tr=tycTier(a,mn); if(tycTier(a,mn+1)<=tr) return null;
-  return {meses:TYC_REFORMA_MESES, extra:Math.round(a.custo*(tr===0?0.35:0.5)/100)*100, rotulo:tr===0?"Renovation":"Construction", verbo:tr===0?'reformando':'construindo'};
+  return {meses:TYC_REFORMA_MESES, extra:Math.round(a.custo*(tr===0?0.35:0.5)/100)*100, rotulo:tr===0?"Renovation":"Construction", verbo:tr===0?'under renovation':'under construction'};
 }
 const tycCustoTot = (a,k) => tycCusto(a,k)+((tycReforma(a,TYC_KEYS.indexOf(k))||{}).extra||0);
 const tycEmReforma = a => !!(a.tyc&&a.tyc.obra&&a.tyc.obra.reforma);
@@ -2412,7 +2420,7 @@ function tycSubir(uid, ki, fonte){
   if(fonte==='caixa'){ if(a.tyc.caixa<c) return; a.tyc.caixa-=c; } else { if(!podeAVista(c)) return; t=pagarAVista(c); }
   a.custo+=c; a.tyc.obra={ki, ate:s.mes+(R?R.meses:TYC_OBRA_MESES), reforma:R?{rotulo:R.rotulo,verbo:R.verbo}:null}; tycAtualizar(a);
   const S=emp(a).set[k];
-  ui.tycMsg=R?`🏗️ ${R.rotulo} iniciada: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. A empresa muda de porte e fica ${R.verbo} for ${R.meses} meses, ${tycLojas(a)>1?'com uma loja fechada por vez (as outras seguem vendendo).':'sem vender nada (sobram só metade dos custos fixos).'} Depois volta a render mais.${t}`:`🏗️ Project started: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. Ready in ${TYC_OBRA_MESES} months. Only one project at a time.${t}`;
+  ui.tycMsg=R?`🏗️ ${R.rotulo} started: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. The company changes size and stays ${R.verbo} for ${R.meses} months, ${tycLojas(a)>1?'with one store closed at a time (the others keep selling).':'selling nothing (only half of the fixed costs remain).'} Then it earns more.${t}`:`🏗️ Project started: ${S.ic} ${S.nome}, ${S.niv[a.tyc.niv[ki]]}. Ready in ${TYC_OBRA_MESES} months. Only one project at a time.${t}`;
   /* melhorar empresa com o próprio dinheiro não ativa mais o imprevisto forçado (v424) */
 }
 const TYC_FRANQ_MAX=3;
@@ -2423,9 +2431,9 @@ const tycPodeLoja = a => !!(a.tyc && emp(a).premio && !a.franqDe && tycNP(a,Math
 const lojaObraMeses = a => { const o=a.tyc&&a.tyc.obraLoja; return o?Math.max(1,o.ate-s.mes):0; };
 function lojaObraHtml(a){ const m=lojaObraMeses(a); if(!m) return ''; const en=window.__LANG==='en', n=tycLojas(a)+1;
   return en ? '<div class="alerta bom" role="note"><strong>🏗️ Store '+n+' under construction</strong><p>Ready in '+m+(m>1?' months':' month')+'. The new store does not sell yet; the current one keeps running.</p></div>'
-    : '<div class="alerta bom" role="note"><strong>🏗️ Loja '+n+' em construção</strong><p>Fica pronta em '+m+(m>1?" months":' mês')+'. A loja nova ainda não vende; a atual continua funcionando.</p></div>'; }
+    : '<div class="alerta bom" role="note"><strong>🏗️ Store '+n+' under construction</strong><p>Ready in '+m+(m>1?" months":' month')+'. The new store does not sell yet; the current one keeps running.</p></div>'; }
 function lojaObraSpan(a){ const m=lojaObraMeses(a); if(!m) return ''; const en=window.__LANG==='en', n=tycLojas(a)+1;
-  return en ? '<span>🏗️ Store '+n+' being built: <b>'+m+(m>1?' months':' month')+'</b></span>' : '<span>🏗️ Loja '+n+' em obra: <b>'+m+(m>1?" months":' mês')+'</b></span>'; }
+  return en ? '<span>🏗️ Store '+n+' being built: <b>'+m+(m>1?' months':' month')+'</b></span>' : '<span>🏗️ Store '+n+' under construction: <b>'+m+(m>1?" months":' month')+'</b></span>'; }
 function tycFranquia(uid){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!tycPodeLoja(a)) return;
   const v=tycCustoLoja(a); if(!podeAVista(v)) return; const m0=mesesLiq(), n=tycLojas(a)+1, t=pagarAVista(v), dur=TYC_LOJA_MESES[n-1];
@@ -2457,27 +2465,27 @@ function modalTyc(a){
       <div class="tyc-pips">${Array.from({length:tycNmax(a)},(_,j)=>`<i class="${j<n?'on':''}"></i>`).join('')}</div>
       <p class="hint">Now: <b>${S.niv[n-1]}</b>${garg===k?" · <span style=\"color:var(--loss)\">bottleneck</span>":''}</p>
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Next: ${S.niv[n]}. ${bl}.</p>`
-      :`<p class="hint">Next: <b>${S.niv[n]}</b> for <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Esta etapa muda o porte da empresa: inclui ${fmt0(R.extra)} of ${R.rotulo.toLowerCase()}, e ela fica ${R.verbo} for ${R.meses} meses, ${tycLojas(a)>1?'com uma loja fechada por vez (as outras seguem vendendo)':'sem vender nada'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pay from company cash</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>From my pocket</button></div>`}</div>`; }).join('');
+      :`<p class="hint">Next: <b>${S.niv[n]}</b> for <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ This step changes the size of the company: it includes ${fmt0(R.extra)} of ${R.rotulo.toLowerCase()}, and it stays ${R.verbo} for ${R.meses} months, ${tycLojas(a)>1?'with one store closed at a time (the others keep selling)':'selling nothing'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pay from company cash</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>From my pocket</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
-      <div class="fl"><span>Total que você investiu (compra, melhorias e lojas)</span><b>${fmt0(a.custo)}</b></div>
-      <div class="fl"><span>Já voltou para o seu bolso (retiradas e saques)</span><b>${fmt0(T.retTot||0)}</b></div>
-      <div class="fl"><span>Falta recuperar</span><b>${fmt0(Math.max(0,a.custo-(T.retTot||0)))}</b></div>
-      <div class="fl"><span>Caixa da empresa</span><b>${fmt0(T.caixa)}</b></div>
-      <div class="fl"><span>Lucro do último mês</span><b>${u?fmt0(u.lucro):"no data yet"}</b></div>
-      <div class="fl"><span>Receita prevista (mês comum)</span><b>${fmt0(pv.rec)}</b></div>
-      <div class="fl"><span>(−) Mercadoria e custos que variam com as vendas</span><b>${fmt0(pv.varc)}</b></div>
-      <div class="fl"><span>(−) Custos fixos (salários, aluguel, contas)</span><b>${fmt0(pv.fixo)}</b></div>
-      <div class="fl"><span>Lucro previsto (mês comum)</span><b>${fmt0(pv.lucro)}</b></div>
+      <div class="fl"><span>Total you invested (purchase, upgrades and stores)</span><b>${fmt0(a.custo)}</b></div>
+      <div class="fl"><span>Already back in your pocket (withdrawals and cash-outs)</span><b>${fmt0(T.retTot||0)}</b></div>
+      <div class="fl"><span>Still to recover</span><b>${fmt0(Math.max(0,a.custo-(T.retTot||0)))}</b></div>
+      <div class="fl"><span>Company cash</span><b>${fmt0(T.caixa)}</b></div>
+      <div class="fl"><span>Last month's profit</span><b>${u?fmt0(u.lucro):"no data yet"}</b></div>
+      <div class="fl"><span>Expected revenue (typical month)</span><b>${fmt0(pv.rec)}</b></div>
+      <div class="fl"><span>(−) Goods and costs that vary with sales</span><b>${fmt0(pv.varc)}</b></div>
+      <div class="fl"><span>(−) Fixed costs (salaries, rent, bills)</span><b>${fmt0(pv.fixo)}</b></div>
+      <div class="fl"><span>Expected profit (typical month)</span><b>${fmt0(pv.lucro)}</b></div>
       <div class="fl"><span>${EM.cliRot||"Customers per day"}</span><b>${EM.cliMul?Math.round(pv.cli*EM.cliMul):pv.cli}</b></div>
-      <div class="fl"><span>Tempo seu</span><b>${hm(horasAtivo(a))} h por mês</b></div>
+      <div class="fl"><span>Your time</span><b>${hm(horasAtivo(a))} h per month</b></div>
     </div>
-    <p class="hint">Quanto do lucro vai para o seu bolso todo mês? O resto fica no caixa para você reinvestir. Se o caixa não cobrir um mês ruim, o prejuízo sai do seu bolso.</p>
+    <p class="hint">How much of the profit goes to your pocket each month? The rest stays in the company cash for you to reinvest. If the cash does not cover a bad month, the loss comes out of your pocket.</p>
     <div class="tyc-ret">${[0,25,50,75,100].map(p=>`<button class="btn${T.ret===p?' coin':''}" data-acao="tycRet" data-alvo="${a.uid}:${p}">${p}%</button>`).join('')}</div>
-    <p class="hint">Retirada prevista: <b>${fmt0(a.renda)}</b> por mês.</p>
-    <p class="hint">Dinheiro que já está no caixa só sai se você sacar aqui. A reserva sugerida é de ${fmt0(tycReserva(a))} (3 meses de custos fixos: o que o caixa precisa cobrir se as vendas caírem).</p>
+    <p class="hint">Expected withdrawal: <b>${fmt0(a.renda)}</b> per month.</p>
+    <p class="hint">Money already in the company cash only leaves if you withdraw it here. The suggested reserve is ${fmt0(tycReserva(a))} (3 months of fixed costs: what the cash must cover if sales fall).</p>
     <div class="conta-acoes"><button class="btn coin" data-acao="tycSacar" data-alvo="${a.uid}:exc" ${T.caixa-tycReserva(a)>=100?'':'disabled'}>Sacar o excedente (${fmt0(Math.max(0,Math.floor((T.caixa-tycReserva(a))/100)*100))})</button><button class="btn" data-acao="tycSacar" data-alvo="${a.uid}:tudo" ${T.caixa>=100?'':'disabled'}>Sacar tudo</button></div>
     ${tycEfs(a).lista.length?`<p class="hint"><b>In progress:</b> ${tycEfs(a).lista.map(e=>`${e.nome} (${Math.max(1,e.ate-s.mes)} ${e.ate-s.mes>1?"months":"month"})`).join(', ')}</p>`:''}
     ${ceo().on&&ceoEmps().some(x=>x.uid===a.uid)?`<p class="hint"><b>🧑‍💼 CEO:</b> ${ceoMotivo(a)}</p>`:''}
@@ -2486,7 +2494,7 @@ function modalTyc(a){
     ${T.obra?(T.obra.reforma?`<div class="alerta ruim" role="note"><strong>🏗️ ${T.obra.reforma.verbo.charAt(0).toUpperCase()+T.obra.reforma.verbo.slice(1)}</strong><p>${EM.set[TYC_KEYS[T.obra.ki]].nome}: ${EM.set[TYC_KEYS[T.obra.ki]].niv[T.niv[T.obra.ki]]}. The company sells nothing until it's ready, in ${Math.max(1,T.obra.ate-s.mes)} ${T.obra.ate-s.mes>1?"months":"month"}. You only pay half of the fixed costs and take no profit.</p></div>`:`<div class="alerta neutro" role="note"><strong>🏗️ Project in progress</strong><p>${EM.set[TYC_KEYS[T.obra.ki]].nome}: ${EM.set[TYC_KEYS[T.obra.ki]].niv[T.niv[T.obra.ki]]}. Finishes in ${Math.max(1,T.obra.ate-s.mes)} ${T.obra.ate-s.mes>1?"months":"month"}. The effect only shows up when it's done.</p></div>`):''}
     ${T.premio&&!a.franqDe?`<div class="alerta bom" role="note"><strong>🏆 ${EM.premio.titulo}</strong><p>${EM.premio.texto?EM.premio.texto(a):''}${(s.franqs||[]).length?` Franchisees: ${s.franqs.length}, with expected royalties of ${fmt0(tycRoyTotal())} per month.`:''}</p></div>`:''}
     ${EM.premio&&!a.franqDe?(()=>{ const n=tycLojas(a), v=tycCustoLoja(a); return `<div class="alerta bom" role="note"><strong>🏪 Stores: ${n} of 3</strong><p>${T.obraLoja?`Store ${n+1} under construction. Finishes in ${Math.max(1,T.obraLoja.ate-s.mes)} ${T.obraLoja.ate-s.mes>1?"months":"month"}. No sales until then.`:n>=3?"You already have the maximum number of stores.":nEq<6?"Unlocks when all departments reach level 6.":`One more store costs ${fmt0(v)} and takes ${TYC_LOJA_MESES[n]} months to be ready, selling nothing. Afterward, the company earns about ${Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100)}% more.`}</p>${tycPodeLoja(a)?`<div class="conta-acoes"><button class="btn coin" data-acao="tycFranq" data-alvo="${a.uid}" ${podeAVista(v)?'':'disabled'}>Build store ${n+1} for ${fmt0(v)}</button></div>`:''}</div>`; })():''}
-    <p class="hint">Regra: um setor só sobe para o nível N se todos os outros já estiverem no nível N-1.</p>
+    <p class="hint">Rule: an area only moves up to level N if all the others are already at level N-1.</p>
     ${linhas}
     <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fechar</b></button></div></div></div>`;
 }
@@ -2557,7 +2565,7 @@ function porQueNaoHab(id){
 function comecarHab(id){
   if(porQueNaoHab(id)) return;
   const H=HABS[id], c=custoHabC(id); const vend=c?pagarAVista(c):''; const lb0=Math.min(s.livroHab||0, H.meses-1); s.livroHab=(s.livroHab||0)-lb0; const lb=Math.min(H.meses-1, lb0+(H.meses-Math.max(1,Math.round(H.meses*(1-bonV('hab')))))); s.habEst={id, ate:s.mes+H.meses-lb, ini:s.mes};
-  s.licao={tom:'bom', titulo:`Started: ${H.nome}`, texto:`${H.meses===1?"1 month":H.meses+" months"} of practice, ${hm(H.horas)} h per month${c?` e ${fmt0(c)} invested`:''}.${vend} On completion: ${H.ef}`};
+  s.licao={tom:'bom', titulo:`Started: ${H.nome}`, texto:`${H.meses===1?"1 month":H.meses+" months"} of practice, ${hm(H.horas)} h per month${c?` and ${fmt0(c)} invested`:''}.${vend} On completion: ${H.ef}`};
 }
 function concluirHab(){
   const id=s.habEst.id, H=HABS[id]; s.habs={...(s.habs||{}), [id]:s.mes}; s.habEst=null;
@@ -2645,7 +2653,7 @@ function fluxo(){
   if(somaParcelas()) sai.push(["Installments", somaParcelas()]);
   sai.push([`Leisure (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Habits", custoHabitos()]);
-  if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salário e participação no lucro)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
+  if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salary and profit share)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
   const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
@@ -2825,7 +2833,7 @@ const horasBusca = () => s.desemp>0 ? 12 : 0; // procurar vaga, enviar currícul
 function tempoLinhas(){
   const L=[], G=[]; const P=(n,h)=>{ if(h>0) L.push(fl(n,'−'+hm(h)+' h','var(--loss)')); };
   P("Work",horasTrab()); P("Teaching the newcomer",horasMentoria()); P('Study: '+(s.estudoNome||'course'),horasEstudo());
-  for(const a of (s.ativos||[])) if(a.tipo!=='terreno') P('Negócio: '+a.nome+(a.gerente?" (manager)":''),horasAtivo(a));
+  for(const a of (s.ativos||[])) if(a.tipo!=='terreno') P('Business: '+a.nome+(a.gerente?" (manager)":''),horasAtivo(a));
   for(const id of habAtivos()) P('Habit: '+HABITOS[id].nome,HABITOS[id].horas);
   if(s.habEst && HABS[s.habEst.id]) P('Learning: '+HABS[s.habEst.id].nome,horasHabEst());
   for(const v of vicAtivos()) P('Vice: '+VICIOS[v].nome,VICIOS[v].horas);
@@ -2921,7 +2929,7 @@ function tempoCard(){
   const lin=ks.map(k=>{ const [f,y]=k.split('-').map(Number), b=t[k]; (fases[f]=fases[f]||{ms:0,jog:0,car:0}); fases[f].ms+=b.ms; fases[f].jog+=b.jog; fases[f].car+=b.car; tot+=b.ms; tj+=b.jog; tc+=b.car;
     return `<div class="fl"><span>Fase ${f}, ano ${y}</span><b>${tempoFmt(b.ms)} · ${b.jog} jogadas · ${b.car} cartas</b></div>`; }).join('');
   const lf=Object.keys(fases).map(f=>`<div class="fl"><span>Total da fase ${f}</span><b>${tempoFmt(fases[f].ms)} · ${fases[f].jog} jogadas · ${fases[f].car} cartas</b></div>`).join('');
-  return `<details class="mais card-det" data-k="tempo" ${ui.aberto?.tempo?'open':''}><summary>Tempo de jogo</summary><p class="hint">Conta só o tempo em que você está jogando (pausas de mais de 1 minuto sem tocar não contam). Fica só neste aparelho.</p>${lin}${lf}<div class="fl"><span>Total</span><b>${tempoFmt(tot)} · ${tj} jogadas · ${tc} cartas</b></div></details>`;
+  return `<details class="mais card-det" data-k="tempo" ${ui.aberto?.tempo?'open':''}><summary>Play time</summary><p class="hint">Counts only the time you are actually playing (pauses of more than 1 minute without touching do not count). Stays on this device only.</p>${lin}${lf}<div class="fl"><span>Total</span><b>${tempoFmt(tot)} · ${tj} rolls · ${tc} cards</b></div></details>`;
 }
 function modalCorrida(){ const c=corr(), cfg={cond:c.cond/100, total:ui.corrida.km, persp:c.persp!==false, imgs:corridaImgs(), musica:musicaOn(), pano:(ARTE.cards||{})['corrida-'+ui.corrida.km]||null};
   try{ MUS.desligar(); }catch(e){}
@@ -2951,14 +2959,14 @@ function lazerCard(){
     const sub=!lib?`Finish the ${p.req} km race first`:`${quando} · ${m?`best: ${m.pos}th in ${fmtTempo(m.tempo)}`:p.dif}`;
     return `<button class="prova-lin" data-acao="prova" data-alvo="${p.km}" ${pode?'':'disabled'}><span><b>${p.nome}</b><small>${sub}</small></span><span class="prova-v">${!lib?'🔒':ab?fmt0(v):'—'}</span></button>`; }).join('');
   const u=c.ult;
-  return `<section class="card lazer-card" aria-labelledby="t-lazer"><h2 id="t-lazer">🏃 Lazer e saúde</h2>
+  return `<section class="card lazer-card" aria-labelledby="t-lazer"><h2 id="t-lazer">🏃 Leisure and health</h2>
     <div class="humor-hud" role="meter" aria-label="Condicionamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Condicionamento</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
-    <p class="hint">Condicionamento devolve tempo: mais disposição e mais organização. Agora você ganha <b>${hm(horasCond())} h por mês</b> de volta (chega a ${hm(3)} h no máximo).</p>
-    <p class="hint">Treinar custa dinheiro (academia, tênis, roupa e transporte) e usa tempo livre, mas faz bem: sobe o bem-estar e o condicionamento. Quanto maior o condicionamento, mais calma e tolerante fica a prova. Parar de treinar derruba o condicionamento devagar.</p>
+    <p class="hint">Fitness gives time back: more energy and better organization. Right now you get <b>${hm(horasCond())} h per month</b> back (up to ${hm(3)} h at most).</p>
+    <p class="hint">Training costs money (gym, shoes, clothes and transport) and uses free time, but it pays off: it raises well-being and fitness. The fitter you are, the calmer and more forgiving the race gets. Stopping training lowers your fitness slowly.</p>
     <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
     ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub" id="provas-corrida">Provas de corrida</h3>
     <div class="provas">${provas}</div>
-    ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">As provas acontecem de tempos em tempos: o parque a cada 3 meses, a cidade a cada 6 e a orla uma vez por ano. Só dá para se inscrever no mês da prova.</p>
+    ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the seafront once a year. You can only sign up in the month of the race.</p>
     <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
     ${u?`<p class="hint lazer-ult">Last race (${u.km} km): <b>${u.pos}th place</b> in ${fmtTempo(u.tempo)} · well-being +${u.gf} · fitness +${u.gc}</p>`:"<p class=\"hint\">A race result only adds: first place gives more, and last place still gives a little.</p>"}
   </section>`; }
@@ -2996,14 +3004,14 @@ const MARCOS = [
   {id:'acao', nome:"Partner in the big companies", txt:"Your first share of stocks.", ok:()=>qtd('acoes')>=1-1e-6},
   {id:'imovel', nome:"First tenant", txt:"Now someone pays rent to you.", fases:[2,3], ok:()=>(s.ativos||[]).some(a=>a.tipo==='imovel')},
   {id:'semdivida', nome:"Debt-free", txt:"All installments paid off.", ok:()=>s.teveDivida && !s.parcelas.some(p=>p.nome!=="Capitalization bond")},
-  {id:'p100', nome:"Your first $100 thousand", txt:"The first big net worth milestone. From here on, interest works faster.", fases:[2,3], ok:()=>patrimonio()>=100000, prog:()=>[patrimonio(),100000,fmtR]},
+  {id:'p100', nome:"Your first "+PAIS.simb+"100 thousand", txt:"The first big net worth milestone. From here on, interest works faster.", fases:[2,3], ok:()=>patrimonio()>=100000, prog:()=>[patrimonio(),100000,fmtR]},
   {id:'r25', nome:"Passive income pays 25% of the bills", txt:"A quarter of your cost of living already comes from your investments.", fases:[2,3], ok:()=>cobertura()>=0.25, prog:()=>[cobertura()*100,25,v=>Math.round(v)+"% of 25%"]},
-  {id:'p250', nome:"$250k", txt:"A quarter-million in net worth.", fases:[2,3], ok:()=>patrimonio()>=250000, prog:()=>[patrimonio(),250000,fmtR]},
+  {id:'p250', nome:PAIS.simb+"250k", txt:"A quarter-million in net worth.", fases:[2,3], ok:()=>patrimonio()>=250000, prog:()=>[patrimonio(),250000,fmtR]},
   {id:'r50', nome:"Half the bills", txt:"Your passive income already pays half of your cost of living.", fases:[3], ok:()=>cobertura()>=0.5, prog:()=>[cobertura()*100,50,v=>Math.round(v)+"% of 50%"]},
-  {id:'p500', nome:"$500k", txt:"Half a million built.", fases:[3], ok:()=>patrimonio()>=500000, prog:()=>[patrimonio(),500000,fmtR]},
+  {id:'p500', nome:PAIS.simb+"500k", txt:"Half a million built.", fases:[3], ok:()=>patrimonio()>=500000, prog:()=>[patrimonio(),500000,fmtR]},
   {id:'r75', nome:"Almost free", txt:"Passive income covers 75% of the bills.", fases:[3], ok:()=>cobertura()>=0.75, prog:()=>[cobertura()*100,75,v=>Math.round(v)+"% of 75%"]},
   {id:'casa', nome:"Own home", txt:"You have a place of your own.", fases:[2,3], ok:()=>morPropria()},
-  {id:'p1m', nome:"First million", txt:"$1 million in net worth.", fases:[3], ok:()=>patrimonio()>=1000000, prog:()=>[patrimonio(),1000000,fmtR]}
+  {id:'p1m', nome:"First million", txt:PAIS.simb+"1 million in net worth.", fases:[3], ok:()=>patrimonio()>=1000000, prog:()=>[patrimonio(),1000000,fmtR]}
 ];
 const marcoDaFase = m => faseOk(m.fases||[1,2,3]);
 function checarMarcos(){
@@ -3081,7 +3089,7 @@ const EVENTOS = {
   cirurgia:{saude:true, fases:[2,3], peso:1, tipo:'custo', custo:3800, once:true, titulo:"Health plan co-payment", texto:"A simple surgery, but the co-payment and tests outside coverage add up to a lot."},
   freela:{animo:true, peso:2, cd:8, cond:()=>!s.aposentado, tipo:'ganho', ganho:700, titulo:"Weekend freelance gig", texto:"An acquaintance needed help on a project and paid under the table."},
   restituicao:{peso:4, tipo:'ganho', ganho:480, cond:()=>mesCal()>=5 && mesCal()<=8 && !s.rest[anoAtual()], titulo:"Income tax refund", texto:"The batch was released and the money landed in your account.", aoRodar:()=>{ s.rest[anoAtual()]=1; }},
-  aluguel:{fases:[1], peso:1, tipo:'aviso', once:true, minMes:8, titulo:"Rent adjustment", texto:"Contract anniversary. The landlord applied the index and rent goes up $90 from next month.",
+  aluguel:{fases:[1], peso:1, tipo:'aviso', once:true, minMes:8, titulo:"Rent adjustment", texto:"Contract anniversary. The landlord applied the index and rent goes up "+PAIS.simb+"90 from next month.",
     aplicar:()=>{ s.fixos["Rent"] += 90; return {tom:'neutro', titulo:"Cost of living went up", texto:"Adjustments happen every year. Your emergency fund goal also grows, because it is measured in months of costs."}; }},
   tv:{peso:2, tipo:'opcoes', once:true, minMes:3, titulo:"Black Friday", texto:()=>`65" 4K TV in 12x of ${fmt0(C(249))} "interest-free". Paying upfront it's ${fmt0(C(2590))}. In installments, the bill comes to ${fmt0(C(249)*12)}.`,
     opcoes:()=>[
@@ -4727,7 +4735,7 @@ const balLinha = (nome,a,b) => { const d=b-a, pc=a>0?Math.round((b/a-1)*100):nul
   const badge=pc!==null?`<b style="color:${cor};white-space:nowrap">${seta} ${d>=0?'+':'−'}${Math.abs(pc)}%</b>`:(d!==0?`<b style="color:${cor}">${seta}</b>`:'');
   return `<span style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;padding:4px 0;border-bottom:1px dashed rgba(60,40,10,.18)"><b>${nome}</b><span style="text-align:right">${fmt0(a)} → ${fmt0(b)} ${badge}</span></span>`; };
 ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
-  titulo:()=>{ const r=s.balRes||{}; return `Balanço de ${r.ano||anoAtual()-1}`; },
+  titulo:()=>{ const r=s.balRes||{}; return `${r.ano||anoAtual()-1} year-end review`; },
   texto:()=>{ const r=s.balRes; if(!r) return 'Mais um ano se passou.'; const sn=r.sn, L=[];
     L.push(balLinha("Net worth",sn.pat,r.pat));
     if(r.sal>0||sn.sal>0) L.push(balLinha("Salary",sn.sal,r.sal));
@@ -4735,12 +4743,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
     L.push(balLinha("Emergency fund (government bonds)",sn.cdb,r.cdb));
     if(r.neg>0||sn.neg>0) L.push(balLinha('Empresas',sn.neg,r.neg));
     L.push(balLinha("Passive income per month",sn.rp,r.rp));
-    const d=r.pat-sn.pat, fim=r.n>0?`<b style="color:var(--gain)">Seu patrimônio cresceu ${fmt0(Math.abs(d))} no ano.</b> Ver o próprio progresso faz bem: bem-estar +${r.bem}.`:`<b style="color:var(--loss)">Seu patrimônio caiu ${fmt0(Math.abs(d))} no ano.</b> Acontece. O próximo começa agora.`;
+    const d=r.pat-sn.pat, fim=r.n>0?`<b style="color:var(--gain)">Your net worth grew ${fmt0(Math.abs(d))} this year.</b> Seeing your own progress feels good: well-being +${r.bem}.`:`<b style="color:var(--loss)">Your net worth fell ${fmt0(Math.abs(d))} this year.</b> It happens. The next one starts now.`;
     return L.join('')+'<br>'+fim; },
   aplicar:()=>{ const r=s.balRes||balCalc()||{n:0,bem:0};
     s.fel=clamp(s.fel+(r.bem||0),0,100); s.balAno=anoAtual(); s.snapAno=tirarSnap();
     if(avalDevida()){ avalCalc(); s.filaEv=[...(s.filaEv||[]), 'avalAnual']; }   // v430: a avaliação anual do emprego vem logo depois do balanço
-    return {tom:r.n>0?'bom':'neutro', titulo:r.n>0?'Mais um ano de progresso':'Ano difícil', texto:r.n>0?'Quem acompanha os números enxerga o próprio progresso.':'Olhar o balanço sem fugir dele é o primeiro passo para mudar o rumo.'}; }};
+    return {tom:r.n>0?'bom':'neutro', titulo:r.n>0?'Another year of progress':'A tough year', texto:r.n>0?'Those who follow the numbers see their own progress.':'Looking at the review without flinching is the first step to changing course.'}; }};
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
@@ -5090,10 +5098,10 @@ function iniciarMes(){
   // padrão de vida: quem ganha muito gasta mais (viagens, roupas, escola, equipe da casa). Cresce bem mais devagar que a renda: R$ 50 mil de renda ≈ R$ 40 mil de gasto; R$ 1 mi ≈ R$ 210 mil
   { const entR=(s.extrato||[]).reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf' && !/resgat|vend|empréstimo|Reserva usada|herança|Herança/i.test(String(l[0])))?l[1]:0),0);
     s.rendaReal = (s.rendaReal==null||s.mes<=2) ? entR : 0.6*s.rendaReal+0.4*entR; // renda que de fato caiu na conta (o lucro retido nas empresas não paga o padrão de vida)
-    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55), base=custoMensal()+custoTreino()-(s.fixos['Padrão de vida']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Padrão de vida']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); extra=Math.min(extra, Math.round(r*0.35*Math.min(1,Math.pow(50000*idx/Math.max(r,1),0.35)))); extra=prevP>0 ? Math.min(extra, Math.round(prevP*1.03)) : Math.min(extra, Math.round(r*0.08)); }   // teto de 35% da renda recebida até R$ 50 mil (em valor de hoje), caindo para ~30% em R$ 80 mil e ~12% em R$ 1 mi; começa pequeno e sobe 3% ao mês; esbanjar mexe só no lazer
-    if(extra>0){ s.fixos['Padrão de vida']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='Com a renda alta, a vida passou a custar mais: viagens, roupas, escola, equipe da casa. Apareceu a despesa "Padrão de vida", que cresce bem mais devagar que a renda.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'O padrão de vida subiu', texto:tx}; } }
-    else delete s.fixos['Padrão de vida']; }
-  { const _b=new Set(["Rent","Groceries","Transport","Utilities and internet","Subscriptions and apps","Car (payment and insurance)","Car insurance and taxes","Couple's expenses","HOA and property tax",CK]), _pv=!!s.fixos['Padrão de vida']; let _bs=0;   // com Padrão de vida, os gastos básicos aparecem somados numa linha (o total não muda)
+    const r=s.mes>3 ? Math.min(Math.max(s.salario||0, rendaPassiva()), Math.max(s.salario||0, s.rendaReal)) : Math.max(s.salario||0, rendaPassiva()), idx=s.idx||1, alvo=40000*idx*Math.pow(Math.max(r,1)/(50000*idx),0.55), base=custoMensal()+custoTreino()-(s.fixos['Lifestyle spending']||0), extra0=r>=30000*idx?Math.max(0,Math.round(alvo-base)):0; let extra=extra0; { const prevP=s.fixos['Lifestyle spending']||0, cashP=Math.max(s.salario||0, s.rendaReal||0); extra=Math.min(extra, Math.round(r*0.35*Math.min(1,Math.pow(50000*idx/Math.max(r,1),0.35)))); extra=prevP>0 ? Math.min(extra, Math.round(prevP*1.03)) : Math.min(extra, Math.round(r*0.08)); }   // teto de 35% da renda recebida até R$ 50 mil (em valor de hoje), caindo para ~30% em R$ 80 mil e ~12% em R$ 1 mi; começa pequeno e sobe 3% ao mês; esbanjar mexe só no lazer
+    if(extra>0){ s.fixos['Lifestyle spending']=extra; if(!s.padraoVisto){ s.padraoVisto=true; const tx='With high income, life started to cost more: travel, clothes, school, household staff. A "Lifestyle spending" expense appeared, and it grows much more slowly than income.'; lic = lic ? {...lic, texto:lic.texto+' '+tx} : {tom:'neutro', titulo:'Your lifestyle went up', texto:tx}; } }
+    else delete s.fixos['Lifestyle spending']; }
+  { const _b=new Set(["Rent","Groceries","Transport","Utilities and internet","Subscriptions and apps","Car (payment and insurance)","Car insurance and taxes","Couple's expenses","HOA and property tax",CK]), _pv=!!s.fixos['Lifestyle spending']; let _bs=0;   // com Padrão de vida, os gastos básicos aparecem somados numa linha (o total não muda)
     for(const [n,v] of Object.entries(s.fixos)){ s.conta-=v; if(_pv && _b.has(n)) _bs+=v; else ex.push([n,-v]); }
     if(_bs>0) ex.push(["Cost of living (home, groceries, car and bills)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
@@ -5392,7 +5400,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Month's leftover:</small><div class="seg seg-hud" role="group" aria-label="Month's leftover"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Stays in the account<small>you decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Goes to ${p.curto}<small>automatic</small></button></div><p class="hint">Once the month's bills are paid, whatever is left in your checking account goes by itself into ${p.curto}. If something unexpected comes up, the game redeems from here first.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o government bonds completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Automatic monthly investing:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Automatic investing">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Off':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Every month, <b>${fmt0(aporteMensal())}</b> moves from your account into stocks${prods().cdb?', and government bonds make up the difference if short':''}, as long as ${3} months of reserve costs remain. The percentage follows your income.`:'Pick a percentage of your income to invest in stocks every month, without having to remember. It only invests if the 3-month reserve is left over.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctuates every month":"last month "+pctFmt(p.taxa())):pct2(p.taxa())+" a month"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -5725,7 +5733,7 @@ const FOTOS = {
   'corrida-2':{t:"First win: Park Run · 2 km", ic:'🏅'}, 'corrida-5':{t:"First win: City Run · 5 km", ic:'🏅'}, 'corrida-10':{t:"First win: Waterfront Run · 10 km", ic:'🏅'},
   'luxo-esportivo':{t:"The Italian sports car in the garage", ic:'🏎️'}, 'luxo-dubai':{t:"The apartment in Dubai", ic:'🌆'}, 'luxo-helicoptero':{t:"The helicopter in the hangar", ic:'🚁'}, 'luxo-praiafr':{t:"The beach house on the French Riviera", ic:'🏖️'},
   'capa-bilionario':{t:'Fortuna magazine cover', ic:'📰'},
-  'trilhao':{t:'Trilionário: o foguete e o carro voador', ic:'🚀'},
+  'trilhao':{t:'Trillionaire: the rocket and the flying car', ic:'🚀'},
   'luxo-iate':{t:"The 80-foot yacht", ic:'🛥️'}, 'luxo-monaco':{t:"The house in Monaco", ic:'🏙️'}, 'luxo-castelo':{t:"The castle in the Loire Valley", ic:'🏰'}, 'luxo-jato':{t:"The executive jet", ic:'✈️'}
 };
 // as fotos de férias mudam com a família: sem sufixo = casal com dois filhos; -s sozinho(a), -c casal, -1 casal com um filho
@@ -6092,8 +6100,8 @@ function render(){
   if(s.desemp>0) alerta+=`<div class="alerta neutro"><strong>Unemployed</strong><p>${s.desemp} ${s.desemp===1?"month":"months"} left until the new job. ${s.seguro>0?`Still ${s.seguro===1?"1 installment left":'restam '+s.seguro+" installments"} of insurance.`:"Unemployment insurance has ended."}</p></div>`;
 
   if(F3() && s.aposentado) alerta=`<div class="alerta bom"><strong>Living off income since ${rotulo(s.aposentouEm)}</strong><p>No salary. Dividends and portfolio withdrawals pay the bills. Keep passive income above 100% of costs.</p><button class="btn" data-acao="voltarRenda" style="margin-top:6px">Go back to work (${fmt0(Math.round(s.salario*0.85))}/mo)</button></div>`+alerta;
-  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado) alerta=`<div class="alerta neutro"><strong>Ainda não dá para viver de renda</strong><p>A renda passiva cobre ${Math.round(cobertura()*100)}% do custo de vida. Falta ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} por mês para chegar a 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Deixar os negócios mesmo assim':s.desemp>0?'Parar de procurar emprego mesmo assim':'Pedir demissão mesmo assim'}</button></div>`+alerta;
-  else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>You can now live off income</strong><p>Passive income covers ${Math.round(cobertura()*100)}% of the cost of living.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?"Leave the businesses to managers and live off income":s.desemp>0?'Parar de procurar emprego e viver de renda':"Quit your job and live off income"}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button>`:''}</div>`+alerta;
+  else if(F3() && rendaPassiva()<custoMensal() && !s.aposentado) alerta=`<div class="alerta neutro"><strong>You cannot live off income yet</strong><p>Passive income covers ${Math.round(cobertura()*100)}% of your cost of living. You are ${fmt0(Math.max(0,custoMensal()-rendaPassiva()))} per month short of 100%.</p><button class="btn" data-acao="aposentar" style="margin-top:6px">${s.empresario?'Leave the businesses anyway':s.desemp>0?'Stop looking for a job anyway':'Quit anyway'}</button></div>`+alerta;
+  else if(F3() && rendaPassiva()>=custoMensal()) alerta=`<div class="alerta bom"><strong>You can now live off income</strong><p>Passive income covers ${Math.round(cobertura()*100)}% of the cost of living.</p><button class="btn coin" data-acao="aposentar" style="margin-top:6px">${s.empresario?"Leave the businesses to managers and live off income":s.desemp>0?'Stop looking for a job and live off income':"Quit your job and live off income"}</button>${s.empresario?`<button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button>`:''}</div>`+alerta;
   else if(F3() && s.empresario) alerta=`<div class="alerta neutro"><strong>Owner of your own business</strong><p>You left your job and your career is paused at the position of ${nomeCargo().toLowerCase()}.</p><button class="btn" data-acao="voltarTrab" style="margin-top:6px">Go back to work (${fmt0(s.salario)}/mo)</button></div>`+alerta;
   if(F3() && s.semPontos){
     alerta=`<div class="alerta neutro"><strong>Game won in ${rotulo(s.venceuEm||s.concluidoEm||s.mes)} · free mode</strong><p>Your score was saved at ${fmtPts(s.ptsFinal.total)} points. From here on you can accumulate more and test the game freely, but nothing else counts for points.</p><button class="btn" data-acao="concluir" style="margin-top:6px">End the game</button></div>`+alerta;
@@ -6192,9 +6200,9 @@ function render(){
   const casaCard = (()=>{ const n=morN(), M=MORADIAS[n], cm=custoMoradia(), cabe=cabeMoradia(), fm=felMoradia();
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
-      return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mês</span></div>
-        <div class="opp-dados"><span>Aluguel ${cabeA?"<b style=\"color:var(--gain)\">up to 30% of income</b>":"<b style=\"color:var(--warn)\">over 30% of income</b>"}</span>${pr&&F2()?`<span>Purchase <b>${fmt0(pr)}</b></span>`:''}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
-        <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Alugar</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Comprar a casa em que você mora':"Buy"}</button>`:''}</div></div>`; }).join('');
+      return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mo</span></div>
+        <div class="opp-dados"><span>Rent ${cabeA?"<b style=\"color:var(--gain)\">up to 30% of income</b>":"<b style=\"color:var(--warn)\">over 30% of income</b>"}</span>${pr&&F2()?`<span>Purchase <b>${fmt0(pr)}</b></span>`:''}<span>Well-being <b>${dif>0?'+':''}${dif}/mo</b></span></div>
+        <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Rent</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Buy the home you live in':"Buy"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Your home ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Owned":"Rented"} · ${fmt0(cm)} per month${morPropria()?" (condo fees, property tax and loan payment)":''}</span></div></div>
       <div class="fl"><span>Housing well-being</span><b>${fm>0?'+':''}${fm}/mo</b></div>
@@ -6318,7 +6326,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       <div class="linha total"><span>Resultado de ${rotulo(s.mes)}</span><span class="v ${total>=0?'pos':'neg'}">${total>=0?'+':'−'}${fmt(Math.abs(total))}</span></div>
       ${s.extrato.filter(l=>l[3]).map(([n,v])=>`<div class="linha" style="opacity:.8"><span>${n} <small>(transfer, not an expense)</small></span><span class="v">${v>0?'+':'−'}${fmt(Math.abs(v))}</span></div>`).join('')}
       ${(()=>{ const fx=fluxo().sobra, dif=Math.round(fx-total), sem=s.desemp>0&&!(s.seguro>0)&&s.extrato.some(l=>/Seguro-desemprego/.test(String(l[0])));
-        return `<div class="linha total" style="margin-top:6px"><span>Previsão de ${rotulo(s.mes+1)} (aparece no topo)</span><span class="v ${fx>=0?'pos':'neg'}">${fx>=0?'+':'−'}${fmt(Math.abs(fx))}</span></div>${sem?`<p class="hint" style="margin:4px 0 0">O seguro-desemprego acabou: o próximo mês não conta mais com essa entrada.</p>`:(Math.abs(dif)>=1?`<p class="hint" style="margin:4px 0 0">A previsão considera só o que se repete todo mês. Entradas e gastos de uma vez, como bônus, imprevistos e compras, ficam de fora.</p>`:'')}`; })()}
+        return `<div class="linha total" style="margin-top:6px"><span>Forecast for ${rotulo(s.mes+1)} (shown at the top)</span><span class="v ${fx>=0?'pos':'neg'}">${fx>=0?'+':'−'}${fmt(Math.abs(fx))}</span></div>${sem?`<p class="hint" style="margin:4px 0 0">Unemployment benefits ended: next month no longer counts on that income.</p>`:(Math.abs(dif)>=1?`<p class="hint" style="margin:4px 0 0">The forecast only counts what repeats every month. One-off income and spending, like bonuses, setbacks and purchases, are left out.</p>`:'')}`; })()}
     </div>
   </section>`;
   // painel de renda no estilo Timeflow: quanto cada fonte paga e quanto tempo pede
@@ -6378,19 +6386,19 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     return `<section class="card sonho-card ${podeSonho?'pronto':''}"><div class="sc-top">${ic}<div><span class="label-c">Your dream</span><b>${sonho().nome}</b><span class="num sc-v">${s.sonhoFeito?"":tem>=ps?`✓ You already have the ${fmt0(ps)}`:`${fmt0(tem)} of ${fmt0(ps)}`}</span></div></div><div class="sc-bar"><i style="width:${pct}%"></i></div><p class="hint">${st}</p>${btn}</section>`; })();
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
-    inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' and ')}</b><p class="hint">Inscrições abertas só neste mês. Toque para ver na aba Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Year board">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Statement for ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
+    inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' and ')}</b><p class="hint">Sign-ups are open this month only. Tap to see it in the Life tab.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Year board">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Statement for ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
     dinheiro: `<section class="hud" aria-label="Month status">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: loans and installments</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Where your money comes from (per hour)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
+    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Your profile: income, expenses and the dream</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
-    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} of ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Conta</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>government bonds</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Próx. mês</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
+    <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · month ${s.mes} of ${tot}</small></div>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Account</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>government bonds</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Next month</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Bem-estar ${fz} de 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Bem-estar</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Burned out":faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
@@ -6446,7 +6454,7 @@ function slotsHtml(){ const jogo=temJogo(); let h='<div class="slots">';
   for(let n=1;n<=SLOTS;n++){ const d=slotLer(n);
     h+=`<div class="slot"><div class="slot-i"><b>Slot ${n}</b><small>${d?d.r+' · '+slotData(d.q):'Empty'}</small></div><div class="slot-b"><button class="btn" data-acao="slotSalvar" data-alvo="${n}" ${jogo?'':'disabled'}>Save</button><button class="btn" data-acao="slotCarregar" data-alvo="${n}" ${d?'':'disabled'}>Load</button></div></div>`; }
   return h+'</div>'; }
-function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao("Confirm sale?",'Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.',"Confirm sale",()=>usarCartaInfl(alvo,true),ui.modal); return; } } if(C2.custo && !ok){ const cv=C2.custo(), falta=cv-Math.max(0,s.conta); if(falta>0.5){ const sob=Math.max(0,Math.max(0,s.conta)+liquidoPronto()-cv); pedirConfirmacao('Vender investimentos para pagar?','Isso custa '+fmt0(cv)+' e a conta tem '+fmt0(Math.max(0,s.conta))+'. Faltam '+fmt0(falta)+', que saem '+(()=>{ const dc=prods().cdb?disponivel('cdb'):0, vc=Math.min(falta,dc), va=falta-vc; return (vc>0?'do government bonds (cerca de '+fmt0(vc)+')':'')+(vc>0&&va>0.5?' and ':'')+(va>0.5?'das ações (cerca de '+fmt0(va)+')':''); })()+'. O government bonds é vendido primeiro; as ações só entram se o government bonds não bastar. Depois da compra sobram cerca de '+fmt0(sob)+' líquidos.','Comprar mesmo assim',()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); }
+function usarCartaInfl(alvo,ok){ const C2=CARTAS_INFL[alvo]; if(C2 && (s.infl||0)>=100 && C2.ok()){ if(alvo==='comprador' && !ok){ const a0=alvoVenda(); if(a0){ pedirConfirmacao("Confirm sale?",'Sell '+a0.nome.toLowerCase()+' for '+fmt0(Math.round(vMerc(a0)*1.4))+'? It will no longer be yours.',"Confirm sale",()=>usarCartaInfl(alvo,true),ui.modal); return; } } if(C2.custo && !ok){ const cv=C2.custo(), falta=cv-Math.max(0,s.conta); if(falta>0.5){ const sob=Math.max(0,Math.max(0,s.conta)+liquidoPronto()-cv); pedirConfirmacao('Sell investments to pay?','This costs '+fmt0(cv)+' and your account has '+fmt0(Math.max(0,s.conta))+'. You are '+fmt0(falta)+' short, which comes '+(()=>{ const dc=prods().cdb?disponivel('cdb'):0, vc=Math.min(falta,dc), va=falta-vc; return (vc>0?'from government bonds (about '+fmt0(vc)+')':'')+(vc>0&&va>0.5?' and ':'')+(va>0.5?'from stocks (about '+fmt0(va)+')':''); })()+'. Government bonds are sold first; stocks only come in if the bonds are not enough. After the purchase about '+fmt0(sob)+' remains liquid.','Buy anyway',()=>usarCartaInfl(alvo,true),ui.modal); return; } } const t=C2.run(); s.infl=0; s.inflVisto=false; ui.cartasInfl=[]; s.usouInfl=(s.usouInfl||0)+1; s.licao={tom:'bom', titulo:`★ ${C2.titulo}`, texto:t+" Contacts open doors; deciding well is still up to you."}; } ui.modal=null; checarFim(); salvar(); render(); }
 function slotSalvar(n,conf){ if(!temJogo()) return; const ant=slotLer(n);
   if(ant && !conf){ pedirConfirmacao('Replace the game?','Replace the game saved in slot '+n+' ('+ant.r+')?','Replace',()=>slotSalvar(n,true),ui.modal); return; }
   salvar(); let ok=true;
@@ -6546,7 +6554,7 @@ function ceoMes(ex){
   if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausaLoja||0)){ const a=ceoLojaOpcao();
     if(a){ const v=tycCustoLoja(a), n=tycLojas(a), dur=TYC_LOJA_MESES[n], pct=Math.round((TYC_LOJA_M[n]/TYC_LOJA_M[n-1]-1)*100);
       (s.avisosEvolucao=s.avisosEvolucao||[]).push({tipo:'ceo', loja:true, titulo:'🧑‍💼 Open a new store?', nome:a.nome, uid:a.uid, c:v, mes:s.mes,
-        texto:'The company is polished in every area. Store '+(n+1)+' custa '+fmt0(v)+' e leva '+dur+' meses para ficar pronta; a loja nova não vende nesse período, mas as atuais continuam funcionando. Depois, a empresa passa a render cerca de '+pct+'% a mais. O dinheiro sai do seu capital.'}); } }
+        texto:'The company is polished in every area. Store '+(n+1)+' costs '+fmt0(v)+' and takes '+dur+' months to be ready; the new store does not sell in that period, but the current ones keep running. After that, the company earns about '+pct+'% more. The money comes out of your capital.'}); } }
   const ops=ceoOpcoes();
   if(c.auto){ ceoMelhorias(ex);
   } else if(!(s.avisosEvolucao||[]).some(x=>x.tipo==='ceo') && s.mes>=(c.pausa||0) && ops.length){
@@ -6574,10 +6582,10 @@ function ceoTodas(acao, v){
   { const c=ceo(); c.padrao=c.padrao||{}; if(acao==='ger') c.padrao.ger=(v==='1'); else if(acao==='ret') c.padrao.ret=Number(v); }   // vale também para as empresas que você comprar depois
   if(acao==='ger'){ let n=0;
     for(const a of emps){ if(v==='1'){ if(!a.gerente && a.tipo==='negocio' && a.horas>1){ a.gerente=true; a.gerDesde=s.mes; n++; } } else if(a.gerente){ a.gerente=false; n++; } tycAtualizar(a); }
-    tit=v==='1'?'Gerentes contratados':'Gerentes dispensados'; msg=n?(v==='1'?`${n} empresa${n>1?'s':''} passou${n>1?'ram':''} a rodar com gerente. Cada um fica com ${Math.round(GER_CUSTO*100)}% da renda, e você ganha horas livres.`:`${n} empresa${n>1?'s':''} voltou${n>1?'ram':''} a depender de você.`):'Nada mudou: todas as empresas já estavam assim.'; if(!n) tom='neutro'; }
-  else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Retirada ajustada'; msg=`Todas as empresas passam a mandar ${Number(v)}% do lucro para a sua conta.`; }
+    tit=v==='1'?'Managers hired':'Managers dismissed'; msg=n?(v==='1'?`${n} compan${n>1?'ies':'y'} now run${n>1?'':'s'} with a manager. Each one takes ${Math.round(GER_CUSTO*100)}% of the revenue, and you gain free hours.`:`${n} compan${n>1?'ies':'y'} went back to depending on you.`):'Nothing changed: all the companies were already like this.'; if(!n) tom='neutro'; }
+  else if(acao==='ret'){ for(const a of emps) tycRetirada(a.uid, v); tit='Withdrawal adjusted'; msg=`All companies now send ${Number(v)}% of their profit to your account.`; }
   else if(acao==='sacar'){ let tot=0, n=0; for(const a of emps){ const T=a.tyc, val=v==='tudo'?T.caixa:(T.caixa-tycReserva(a))*(isNaN(Number(v))?1:Number(v)/100), x=Math.floor(Math.max(0,val)/100)*100; if(x>0){ T.caixa-=x; s.conta+=x; T.retTot=(T.retTot||0)+x; tycAtualizar(a); tot+=x; n++; } }
-    tit='Saque nas empresas'; { const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n, p:String(v)}; } if(tot>0) msg=`${fmt0(tot)} saíram do caixa de ${n} empresa${n>1?'s':''} para a sua conta.${v==='tudo'?" With no reserve, a bad month comes out of your pocket.":' Cada uma manteve uma reserva de cerca de 3 meses de custos.'}`; else { msg='Não há excedente para sacar: os caixas estão no nível da reserva.'; tom='neutro'; } }
+    tit='Company cash-out'; { const c=ceo(); c.ultSaque={mes:s.mes, v:tot, n, p:String(v)}; } if(tot>0) msg=`${fmt0(tot)} left the cash of ${n} compan${n>1?'ies':'y'} and went to your account.${v==='tudo'?" With no reserve, a bad month comes out of your pocket.":' Each one kept a reserve of about 3 months of costs.'}`; else { msg='There is no surplus to withdraw: the cash is at the reserve level.'; tom='neutro'; } }
   s.licao={tom, titulo:tit, texto:msg};
 }
 function ceoCard(){
@@ -6589,16 +6597,16 @@ function ceoCard(){
     return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO</h2>${ceoImg()}<p class="hint">Hire a CEO to upgrade the companies for you. He charges ${fmt0(ceoSal())} per month plus ${Math.round(CEO_PCT*100)}% of the companies' profit and asks you before each improvement. If the company has no cash, he may use your capital. Purchases, sales and crises remain with you.</p><button class="btn coin" data-acao="ceoContratar">Hire CEO</button></section>`;
   }
   return `<section class="card" aria-labelledby="t-ceo"><h2 id="t-ceo">🧑‍💼 CEO contratado</h2>${ceoImg()}
-    <p class="hint">Custa ${fmt0(ceoSal())} por mês mais ${Math.round(CEO_PCT*100)}% do lucro das empresas: <b>${fmt0(ceoCustoMes())} no próximo mês</b>, já descontado no fluxo do topo. Já pagou ${fmt0(c.pago||0)} e iniciou ${c.feitas||0} melhorias.</p>
-    <div class="seg seg-hud" role="group" aria-label="Aprovação"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Perguntar<small>balão antes</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Aprovar tudo<small>automático</small></button></div>
+    <p class="hint">Costs ${fmt0(ceoSal())} per month plus ${Math.round(CEO_PCT*100)}% of the companies' profit: <b>${fmt0(ceoCustoMes())} next month</b>, already counted in the cash flow at the top. Has already been paid ${fmt0(c.pago||0)} and started ${c.feitas||0} upgrades.</p>
+    <div class="seg seg-hud" role="group" aria-label="Approval"><button data-acao="ceoAuto" data-alvo="0" aria-pressed="${!c.auto}">Ask first<small>prompt before</small></button><button data-acao="ceoAuto" data-alvo="1" aria-pressed="${!!c.auto}">Approve all<small>automatic</small></button></div>
     ${c.auto?`<p class="hint">Monthly spending limit on automatic:</p><div class="seg seg-hud" role="group" aria-label="Limit">${tt.map(v=>`<button data-acao="ceoTeto" data-alvo="${v}" aria-pressed="${(c.teto||0)===v}">${lab(v)}</button>`).join('')}</div>`:''}
     ${(()=>{ const em=ceoEmps(); if(!em.length) return ''; const cxTot=em.reduce((x,a)=>x+Math.max(0,a.tyc.caixa||0),0), cxExc=em.reduce((x,a)=>x+Math.max(0,Math.floor(((a.tyc.caixa||0)-tycReserva(a))/100)*100),0), comG=em.filter(a=>a.gerente).length, rets=em.map(a=>Math.round(a.tyc.ret||0)), igual=rets.every(x=>x===rets[0]);
-      return `<h3 class="hint" style="margin:12px 0 4px"><b>Em todas as empresas de uma vez</b></h3>
-      <p class="hint">Gerente: ${comG} of ${em.length} empresas com gerente. O gerente de cada empresa cobra ${Math.round(gerCusto()*100)}% da renda dela e libera o seu tempo (o CEO cobra à parte, ${Math.round(CEO_PCT*100)}% do lucro).</p>
+      return `<h3 class="hint" style="margin:12px 0 4px"><b>On all companies at once</b></h3>
+      <p class="hint">Manager: ${comG} of ${em.length} companies have a manager. Each manager charges ${Math.round(gerCusto()*100)}% of the company's revenue and frees up your time (the CEO charges separately, ${Math.round(CEO_PCT*100)}% of profit).</p>
       <div class="seg seg-hud" role="group" aria-label="Gerente em todas"><button data-acao="ceoTodas" data-alvo="ger:1" aria-pressed="${comG===em.length}">Gerente em todas</button><button data-acao="ceoTodas" data-alvo="ger:0" aria-pressed="${comG===0}">Sem gerente</button></div>
-      <p class="hint">Retirada do lucro para a sua conta${igual?` (hoje ${rets[0]}% em todas)`:' (hoje cada empresa tem a sua)'}:</p>
+      <p class="hint">Profit withdrawal to your account${igual?` (today ${rets[0]}% on all)`:' (today each company has its own)'}:</p>
       <div class="seg seg-hud" role="group" aria-label="Retirada em todas">${[0,25,50,75,100].map(p=>`<button data-acao="ceoTodas" data-alvo="ret:${p}" aria-pressed="${igual&&rets[0]===p}">${p}%</button>`).join('')}</div>
-      <p class="hint">Dinheiro nos caixas das empresas: <b>${fmt0(cxTot)}</b>. Dá para sacar <b>${fmt0(cxExc)}</b> sem mexer na reserva de 3 meses de custos. Escolha quanto sacar:</p>${ceo().ultSaque?(ceo().ultSaque.v>0?`<p class="hint">✅ Último saque: <b>${fmt0(ceo().ultSaque.v)}</b> de ${ceo().ultSaque.n} empresa${ceo().ultSaque.n>1?'s':''}, em ${rotulo(ceo().ultSaque.mes)}.</p>`:`<p class="hint">Última escolha em ${rotulo(ceo().ultSaque.mes)}: não havia dinheiro nos caixas para sacar.</p>`):''}
+      <p class="hint">Money in the companies' cash: <b>${fmt0(cxTot)}</b>. You can withdraw <b>${fmt0(cxExc)}</b> without touching the 3-month cost reserve. Choose how much to withdraw:</p>${ceo().ultSaque?(ceo().ultSaque.v>0?`<p class="hint">✅ Last withdrawal: <b>${fmt0(ceo().ultSaque.v)}</b> from ${ceo().ultSaque.n} compan${ceo().ultSaque.n>1?'ies':'y'}, in ${rotulo(ceo().ultSaque.mes)}.</p>`:`<p class="hint">Last choice in ${rotulo(ceo().ultSaque.mes)}: there was no money in the cash to withdraw.</p>`):''}
       <div class="seg seg-hud" role="group" aria-label="Sacar de todas">${[25,50,75].map(p=>`<button data-acao="ceoTodas" data-alvo="sacar:${p}" aria-pressed="${(ceo().ultSaque||{}).p===String(p)}">${p}%<small>${fmt0(Math.floor(cxExc*p/100/100)*100)}</small></button>`).join('')}<button data-acao="ceoTodas" data-alvo="sacar:exc" aria-pressed="${(ceo().ultSaque||{}).p==='exc'}">Excedente<small>${fmt0(cxExc)}</small></button><button data-acao="ceoTodas" data-alvo="sacar:tudo" aria-pressed="${(ceo().ultSaque||{}).p==='tudo'}">Tudo<small>${fmt0(cxTot)} · sem reserva</small></button></div>`; })()}
     <button class="btn" data-acao="ceoDispensar">Dispensar CEO</button></section>`;
 }
@@ -6611,7 +6619,7 @@ function renderAvisoEvolucao(){
   box.hidden=!aviso||!!ui.modal||!!ui.girando||ui.tela==='titulo';
   if(box.hidden){ box.innerHTML=''; return; }
   if(aviso.tipo==='ceo' && aviso.loja){ box.innerHTML='<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Not now">×</button><strong>'+aviso.titulo+'</strong><b>'+escHtml(aviso.nome)+'</b><p>'+escHtml(aviso.texto)+'</p><button class="btn coin" data-acao="ceoSim">Yes, build it</button> <button class="btn" data-acao="ceoNao">Not now</button></div>'; return; }
-  if(aviso.tipo==='ceo'){ box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Agora não">×</button><strong>${aviso.titulo}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p><button class="btn coin" data-acao="ceoSim">Sim, evoluir</button> <button class="btn" data-acao="ceoNao">Agora não</button>${aviso.loja?'':' <button class="btn" data-acao="ceoSozinho">Sim, e daqui para frente sozinho</button><small class="hint" style="display:block;margin-top:4px">O CEO passa a subir as empresas sem perguntar, sempre com folga na conta. Dá para voltar a "Perguntar" na aba Renda.</small>'}</div>`; return; }
+  if(aviso.tipo==='ceo'){ box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite"><button class="evolucao-fechar" data-acao="ceoNao" aria-label="Not now">×</button><strong>${aviso.titulo}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p><button class="btn coin" data-acao="ceoSim">Yes, upgrade</button> <button class="btn" data-acao="ceoNao">Not now</button>${aviso.loja?'':' <button class="btn" data-acao="ceoSozinho">Yes, and on my own from now on</button><small class="hint" style="display:block;margin-top:4px">The CEO will upgrade the companies without asking, always with room in your account. You can go back to "Ask first" in the Income tab.</small>'}</div>`; return; }
   box.innerHTML=`<div class="evolucao-balao" role="status" aria-live="polite" aria-atomic="true"><button class="evolucao-fechar" data-acao="evolucaoFechar" aria-label="Close completion notice">×</button><strong>${aviso.titulo?aviso.titulo:aviso.tipo==='obra'?"🏗️ Project completed!":aviso.tipo==='estudo'?pix('🎓','mini')+" Study completed!":pixK('aba-voce','🌱','mini')+" Skill completed!"}</strong><b>${escHtml(aviso.nome)}</b><p>${escHtml(aviso.texto)}</p>${aviso.tipo==='obra'||aviso.tipo==='marco'?`<small>${aviso.tipo==='marco'?(s.avisosEvolucao.length>1?`${s.avisosEvolucao.length-1} more notice(s).`:"Keep growing."):s.avisosEvolucao.length>1?`${s.avisosEvolucao.length-1} more notice(s).`:"Open the company to start the next project."}</small>${aviso.tipo==='obra'&&aviso.uid?`<button class="btn coin" data-acao="evolucaoConferir" data-alvo="${aviso.uid}">Check →</button>`:''}`:`<small>Your time was freed up. ${aviso.tipo==='habilidade'?"See the next skill in the Life tab.":"Check the next upgrade in the You tab."}${s.avisosEvolucao.length>1?` ${s.avisosEvolucao.length-1} more notice(s).`:''}</small><button class="btn coin" data-acao="evolucaoVer">${pixK('aba-voce','🌱','mini')} ${aviso.tipo==='habilidade'?"See skills":"See studies"} →</button>`}</div>`;
 }
 /* ================= confirmação antes de vender ou pegar empréstimo ================= */
@@ -6693,8 +6701,8 @@ function renderModal0(){
   if(ui.modal==='tyc'){ const a=(s.ativos||[]).find(x=>x.uid===ui.tycUid&&x.tyc); if(!a){ ui.modal=null; modal.innerHTML=''; return; } modal.innerHTML=modalTyc(a); return; }
   if(ui.modal==='execucao'){ const L=ativosVendaveis(), falta=Math.max(0,-s.conta-limCheque());
     modal.innerHTML=`<div class="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <h3 id="m-t">O banco quer receber</h3><p>A conta passou do limite do cheque especial (${fmt0(limCheque())}) e os seus investimentos já foram usados. Faltam <b>${fmt0(falta)}</b>. Você escolhe o que vender: a venda rápida paga só 70% do valor.</p>
-      <div class="opcoes">${L.map(o=>`<button class="opcao ${o.liq>=falta?'coin':''}" data-acao="execVender" data-alvo="${o.a.uid}"><b>Vender ${o.a.nome}</b><span>Entram ${fmt0(o.liq)} (70% de ${fmt0(o.vm)}${o.liq<o.preco?', menos o financiamento':''}). ${o.liq>=falta?'Cobre a dívida.':'Não cobre tudo: o banco pede outra venda.'}</span></button>`).join('')}</div></div></div>`;
+      <h3 id="m-t">The bank wants to be paid</h3><p>Your account went past the overdraft limit (${fmt0(limCheque())}) and your investments were already used. You are <b>${fmt0(falta)}</b> short. You choose what to sell: a quick sale pays only 70% of the value.</p>
+      <div class="opcoes">${L.map(o=>`<button class="opcao ${o.liq>=falta?'coin':''}" data-acao="execVender" data-alvo="${o.a.uid}"><b>Sell ${o.a.nome}</b><span>You receive ${fmt0(o.liq)} (70% of ${fmt0(o.vm)}${o.liq<o.preco?', minus the financing':''}). ${o.liq>=falta?'Covers the debt.':'Does not cover everything: the bank asks for another sale.'}</span></button>`).join('')}</div></div></div>`;
     return; }
   if(ui.modal==='negAvancar'){ const id=reservaCobre(), d=id?disponivel(id):0, tudo=d>=-s.conta;
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
@@ -6744,13 +6752,13 @@ function renderModal0(){
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag bom">★ Influence</span><h3 id="m-t">Your contacts brought 3 opportunities</h3>
       <p class="hint">Choose one. All are good; the difference is what fits your plan.</p>
-      <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Sua conta não cobre: vai vender investimentos.</b>':''}</span></button>`).join('')}</div>
+      <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Your account does not cover it: investments will be sold.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Save for later</button></div></div></div>`;
     return; }
   if(ui.modal==='carro'){
     const n=ui.carro, X=CARROS[n], pr=precoCarro(n), pc=parcCarro(), vel=carN()>0?Math.round(valorCarro()*0.9)-(pc?saldoParc(pc):0):0;
     const ops = n===0 ? [{alvo:'0:-', label:`Sell the car and use bus and ride-hailing`, sub:`${fmt0(Math.max(0,vel))} comes in · transport of ${fmt0(transpBase())} per month`}]
-      : [{alvo:`${n}:avista`, label:"Buy in cash", sub:pr-vel<0?`Você recebe ${fmt0(vel-pr)} na conta: o seu carro atual vale mais que o novo`:`${fmt0(Math.max(0,pr-vel))} comes out of your account and investments${carN()>0?` (o atual entra na troca por ${fmt0(vel)})`:''}`, dis:!podeAVista(Math.max(0,pr-vel))},
+      : [{alvo:`${n}:avista`, label:"Buy in cash", sub:pr-vel<0?`You receive ${fmt0(vel-pr)} in your account: your current car is worth more than the new one`:`${fmt0(Math.max(0,pr-vel))} comes out of your account and investments${carN()>0?` (your current one is traded in for ${fmt0(vel)})`:''}`, dis:!podeAVista(Math.max(0,pr-vel))},
          {alvo:`${n}:financiar`, label:"Finance 80% over 48 months", sub:`${pr*0.2-vel<0?`Você recebe ${fmt0(vel-pr*0.2)} na conta`:`Entrada de ${fmt0(Math.max(0,pr*0.2-vel))}`} · parcela de ${fmt0(pmt(pr*0.8,0.016,48))} (1,6% ao mês)`, dis:!podeAVista(Math.max(0,pr*0.2-vel))}];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <span class="tag neutro">Car</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
@@ -6763,11 +6771,11 @@ function renderModal0(){
     const ant = morPropria() ? [['vender',"sell the current one"],['alugar',"rent the current one out"]] : [[null,'']];
     if(modo==='alugar') for(const [a,ta] of ant) ops.push({alvo:`${n}:alugar:${a}:-`, label:`Rent for ${fmt0(aluguelN(n))}/month${ta?' and '+ta:''}`, sub:''});
     else for(const [a,ta] of ant){ const cred=a==='vender'?(s.casa||0)*0.94-(parcCasa()?saldoParc(parcCasa()):0):0;
-      ops.push({alvo:`${n}:comprar:${a}:avista`, label:`Buy in cash${ta?' and '+ta:''}`, sub:pr-cred<0?`Sobram ${fmt0(cred-pr)} na sua conta (a antiga casa vale mais que a nova)`:`${fmt0(Math.max(0,pr-cred))} comes out of your account and investments${cred>0?` (a antiga casa entra por ${fmt0(cred)})`:''}`, dis:!podeAVista(Math.max(0,pr-cred))});
+      ops.push({alvo:`${n}:comprar:${a}:avista`, label:`Buy in cash${ta?' and '+ta:''}`, sub:pr-cred<0?`${fmt0(cred-pr)} is left in your account (your old home is worth more than the new one)`:`${fmt0(Math.max(0,pr-cred))} comes out of your account and investments${cred>0?` (your old home counts for ${fmt0(cred)})`:''}`, dis:!podeAVista(Math.max(0,pr-cred))});
       ops.push({alvo:`${n}:comprar:${a}:financiar`, label:`Finance 80% over 20 years${ta?' and '+ta:''}`, sub:`${pr*0.2-cred<0?`Entram ${fmt0(cred-pr*0.2)} na conta · `:`Entrada de ${fmt0(Math.max(0,pr*0.2-cred))} · `}parcela de ${fmt0(pmt(pr*0.8,0.0095,240))}`, dis:!podeAVista(Math.max(0,pr*0.2-cred))}); }
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag neutro">Mudança</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
-      <p class="hint">${modo==='comprar'?`Price ${fmt0(pr)}. Condo fees and property tax of ${fmt0(pr*0.0018)} per month.`:`Rent of ${fmt0(aluguelN(n))} per month.`} ${(n===morN() && !morPropria())?'Você já mora nela: não tem custo de mudança.':`A mudança custa ${fmt0(C(1200))}.`}</p>
+      <span class="tag neutro">Moving</span><h3 id="m-t">${pix(X.ic,'mini')} ${X.nome}</h3>
+      <p class="hint">${modo==='comprar'?`Price ${fmt0(pr)}. Condo fees and property tax of ${fmt0(pr*0.0018)} per month.`:`Rent of ${fmt0(aluguelN(n))} per month.`} ${(n===morN() && !morPropria())?'You already live here: no moving cost.':`Moving costs ${fmt0(C(1200))}.`}</p>
       <div class="opcoes">${ops.map(o=>`<button class="opcao" data-acao="mudarOk" data-alvo="${o.alvo}" ${o.dis?"disabled style=\"opacity:.45\"":''}><b>${o.label}</b>${o.sub?`<span>${o.sub}</span>`:''}</button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Cancelar</button></div></div></div>`;
     return; }
@@ -7028,7 +7036,7 @@ function atualizarPreview(){
   if(v<=0){ el.innerHTML="<span>Enter an amount to see the tax.</span>"; return; }
   const r=calcResgate(alvo, v, false);
   let nota='';
-  if(prod(alvo).ir==='acoes') nota = (s.vendasAcoes||0)+v<=20000 ? "Stock sales up to $20 thousand a month are exempt." : "Above $20 thousand a month: 15% income tax on the profit.";
+  if(prod(alvo).ir==='acoes') nota = (s.vendasAcoes||0)+v<=20000 ? "Stock sales up to "+PAIS.simb+"20 thousand a month are exempt." : "Above "+PAIS.simb+"20 thousand a month: 15% income tax on the profit.";
   if(prod(alvo).ir==='regressivo') nota="The longer invested, the lower the tax.";
   if(prod(alvo).ir==='fii') nota="REITs (FIIs): 20% on the sale profit. Monthly rents are exempt.";
   el.innerHTML=`<span>Profit on this sale: <b>${fmt(r.ganho)}</b> · Tax: <b>${fmt(r.ir)}</b></span><span>You receive <b>${fmt(r.liq)}</b>. ${nota}</span>`;
@@ -7140,7 +7148,7 @@ function renderFim(){
     if(s.vendaForcada) lic.push(`Was forced to sell assets in a rush ${s.vendaForcada===1?"once":s.vendaForcada+" times"}${s.perdaForcada?`, losing ${fmt0(s.perdaForcada)} in the discount`:''}.`);
     if(s.rendaAtivosTot) lic.push(`Properties and businesses paid ${fmt0(s.rendaAtivosTot)} in income.`);
     if(s.perdaAtivos) lic.push(`Lost ${fmt0(s.perdaAtivos)} in businesses that closed.`);
-    if(PAIS.inflacao) lic.push(`Cumulative inflation was ${dec1(infl*100)}%: what cost $100 used to cost ${fmt(100*s.idx)}.`);
+    if(PAIS.inflacao) lic.push(`Cumulative inflation was ${dec1(infl*100)}%: what cost ${PAIS.simb}100 used to cost ${fmt(100*s.idx)}.`);
     if(s.perdaGolpe) lic.push(`Lost ${fmt(s.perdaGolpe)} in the pyramid.`);
     if(s.crises) lic.push(s.vendeuNaCrise ? "Sold in a crisis and missed the recovery." : `Went through ${s.crises>1?s.crises+" sharp drops":"a sharp drop"} of the market without selling.`);
     if(s.jp>1) lic.push(`Paid ${fmt(s.jp)} in interest on installments and overdraft.`);
@@ -7270,7 +7278,7 @@ document.addEventListener('click', e=>{
       if(!podeAVista(A)){ erroEl.textContent=`You have ${fmt(Math.max(0,s.conta)+investido())} between account and investments.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
     case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
-    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='en'?'en':'pt'); }catch(e){} location.reload(); break; }
+    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='gb'?'GB':'US'); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:"Now you are an entrepreneur", texto:`The salary of ${fmt0(s.salario)} stops from next month. In return, you gained ${hm(prof().horas)} hours per month to look after the businesses: with you no longer absent, they stop earning less. The emergency fund becomes even more important, because a business has no year-end bonus or paid vacation.`};
@@ -7453,7 +7461,7 @@ document.addEventListener('click', e=>{
     case 'voltarRenda': if(F3() && s.aposentado){ s.aposentado=false; s.salario=Math.round(s.salario*0.85); s.voltou=(s.voltou||0)+1; s.fel=clamp(s.fel-10,0,100); s.licao={tom:'neutro', titulo:"Back to work", texto:"You resumed your career with a slightly lower salary than before. Passive income keeps working for you, and you can stop again when it covers the cost of living with room to spare."}; salvar(); render(); } break;
     case 'aposentar': if(F3() && !s.aposentado){
       const go=()=>{ if(cobertura()>=1) s.livreEm ||= s.mes; s.licao=aposentar(); salvar(); render(); };
-      if(cobertura()<1){ const cob=Math.round(cobertura()*100); pedirConfirmacao(s.empresario?'Deixar os negócios agora?':s.desemp>0?'Parar de procurar emprego?':'Pedir demissão agora?', `Sua renda passiva cobre só ${cob}% do seu custo de vida (${fmt0(rendaPassiva())} of ${fmt0(custoMensal())} por mês). ${s.empresario?'Os gerentes assumem, mas o':s.desemp>0?'Você deixa de procurar emprego e o':'O salário para e o'} que faltar sai da sua reserva e dos seus investimentos, e o dinheiro pode acabar. O jogo só considera você livre quando a cobertura passa de 100%.`, 'Sim, quero parar mesmo assim', ()=>go(), null); }
+      if(cobertura()<1){ const cob=Math.round(cobertura()*100); pedirConfirmacao(s.empresario?'Leave the businesses now?':s.desemp>0?'Stop looking for a job?':'Quit now?', `Your passive income covers only ${cob}% of your cost of living (${fmt0(rendaPassiva())} of ${fmt0(custoMensal())} per month). ${s.empresario?'The managers take over, but whatever':s.desemp>0?'You stop looking for a job and whatever':'Your salary stops and whatever'} is missing comes out of your reserve and investments, and the money can run out. The game only counts you as free when coverage goes above 100%.`, 'Yes, I want to stop anyway', ()=>go(), null); }
       else go(); } break;
     case 'reset':
       if(!ui.resetArmado){ ui.resetArmado=true; render(); break; }
@@ -14020,7 +14028,7 @@ document.addEventListener('click', e=>{
       if(!podeAVista(A)){ erroEl.textContent=`Você tem ${fmt(Math.max(0,s.conta)+investido())} entre conta e investimentos.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
     case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
-    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='en'?'en':'pt'); }catch(e){} location.reload(); break; }
+    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='gb'?'GB':'US'); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:'Agora você é empresário(a)', texto:`O salário de ${fmt0(s.salario)} para a partir do mês que vem. Em troca, você ganhou ${hm(prof().horas)} horas por mês para cuidar dos negócios: sem você ausente, eles param de render menos. A reserva de emergência fica ainda mais importante, porque negócio não paga 13º nem férias.`};
