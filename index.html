@@ -1436,7 +1436,16 @@ window.__LANG=(function(){
   return n.indexOf('es')===0 ? 'es' : 'en';
 })();
 window.__PAIS=(function(){
-  if(window.__LANG==='es') return 'ES';
+  if(window.__LANG==='es'){
+    try{ const p=localStorage.getItem('corrida-pais'); if(['ES','MX','AR','CO','CL','PE'].indexOf(p)>=0) return p; }catch(e){}
+    const n=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase(); let tz=''; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){}
+    const m=/^es-([a-z]{2})/.exec(n), r=m?m[1]:'', R={mx:'MX',ar:'AR',co:'CO',cl:'CL',pe:'PE',es:'ES'};
+    if(R[r]) return R[r];
+    if(/^America\/(Mexico_City|Cancun|Merida|Monterrey|Tijuana|Chihuahua|Hermosillo|Mazatlan|Bahia_Banderas|Matamoros|Ojinaga|Ciudad_Juarez)$/.test(tz)) return 'MX';
+    if(/^America\/Argentina\//.test(tz)||tz==='America/Buenos_Aires') return 'AR';
+    if(tz==='America/Bogota') return 'CO'; if(/^America\/(Santiago|Punta_Arenas)$|^Pacific\/Easter$/.test(tz)) return 'CL'; if(tz==='America/Lima') return 'PE';
+    return 'ES';
+  }
   if(window.__LANG==='pt-pt') return 'PT';
   try{ const p=localStorage.getItem('corrida-pais'); if(['US','GB','AU','CA','NZ','IE'].indexOf(p)>=0) return p; }catch(e){}
   const n=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase();
@@ -1474,9 +1483,15 @@ window.__PAIS=(function(){
   const ie='<svg viewBox="0 0 28 20" aria-hidden="true" focusable="false"><rect width="28" height="20" fill="#fff"/><rect width="9.4" height="20" fill="#169B62"/><rect x="18.6" width="9.4" height="20" fill="#FF883E"/></svg>';
   const es='<svg viewBox="0 0 28 20" aria-hidden="true" focusable="false"><rect width="28" height="20" fill="#AA151B"/><rect y="5" width="28" height="10" fill="#F1BF00"/></svg>';
   const ptpt='<svg viewBox="0 0 28 20" aria-hidden="true" focusable="false"><rect width="28" height="20" fill="#FF0000"/><rect width="11" height="20" fill="#006600"/><circle cx="11" cy="10" r="3.4" fill="#FFE000"/><circle cx="11" cy="10" r="1.9" fill="#fff"/></svg>';
+  const svg=c=>'<svg viewBox="0 0 28 20" aria-hidden="true" focusable="false">'+c+'</svg>';
+  const mx=svg('<rect width="28" height="20" fill="#fff"/><rect width="9.4" height="20" fill="#006847"/><rect x="18.6" width="9.4" height="20" fill="#CE1126"/><circle cx="14" cy="10" r="2.2" fill="#8C6A2F"/>');
+  const ar=svg('<rect width="28" height="20" fill="#74ACDF"/><rect y="6.7" width="28" height="6.6" fill="#fff"/><circle cx="14" cy="10" r="1.8" fill="#F6B40E"/>');
+  const co=svg('<rect width="28" height="20" fill="#FCD116"/><rect y="10" width="28" height="5" fill="#003893"/><rect y="15" width="28" height="5" fill="#CE1126"/>');
+  const cl=svg('<rect width="28" height="20" fill="#fff"/><rect y="10" width="28" height="10" fill="#D52B1E"/><rect width="9.5" height="10" fill="#0039A6"/><circle cx="4.75" cy="5" r="1.7" fill="#fff"/>');
+  const pe=svg('<rect width="28" height="20" fill="#D91023"/><rect x="9.4" width="9.2" height="20" fill="#fff"/>');
   const P=window.__PAIS;
   const btn=(l,svg,nome,on)=>'<button data-acao="idioma" data-alvo="'+l+'" aria-pressed="'+on+'" aria-label="'+nome+'" title="'+nome+'">'+svg+'</button>';
-  window.__flagsBtns=()=>btn('pt',BR,'Português (Brasil)',L==='pt')+btn('ptpt',ptpt,'Português (Portugal)',L==='pt-pt')+btn('en',us,'English (US)',L==='en'&&P==='US')+btn('gb',gb,'English (UK)',L==='en'&&P==='GB')+btn('au',au,'English (Australia)',L==='en'&&P==='AU')+btn('ca',ca,'English (Canada)',L==='en'&&P==='CA')+btn('nz',nz,'English (New Zealand)',L==='en'&&P==='NZ')+btn('ie',ie,'English (Ireland)',L==='en'&&P==='IE')+btn('es',es,'Español (España)',L==='es');
+  window.__flagsBtns=()=>btn('pt',BR,'Português (Brasil)',L==='pt')+btn('ptpt',ptpt,'Português (Portugal)',L==='pt-pt')+btn('en',us,'English (US)',L==='en'&&P==='US')+btn('gb',gb,'English (UK)',L==='en'&&P==='GB')+btn('au',au,'English (Australia)',L==='en'&&P==='AU')+btn('ca',ca,'English (Canada)',L==='en'&&P==='CA')+btn('nz',nz,'English (New Zealand)',L==='en'&&P==='NZ')+btn('ie',ie,'English (Ireland)',L==='en'&&P==='IE')+btn('es',es,'Español (España)',L==='es'&&P==='ES')+btn('esmx',mx,'Español (México)',L==='es'&&P==='MX')+btn('esar',ar,'Español (Argentina)',L==='es'&&P==='AR')+btn('esco',co,'Español (Colombia)',L==='es'&&P==='CO')+btn('escl',cl,'Español (Chile)',L==='es'&&P==='CL')+btn('espe',pe,'Español (Perú)',L==='es'&&P==='PE');
   window.__flagsTitulo=()=>'';   // sem bandeiras na abertura: idioma e país são detectados sozinhos (a escolha manual fica nas Configurações)
 })();
 /* arte em pixel (gerada a partir das imagens do Gemini, grade 128x128) */
@@ -7299,7 +7314,7 @@ document.addEventListener('click', e=>{
       if(!podeAVista(A)){ erroEl.textContent=`You have ${fmt(Math.max(0,s.conta)+investido())} between account and investments.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
     case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
-    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
+    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo.slice(0,2)==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':alvo.slice(0,2)==='es'?alvo.slice(2).toUpperCase():(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:"Now you are an entrepreneur", texto:`The salary of ${fmt0(s.salario)} stops from next month. In return, you gained ${hm(prof().horas)} hours per month to look after the businesses: with you no longer absent, they stop earning less. The emergency fund becomes even more important, because a business has no year-end bonus or paid vacation.`};
@@ -8240,15 +8255,15 @@ window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude
 (function(){
 const RITMO_ES_PAIRS=[["<title>Mice Run</title>","<title>Carrera de Ratoncitos</title>"],["MICE RUN","CARRERA DE RATONES"],["Your little mouse runs to the lane you tap. Tap when the sneaker reaches the finish line. When a rock, cat or boot comes, don't tap that lane, or he trips.","Tu ratoncito corre hacia el carril que toques. Toca cuando la zapatilla llegue a la línea de meta. Cuando venga una piedra, un gato o una bota, no toques ese carril o tropieza."],["Fitness (comes from training)","Forma física (viene del entrenamiento)"],["Beginner<small>fast, demands precision","Principiante<small>rápido, exige precisión"],["Trained<small>fast, more forgiving","Entrenado<small>rápido, más permisivo"],["Athlete<small>speeds up a lot, forgives mistakes","Atleta<small>acelera mucho, perdona errores"],["<b>Race</b>","<b>Carrera</b>"],["2 km<small>easy","2 km<small>fácil"],["5 km<small>medium","5 km<small>medio"],["10 km<small>hard","10 km<small>difícil"],["Sneaker drop","Caída de las zapatillas"],["In perspective<small>coming from the horizon","En perspectiva<small>viene desde el horizonte"],["Straight down<small>falling straight","Recto hacia abajo<small>cae en vertical"],[">Run</button>",">Correr</button>"],["Keyboard: D F J K or arrow keys. On a phone, tap the lanes.","Teclado: D F J K o las flechas. En el móvil, toca los carriles."],["<h2>You won!</h2>","<h2>¡Ganaste!</h2>"],[">Continue</button>",">Continuar</button>"],["<h2 id=\"fimTit\">Finish</h2>","<h2 id=\"fimTit\">Meta</h2>"],[">Run again</button>",">Correr otra vez</button>"],["Change training or race","Cambiar entrenamiento o carrera"],["Checking the course","Reconociendo el recorrido"],["<span>Start</span>","<span>Salida</span>"],["<span>Finish</span>","<span>Meta</span>"],[">Skip</button>",">Saltar</button>"],["<h2>Line height</h2>","<h2>Altura de la línea</h2>"],["Drag the finish line to wherever is most comfortable for your thumbs. Then confirm.","Arrastra la línea de meta adonde resulte más cómodo para tus pulgares. Luego confirma."],["Confirm and run","Confirmar y correr"],["'PERFECT'","'PERFECTO'"],["'GOOD'","'BIEN'"],["'BAD'","'MAL'"],["'DODGED'","'ESQUIVADO'"],["'MISSED'","'FALLADO'"],["'You won!':(['','1st','2nd','3rd','4th'][pos]||pos+'th')+' place'","'¡Ganaste!':(['','1.º','2.º','3.º','4.º'][pos]||pos+'.º')+' puesto'"],["n:'You'","n:'Tú'"],["'You','Bia'","'Tú','Bia'"],["'Race time'","'Tiempo'"],["'Average pace'","'Ritmo medio'"],["'Perfect'","'Perfectos'"],["'Good'","'Buenos'"],["'Misses'","'Fallos'"],["'Trips'","'Tropiezos'"],["'Dodges'","'Esquives'"],["'Longest streak'","'Mejor racha'"],["'Accuracy'","'Precisión'"],["With more training, your stamina lasts longer and your top speed goes up.","Con más entrenamiento, tu resistencia dura más y tu velocidad máxima sube."],["Good stamina. For the half marathon, the training needs to go up.","Buena resistencia. Para la media maratón, el entrenamiento tiene que subir."],["Athlete-level fitness. Now what decides it is the rhythm.","Forma física de atleta. Ahora lo que decide es el ritmo."],["'OUT OF BREATH'","'SIN ALIENTO'"],["'pace '","'ritmo '"],["ag.textContent='Continue'","ag.textContent='Continuar'"]]; const ritmoES=()=>{ let t=RITMO_HTML_EN; for(const [a,b] of RITMO_ES_PAIRS) t=t.split(a).join(b); return t; };
 /* ================= utilidades ================= */
-const PAISES = {ES:{moeda:'EUR', simb:'€', loc:'es-ES', inflacao:false}};
-const PAIS = Object.assign({cod:'ES'}, PAISES.ES);   // perfil do país (Espanha, euro, sem inflação)
-const fmt = v => (Math.abs(v) < 0.005 ? 0 : v).toLocaleString(PAIS.loc,{style:'currency',currency:PAIS.moeda});
-const fmtC = v => { const a=Math.abs(v), sg=v<0?'−':'', f=(x,u)=>sg+x.toLocaleString('es-ES',{maximumFractionDigits:x<10?2:x<100?1:0})+' '+u;
-  return a<1000 ? sg+Math.round(a)+'\u00a0'+PAIS.simb : a<1e6 ? f(a/1e3,'k') : a<1e9 ? f(a/1e6,'M') : a<1e12 ? f(a/1e9,'B') : f(a/1e12,'T'); };
-const fmt0 = v => (Math.abs(v) < 0.5 ? 0 : v).toLocaleString(PAIS.loc,{style:'currency',currency:PAIS.moeda,maximumFractionDigits:0});
-const pctFmt = v => (v>=0?'+':'−')+Math.abs(v*100).toFixed(1).replace('.',',')+' %';
-const pct2 = v => (v*100).toFixed(2).replace('.',',')+' %';
-const dec1 = v => v.toFixed(1).replace('.',',');
+const PAISES = {ES:{moeda:'EUR', simb:'€', loc:'es-ES', inflacao:false, fator:1, dec:',', pre:false}, MX:{moeda:'MXN', simb:'$', loc:'es-MX', inflacao:false, fator:4, dec:'.', pre:true}, AR:{moeda:'ARS', simb:'$', loc:'es-AR', inflacao:false, fator:150, dec:',', pre:true}, CO:{moeda:'COP', simb:'$', loc:'es-CO', inflacao:false, fator:600, dec:',', pre:true}, CL:{moeda:'CLP', simb:'$', loc:'es-CL', inflacao:false, fator:180, dec:',', pre:true}, PE:{moeda:'PEN', simb:'S/', loc:'es-PE', inflacao:false, fator:0.75, dec:'.', pre:true}};   // fator = valores do jogo (base Brasil) x fator = valores locais (aprox. paridade de poder de compra)
+const PAIS = Object.assign({cod:window.__PAIS||'ES'}, PAISES[window.__PAIS]||PAISES.ES);   // perfil do país (moeda, símbolo, fator de valores, sem inflação)
+const fmt = v => (Math.abs(v) < 0.005 ? 0 : v*PAIS.fator).toLocaleString(PAIS.loc,{style:'currency',currency:PAIS.moeda});
+const fmtC = v => { v=v*PAIS.fator; const a=Math.abs(v), sg=v<0?'−':'', f=(x,u)=>sg+x.toLocaleString(PAIS.loc,{maximumFractionDigits:x<10?2:x<100?1:0})+' '+u;
+  return a<1000 ? (PAIS.pre ? sg+PAIS.simb+Math.round(a) : sg+Math.round(a)+'\u00a0'+PAIS.simb) : a<1e6 ? f(a/1e3,'k') : a<1e9 ? f(a/1e6,'M') : a<1e12 ? f(a/1e9,'B') : f(a/1e12,'T'); };
+const fmt0 = v => (Math.abs(v) < 0.5 ? 0 : v*PAIS.fator).toLocaleString(PAIS.loc,{style:'currency',currency:PAIS.moeda,maximumFractionDigits:0});
+const pctFmt = v => (v>=0?'+':'−')+Math.abs(v*100).toFixed(1).replace('.',PAIS.dec)+' %';
+const pct2 = v => (v*100).toFixed(2).replace('.',PAIS.dec)+' %';
+const dec1 = v => v.toFixed(1).replace('.',PAIS.dec);
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const gauss = () => Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random());
 const pmt = (pv,i,n) => pv*i/(1-Math.pow(1+i,-n));
@@ -8259,15 +8274,16 @@ function parabensAVista(pago, preco, entPct, taxa, n){
 }
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
-function lerValor(txt){ // "1350", "1,350", "1,350.50", "1350.5", "R$ 1,350.00", also "1350,50"
-  let x=String(txt||'').replace(/[R$£\s]/g,'');
+function lerValor(txt,raw){
+  let x=String(txt||'').replace(/[^\d.,\-]/g,'');
   if(x.includes('.')&&x.includes(',')){ if(x.lastIndexOf('.')>x.lastIndexOf(',')) x=x.replace(/,/g,''); else x=x.replace(/\./g,'').replace(',','.'); }
   else if(x.includes(',')){ if(/^\d+,\d{1,2}$/.test(x)) x=x.replace(',','.'); else x=x.replace(/,/g,''); }
-  const v=parseFloat(x);
-  return isFinite(v) ? Math.round(v*100)/100 : 0;
+  else if(/^\d{1,3}(\.\d{3})+$/.test(x)) x=x.replace(/\./g,'');
+  const fat=raw?1:PAIS.fator, v=parseFloat(x), q=fat===1?100:1e4;
+  return isFinite(v) ? Math.round(v/fat*q)/q : 0;
 }
 const centavos = v => Math.floor(v*100+1e-6)/100;
-const brl = v => v.toFixed(2);
+const brl = v => { if(PAIS.fator>=100) return String(Math.floor(v*PAIS.fator+1e-6)); return (Math.floor(v*PAIS.fator*100+1e-6)/100).toFixed(2); };
 
 /* ================= regras gerais ================= */
 const T_CHEQUE = 0.08, T_CARTAO = 0.0399, N_CARTAO = 10, LIMITE_BASE = 5000, SEGURO = 2300, SEGURO_PCT = 0.75, META_LIB = 3;
@@ -8406,7 +8422,7 @@ function sortearDividendo(){
   return {dy, tipo};
 }
 const PX_ACOES0 = 300, PX_OURO0 = 600; // cota inicial (parecida com o IVVB11) e grama de ouro
-const UNID = {acoes:{um:'share', varios:'shares', curto:'shares'}, ouro:{um:'gram', varios:'grams', curto:'g'}};
+const UNID = {acoes:{um:'acción', varios:'acciones', curto:'acciones'}, ouro:{um:'gramo', varios:'gramos', curto:'g'}};
 const preco = id => id==='acoes' ? s.mk.pxA : id==='ouro' ? s.mk.pxO : null;
 const qtd = id => preco(id) ? valor(id)/preco(id) : 0;
 // ações só em cotas inteiras, como na B3
@@ -9779,14 +9795,14 @@ const MARCOS = [
   {id:'acao', nome:"Socio de las grandes empresas", txt:"Tu primera participación en acciones.", ok:()=>qtd('acoes')>=1-1e-6},
   {id:'imovel', nome:"Primer inquilino", txt:"Ahora alguien te paga alquiler a ti.", fases:[2,3], ok:()=>(s.ativos||[]).some(a=>a.tipo==='imovel')},
   {id:'semdivida', nome:"Sin deudas", txt:"Todas las cuotas liquidadas.", ok:()=>s.teveDivida && !s.parcelas.some(p=>p.nome!=="Capitalization bond")},
-  {id:'p100', nome:"Tu primer "+PAIS.simb+"100 mil", txt:"El primer gran hito de patrimonio. A partir de aquí, el interés trabaja más rápido.", fases:[2,3], ok:()=>patrimonio()>=100000, prog:()=>[patrimonio(),100000,fmtR]},
+  {id:'p100', nome:"Tu primer "+fmt0(100000), txt:"El primer gran hito de patrimonio. A partir de aquí, el interés trabaja más rápido.", fases:[2,3], ok:()=>patrimonio()>=100000, prog:()=>[patrimonio(),100000,fmtR]},
   {id:'r25', nome:"Los ingresos pasivos pagan el 25% de las facturas", txt:"Una cuarta parte de tu coste de vida ya sale de tus inversiones.", fases:[2,3], ok:()=>cobertura()>=0.25, prog:()=>[cobertura()*100,25,v=>Math.round(v)+"% of 25%"]},
-  {id:'p250', nome:PAIS.simb+"250k", txt:"Un cuarto de millón de patrimonio.", fases:[2,3], ok:()=>patrimonio()>=250000, prog:()=>[patrimonio(),250000,fmtR]},
+  {id:'p250', nome:fmt0(250000), txt:"Un cuarto de millón de patrimonio.", fases:[2,3], ok:()=>patrimonio()>=250000, prog:()=>[patrimonio(),250000,fmtR]},
   {id:'r50', nome:"La mitad de las facturas", txt:"Tus ingresos pasivos ya pagan la mitad de tu coste de vida.", fases:[3], ok:()=>cobertura()>=0.5, prog:()=>[cobertura()*100,50,v=>Math.round(v)+"% of 50%"]},
-  {id:'p500', nome:PAIS.simb+"500k", txt:"Medio millón construido.", fases:[3], ok:()=>patrimonio()>=500000, prog:()=>[patrimonio(),500000,fmtR]},
+  {id:'p500', nome:fmt0(500000), txt:"Medio millón construido.", fases:[3], ok:()=>patrimonio()>=500000, prog:()=>[patrimonio(),500000,fmtR]},
   {id:'r75', nome:"Casi libre", txt:"Los ingresos pasivos cubren el 75% de las facturas.", fases:[3], ok:()=>cobertura()>=0.75, prog:()=>[cobertura()*100,75,v=>Math.round(v)+"% of 75%"]},
   {id:'casa', nome:"Vivienda propia", txt:"Tienes un lugar propio.", fases:[2,3], ok:()=>morPropria()},
-  {id:'p1m', nome:"Primer millón", txt:PAIS.simb+"1 millón de patrimonio.", fases:[3], ok:()=>patrimonio()>=1000000, prog:()=>[patrimonio(),1000000,fmtR]}
+  {id:'p1m', nome:"Primer millón", txt:fmt0(1000000)+" de patrimonio.", fases:[3], ok:()=>patrimonio()>=1000000, prog:()=>[patrimonio(),1000000,fmtR]}
 ];
 const marcoDaFase = m => faseOk(m.fases||[1,2,3]);
 function checarMarcos(){
@@ -13442,7 +13458,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   if(!ov || !MODAIS_SALDO.includes(ui.modal) || !s || !s.iniciado) return;
   const P=prods(), it=[["Cuenta",s.conta]]; if(P.cdb) it.push(["Fondo de emergencia",valor('cdb')]); if(P.acoes) it.push(["Acciones",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Tu dinero ahora mismo');
-  const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+  const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -13670,7 +13686,7 @@ function renderModal0(){
       <h3 id="m-t">${tipo==='guardar'?"¿Cuánto del saldo invertir?":"¿Cuántas acciones vender?"}</h3>
       ${aviso?`<p class="hint">${aviso}</p>`:''}
       ${tipo==='guardar'?campoPct(alvo)+`<p class="hint">Acción hoy: <span class="num">${fmt(px)}</span>${maxN===0?` · <span style="color:var(--loss)">necesitas al menos ${fmt(px)} en la cuenta para comprar 1 acción</span>`:''}</p>`:`<div class="campo">
-        <label for="valor" class="hint">Acción hoy: <span class="num">${fmt(px)}</span> · ${tipo==='guardar'?`puedes comprar hasta <b class="num">${maxN}</b> ${maxN===1?'share':'shares'}`:`tienes <b class="num">${dec1q(qDisp)}</b> ${umOuVarios(qDisp,UNID[alvo])}`}</label>
+        <label for="valor" class="hint">Acción hoy: <span class="num">${fmt(px)}</span> · ${tipo==='guardar'?`puedes comprar hasta <b class="num">${maxN}</b> ${maxN===1?'acción':'acciones'}`:`tienes <b class="num">${dec1q(qDisp)}</b> ${umOuVarios(qDisp,UNID[alvo])}`}</label>
         <input id="valor" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
         <div class="chips">${[1,5,10,50,100].filter(v=>v<=maxN).map(v=>`<button data-acao="chip" data-alvo="${v}">+${v}</button>`).join('')}${maxN>0?`<button data-acao="chip" data-alvo="tudo">${tipo==='guardar'?"Máx":"Todo"}</button>`:''}</div>
       </div>`}
@@ -13748,28 +13764,28 @@ function renderModal0(){
 
 const PCTS=[25,50,75,100];
 const pctTxt = () => document.getElementById('valor')?.value||'';
-const pctDigitado = () => clamp(lerValor(pctTxt())/100, 0, 1);
+const pctDigitado = () => clamp(lerValor(pctTxt(),1)/100, 0, 1);
 function guardarDe(al){ const c=Math.max(0,s.conta), p=pctDigitado();
   if(POR_COTA(al)){ const px=preco(al), n=cotasInt(c*p/px); return {n, v:n*px}; }
   return {v: p>=1 ? c : centavos(c*p)}; }
-const pctChipsHTML = () => { const c=Math.max(0,s.conta), sel=lerValor(ui.valor||'');
+const pctChipsHTML = () => { const c=Math.max(0,s.conta), sel=lerValor(ui.valor||'',1);
   return `<div class="pct-chips" role="group" aria-label="Porcentaje del saldo">${PCTS.map(v=>`<button data-acao="pct" data-alvo="${v}" aria-pressed="${sel===v}"><b>${v}%</b><small class="num">${fmt0(v===100?c:c*v/100)}</small></button>`).join('')}</div>`; };
-const campoPct = (al) => { const c=Math.max(0,s.conta), sel=lerValor(ui.valor||'');
+const campoPct = (al) => { const c=Math.max(0,s.conta), sel=lerValor(ui.valor||'',1);
   return `<div class="campo">
         <span class="hint">En la cuenta: <span class="num">${fmt(c)}</span> · ¿cuánto ${POR_COTA(al)?"usar para comprar acciones":'save'}?</span>
         <label for="valor" class="hint">Introduce un porcentaje</label>
-        <div class="pct-campo"><input id="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="E.g.: 30"><span>%</span></div>
+        <div class="pct-campo"><input id="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej.: 30"><span>%</span></div>
       </div>
       <div class="preview" id="previewPct" aria-live="polite"></div>`; };
 function atualizarPct(){
   const el=document.getElementById('previewPct'); if(!el||!ui.mov||ui.mov.tipo!=='guardar') return;
-  const al=ui.mov.alvo, bruto=lerValor(pctTxt()), c=Math.max(0,s.conta);
+  const al=ui.mov.alvo, bruto=lerValor(pctTxt(),1), c=Math.max(0,s.conta);
   document.querySelectorAll('.pct-chips button').forEach(b=>b.setAttribute('aria-pressed', String(Number(b.dataset.alvo)===bruto)));
   if(bruto<=0){ el.innerHTML="<span>Elige un porcentaje del saldo de la cuenta.</span>"; return; }
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">El máximo es el 100% del saldo.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% de la cuenta = <b>${g.n} ${g.n===1?'share':'shares'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span>${pt}% de la cuenta = <b>${g.n} ${g.n===1?'acción':'acciones'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">El ${pt}% de la cuenta (${fmt(c*bruto/100)}) no compra 1 acción de ${fmt(px)}.</span>`; return; }
   el.innerHTML=`<span>${pt}% de la cuenta = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} se queda en la cuenta corriente.</span>`;
 }
@@ -13779,9 +13795,9 @@ function atualizarQtd(){
   if(POR_COTA(alvo)){ const n=tipo==='guardar'?guardarDe(alvo).n:lerCotas(document.getElementById('valor').value), qD=disponivel(alvo)/px;
     if(n<=0){ el.innerHTML=`<span>Tienes ${dec1q(q0)} ${umOuVarios(q0,U)}${q0>0?` · precio medio ${fmt(pm)}`:''}.</span>`; return; }
     if(tipo==='guardar'){ const v=n*px, sobra=Math.max(0,s.conta)-v;
-      el.innerHTML=`<span>${n} ${n===1?'share':'shares'} × ${fmt(px)} = <b>${fmt(v)}</b></span>`+(sobra>=0?`<span>${fmt(sobra)} se quedan en la cuenta. Tendrás ${dec1q(q0+n)} acciones.${q0>0&&px<pm*0.97?" ¡Comprando por debajo de tu precio medio!":''}</span>`:`<span style="color:var(--loss)">Faltan ${fmt(-sobra)} en la cuenta.</span>`);
+      el.innerHTML=`<span>${n} ${n===1?'acción':'acciones'} × ${fmt(px)} = <b>${fmt(v)}</b></span>`+(sobra>=0?`<span>${fmt(sobra)} se quedan en la cuenta. Tendrás ${dec1q(q0+n)} acciones.${q0>0&&px<pm*0.97?" ¡Comprando por debajo de tu precio medio!":''}</span>`:`<span style="color:var(--loss)">Faltan ${fmt(-sobra)} en la cuenta.</span>`);
     } else { const v=Math.min(n*px, disponivel(alvo));
-      el.innerHTML=`<span>${n} ${n===1?'share':'shares'} × ${fmt(px)} = <b>${fmt(v)}</b></span><span>${dec1q(Math.max(0,qD-n))} ${umOuVarios(Math.max(0,qD-n),U)} restantes.</span>`; }
+      el.innerHTML=`<span>${n} ${n===1?'acción':'acciones'} × ${fmt(px)} = <b>${fmt(v)}</b></span><span>${dec1q(Math.max(0,qD-n))} ${umOuVarios(Math.max(0,qD-n),U)} restantes.</span>`; }
     return; }
   const v=tipo==='guardar'?guardarDe(alvo).v:lerValor(document.getElementById('valor').value);
   const linhaPreco=`<span>${alvo==='ouro'?"Gramo":"Acción"} hoy: <b>${fmt(px)}</b>${q0>0?` · tu precio medio: <b style="color:${px>=pm?'var(--gain)':'var(--loss)'}">${fmt(pm)}</b>`:''}</span>`;
@@ -13811,7 +13827,7 @@ function atualizarPreview(){
   if(v<=0){ el.innerHTML="<span>Introduce un importe para ver el impuesto.</span>"; return; }
   const r=calcResgate(alvo, v, false);
   let nota='';
-  if(prod(alvo).ir==='acoes') nota = (s.vendasAcoes||0)+v<=20000 ? "Las ventas de acciones de hasta "+PAIS.simb+"20 mil al mes están exentas." : "Por encima de "+PAIS.simb+"20 mil al mes: 15% de impuesto sobre la renta de la ganancia.";
+  if(prod(alvo).ir==='acoes') nota = (s.vendasAcoes||0)+v<=20000 ? "Las ventas de acciones de hasta "+fmt0(20000)+" al mes están exentas." : "Por encima de "+fmt0(20000)+" al mes: 15% de impuesto sobre la renta de la ganancia.";
   if(prod(alvo).ir==='regressivo') nota="Cuanto más tiempo invertido, menor el impuesto.";
   if(prod(alvo).ir==='fii') nota="REIT (FII): 20% sobre la ganancia de la venta. Los alquileres mensuales están exentos.";
   el.innerHTML=`<span>Ganancia de esta venta: <b>${fmt(r.ganho)}</b> · Impuesto: <b>${fmt(r.ir)}</b></span><span>Recibes <b>${fmt(r.liq)}</b>. ${nota}</span>`;
@@ -14053,7 +14069,7 @@ document.addEventListener('click', e=>{
       if(!podeAVista(A)){ erroEl.textContent=`Tienes ${fmt(Math.max(0,s.conta)+investido())} entre cuenta e inversiones.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
     case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
-    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
+    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo.slice(0,2)==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':alvo.slice(0,2)==='es'?alvo.slice(2).toUpperCase():(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:"Ahora eres emprendedor", texto:`El salario de ${fmt0(s.salario)} se acaba desde el mes que viene. A cambio, ganaste ${hm(prof().horas)} horas al mes para cuidar los negocios: sin tu ausencia, dejan de rendir menos. El fondo de emergencia se vuelve aún más importante, porque un negocio no tiene paga extra de fin de año ni vacaciones pagadas.`};
@@ -14115,7 +14131,7 @@ document.addEventListener('click', e=>{
         const n=lerCotas(inp.value), px=preco(al);
         if(n<=0) return mostrarErro("Introduce cuántas acciones, al menos 1.");
         if(tipo==='guardar'){ const maxN=cotasInt(Math.max(0,s.conta)/px);
-          if(n>maxN) return mostrarErro(maxN>0?`Con ${fmt(Math.max(0,s.conta))} en la cuenta, puedes comprar hasta ${maxN} ${maxN===1?'share':'shares'}.`:`Necesitas ${fmt(px)} en la cuenta para comprar 1 acción.`);
+          if(n>maxN) return mostrarErro(maxN>0?`Con ${fmt(Math.max(0,s.conta))} en la cuenta, puedes comprar hasta ${maxN} ${maxN===1?'acción':'acciones'}.`:`Necesitas ${fmt(px)} en la cuenta para comprar 1 acción.`);
           v=n*px; }
         else { const qD=disponivel(al)/px, maxN=Math.ceil(qD-1e-6);
           if(n>maxN) return mostrarErro(`Tienes ${dec1q(qD)} ${umOuVarios(qD,UNID[al])}.`);
@@ -14130,7 +14146,7 @@ document.addEventListener('click', e=>{
         aplicar(al, v);
         if(U){ const q=v/px, pmDepois=precoMedio(al);
           s.licao = qAntes>0 && px<pmAntes*0.97
-            ? {tom:'bom', titulo:`Compraste barato: +${dec1q(q)} ${U.varios}`, texto:`El ${al==='ouro'?'gram':'share'} está en ${fmt(px)}, por debajo de tu precio medio de ${fmt(pmAntes)}. Con el mismo dinero conseguiste ${U.varios} más, y tu precio medio bajó a ${fmt(pmDepois)}. Ahora tienes ${dec1q(qAntes+q)} ${U.varios}: cuando el precio vuelva, todas suben juntas.`}
+            ? {tom:'bom', titulo:`Compraste barato: +${dec1q(q)} ${U.varios}`, texto:`El ${al==='ouro'?'gramo':'acción'} está en ${fmt(px)}, por debajo de tu precio medio de ${fmt(pmAntes)}. Con el mismo dinero conseguiste ${U.varios} más, y tu precio medio bajó a ${fmt(pmDepois)}. Ahora tienes ${dec1q(qAntes+q)} ${U.varios}: cuando el precio vuelva, todas suben juntas.`}
             : {tom:'neutro', titulo:`+${dec1q(q)} ${U.varios} of ${prod(al).curto}`, texto:`Compraste el ${fmt(px)} ${al==='ouro'?"gram":"share"} y ahora tienes ${dec1q(qAntes+q)} ${U.varios}.${qAntes>0?` Precio medio: ${fmt(pmDepois)}.`:''}`};
         }
       }
@@ -15160,7 +15176,7 @@ function sortearDividendo(){
   return {dy, tipo};
 }
 const PX_ACOES0 = 300, PX_OURO0 = 600; // cota inicial (parecida com o IVVB11) e grama de ouro
-const UNID = {acoes:{um:'share', varios:'shares', curto:'shares'}, ouro:{um:'gram', varios:'grams', curto:'g'}};
+const UNID = {acoes:{um:'ação', varios:'ações', curto:'ações'}, ouro:{um:'grama', varios:'gramas', curto:'g'}};
 const preco = id => id==='acoes' ? s.mk.pxA : id==='ouro' ? s.mk.pxO : null;
 const qtd = id => preco(id) ? valor(id)/preco(id) : 0;
 // ações só em cotas inteiras, como na B3
@@ -20424,7 +20440,7 @@ function renderModal0(){
       <h3 id="m-t">${tipo==='guardar'?"Que parte do saldo investir?":"Quantas ações vender?"}</h3>
       ${aviso?`<p class="hint">${aviso}</p>`:''}
       ${tipo==='guardar'?campoPct(alvo)+`<p class="hint">Ação hoje: <span class="num">${fmt(px)}</span>${maxN===0?` · <span style="color:var(--loss)">precisas de pelo menos ${fmt(px)} na conta para comprar 1 ação</span>`:''}</p>`:`<div class="campo">
-        <label for="valor" class="hint">Ação hoje: <span class="num">${fmt(px)}</span> · ${tipo==='guardar'?`podes comprar até <b class="num">${maxN}</b> ${maxN===1?'share':'shares'}`:`tens <b class="num">${dec1q(qDisp)}</b> ${umOuVarios(qDisp,UNID[alvo])}`}</label>
+        <label for="valor" class="hint">Ação hoje: <span class="num">${fmt(px)}</span> · ${tipo==='guardar'?`podes comprar até <b class="num">${maxN}</b> ${maxN===1?'ação':'ações'}`:`tens <b class="num">${dec1q(qDisp)}</b> ${umOuVarios(qDisp,UNID[alvo])}`}</label>
         <input id="valor" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
         <div class="chips">${[1,5,10,50,100].filter(v=>v<=maxN).map(v=>`<button data-acao="chip" data-alvo="${v}">+${v}</button>`).join('')}${maxN>0?`<button data-acao="chip" data-alvo="tudo">${tipo==='guardar'?"Máx.":"Tudo"}</button>`:''}</div>
       </div>`}
@@ -20512,7 +20528,7 @@ const campoPct = (al) => { const c=Math.max(0,s.conta), sel=lerValor(ui.valor||'
   return `<div class="campo">
         <span class="hint">Na conta: <span class="num">${fmt(c)}</span> · quanto ${POR_COTA(al)?"usar para comprar ações":'save'}?</span>
         <label for="valor" class="hint">Indica uma percentagem</label>
-        <div class="pct-campo"><input id="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="E.g.: 30"><span>%</span></div>
+        <div class="pct-campo"><input id="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 30"><span>%</span></div>
       </div>
       <div class="preview" id="previewPct" aria-live="polite"></div>`; };
 function atualizarPct(){
@@ -20523,7 +20539,7 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">O máximo é 100% do saldo.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% da conta = <b>${g.n} ${g.n===1?'share':'shares'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span>${pt}% da conta = <b>${g.n} ${g.n===1?'ação':'ações'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% da conta (${fmt(c*bruto/100)}) não compra 1 ação de ${fmt(px)}.</span>`; return; }
   el.innerHTML=`<span>${pt}% da conta = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} ficam na conta à ordem.</span>`;
 }
@@ -20533,9 +20549,9 @@ function atualizarQtd(){
   if(POR_COTA(alvo)){ const n=tipo==='guardar'?guardarDe(alvo).n:lerCotas(document.getElementById('valor').value), qD=disponivel(alvo)/px;
     if(n<=0){ el.innerHTML=`<span>Tens ${dec1q(q0)} ${umOuVarios(q0,U)}${q0>0?` · preço médio ${fmt(pm)}`:''}.</span>`; return; }
     if(tipo==='guardar'){ const v=n*px, sobra=Math.max(0,s.conta)-v;
-      el.innerHTML=`<span>${n} ${n===1?'share':'shares'} × ${fmt(px)} = <b>${fmt(v)}</b></span>`+(sobra>=0?`<span>${fmt(sobra)} ficam na conta. Ficarás com ${dec1q(q0+n)} ações.${q0>0&&px<pm*0.97?" A comprar abaixo do teu preço médio!":''}</span>`:`<span style="color:var(--loss)">Faltam ${fmt(-sobra)} na conta.</span>`);
+      el.innerHTML=`<span>${n} ${n===1?'ação':'ações'} × ${fmt(px)} = <b>${fmt(v)}</b></span>`+(sobra>=0?`<span>${fmt(sobra)} ficam na conta. Ficarás com ${dec1q(q0+n)} ações.${q0>0&&px<pm*0.97?" A comprar abaixo do teu preço médio!":''}</span>`:`<span style="color:var(--loss)">Faltam ${fmt(-sobra)} na conta.</span>`);
     } else { const v=Math.min(n*px, disponivel(alvo));
-      el.innerHTML=`<span>${n} ${n===1?'share':'shares'} × ${fmt(px)} = <b>${fmt(v)}</b></span><span>Faltam ${dec1q(Math.max(0,qD-n))} ${umOuVarios(Math.max(0,qD-n),U)}.</span>`; }
+      el.innerHTML=`<span>${n} ${n===1?'ação':'ações'} × ${fmt(px)} = <b>${fmt(v)}</b></span><span>Faltam ${dec1q(Math.max(0,qD-n))} ${umOuVarios(Math.max(0,qD-n),U)}.</span>`; }
     return; }
   const v=tipo==='guardar'?guardarDe(alvo).v:lerValor(document.getElementById('valor').value);
   const linhaPreco=`<span>${alvo==='ouro'?"Grama":"Ação"} hoje: <b>${fmt(px)}</b>${q0>0?` · o teu preço médio: <b style="color:${px>=pm?'var(--gain)':'var(--loss)'}">${fmt(pm)}</b>`:''}</span>`;
@@ -20807,7 +20823,7 @@ document.addEventListener('click', e=>{
       if(!podeAVista(A)){ erroEl.textContent=`Tens ${fmt(Math.max(0,s.conta)+investido())} entre conta e investimentos.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
     case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
-    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
+    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo.slice(0,2)==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':alvo.slice(0,2)==='es'?alvo.slice(2).toUpperCase():(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:"Agora és empreendedor", texto:`O salário de ${fmt0(s.salario)} pára a partir do próximo mês. Em troca, ganhaste ${hm(prof().horas)} horas por mês para cuidar dos negócios: como já não estás ausente, deixam de render menos. O fundo de emergência fica ainda mais importante, porque um negócio não tem subsídio de Natal nem férias pagas.`};
@@ -20869,7 +20885,7 @@ document.addEventListener('click', e=>{
         const n=lerCotas(inp.value), px=preco(al);
         if(n<=0) return mostrarErro("Indica quantas ações, pelo menos 1.");
         if(tipo==='guardar'){ const maxN=cotasInt(Math.max(0,s.conta)/px);
-          if(n>maxN) return mostrarErro(maxN>0?`Com ${fmt(Math.max(0,s.conta))} na conta, podes comprar até ${maxN} ${maxN===1?'share':'shares'}.`:`Precisas de ${fmt(px)} na conta para comprar 1 ação.`);
+          if(n>maxN) return mostrarErro(maxN>0?`Com ${fmt(Math.max(0,s.conta))} na conta, podes comprar até ${maxN} ${maxN===1?'ação':'ações'}.`:`Precisas de ${fmt(px)} na conta para comprar 1 ação.`);
           v=n*px; }
         else { const qD=disponivel(al)/px, maxN=Math.ceil(qD-1e-6);
           if(n>maxN) return mostrarErro(`Tens ${dec1q(qD)} ${umOuVarios(qD,UNID[al])}.`);
@@ -20884,7 +20900,7 @@ document.addEventListener('click', e=>{
         aplicar(al, v);
         if(U){ const q=v/px, pmDepois=precoMedio(al);
           s.licao = qAntes>0 && px<pmAntes*0.97
-            ? {tom:'bom', titulo:`Compraste em baixa: +${dec1q(q)} ${U.varios}`, texto:`O ${al==='ouro'?'gram':'share'} está a ${fmt(px)}, abaixo do teu preço médio de ${fmt(pmAntes)}. Com o mesmo dinheiro ficaste com mais ${U.varios}, e o teu preço médio desceu para ${fmt(pmDepois)}. Agora tens ${dec1q(qAntes+q)} ${U.varios}: quando o preço voltar, todos sobem juntos.`}
+            ? {tom:'bom', titulo:`Compraste em baixa: +${dec1q(q)} ${U.varios}`, texto:`O ${al==='ouro'?'grama':'ação'} está a ${fmt(px)}, abaixo do teu preço médio de ${fmt(pmAntes)}. Com o mesmo dinheiro ficaste com mais ${U.varios}, e o teu preço médio desceu para ${fmt(pmDepois)}. Agora tens ${dec1q(qAntes+q)} ${U.varios}: quando o preço voltar, todos sobem juntos.`}
             : {tom:'neutro', titulo:`+${dec1q(q)} ${U.varios} of ${prod(al).curto}`, texto:`Compraste o ${fmt(px)} ${al==='ouro'?"gram":"share"} e agora tens ${dec1q(qAntes+q)} ${U.varios}.${qAntes>0?` Preço médio: ${fmt(pmDepois)}.`:''}`};
         }
       }
@@ -27557,7 +27573,7 @@ document.addEventListener('click', e=>{
       if(!podeAVista(A)){ erroEl.textContent=`Você tem ${fmt(Math.max(0,s.conta)+investido())} entre conta e investimentos.`; break; }
       amortizar(p.uid, Math.min(A, saldoParc(p)), ui.amortModo||'prazo'); ui.modal=null; ui.amortValor=''; salvar(); render(); break; }
     case 'irCorrida': { ui.aba='vida'; ui.telaScroll=0; ui.ancora='provas-corrida'; try{ localStorage.setItem('corrida-aba','vida'); }catch(e){} render(); break; }
-    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
+    case 'idioma': { try{ salvar(); localStorage.setItem('corrida-lang',alvo==='pt'?'pt':alvo==='ptpt'?'pt-pt':alvo.slice(0,2)==='es'?'es':'en'); if(alvo!=='pt') localStorage.setItem('corrida-pais',alvo==='ptpt'?'PT':alvo==='es'?'ES':alvo.slice(0,2)==='es'?alvo.slice(2).toUpperCase():(({gb:'GB',au:'AU',ca:'CA',nz:'NZ',ie:'IE'})[alvo]||'US')); }catch(e){} location.reload(); break; }
     case 'aba': { ui.aba=alvo; ui.telaScroll=0; if(alvo==='renda'){ s.ofertasVistas=(s.ofertas||[]).map(o=>o.uid); if((s.infl||0)>=100) s.inflVisto=true; salvar(); } try{ localStorage.setItem('corrida-aba',alvo); }catch(e){} render(); break; }
     case 'empresario': { s.empresario=true; s.extra=false; const c=lerCamp(); c.empresario=true; c.extra=false; gravarCamp(c);
       s.licao={tom:'neutro', titulo:'Agora você é empresário(a)', texto:`O salário de ${fmt0(s.salario)} para a partir do mês que vem. Em troca, você ganhou ${hm(prof().horas)} horas por mês para cuidar dos negócios: sem você ausente, eles param de render menos. A reserva de emergência fica ainda mais importante, porque negócio não paga 13º nem férias.`};
