@@ -1,0 +1,33 @@
+{
+ "name": "चूहा दौड़",
+ "short_name": "चूहा दौड़",
+ "description": "पैसे की शिक्षा का खेल: आपातकालीन फ़ंड, निवेश और आर्थिक आज़ादी।",
+ "lang": "hi",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#0E1014",
+ "theme_color": "#F5F3EF",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ],
+ "dir": "ltr"
+}
