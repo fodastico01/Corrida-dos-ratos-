@@ -39,7 +39,8 @@ if (html.includes('fonts.googleapis.com') || html.includes('fonts.gstatic.com'))
 
 
 // 3) Anúncios, consentimento e compra "Remover anúncios" (só no app Android)
-const cfg = { intersticial: process.env.ADMOB_INTERSTITIAL_ID || 'ca-app-pub-3940256099942544/1033173712', produto: process.env.IAP_PRODUCT_ID || 'remover_anuncios', teste: !process.env.ADMOB_INTERSTITIAL_ID };
+const idAd = process.env.ADMOB_INTERSTITIAL_ID, modoTeste = !idAd || idAd === 'TESTE';
+const cfg = { intersticial: modoTeste ? 'ca-app-pub-3940256099942544/1033173712' : idAd, produto: process.env.IAP_PRODUCT_ID || 'remover_anuncios', teste: modoTeste };
 if (cfg.teste) console.warn('AVISO: sem ADMOB_INTERSTITIAL_ID; usando anuncios de TESTE do Google (nao rendem dinheiro)');
 fs.writeFileSync(path.join(www, 'ads-config.js'), 'window.__ADS_CFG=' + JSON.stringify(cfg) + ';\n');
 fs.copyFileSync(path.join(import.meta.dirname, 'ads.js'), path.join(www, 'ads.js'));

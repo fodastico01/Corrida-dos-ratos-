@@ -98,19 +98,20 @@
   function preparar(){
     if(semAnuncios() || carregando || pronto) return;
     carregando = true;
-    AdMob.prepareInterstitial({adId: CFG.intersticial, isTesting: !!CFG.teste}).then(function(){ pronto=true; carregando=false; }).catch(function(){ carregando=false; });
+    AdMob.prepareInterstitial({adId: CFG.intersticial, isTesting: !!CFG.teste}).then(function(){ pronto=true; carregando=false; diag('Anuncio de teste carregado'); }).catch(function(e){ carregando=false; diag('Anuncio: erro ao preparar ' + (e && (e.message||JSON.stringify(e)))); });
   }
   if(AdMob){
     try{
       AdMob.addListener('interstitialAdDismissed', function(){ pronto=false; setTimeout(preparar, 1500); });
-      AdMob.addListener('interstitialAdFailedToShow', function(){ pronto=false; setTimeout(preparar, 30000); });
-      AdMob.addListener('interstitialAdFailedToLoad', function(){ pronto=false; carregando=false; setTimeout(preparar, 60000); });
+      AdMob.addListener('interstitialAdFailedToShow', function(e){ diag('Anuncio: falhou ao mostrar ' + (e && (e.message||''))); pronto=false; setTimeout(preparar, 30000); });
+      AdMob.addListener('interstitialAdFailedToLoad', function(e){ pronto=false; carregando=false; diag('Anuncio: falhou ao carregar ' + (e && (e.code||'') + ' ' + (e && (e.message||'')))); setTimeout(preparar, 60000); });
     }catch(e){}
   }
+  function diag(m){ if(CFG.teste) toast(m); }
   function talvezMostrar(){
-    if(semAnuncios() || !AdMob || !pronto) return;
+    if(semAnuncios() || !AdMob || !pronto){ diag('Anuncio ainda nao pronto (carregado: ' + pronto + ')'); return; }
     var agora = Date.now();
-    if(agora-inicio < ATRASO_INICIAL || agora-ultimo < INTERVALO) return;
+    if(agora-inicio < ATRASO_INICIAL || agora-ultimo < INTERVALO){ diag('Anuncio: aguardando intervalo minimo'); return; }
     ultimo = agora; pronto = false;
     AdMob.showInterstitial().catch(function(){ setTimeout(preparar, 30000); });
   }

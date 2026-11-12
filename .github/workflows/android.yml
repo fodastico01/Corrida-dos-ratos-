@@ -11,6 +11,10 @@ on:
         description: "Nome da versao (ex.: 1.0)"
         required: true
         default: "1.0"
+      anuncios_teste:
+        description: "true = usa o anuncio de TESTE do Google e mostra avisos de diagnostico (so para verificar). false = ID real."
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -24,7 +28,7 @@ jobs:
       VERSION_NAME: ${{ inputs.version_name }}
       KEY_ALIAS: upload
       ADMOB_APP_ID: ca-app-pub-5824911007984089~1834935116
-      ADMOB_INTERSTITIAL_ID: ca-app-pub-5824911007984089/2270049383
+      ADMOB_INTERSTITIAL_ID: ${{ inputs.anuncios_teste == 'true' && 'TESTE' || 'ca-app-pub-5824911007984089/2270049383' }}
       IAP_PRODUCT_ID: ${{ vars.IAP_PRODUCT_ID }}
     steps:
       - uses: actions/checkout@v4
