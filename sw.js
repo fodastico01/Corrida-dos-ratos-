@@ -1,4 +1,4 @@
-const CACHE='corrida-v487';
+const CACHE='corrida-v488';
 const ARQS=['./','./index.html','./manifest.json','./manifest-en.json','./manifest-es.json','./manifest-pt-pt.json','./manifest-fr.json','./manifest-it.json','./manifest-de.json','./manifest-ru.json','./manifest-id.json','./manifest-tr.json','./manifest-ar.json','./manifest-ja.json','./manifest-ko.json','./manifest-hi.json','./manifest-zh.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ARQS.map(u=>new Request(u,{cache:'reload'}))))); self.skipWaiting(); });
 self.addEventListener('activate',e=>{ e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))); self.clients.claim(); });
