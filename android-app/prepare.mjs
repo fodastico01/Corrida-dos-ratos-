@@ -48,6 +48,6 @@ if (!html.includes('</body>')) throw new Error('</body> nao encontrado para inje
 html = html.replace('</body>', '<script src="ads-config.js"></script>\n<script src="ads.js"></script>\n</body>');
 
 fs.writeFileSync(path.join(www, 'index.html'), html);
-for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'manifest.json', 'manifest-en.json'])
+for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'manifest.json', 'manifest-en.json', 'musica.ogg', 'musica.mp3'])
   if (fs.existsSync(path.join(raiz, f))) fs.copyFileSync(path.join(raiz, f), path.join(www, f));
 console.log('www pronto:', (fs.statSync(path.join(www, 'index.html')).size / 1e6).toFixed(1), 'MB, fontes:', fs.readdirSync(path.join(www, 'fonts')).length);
