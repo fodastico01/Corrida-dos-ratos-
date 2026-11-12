@@ -81,19 +81,25 @@
   }
 
   /* ---------- anúncios ---------- */
+  var tentativas = 0;
   function iniciarAnuncios(){
     if(!AdMob || iniciado || semAnuncios()) return;
-    iniciado = true;
+    iniciado = true; tentativas++;
+    diag('Iniciando anuncios (tentativa ' + tentativas + ')');
     AdMob.requestConsentInfo().then(function(info){
+      diag('Consentimento: status=' + (info && info.status) + ' canRequestAds=' + (info && info.canRequestAds) + ' formulario=' + (info && info.isConsentFormAvailable));
       consentimentoOpcoes = info && info.privacyOptionsRequirementStatus==='REQUIRED';
       if(info && info.isConsentFormAvailable && info.status==='REQUIRED') return AdMob.showConsentForm();
       return info;
     }).then(function(info){
       if(info) consentimentoOpcoes = consentimentoOpcoes || info.privacyOptionsRequirementStatus==='REQUIRED';
       atualizarUI();
-      if(!info || !info.canRequestAds) return;
-      return AdMob.initialize({initializeForTesting: !!CFG.teste}).then(preparar);
-    }).catch(function(){ iniciado=false; });
+      if(!info || !info.canRequestAds){ diag('Nao pode pedir anuncios (canRequestAds falso)'); iniciado=false; return; }
+      return AdMob.initialize({initializeForTesting: !!CFG.teste}).then(function(){ diag('AdMob inicializado'); preparar(); });
+    }).catch(function(e){
+      diag('Erro ao iniciar: ' + (e && (e.message||JSON.stringify(e))));
+      iniciado=false; if(tentativas<4) setTimeout(iniciarAnuncios, 45000);
+    });
   }
   function preparar(){
     if(semAnuncios() || carregando || pronto) return;
@@ -107,7 +113,17 @@
       AdMob.addListener('interstitialAdFailedToLoad', function(e){ pronto=false; carregando=false; diag('Anuncio: falhou ao carregar ' + (e && (e.code||'') + ' ' + (e && (e.message||'')))); setTimeout(preparar, 60000); });
     }catch(e){}
   }
-  function diag(m){ if(CFG.teste) toast(m); }
+  var LOG = [];
+  function diag(m){
+    if(!CFG.teste) return;
+    LOG.push(new Date().toTimeString().slice(0,8) + ' ' + m); if(LOG.length>7) LOG.shift();
+    var d = document.getElementById('ads-diag');
+    if(!d){ d = document.createElement('div'); d.id='ads-diag';
+      d.style.cssText='position:fixed;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 4px);background:rgba(0,0,0,.82);color:#9f9;padding:6px 8px;border-radius:8px;font:11px/1.3 monospace;z-index:99998;white-space:pre-wrap;word-break:break-word';
+      d.addEventListener('click', function(){ d.style.display='none'; });
+      document.body.appendChild(d); }
+    d.style.display='block'; d.textContent = 'ANUNCIOS (toque p/ fechar)\n' + LOG.join('\n');
+  }
   function talvezMostrar(){
     if(semAnuncios() || !AdMob || !pronto){ diag('Anuncio ainda nao pronto (carregado: ' + pronto + ')'); return; }
     var agora = Date.now();
