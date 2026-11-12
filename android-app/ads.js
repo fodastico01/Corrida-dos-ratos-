@@ -119,6 +119,18 @@
     var el = ev.target && ev.target.closest && ev.target.closest('[data-acao="slotSalvar"],[data-acao="slotCarregar"]');
     if(el) setTimeout(talvezMostrar, 700);
   }, true);
+  /* depois de avançar um mês: espera as cartas e janelas fecharem (nunca no meio de uma decisão) e só então mostra */
+  var espera = null;
+  document.addEventListener('click', function(ev){
+    var el = ev.target && ev.target.closest && ev.target.closest('[data-acao="avancar"]');
+    if(!el || espera || semAnuncios()) return;
+    var t0 = Date.now();
+    espera = setInterval(function(){
+      if(Date.now()-t0 > 30000){ clearInterval(espera); espera = null; return; }
+      if(document.querySelector('.overlay')) return;   // ainda há carta/janela aberta
+      clearInterval(espera); espera = null; talvezMostrar();
+    }, 1500);
+  }, true);
 
   /* ---------- tela de Configurações ---------- */
   function secao(){
