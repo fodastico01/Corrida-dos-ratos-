@@ -23,6 +23,9 @@ jobs:
       VERSION_CODE: ${{ inputs.version_code }}
       VERSION_NAME: ${{ inputs.version_name }}
       KEY_ALIAS: upload
+      ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+      ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
+      IAP_PRODUCT_ID: ${{ vars.IAP_PRODUCT_ID }}
     steps:
       - uses: actions/checkout@v4
 

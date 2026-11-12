@@ -38,6 +38,14 @@ if (html.includes('fonts.googleapis.com') || html.includes('fonts.gstatic.com'))
 
 
 
+// 3) Anúncios, consentimento e compra "Remover anúncios" (só no app Android)
+const cfg = { intersticial: process.env.ADMOB_INTERSTITIAL_ID || 'ca-app-pub-3940256099942544/1033173712', produto: process.env.IAP_PRODUCT_ID || 'remover_anuncios', teste: !process.env.ADMOB_INTERSTITIAL_ID };
+if (cfg.teste) console.warn('AVISO: sem ADMOB_INTERSTITIAL_ID; usando anuncios de TESTE do Google (nao rendem dinheiro)');
+fs.writeFileSync(path.join(www, 'ads-config.js'), 'window.__ADS_CFG=' + JSON.stringify(cfg) + ';\n');
+fs.copyFileSync(path.join(import.meta.dirname, 'ads.js'), path.join(www, 'ads.js'));
+if (!html.includes('</body>')) throw new Error('</body> nao encontrado para injetar ads.js');
+html = html.replace('</body>', '<script src="ads-config.js"></script>\n<script src="ads.js"></script>\n</body>');
+
 fs.writeFileSync(path.join(www, 'index.html'), html);
 for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'manifest.json', 'manifest-en.json'])
   if (fs.existsSync(path.join(raiz, f))) fs.copyFileSync(path.join(raiz, f), path.join(www, f));
