@@ -86,7 +86,11 @@
     if(!AdMob || iniciado || semAnuncios()) return;
     iniciado = true; tentativas++;
     diag('Iniciando anuncios (tentativa ' + tentativas + ')');
-    AdMob.requestConsentInfo().then(function(info){
+    AdMob.requestConsentInfo().catch(function(e){
+      // sem formulario de consentimento configurado no AdMob (ou falha de rede): segue sem ele
+      diag('Consentimento indisponivel, seguindo sem ele: ' + (e && (e.message||JSON.stringify(e))).slice(0,90));
+      return {status:'ERRO', canRequestAds:true, isConsentFormAvailable:false, privacyOptionsRequirementStatus:'UNKNOWN'};
+    }).then(function(info){
       diag('Consentimento: status=' + (info && info.status) + ' canRequestAds=' + (info && info.canRequestAds) + ' formulario=' + (info && info.isConsentFormAvailable));
       consentimentoOpcoes = info && info.privacyOptionsRequirementStatus==='REQUIRED';
       if(info && info.isConsentFormAvailable && info.status==='REQUIRED') return AdMob.showConsentForm();
