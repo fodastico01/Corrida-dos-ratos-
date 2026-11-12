@@ -5582,7 +5582,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Choose an option</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -5605,7 +5605,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -12337,7 +12337,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Elige una opción</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -12360,7 +12360,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -19091,7 +19091,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Escolhe uma opção</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -19114,7 +19114,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -25846,7 +25846,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Choisis une option</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -25869,7 +25869,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -32601,7 +32601,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Scegli un'opzione</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -32624,7 +32624,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -39356,7 +39356,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Wähle eine Option</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -39379,7 +39379,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -46111,7 +46111,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Выбери вариант</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -46134,7 +46134,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -52866,7 +52866,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Pilih satu opsi</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -52889,7 +52889,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -59621,7 +59621,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Bir seçenek seç</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -59644,7 +59644,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -66376,7 +66376,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">اختر خياراً</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -66399,7 +66399,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -73131,7 +73131,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">選択肢を選んでください</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -73154,7 +73154,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -79886,7 +79886,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">선택지를 고르세요</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -79909,7 +79909,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -86640,7 +86640,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">एक विकल्प चुनें</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -86663,7 +86663,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -93394,7 +93394,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">选择一个选项</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -93417,7 +93417,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?"data-acao=\"regirar\"":`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?" class=\"tl2\" style=\"font-size:clamp(10px,3.3vw,12.5px)\"":tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
@@ -100144,7 +100144,7 @@ function moldeCarta(ev,ops,extra,rr,foil){
     +(ops.length<3?`<div class="mold-vazia" style="${box(MOLD['op'+(ops.length+1)])}">Escolha uma opção</div>`:'');
   return `<div class="cx-frente mold${MK?' foil':''}" style="aspect-ratio:${MOLD.ratio}">
     <div class="mold-fundo" style="${box(MOLD.cena)}">${cena?`<img src="${cena}" alt="">`:''}</div>
-    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}
+    ${cena?`<img class="mold-cena" style="${box(MOLD.cena)}" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}
     <img class="mold-fr" src="${M}" alt="">
     ${MK?`<div class="mold-luz" style="-webkit-mask-image:url(${MK});mask-image:url(${MK})"></div>`:''}
     <div class="mold-tit" style="${box(MOLD.titulo)}"><h3 id="m-t"${String(txt(ev.titulo)).length>27?' class="tl2"':''}>${txt(ev.titulo)}</h3></div>
@@ -100167,7 +100167,7 @@ function moldeCarta2(ev,ops,extra,cat,RC,cena){
     return `<button class="mc-op${o.coin?' coin':''}${sb&&!curto?' longo':''}" ${o.regirar?'data-acao="regirar"':`data-acao="opcao" data-alvo="${i}"`} ${o.disabled?'disabled':''}><b>${o.label}</b>${sb?`<span>${sb}</span>`:''}</button>`; }).join('');
   const tl=String(txt(ev.titulo)).length;
   return `<div class="cx-frente mc mc-${cor}" role="group">
-    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit=(this.naturalWidth/this.naturalHeight>1.8?'cover':'contain')">`:''}<img class="mc-fr" src="${T}" alt="">
+    <div class="mc-topo"><div class="mc-fundo">${cena?`<img src="${cena}" alt="">`:''}</div>${cena?'':`<div class="mc-semcena">${pix(iconeEvento(s.evento),'mc-gr')}</div>`}${cena?`<img class="mc-cena" src="${cena}" alt="" onload="this.style.objectFit='cover';this.style.objectPosition=(this.naturalWidth/this.naturalHeight>1.8?'50% 50%':'50% 32%')">`:''}<img class="mc-fr" src="${T}" alt="">
       <div class="mc-tit"><span class="mc-badge" title="${sm[2]}">${simb}</span><h3 id="m-t"${tl>30?' class="tl2" style="font-size:clamp(10px,3.3vw,12.5px)"':tl>20?' class="tl2"':''}>${txt(ev.titulo)}</h3></div></div>
     <div class="mc-meio" style="background-image:url(${M})">
       <div class="mc-tx"><small class="mc-data">${sm[2]} · ${rotulo(s.mes)}</small><p>${txt(ev.texto)}</p>
