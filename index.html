@@ -4917,10 +4917,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -4931,8 +4932,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -5088,7 +5089,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -5726,7 +5727,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="City map">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" years":"month "+s.mes+" of "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Surprise: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>rolled ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>rolled ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Drag · pinch to zoom</span>":''}
     </div>
     <div class="mp-barra">
@@ -11488,10 +11489,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -11502,8 +11504,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -11659,7 +11661,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -12297,7 +12299,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Mapa de la ciudad">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" años":"mes "+s.mes+" de "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Sorpresa: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>sacó ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>sacó ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Arrastra · pellizca para hacer zoom</span>":''}
     </div>
     <div class="mp-barra">
@@ -18058,10 +18060,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -18072,8 +18075,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -18229,7 +18232,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -18867,7 +18870,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Mapa da cidade">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" anos":"mês "+s.mes+" de "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Surpresa: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>saiu ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>saiu ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Arrasta · pinça para ampliar</span>":''}
     </div>
     <div class="mp-barra">
@@ -24629,10 +24632,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -24643,8 +24647,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -24800,7 +24804,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -25438,7 +25442,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Plan de la ville">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" ans":"mois "+s.mes+" de "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Surprise : ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>a fait ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>a fait ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Glisse · pince pour zoomer</span>":''}
     </div>
     <div class="mp-barra">
@@ -31200,10 +31204,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -31214,8 +31219,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -31371,7 +31376,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -32009,7 +32014,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Mappa della città">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" anni":"mese "+s.mes+" di "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Sorpresa: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>uscito ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>uscito ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Trascina · pizzica per ingrandire</span>":''}
     </div>
     <div class="mp-barra">
@@ -37771,10 +37776,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -37785,8 +37791,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -37942,7 +37948,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -38580,7 +38586,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Stadtplan">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" Jahre":"Monat "+s.mes+" von "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Überraschung: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} gewürfelt</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} gewürfelt</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Ziehen · zum Zoomen spreizen</span>":''}
     </div>
     <div class="mp-barra">
@@ -44342,10 +44348,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -44356,8 +44363,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -44513,7 +44520,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -45151,7 +45158,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Карта города">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" лет":"мес. "+s.mes+" из "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Сюрприз: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>выпало ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>выпало ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Тяни · щипок для масштаба</span>":''}
     </div>
     <div class="mp-barra">
@@ -50913,10 +50920,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -50927,8 +50935,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -51084,7 +51092,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -51722,7 +51730,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Peta kota">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" tahun":"bln "+s.mes+" dari "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Kejutan: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>mendapat ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>mendapat ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Seret · cubit untuk zoom</span>":''}
     </div>
     <div class="mp-barra">
@@ -57484,10 +57492,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -57498,8 +57507,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -57655,7 +57664,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -58293,7 +58302,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Şehir haritası">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" yıl":"ay "+s.mes+" / "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"Sürpriz: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} attı</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} attı</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">Sürükle · yakınlaştırmak için kıstır</span>":''}
     </div>
     <div class="mp-barra">
@@ -64055,10 +64064,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -64069,8 +64079,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -64226,7 +64236,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -64864,7 +64874,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="خريطة المدينة">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" سنوات":"شهر "+s.mes+" من "+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"مفاجأة: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>رمى ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>رمى ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">اسحب · اقرص للتكبير</span>":''}
     </div>
     <div class="mp-barra">
@@ -70626,10 +70636,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -70640,8 +70651,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -70797,7 +70808,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -71435,7 +71446,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="街の地図">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+"歳":s.mes+"/"+tot+"か月"}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"サプライズ： ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>出目${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>出目${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">ドラッグ・ピンチでズーム</span>":''}
     </div>
     <div class="mp-barra">
@@ -77197,10 +77208,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -77211,8 +77223,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -77368,7 +77380,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -78006,7 +78018,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="도시 지도">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+"세":s.mes+"/"+tot+"개월"}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"서프라이즈: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} 나왔어요</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} 나왔어요</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">드래그 · 핀치로 확대</span>":''}
     </div>
     <div class="mp-barra">
@@ -83767,10 +83779,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -83781,8 +83794,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -83938,7 +83951,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -84576,7 +84589,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="शहर का नक़्शा">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" साल":s.mes+"/"+tot+" महीने"}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"आश्चर्य: ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} आया</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>${R.dado} आया</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">खींचें · ज़ूम के लिए पिंच करें</span>":''}
     </div>
     <div class="mp-barra">
@@ -90337,10 +90350,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -90351,8 +90365,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -90508,7 +90522,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia("(prefers-reduced-motion: reduce)").matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -91146,7 +91160,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="城市地图">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+" 年":"第"+s.mes+"/"+tot+"个月"}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?"惊喜： ":''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>掷出${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>掷出${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?"<span class=\"mp-dica\">拖动 · 双指缩放</span>":''}
     </div>
     <div class="mp-barra">
@@ -96903,10 +96917,11 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6);
-  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=1+Math.floor(Math.random()*6); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
+  const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
+  if(de>=ini && de<=ini+L-3){ let t=0; while(de+d1+d2>ini+L-1 && t++<80){ d1=1+Math.floor(Math.random()*6); d2=N2*(1+Math.floor(Math.random()*6)); } R.pos=de+d1+d2; }   // anda exatamente a soma dos dados, sem sair do mês
   else R.pos=ini+offDado(d1+d2,L);
   R.d1=d1; R.d2=d2; R.dado=d1+d2; R.tipo=anel()[R.pos]; R.mis=false;
   if(R.tipo==='mis'){ const A=anel().filter(t=>t!=='mis'&&t!=='cor'&&t!=='gop'); R.tipo=A[Math.floor(Math.random()*A.length)]; R.mis=true; }
@@ -96917,8 +96932,8 @@ function preLancar(){
   const R=s.rol||(s.rol={pos:0,rr:0});
   if(R.v!==3){ const antigo=R.v; R.v=3; if(antigo!==2 || R.pos==null) R.pos=MES_INI[mesCal()-1]; }
   { let mp=1; for(let i=0;i<12;i++) if((R.pos%96)>=MES_INI[i]) mp=i+1; if(mp!==mesCal() && !R.resto){ R.pos=MES_INI[mesCal()-1]; ui.peaoPos=R.pos; } }   // conserta saves em que o ratinho ficou para trás do calendário
-  let d1=1+Math.floor(Math.random()*6), d2=1+Math.floor(Math.random()*6), soma=d1+d2; const de=R.pos%96;
-  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,1])[0]; d2=(R.restoD||[1,1])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
+  let d1=1+Math.floor(Math.random()*6), d2=doisDados()?1+Math.floor(Math.random()*6):0, soma=d1+d2; const de=R.pos%96;
+  if(R.resto>0){ soma=R.resto; d1=(R.restoD||[1,0])[0]; d2=(R.restoD||[1,0])[1]; R.resto=0; R.restoD=null; }   // continua o lance interrompido na virada do ano
   else if(s.snapAno && !s.fim){   // virada do ano: o ratinho para no 1º de janeiro para o balanço, e o resto do caminho vem depois
     const d0=(96-de)%96;
     if(d0>=1 && d0<soma){ let kJ=0; for(const m of MES_INI){ const d=(m-de+96)%96; if(d>=1 && d<=d0) kJ++; }
@@ -97074,7 +97089,7 @@ function tique(forte){
 function iniciarGiro(){
   const R=s.rol;
   if(!R || window.__corridaMudo || matchMedia('(prefers-reduced-motion: reduce)').matches){ ui.peaoPos=R?.pos; ui.dadoFace=R?.dado; if(s.evento) ui.modal='evento'; render(); return; }
-  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||1}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
+  ui.giro={de:R.de??R.pos, para:R.pos, dado:R.dado||2, d1:R.d1||1, d2:R.d2||0}; ui.peaoPos=ui.giro.de; ui.girando=true; ui.giroT0=performance.now(); ui.dadoFace=null; ui.modalPend=ui.modal||ui.modalPend; ui.modal=null;
   if(s.evento){ ui.cartaTirada=s.evento+'@'+s.mes; ui.cartaAnim=true; }
   ui.aba='inicio'; render();
 }
@@ -97712,7 +97727,7 @@ function tabuleiro(tot){
   return `<div class="mp${ui.girando?' gira':''}">
     <div class="mp-vista e-${estacaoDe(atual)}" id="mapa" aria-label="Mapa da cidade">${mundoHTML()}
       <div class="tab2-selo"><b>${pix(atual===12?'🎄':atual===10?'🎃':E.ic,'mini')} ${rotulo(s.mes)}</b><small>${nomeFase()} · ${F3()?idadeJog()+' anos':'mês '+s.mes+' de '+tot}</small>${nomeCasa?`<small class="selo-casa">${pix(nomeCasa.ic,'mini')} ${R.mis?'Surpresa: ':''}${nomeCasa.nome}</small>`:''}</div>
-      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${dadoHTML(f2,'dado2')}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>tirou ${R.dado}</small>`:''}</div>
+      <div class="dado-slot${ui.girando?' grande':''}"><div class="dados">${dadoHTML(f1,'dado')}${R?.d2||ui.girando&&doisDados()?dadoHTML(f2,'dado2'):''}</div>${!ui.girando&&R?.dado&&R.mes===s.mes?`<small>tirou ${R.dado}</small>`:''}</div>
       ${cam.modo!=='tudo'?'<span class="mp-dica">Arraste · pinça para zoom</span>':''}
     </div>
     <div class="mp-barra">
