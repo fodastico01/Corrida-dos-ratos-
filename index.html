@@ -613,6 +613,10 @@ details.mais > summary::after{content:'▾';opacity:.6}
 details.mais[open] > summary::after{content:'▴'}
 details.mais > summary::-webkit-details-marker{display:none}
 details.mais[open] > summary{margin-bottom:6px}
+details.mais.luxo-det > summary,html[data-paleta="noite"] details.mais.luxo-det > summary{font-size:17px;padding:14px 16px;border-radius:14px;border:2px solid #e0a82e!important;background:linear-gradient(180deg,#ffd978,#e0a82e)!important;color:#3a2600!important;box-shadow:0 3px 0 #a87a14,0 6px 14px rgba(224,168,46,.35);text-transform:uppercase;letter-spacing:.4px}
+details.mais.luxo-det > summary::before{content:'💎 ';margin-right:6px}
+details.mais.luxo-det > summary::after{opacity:1}
+details.mais.luxo-det{margin-top:12px}
 /* compacto: descrições em uma linha (toque para abrir) e botões menores */
 .tela .desc{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;margin:2px 0 4px}
 .tela .desc.aberta{display:block}
@@ -2099,7 +2103,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Next milestone: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>All milestones</span><b>achieved</b></div>"}
     <div class="fl"><span>Monthly cost of your luxury assets</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Expensive dreams call for high income. If your income doesn't cover the monthly cost, the asset becomes a burden.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>See the assets</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>See the assets</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -4931,6 +4935,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 A new opportunity showed up in the Income tab: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Donating ${P}% of what comes into your account</h2><p class="hint">You can change this whenever you need. Given so far: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Lower to ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Stop donating</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -5267,10 +5280,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Achievement: ${novos[0].nome}`:`${novos.length} achievements!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Well-being +${4*novos.length}: seeing your own progress is also good for you.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Besides that, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 A new opportunity showed up in the Income tab: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -6334,7 +6346,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' and ')}</b><p class="hint">Sign-ups are open this month only. Tap to see it in the Life tab.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Year board">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Statement for ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Month status">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: loans and installments</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Month status">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: loans and installments</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Where your money comes from (per hour)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -7240,6 +7252,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"The game goes on", texto:"20 more years ahead. The score was saved. Now the goal is yours: build net worth, buy the luxury assets in the house tab and reach the billion."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -8690,7 +8703,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Próximo hito: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Todos los hitos</span><b>logrado</b></div>"}
     <div class="fl"><span>Coste mensual de tus bienes de lujo</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Los sueños caros piden ingresos altos. Si tus ingresos no cubren el coste mensual, el bien se vuelve una carga.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver los bienes</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver los bienes</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -11522,6 +11535,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Apareció una nueva oportunidad en la pestaña Renta: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Donando el ${P}% de lo que entra en tu cuenta</h2><p class="hint">Puedes cambiarlo cuando lo necesites. Donado hasta ahora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Bajar al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Dejar de donar</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -11858,10 +11880,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Logro: ${novos[0].nome}`:`¡${novos.length} logros!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bienestar +${4*novos.length}: ver tu propio progreso también te hace bien.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Además, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Apareció una nueva oportunidad en la pestaña Renta: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -12925,7 +12946,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' y ')}</b><p class="hint">Las inscripciones solo están abiertas este mes. Toca para verlo en la pestaña Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tablero del año">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extracto de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Estado del mes">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: préstamos y cuotas</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Estado del mes">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: préstamos y cuotas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De dónde viene tu dinero (por hora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -13831,6 +13852,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"El juego continúa", texto:"20 años más por delante. La puntuación se guardó. Ahora el objetivo es tuyo: construir patrimonio, comprar los activos de lujo en la pestaña de la casa y llegar al billón."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -15280,7 +15302,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Próximo marco: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Todos os marcos</span><b>alcançado</b></div>"}
     <div class="fl"><span>Custo mensal dos teus bens de luxo</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Sonhos caros pedem rendimento alto. Se o teu rendimento não cobrir o custo mensal, o bem torna-se um fardo.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver os bens</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver os bens</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -18112,6 +18134,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Surgiu uma nova oportunidade no separador Rendimentos: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 A doar ${P}% do que entra na tua conta</h2><p class="hint">Podes mudar isto quando precisares. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Deixar de doar</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -18448,10 +18479,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Conquista: ${novos[0].nome}`:`${novos.length} conquistas!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bem-estar +${4*novos.length}: ver o teu próprio progresso também te faz bem.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Além disso, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Surgiu uma nova oportunidade no separador Rendimentos: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -19515,7 +19545,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' e ')}</b><p class="hint">As inscrições só estão abertas neste mês. Toca para ver no separador Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Estado do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e prestações</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Estado do mês">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e prestações</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o teu dinheiro (por hora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -20421,6 +20451,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"O jogo continua", texto:"Mais 20 anos pela frente. A pontuação foi guardada. Agora a meta é tua: constrói património líquido, compra os ativos de luxo no separador da casa e chega ao bilião."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -21871,7 +21902,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Prochain palier : ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Tous les paliers</span><b>atteint</b></div>"}
     <div class="fl"><span>Coût mensuel de tes biens de luxe</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Les rêves coûteux exigent un revenu élevé. Si ton revenu ne couvre pas le coût mensuel, le bien devient un fardeau.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Voir les biens</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Voir les biens</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -24703,6 +24734,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Une nouvelle opportunité est apparue dans l'onglet Revenus : ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Tu donnes ${P} % de ce qui entre sur ton compte</h2><p class="hint">Tu peux changer quand tu veux. Donné jusqu'ici : ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baisser à ${baixo} %</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Arrêter de donner</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -25039,10 +25079,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Succès : ${novos[0].nome}`:`${novos.length} succès !`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bien-être +${4*novos.length} : voir ses propres progrès te fait aussi du bien.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` En plus, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Une nouvelle opportunité est apparue dans l'onglet Revenus : ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -26106,7 +26145,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' et ')}</b><p class="hint">Les inscriptions ne sont ouvertes que ce mois-ci. Touche pour voir dans l'onglet Vie.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Plateau de l'année">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Relevé de ${rotulo(s.mes)} : ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Situation du mois">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banque : prêts et mensualités</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Situation du mois">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banque : prêts et mensualités</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>D'où vient ton argent (par heure)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -27012,6 +27051,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"La partie continue", texto:"20 ans de plus devant toi. Le score a été enregistré. Maintenant l'objectif est le tien : bâtir du patrimoine, acheter les biens de luxe dans l'onglet Maison et atteindre le milliard."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -28462,7 +28502,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Prossimo traguardo: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Tutti i traguardi</span><b>raggiunto</b></div>"}
     <div class="fl"><span>Costo mensile dei tuoi beni di lusso</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">I sogni costosi richiedono un reddito alto. Se il tuo reddito non copre il costo mensile, il bene diventa un peso.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Vedi i beni</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Vedi i beni</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -31294,6 +31334,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 È comparsa una nuova opportunità nella scheda Reddito: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Doni il ${P}% di ciò che entra sul conto</h2><p class="hint">Puoi cambiare quando vuoi. Donato finora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Riduci al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Smetti di donare</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -31630,10 +31679,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Traguardo: ${novos[0].nome}`:`${novos.length} traguardi!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Benessere +${4*novos.length}: vedere i propri progressi fa bene anche a te.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Inoltre, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 È comparsa una nuova opportunità nella scheda Reddito: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -32697,7 +32745,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' e ')}</b><p class="hint">Le iscrizioni sono aperte solo questo mese. Tocca per vederlo nella scheda Vita.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tabellone dell'anno">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Estratto di ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Stato del mese">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banca: prestiti e rate</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Stato del mese">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banca: prestiti e rate</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Da dove viene il tuo denaro (all'ora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -33603,6 +33651,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"Il gioco continua", texto:"Altri 20 anni davanti. Il punteggio è stato salvato. Ora l'obiettivo è tuo: costruire patrimonio netto, comprare i beni di lusso nella scheda della casa e arrivare al miliardo."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -35053,7 +35102,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Nächster Meilenstein: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Alle Meilensteine</span><b>erreicht</b></div>"}
     <div class="fl"><span>Monatliche Kosten deiner Luxusgüter</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Teure Träume brauchen ein hohes Einkommen. Wenn dein Einkommen die monatlichen Kosten nicht deckt, wird das Gut zur Last.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Güter ansehen</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Güter ansehen</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -37885,6 +37934,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Eine neue Gelegenheit ist im Reiter Einkommen aufgetaucht: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Du spendest ${P} % der Kontoeingänge</h2><p class="hint">Du kannst das jederzeit ändern. Bisher gespendet: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Auf ${baixo} % senken</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Nicht mehr spenden</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -38221,10 +38279,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Erfolg: ${novos[0].nome}`:`${novos.length} Erfolge!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Wohlbefinden +${4*novos.length}: Den eigenen Fortschritt zu sehen tut dir auch gut.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Außerdem ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Eine neue Gelegenheit ist im Reiter Einkommen aufgetaucht: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -39288,7 +39345,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' und ')}</b><p class="hint">Die Anmeldungen sind nur diesen Monat offen. Tippe, um sie im Reiter Leben zu sehen.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Jahrestafel">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Auszug für ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Monatsstand">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: Kredite und Raten</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Monatsstand">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: Kredite und Raten</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Woher dein Geld kommt (pro Stunde)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -40194,6 +40251,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"Das Spiel geht weiter", texto:"20 weitere Jahre liegen vor dir. Der Punktestand wurde gespeichert. Jetzt ist das Ziel deins: Vermögen aufbauen, die Luxusgüter im Reiter Haus kaufen und die Milliarde erreichen."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -41644,7 +41702,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Следующая веха: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Все вехи</span><b>достигнуто</b></div>"}
     <div class="fl"><span>Ежемесячные расходы на твои роскошные активы</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Дорогие мечты требуют высокого дохода. Если доход не покрывает ежемесячные расходы, актив становится обузой.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Посмотреть активы</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Посмотреть активы</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -44476,6 +44534,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Во вкладке «Доход» появилась новая возможность: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Ты жертвуешь ${P}% поступлений на счёт</h2><p class="hint">Это можно изменить в любой момент. Пожертвовано: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Снизить до ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Прекратить жертвовать</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -44812,10 +44879,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Достижение: ${novos[0].nome}`:`Достижений: ${novos.length}!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Самочувствие +${4*novos.length}: видеть собственный прогресс тоже полезно для тебя.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Кроме того, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Во вкладке «Доход» появилась новая возможность: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -45879,7 +45945,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' и ')}</b><p class="hint">Запись открыта только в этом месяце. Нажми, чтобы увидеть на вкладке «Жизнь».</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Доска года">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Выписка за ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Состояние месяца">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Банк: кредиты и рассрочки</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Состояние месяца">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Банк: кредиты и рассрочки</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Откуда твои деньги (в час)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -46785,6 +46851,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"Игра продолжается", texto:"Впереди ещё 20 лет. Счёт сохранён. Теперь цель твоя: наращивай капитал, покупай роскошные активы на вкладке «Дом» и доберись до миллиарда."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -48235,7 +48302,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Tonggak berikutnya: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Semua tonggak</span><b>tercapai</b></div>"}
     <div class="fl"><span>Biaya bulanan aset mewahmu</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Impian mahal butuh penghasilan tinggi. Kalau penghasilanmu tidak menutup biaya bulanan, aset itu menjadi beban.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Lihat aset</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Lihat aset</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -51067,6 +51134,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Peluang baru muncul di tab Pendapatan: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Berdonasi ${P}% dari uang yang masuk ke rekening</h2><p class="hint">Kamu bisa mengubahnya kapan saja. Total donasi: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Turunkan ke ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Berhenti berdonasi</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -51403,10 +51479,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Pencapaian: ${novos[0].nome}`:`${novos.length} pencapaian!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Kesejahteraan +${4*novos.length}: melihat kemajuan sendiri juga baik untukmu.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Selain itu, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Peluang baru muncul di tab Pendapatan: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -52470,7 +52545,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' dan ')}</b><p class="hint">Pendaftaran hanya dibuka bulan ini. Ketuk untuk melihatnya di tab Kehidupan.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Papan tahun">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Rekening ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Status bulan ini">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: pinjaman dan cicilan</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Status bulan ini">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: pinjaman dan cicilan</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Dari mana uangmu berasal (per jam)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -53376,6 +53451,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"Game berlanjut", texto:"20 tahun lagi di depan. Skor sudah disimpan. Sekarang tujuannya milikmu: bangun kekayaan bersih, beli aset mewah di tab rumah, dan capai miliar."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -54826,7 +54902,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Sonraki kilometre taşı: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>Tüm kilometre taşları</span><b>başarıldı</b></div>"}
     <div class="fl"><span>Lüks varlıklarının aylık maliyeti</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Pahalı hayaller yüksek gelir ister. Gelirin aylık maliyeti karşılamıyorsa varlık yüke dönüşür.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Varlıkları gör</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Varlıkları gör</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -57658,6 +57734,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Gelir sekmesinde yeni bir fırsat belirdi: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Hesaba girenin %${P}'ini bağışlıyorsun</h2><p class="hint">İstediğin zaman değiştirebilirsin. Şimdiye kadar: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">%${baixo}'e düşür</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Bağışı bırak</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -57994,10 +58079,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Başarı: ${novos[0].nome}`:`${novos.length} başarı!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` İyi oluş +${4*novos.length}: kendi ilerlemeni görmek senin için de iyi.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Buna ek olarak, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Gelir sekmesinde yeni bir fırsat belirdi: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -59061,7 +59145,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' ve ')}</b><p class="hint">Kayıtlar yalnızca bu ay açık. Yaşam sekmesinde görmek için dokun.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Yıl tahtası">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>${rotulo(s.mes)} özeti: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Ay durumu">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banka: krediler ve taksitler</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Ay durumu">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banka: krediler ve taksitler</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Paran nereden geliyor (saat başı)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -59967,6 +60051,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"Oyun devam ediyor", texto:"Önünde 20 yıl daha var. Puan kaydedildi. Artık hedef senin: net varlık kur, ev sekmesindeki lüks varlıkları al ve milyara ulaş."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -61417,7 +61502,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>المحطة التالية: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>كل المحطات</span><b>تحقق</b></div>"}
     <div class="fl"><span>التكلفة الشهرية لأصولك الفاخرة</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">الأحلام الغالية تتطلب دخلاً مرتفعاً. إذا لم يغطِّ دخلك التكلفة الشهرية، يتحول الأصل إلى عبء.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>شاهد الأصول</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>شاهد الأصول</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -64249,6 +64334,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 ظهرت فرصة جديدة في تبويب الدخل: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 تتبرع بـ ${P}% مما يدخل حسابك</h2><p class="hint">يمكنك التغيير متى احتجت. المتبرَّع به حتى الآن: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">خفض إلى ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">توقف عن التبرع</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -64585,10 +64679,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`إنجاز: ${novos[0].nome}`:`${novos.length} إنجازات!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` الرفاه +${4*novos.length}: رؤية تقدمك بنفسك مفيدة لك أيضاً.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` إلى جانب ذلك، ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 ظهرت فرصة جديدة في تبويب الدخل: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -65652,7 +65745,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' و ')}</b><p class="hint">التسجيل مفتوح هذا الشهر فقط. اضغط لرؤيته في تبويب الحياة.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="لوحة السنة">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>كشف ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="حالة الشهر">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} البنك: القروض والأقساط</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="حالة الشهر">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} البنك: القروض والأقساط</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>من أين يأتي مالك (بالساعة)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -66558,6 +66651,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"اللعبة مستمرة", texto:"20 عاماً أخرى أمامك. حُفظت النتيجة. الهدف الآن لك: ابنِ ثروة صافية، واشترِ أصول الرفاهية في تبويب المنزل، وبلغ المليار."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -68008,7 +68102,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>次のマイルストーン：${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>すべてのマイルストーン</span><b>達成</b></div>"}
     <div class="fl"><span>ぜいたく資産の月額費用</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">高価な夢には高い収入が必要です。収入が月額費用を賄えないと、その資産は重荷になります。</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>資産を見る</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>資産を見る</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -70840,6 +70934,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 収入タブに新しい機会が現れました：${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 口座に入るお金の${P}%を寄付中</h2><p class="hint">いつでも変更できます。これまでの寄付額：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%に下げる</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">寄付をやめる</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -71176,10 +71279,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`実績：${novos[0].nome}`:`${novos.length}個の実績！`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` ウェルビーイング+${4*novos.length}：自分の進歩を見ることも、あなたのためになります。`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` それ以外に、${t.toLowerCase()}。`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 収入タブに新しい機会が現れました：${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -72243,7 +72345,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' と ')}</b><p class="hint">登録は今月だけ受け付けています。タップして人生タブで見る。</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="年間ボード">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>${rotulo(s.mes)}の明細：${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="今月の状況">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} 銀行：ローンと分割払い</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="今月の状況">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} 銀行：ローンと分割払い</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>お金の出どころ（1時間あたり）</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -73149,6 +73251,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"ゲームは続く", texto:"あと20年あります。スコアは保存されました。これからの目標はあなた次第：純資産を築き、家タブで高級資産を買い、10億に到達しましょう。"}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -74599,7 +74702,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>다음 이정표: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>모든 이정표</span><b>달성</b></div>"}
     <div class="fl"><span>럭셔리 자산의 월 유지비</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">비싼 꿈에는 높은 소득이 필요해요. 소득이 월 유지비를 감당하지 못하면 그 자산은 짐이 돼요.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>자산 보기</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>자산 보기</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -77431,6 +77534,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 수입 탭에 새로운 기회가 나타났어요: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 계좌 입금액의 ${P}%를 기부 중</h2><p class="hint">필요할 때 언제든 바꿀 수 있어요. 지금까지 기부액: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%로 낮추기</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">기부 중단하기</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -77767,10 +77879,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`업적: ${novos[0].nome}`:`업적 ${novos.length}개!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` 웰빙 +${4*novos.length}: 자신의 발전을 보는 것은 당신에게도 좋아요.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` 그 외에, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 수입 탭에 새로운 기회가 나타났어요: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -78834,7 +78945,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' 및 ')}</b><p class="hint">이번 달에만 신청할 수 있어요. 눌러서 인생 탭에서 확인하세요.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="연간 보드">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>${rotulo(s.mes)} 명세서: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="월 현황">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} 은행: 대출과 할부</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="월 현황">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} 은행: 대출과 할부</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>당신의 돈이 나오는 곳(시간당)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -79740,6 +79851,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"게임은 계속돼요", texto:"앞으로 20년이 더 있어요. 점수는 저장됐어요. 이제 목표는 당신의 몫이에요: 순자산을 쌓고, 집 탭의 사치 자산을 사고, 10억에 닿으세요."}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -81189,7 +81301,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>अगला पड़ाव: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>सभी पड़ाव</span><b>हासिल</b></div>"}
     <div class="fl"><span>आपकी विलासिता की संपत्तियों का मासिक खर्च</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">महँगे सपनों के लिए ऊँची आय चाहिए। अगर आपकी आय मासिक खर्च नहीं उठाती, तो संपत्ति बोझ बन जाती है।</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>संपत्तियाँ देखें</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>संपत्तियाँ देखें</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -84021,6 +84133,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 आय टैब में एक नया अवसर दिखा: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 खाते में आने वाले पैसे का ${P}% दान कर रहे हैं</h2><p class="hint">आप जब चाहें बदल सकते हैं। अब तक दान: ${T}।</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}% पर घटाएँ</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">दान बंद करें</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -84357,10 +84478,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`उपलब्धि: ${novos[0].nome}`:`${novos.length} उपलब्धियाँ!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` सेहत +${4*novos.length}: अपनी प्रगति देखना भी आपके लिए अच्छा है।`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` इसके अलावा, ${t.toLowerCase()}।`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 आय टैब में एक नया अवसर दिखा: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -85424,7 +85544,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' और ')}</b><p class="hint">साइन-अप सिर्फ़ इसी महीने खुले हैं। जीवन टैब में देखने के लिए टैप करें।</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="साल का बोर्ड">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>${rotulo(s.mes)} का विवरण: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="महीने की स्थिति">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} बैंक: लोन और किस्तें</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="महीने की स्थिति">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} बैंक: लोन और किस्तें</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>आपका पैसा कहाँ से आता है (प्रति घंटा)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -86330,6 +86450,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"खेल जारी है", texto:"आगे 20 साल और। स्कोर सहेज लिया गया। अब लक्ष्य आपका है: कुल संपत्ति बनाएँ, घर टैब में विलासिता की संपत्तियाँ खरीदें और अरब तक पहुँचें।"}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -87779,7 +87900,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>下一个里程碑：${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:"<div class=\"fl\"><span>所有里程碑</span><b>已达成</b></div>"}
     <div class="fl"><span>你的奢侈资产每月成本</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">昂贵的梦想需要高收入。如果你的收入覆盖不了每月成本，这项资产就成了负担。</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>查看资产</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>查看资产</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -90611,6 +90732,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 收入页出现了一个新机会：${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 正在捐出账户入账的${P}%</h2><p class="hint">你可以随时更改。目前累计捐款：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">降到${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">停止捐款</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -90947,10 +91077,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`成就：${novos[0].nome}`:`${novos.length}项成就！`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` 幸福感+${4*novos.length}：看到自己的进步，对你也有好处。`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` 此外，${t.toLowerCase()}。`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 收入页出现了一个新机会：${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -92014,7 +92143,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' 和 ')}</b><p class="hint">报名只在本月开放。点按在生活页面查看。</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="年度棋盘">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>${rotulo(s.mes)}对账单：${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="月度状态">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')}银行：贷款和分期</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="月度状态">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')}银行：贷款和分期</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>你的钱从哪里来（每小时）</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -92920,6 +93049,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:"游戏继续", texto:"前面还有20年。分数已保存。现在目标由你定：积累净资产，在家页面购买奢侈资产，向十亿进发。"}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
@@ -94365,7 +94495,7 @@ function luxoCard(){
     ${prox?`<div class="fl"><span>Próximo marco: ${fmt0(prox)}</span><b>${Math.round(pct)}%</b></div><div class="cp-bar"><i style="width:${pct}%"></i></div>`:'<div class="fl"><span>Todos os marcos</span><b>conquistados</b></div>'}
     <div class="fl"><span>Custo mensal dos seus bens de luxo</span><b>${fmt0(luxoCustoTot())}</b></div>
     <p class="hint">Sonhos caros pedem renda alta. Se a renda não cobrir o custo mensal, o bem vira um peso.</p>
-    <details class="mais" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver os bens</summary>${linhas}</details></section>`;
+    <details class="mais luxo-det" data-k="luxo" ${ui.aberto?.luxo?'open':''}><summary>Ver os bens</summary>${linhas}</details></section>`;
 }
 /* ================= influência (fase 2 em diante) ================= */
 // enche com eventos em casa, clube, MBA, cargo alto e empresas; em 100 vira 3 cartas de oportunidade, todas boas
@@ -97197,6 +97327,15 @@ function eventoDaCasa(t, forcar){
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
 const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
 const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
+// oportunidades extras da doação: ritmo exato (sem sorte), proporcional ao multiplicador do nível
+function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
+  const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
+  s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Surgiu uma nova oportunidade na aba Renda: ${nomeOferta(o.id)}`, 0]); }
+  return fila; }
+function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
+  const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
+  return `<section class="card doa-card"><h2>🤝 Doando ${P}% do que entra na sua conta</h2><p class="hint">Você pode mudar quando precisar. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Parar de doar</button></div></section>`; }
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -97533,10 +97672,9 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Conquista: ${novos[0].nome}`:`${novos.length} conquistas!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bem-estar +${4*novos.length}: ver o próprio progresso também faz bem.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Além disso, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
-  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Surgiu uma nova oportunidade na aba Renda: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
-  abrirEvento(jogarDado());
+  abrirEvento(doaOpp(jogarDado()));
 }
 
 // fase de teste do tycoon: a única empresa à venda é a cafeteria
@@ -98600,7 +98738,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   const fz=Math.round(s.fel), corF=fz>=50?'#4E9A73':fz>=25?'#D19A3B':'#D06A5E';
   const conteudo = {
     inicio: `${(()=>{ const ab=corridasAbertas().filter(p=>corr().ultMes!==s.mes); return ab.length?`<section class="card" data-acao="irCorrida" style="cursor:pointer"><b>🏃 ${ab.map(p=>p.nome).join(' e ')}</b><p class="hint">Inscrições abertas só neste mês. Toque para ver na aba Vida.</p></section>`:''; })()}<section class="hud hud-inicio" aria-label="Tabuleiro do ano">${tabuleiro(tot)}</section>${legendaTabuleiro()}${sonhoCard}${estudando?`<section class="card" data-acao="aba" data-alvo="carreira">${cursoProg()}</section>`:''}${s.habEst?`<section class="card" data-acao="aba" data-alvo="vida">${habProg()}</section>`:''}${alerta}${dicaEmp}${inflCheia}${vidaCard}${conqCard}<details class="mais card-det" data-k="extrato" ${ui.aberto?.extrato?'open':''}><summary>Extrato de ${rotulo(s.mes)}: ${total>=0?'+':'−'}${fmt0(Math.abs(total))}</summary>${extratoCard}</details>`,
-    dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section><details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
+    dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
     vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
@@ -99506,6 +99644,7 @@ document.addEventListener('click', e=>{
     case 'carro': { ui.carro=Number(alvo); ui.modal='carro'; render(); break; }
     case 'luxoCompra': comprarLuxo(alvo); salvar(); render(); break;
     case 'luxoVende': venderLuxo(alvo); salvar(); render(); break;
+    case 'doaMudar': s.doaPct=Number(alvo)||0; salvar(); render(); break;
     case 'continuarFim': if(s.fim==='fim' && F3()){ s.ptsFinal=s.ptsFinal||pontuacao(); if(!s.notaVitoria) s.notaVitoria=notaFinal(); s.venceuEm=s.venceuEm||s.mes; s.semPontos=true; s.posJogo=true; s.extraMeses=(s.extraMeses||0)+240; s.fim=null; ui.modal=null; s.licao={tom:'bom', titulo:'O jogo continua', texto:'Mais 20 anos pela frente. A pontuação ficou guardada. Agora o objetivo é o seu: construir patrimônio, comprar os bens de luxo na aba da casa e chegar ao bilhão.'}; salvar(); render(); } break;
     case 'carroOk': { const [n,pag]=alvo.split(':'); trocarCarro(Number(n), pag); ui.modal=null; checarFim(); salvar(); render(); break; }
     case 'mudar': { const [n,modo]=alvo.split(':'); ui.mudar=[Number(n),modo]; ui.modal='mudar'; render(); break; }
