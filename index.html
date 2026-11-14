@@ -3284,6 +3284,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Swap for a used car: ${fmt0(v)}`, sub:`${subAVista(v)} · + well-being`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Car swapped",4,0,10);
         return {tom:'neutro', titulo:"New car in the garage", texto:`The comfort is real, but it fades in under a year. ${fmt0(v)} out of investments is about ${fmt0(v*TAXA_RENDA)} less passive income per month.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`A charity asks for your help`, texto:()=>`A local charity is raising funds for families in need and asked you for a donation of ${fmt0(C(5000))}. In Cashflow, giving back brings luck: whoever donates rolls two dice for a year.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Donate ${fmt0(v)}`, sub:`${subAVista(v)} · two dice for 12 months`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`Luck follows generosity`, texto:`Your donation was received with gratitude. For the next 12 months you roll two dice each turn. Generosity is also part of wealth: money should serve a purpose beyond itself.${tx}`}; }}; })(),
+      {label:`Not this time`, sub:`Keeps the money`, run:()=>({tom:'neutro', titulo:`Maybe next time`, texto:`The money stays in your account. An offer like this may come around again.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Your brother lost his job", texto:()=>`He has two kids and no emergency fund. He asks for ${fmt0(C(8000))} to get through the next few months.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Help with ${fmt0(v)}`, sub:`${subAVista(v)} · + well-being`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -4917,7 +4923,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -9858,6 +9864,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Cambiar por uno de segunda mano: ${fmt0(v)}`, sub:`${subAVista(v)} · + bienestar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Coche cambiado",4,0,10);
         return {tom:'neutro', titulo:"Coche nuevo en el garaje", texto:`La comodidad es real, pero se desvanece en menos de un año. ${fmt0(v)} fuera de las inversiones son unos ${fmt0(v*TAXA_RENDA)} menos de ingresos pasivos al mes.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Una entidad benéfica pide tu ayuda`, texto:()=>`Una entidad benéfica local recauda fondos para familias necesitadas y te pidió una donación de ${fmt0(C(5000))}. En Cashflow, devolver trae suerte: quien dona tira dos dados durante un año.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Donar ${fmt0(v)}`, sub:`${subAVista(v)} · dos dados durante 12 meses`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`La suerte sigue a la generosidad`, texto:`Tu donación fue recibida con gratitud. Durante los próximos 12 meses tiras dos dados en cada turno. La generosidad también es parte de la riqueza: el dinero debe servir a un propósito más allá de sí mismo.${tx}`}; }}; })(),
+      {label:`Esta vez no`, sub:`Conserva el dinero`, run:()=>({tom:'neutro', titulo:`Quizás la próxima vez`, texto:`El dinero sigue en tu cuenta. Una oferta así puede volver a aparecer.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Tu hermano perdió el trabajo", texto:()=>`Tiene dos hijos y ningún fondo de emergencia. Te pide ${fmt0(C(8000))} para aguantar los próximos meses.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Ayudar con ${fmt0(v)}`, sub:`${subAVista(v)} · + bienestar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -11491,7 +11503,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -16431,6 +16443,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Trocar por um carro usado: ${fmt0(v)}`, sub:`${subAVista(v)} · + bem-estar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Carro trocado",4,0,10);
         return {tom:'neutro', titulo:"Carro novo na garagem", texto:`O conforto é real, mas desvanece em menos de um ano. ${fmt0(v)} fora dos investimentos são cerca de menos ${fmt0(v*TAXA_RENDA)} de rendimento passivo por mês.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Uma instituição de solidariedade pede a tua ajuda`, texto:()=>`Uma instituição de solidariedade local angaria fundos para famílias carenciadas e pediu-te um donativo de ${fmt0(C(5000))}. No Cashflow, retribuir dá sorte: quem faz um donativo lança dois dados durante um ano.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Doar ${fmt0(v)}`, sub:`${subAVista(v)} · dois dados durante 12 meses`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`A sorte acompanha a generosidade`, texto:`O teu donativo foi recebido com gratidão. Nos próximos 12 meses lanças dois dados em cada jogada. A generosidade também faz parte da riqueza: o dinheiro deve servir um propósito para além de si próprio.${tx}`}; }}; })(),
+      {label:`Desta vez não`, sub:`Mantém o dinheiro`, run:()=>({tom:'neutro', titulo:`Talvez da próxima`, texto:`O dinheiro continua na tua conta. Uma oferta assim pode voltar a surgir.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"O teu irmão perdeu o emprego", texto:()=>`Tem dois filhos e não tem fundo de emergência. Pede ${fmt0(C(8000))} para aguentar os próximos meses.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Ajudar com ${fmt0(v)}`, sub:`${subAVista(v)} · + bem-estar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -18064,7 +18082,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -23005,6 +23023,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Changer pour une voiture d'occasion : ${fmt0(v)}`, sub:`${subAVista(v)} · + bien-être`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Voiture changée",4,0,10);
         return {tom:'neutro', titulo:"Voiture neuve au garage", texto:`Le confort est réel, mais il s'efface en moins d'un an. ${fmt0(v)} retirés des investissements, c'est environ ${fmt0(v*TAXA_RENDA)} de revenu passif en moins par mois.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Une association demande ton aide`, texto:()=>`Une association locale collecte des fonds pour des familles dans le besoin et te demande un don de ${fmt0(C(5000))}. Dans Cashflow, donner porte chance : celui qui fait un don lance deux dés pendant un an.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Donner ${fmt0(v)}`, sub:`${subAVista(v)} · deux dés pendant 12 mois`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`La chance suit la générosité`, texto:`Ton don a été reçu avec gratitude. Pendant les 12 prochains mois, tu lances deux dés à chaque tour. La générosité fait aussi partie de la richesse : l'argent doit servir un but qui le dépasse.${tx}`}; }}; })(),
+      {label:`Pas cette fois`, sub:`Garde l'argent`, run:()=>({tom:'neutro', titulo:`Peut-être la prochaine fois`, texto:`L'argent reste sur ton compte. Une offre comme celle-ci peut revenir.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Ton frère a perdu son emploi", texto:()=>`Il a deux enfants et pas de fonds d'urgence. Il te demande ${fmt0(C(8000))} pour tenir les prochains mois.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Aider avec ${fmt0(v)}`, sub:`${subAVista(v)} · + bien-être`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -24638,7 +24662,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -29579,6 +29603,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Cambia con un'auto usata: ${fmt0(v)}`, sub:`${subAVista(v)} · + benessere`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Auto cambiata",4,0,10);
         return {tom:'neutro', titulo:"Auto nuova in garage", texto:`Il comfort è reale, ma svanisce in meno di un anno. ${fmt0(v)} tolti dagli investimenti sono circa ${fmt0(v*TAXA_RENDA)} in meno di entrate passive al mese.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Un'associazione benefica chiede il tuo aiuto`, texto:()=>`Un'associazione benefica locale raccoglie fondi per famiglie in difficoltà e ti ha chiesto una donazione di ${fmt0(C(5000))}. In Cashflow, restituire porta fortuna: chi dona tira due dadi per un anno.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Dona ${fmt0(v)}`, sub:`${subAVista(v)} · due dadi per 12 mesi`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`La fortuna segue la generosità`, texto:`La tua donazione è stata accolta con gratitudine. Per i prossimi 12 mesi tiri due dadi a ogni turno. La generosità fa parte della ricchezza: il denaro deve servire a uno scopo che lo supera.${tx}`}; }}; })(),
+      {label:`Non stavolta`, sub:`Tieni i soldi`, run:()=>({tom:'neutro', titulo:`Forse la prossima volta`, texto:`I soldi restano sul tuo conto. Un'offerta così può ripresentarsi.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Tuo fratello ha perso il lavoro", texto:()=>`Ha due figli e nessun fondo di emergenza. Ti chiede ${fmt0(C(8000))} per superare i prossimi mesi.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Aiuta con ${fmt0(v)}`, sub:`${subAVista(v)} · + benessere`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -31212,7 +31242,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -36153,6 +36183,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Gegen ein Gebrauchtes tauschen: ${fmt0(v)}`, sub:`${subAVista(v)} · + Wohlbefinden`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Auto getauscht",4,0,10);
         return {tom:'neutro', titulo:"Neues Auto in der Garage", texto:`Der Komfort ist echt, aber er verblasst in unter einem Jahr. ${fmt0(v)} aus Anlagen sind etwa ${fmt0(v*TAXA_RENDA)} weniger passives Einkommen pro Monat.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Eine Hilfsorganisation bittet um deine Hilfe`, texto:()=>`Eine örtliche Hilfsorganisation sammelt Geld für bedürftige Familien und bittet dich um eine Spende von ${fmt0(C(5000))}. In Cashflow bringt Geben Glück: Wer spendet, würfelt ein Jahr lang mit zwei Würfeln.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`${fmt0(v)} spenden`, sub:`${subAVista(v)} · zwei Würfel für 12 Monate`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`Glück folgt der Großzügigkeit`, texto:`Deine Spende wurde dankbar angenommen. In den nächsten 12 Monaten würfelst du in jedem Zug mit zwei Würfeln. Großzügigkeit gehört auch zum Reichtum: Geld sollte einem Zweck dienen, der über es selbst hinausgeht.${tx}`}; }}; })(),
+      {label:`Diesmal nicht`, sub:`Behält das Geld`, run:()=>({tom:'neutro', titulo:`Vielleicht beim nächsten Mal`, texto:`Das Geld bleibt auf deinem Konto. Ein solches Angebot kann wiederkommen.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Dein Bruder hat seinen Job verloren", texto:()=>`Er hat zwei Kinder und keine Notfallreserve. Er bittet um ${fmt0(C(8000))}, um die nächsten Monate zu überstehen.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Mit ${fmt0(v)} helfen`, sub:`${subAVista(v)} · + Wohlbefinden`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -37786,7 +37822,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -42727,6 +42763,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Поменять на подержанную: ${fmt0(v)}`, sub:`${subAVista(v)} · + самочувствие`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Машина заменена",4,0,10);
         return {tom:'neutro', titulo:"Новая машина в гараже", texto:`Комфорт настоящий, но проходит меньше чем за год. ${fmt0(v)}, выведенные из инвестиций, — это примерно на ${fmt0(v*TAXA_RENDA)} меньше пассивного дохода в месяц.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Благотворительный фонд просит о помощи`, texto:()=>`Местный благотворительный фонд собирает средства для нуждающихся семей и просит у тебя пожертвование в размере ${fmt0(C(5000))}. В Cashflow щедрость приносит удачу: кто жертвует, тот бросает два кубика целый год.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Пожертвовать ${fmt0(v)}`, sub:`${subAVista(v)} · два кубика на 12 месяцев`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`Удача идёт за щедростью`, texto:`Твоё пожертвование принято с благодарностью. Следующие 12 месяцев ты бросаешь два кубика за ход. Щедрость тоже часть богатства: деньги должны служить цели, выходящей за их пределы.${tx}`}; }}; })(),
+      {label:`Не в этот раз`, sub:`Деньги остаются`, run:()=>({tom:'neutro', titulo:`Может быть, в другой раз`, texto:`Деньги остаются на твоём счёте. Такое предложение может появиться снова.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Твой брат потерял работу", texto:()=>`У него двое детей и нет финансовой подушки. Он просит ${fmt0(C(8000))}, чтобы пережить ближайшие месяцы.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Помочь суммой ${fmt0(v)}`, sub:`${subAVista(v)} · + самочувствие`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -44360,7 +44402,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -49301,6 +49343,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Tukar dengan mobil bekas: ${fmt0(v)}`, sub:`${subAVista(v)} · + kesejahteraan`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Mobil ditukar",4,0,10);
         return {tom:'neutro', titulo:"Mobil baru di garasi", texto:`Kenyamanannya nyata, tapi memudar dalam waktu kurang dari setahun. ${fmt0(v)} dari investasi berarti sekitar ${fmt0(v*TAXA_RENDA)} lebih sedikit penghasilan pasif per bulan.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Sebuah yayasan meminta bantuanmu`, texto:()=>`Sebuah yayasan lokal menggalang dana untuk keluarga yang membutuhkan dan meminta donasi ${fmt0(C(5000))} darimu. Di Cashflow, berbagi membawa keberuntungan: yang berdonasi melempar dua dadu selama setahun.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Donasi ${fmt0(v)}`, sub:`${subAVista(v)} · dua dadu selama 12 bulan`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`Keberuntungan mengikuti kemurahan hati`, texto:`Donasimu diterima dengan rasa syukur. Selama 12 bulan ke depan kamu melempar dua dadu setiap giliran. Kemurahan hati juga bagian dari kekayaan: uang harus melayani tujuan yang lebih besar dari dirinya sendiri.${tx}`}; }}; })(),
+      {label:`Kali ini tidak`, sub:`Uang tetap ada`, run:()=>({tom:'neutro', titulo:`Mungkin lain kali`, texto:`Uang tetap di rekeningmu. Tawaran seperti ini mungkin datang lagi.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Adikmu kehilangan pekerjaan", texto:()=>`Dia punya dua anak dan tidak punya dana darurat. Dia minta ${fmt0(C(8000))} untuk melewati beberapa bulan ke depan.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Bantu dengan ${fmt0(v)}`, sub:`${subAVista(v)} · + kesejahteraan`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -50934,7 +50982,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -55875,6 +55923,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`İkinci el arabayla değiştir: ${fmt0(v)}`, sub:`${subAVista(v)} · + iyi oluş`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("Araba değiştirildi",4,0,10);
         return {tom:'neutro', titulo:"Garajda yeni araba", texto:`Konfor gerçek, ama bir yıldan kısa sürede soluyor. Yatırımdan çıkan ${fmt0(v)}, ayda yaklaşık ${fmt0(v*TAXA_RENDA)} daha az pasif gelir demek.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Bir hayır kurumu yardımını istiyor`, texto:()=>`Yerel bir hayır kurumu ihtiyaç sahibi aileler için bağış topluyor ve senden ${fmt0(C(5000))} bağış istedi. Cashflow'da vermek şans getirir: bağış yapan bir yıl boyunca iki zar atar.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`${fmt0(v)} bağışla`, sub:`${subAVista(v)} · 12 ay boyunca iki zar`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`Şans cömertliği izler`, texto:`Bağışın minnetle karşılandı. Önümüzdeki 12 ay boyunca her turda iki zar atacaksın. Cömertlik de zenginliğin bir parçasıdır: para kendisinden büyük bir amaca hizmet etmelidir.${tx}`}; }}; })(),
+      {label:`Bu sefer değil`, sub:`Para kalır`, run:()=>({tom:'neutro', titulo:`Belki bir dahaki sefere`, texto:`Para hesabında kalır. Böyle bir teklif tekrar gelebilir.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Kardeşin işini kaybetti", texto:()=>`İki çocuğu var ve acil durum fonu yok. Önümüzdeki birkaç ayı atlatmak için ${fmt0(C(8000))} istiyor.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)} ile yardım et`, sub:`${subAVista(v)} · + iyi oluş`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -57508,7 +57562,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -62449,6 +62503,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`استبدلها بسيارة مستعملة: ${fmt0(v)}`, sub:`${subAVista(v)} · + رفاهية`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("استُبدلت السيارة",4,0,10);
         return {tom:'neutro', titulo:"سيارة جديدة في المرآب", texto:`الراحة حقيقية، لكنها تتلاشى في أقل من سنة. ${fmt0(v)} من الاستثمارات تعني نحو ${fmt0(v*TAXA_RENDA)} أقل من الدخل السلبي شهرياً.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`جمعية خيرية تطلب مساعدتك`, texto:()=>`تجمع جمعية خيرية محلية التبرعات للأسر المحتاجة وطلبت منك تبرعًا بمبلغ ${fmt0(C(5000))}. في Cashflow العطاء يجلب الحظ: من يتبرع يرمي نردين لمدة عام.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`تبرّع بمبلغ ${fmt0(v)}`, sub:`${subAVista(v)} · نردان لمدة 12 شهرًا`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`الحظ يتبع الكرم`, texto:`استُقبل تبرعك بامتنان. خلال الأشهر الـ12 القادمة سترمي نردين في كل دور. الكرم جزء من الثروة أيضًا: يجب أن يخدم المال غاية أكبر منه.${tx}`}; }}; })(),
+      {label:`ليس هذه المرة`, sub:`تحتفظ بالمال`, run:()=>({tom:'neutro', titulo:`ربما في المرة القادمة`, texto:`يبقى المال في حسابك. قد يتكرر عرض كهذا.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"أخوك فقد وظيفته", texto:()=>`لديه طفلان وبلا صندوق طوارئ. يطلب ${fmt0(C(8000))} ليتجاوز الأشهر القادمة.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`ساعد بمبلغ ${fmt0(v)}`, sub:`${subAVista(v)} · + رفاهية`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -64082,7 +64142,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -69023,6 +69083,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`中古車に乗り換え：${fmt0(v)}`, sub:`${subAVista(v)}・＋ウェルビーイング`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("車を乗り換えた",4,0,10);
         return {tom:'neutro', titulo:"ガレージに新しい車", texto:`快適さは本物ですが、1年足らずで薄れます。投資から${fmt0(v)}を出すと、不労所得が月に約${fmt0(v*TAXA_RENDA)}減ります。${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`慈善団体があなたに助けを求めている`, texto:()=>`地元の慈善団体が困っている家族のために寄付を募っていて、${fmt0(C(5000))}の寄付をお願いされました。Cashflowでは与えると運が巡ります。寄付した人は1年間サイコロを2個振ります。`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`${fmt0(v)}を寄付する`, sub:`${subAVista(v)} · 12か月間サイコロ2個`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`運は寛大さについてくる`, texto:`寄付は感謝をもって受け取られました。これから12か月間、毎ターンサイコロを2個振ります。寛大さも富の一部です。お金は、お金自身を超えた目的のために使うものです。${tx}`}; }}; })(),
+      {label:`今回は見送る`, sub:`お金は手元に残る`, run:()=>({tom:'neutro', titulo:`また次の機会に`, texto:`お金は口座に残ります。こうした話はまた来るかもしれません。`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"弟が失業した", texto:()=>`子どもが2人いて、緊急資金がありません。この先の数か月をしのぐために${fmt0(C(8000))}を頼んできます。`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)}を助ける`, sub:`${subAVista(v)}・＋ウェルビーイング`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -70656,7 +70722,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -75597,6 +75663,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`중고차로 교체: ${fmt0(v)}`, sub:`${subAVista(v)} · + 웰빙`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("차를 바꿨어요",4,0,10);
         return {tom:'neutro', titulo:"차고에 새 차", texto:`편안함은 진짜지만 1년도 안 돼 사라져요. 투자에서 ${fmt0(v)}을(를) 빼면 월 불로소득이 약 ${fmt0(v*TAXA_RENDA)} 줄어요.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`자선단체가 도움을 요청했어요`, texto:()=>`지역 자선단체가 어려운 가정을 위해 모금을 하고 있고, ${fmt0(C(5000))}의 기부를 부탁했어요. Cashflow에서는 베풀면 운이 따라와요. 기부한 사람은 1년 동안 주사위를 두 개 굴려요.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`${fmt0(v)} 기부하기`, sub:`${subAVista(v)} · 12개월 동안 주사위 2개`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`운은 너그러움을 따라와요`, texto:`기부가 감사히 전달되었어요. 앞으로 12개월 동안 매 턴 주사위를 두 개 굴려요. 너그러움도 부의 일부예요. 돈은 돈 자체를 넘어선 목적에 쓰여야 해요.${tx}`}; }}; })(),
+      {label:`이번에는 안 할게요`, sub:`돈은 그대로`, run:()=>({tom:'neutro', titulo:`다음 기회에`, texto:`돈은 계좌에 그대로 있어요. 이런 제안은 다시 올 수 있어요.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"형이 실직했어요", texto:()=>`아이가 둘이고 비상금이 없어요. 앞으로 몇 달을 버티도록 ${fmt0(C(8000))}을(를) 부탁해요.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)} 도와주기`, sub:`${subAVista(v)} · + 웰빙`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -77230,7 +77302,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -82170,6 +82242,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`इस्तेमाल की हुई कार से बदलें: ${fmt0(v)}`, sub:`${subAVista(v)} · + खुशहाली`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("कार बदली गई",4,0,10);
         return {tom:'neutro', titulo:"गैराज में नई कार", texto:`आराम असली है, पर एक साल से भी कम में फीका पड़ जाता है। निवेश से निकले ${fmt0(v)} का मतलब है महीने की करीब ${fmt0(v*TAXA_RENDA)} कम निष्क्रिय आय।${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`एक चैरिटी आपकी मदद माँग रही है`, texto:()=>`एक स्थानीय चैरिटी ज़रूरतमंद परिवारों के लिए धन जुटा रही है और उसने आपसे ${fmt0(C(5000))} के दान की माँग की है। Cashflow में देने से भाग्य साथ देता है: जो दान करता है वह एक साल तक दो पासे फेंकता है।`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`${fmt0(v)} दान करें`, sub:`${subAVista(v)} · 12 महीने तक दो पासे`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`भाग्य उदारता के पीछे चलता है`, texto:`आपका दान आभार के साथ स्वीकार हुआ। अगले 12 महीनों तक आप हर बारी में दो पासे फेंकेंगे। उदारता भी संपत्ति का हिस्सा है: पैसे को अपने से बड़े उद्देश्य की सेवा करनी चाहिए।${tx}`}; }}; })(),
+      {label:`इस बार नहीं`, sub:`पैसा बना रहेगा`, run:()=>({tom:'neutro', titulo:`शायद अगली बार`, texto:`पैसा आपके खाते में ही रहेगा। ऐसा प्रस्ताव फिर आ सकता है।`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"आपके भाई की नौकरी चली गई", texto:()=>`उसके दो बच्चे हैं और कोई आपातकालीन फंड नहीं। अगले कुछ महीने निकालने के लिए वह ${fmt0(C(8000))} माँगता है।`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)} से मदद करें`, sub:`${subAVista(v)} · + खुशहाली`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -83803,7 +83881,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -88743,6 +88821,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`换一辆二手车：${fmt0(v)}`, sub:`${subAVista(v)} · +幸福感`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto("换了车",4,0,10);
         return {tom:'neutro', titulo:"车库里有辆新车", texto:`舒适是真实的，但不到一年就淡了。从投资中拿出${fmt0(v)}，意味着每月少约${fmt0(v*TAXA_RENDA)}的被动收入。${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`一家慈善机构向你求助`, texto:()=>`当地一家慈善机构正在为困难家庭筹款，请你捐款${fmt0(C(5000))}。在Cashflow里，回馈会带来好运：捐款的人一年内每次掷两个骰子。`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`捐款${fmt0(v)}`, sub:`${subAVista(v)} · 12个月掷两个骰子`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`好运跟随慷慨`, texto:`你的捐款被感激地收下了。接下来的12个月，每回合你都掷两个骰子。慷慨也是财富的一部分：金钱应该服务于比金钱本身更大的目的。${tx}`}; }}; })(),
+      {label:`这次不了`, sub:`钱留在手里`, run:()=>({tom:'neutro', titulo:`也许下次`, texto:`钱仍在你的账户里。这样的机会可能还会再来。`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"你兄弟失业了", texto:()=>`他有两个孩子，没有应急基金。他向你借${fmt0(C(8000))}来撑过接下来几个月。`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`帮助${fmt0(v)}`, sub:`${subAVista(v)} · +幸福感`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -90376,7 +90460,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
@@ -95312,6 +95396,12 @@ const EVENTOS = {
       (()=>{ const v=C(65000); return {label:`Trocar por um seminovo: ${fmt0(v)}`, sub:`${subAVista(v)} · + bem-estar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.carro={n:Math.max(2,carN()), valor:v}; s.fel=clamp(s.fel+6,0,100); addConforto('Carro trocado',4,0,10);
         return {tom:'neutro', titulo:'Carro novo na garagem', texto:`O conforto é real, mas passa em menos de um ano. ${fmt0(v)} fora dos investimentos são uns ${fmt0(v*TAXA_RENDA)} a menos de renda passiva por mês.${t}`}; }}; })()
     ]},
+  doacao:{fases:[2,3], peso:1, cd:60, minMes:10, tipo:'opcoes', cond:()=>!doisDados(), titulo:`Uma instituição de caridade pede sua ajuda`, texto:()=>`Uma instituição de caridade local arrecada fundos para famílias em necessidade e pediu uma doação de ${fmt0(C(5000))}. No Cashflow, retribuir dá sorte: quem faz uma doação joga dois dados por um ano.`,
+    opcoes:()=>[
+      (()=>{ const v=C(5000); return {label:`Doar ${fmt0(v)}`, sub:`${subAVista(v)} · dois dados por 12 meses`, disabled:!podeAVista(v), run:()=>{ const tx=pagarAVista(v); s.doisDadosAte=s.mes+12; s.fel=clamp(s.fel+8,0,100);
+        return {tom:'bom', titulo:`A sorte acompanha a generosidade`, texto:`Sua doação foi recebida com gratidão. Nos próximos 12 meses você joga dois dados a cada jogada. A generosidade também faz parte da riqueza: o dinheiro deve servir a um propósito além dele mesmo.${tx}`}; }}; })(),
+      {label:`Desta vez não`, sub:`Mantém o dinheiro`, run:()=>({tom:'neutro', titulo:`Quem sabe da próxima`, texto:`O dinheiro continua na sua conta. Uma oferta assim pode voltar a aparecer.`})}
+    ]},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:'Seu irmão perdeu o emprego', texto:()=>`Ele tem dois filhos e não tinha reserva. Pede ${fmt0(C(8000))} para atravessar os próximos meses.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Ajudar com ${fmt0(v)}`, sub:`${subAVista(v)} · + bem-estar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -96945,7 +97035,7 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
-const doisDados=()=>!!(s&&s.doisDados);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
+const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
   const N2=doisDados()?1:0; let d1=1+Math.floor(Math.random()*6), d2=N2*(1+Math.floor(Math.random()*6));
