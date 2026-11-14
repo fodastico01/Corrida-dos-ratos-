@@ -2561,7 +2561,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="There is no surplus to withdraw: cash is at the reserve level."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} left the company cash for your account.${modo==='tudo'?" With no reserve, a bad month comes out of your pocket.":" A reserve of about 3 months of costs was left."}`;
 }
 function modalTyc(a){
@@ -3290,6 +3290,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`Luck follows generosity`, texto:`Your donation was received with gratitude. For the next 12 months you roll two dice each turn. Generosity is also part of wealth: money should serve a purpose beyond itself.${tx}`}; }}; })(),
       {label:`Not this time`, sub:`Keeps the money`, run:()=>({tom:'neutro', titulo:`Maybe next time`, texto:`The money stays in your account. An offer like this may come around again.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Giving back: ${L}% of your income`; }, texto:()=>{ const L=doaProx(); return `A foundation that supports families in need invites you to commit ${L}% of everything that lands in your account each month: salary, company withdrawals, rent and yields. Money left inside your companies doesn't count.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Donate ${L}% every month`, sub:`Taken from what comes into the account`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Giving is part of having`, texto:`From now on ${L}% of what lands in your account goes to people in need. No score shows it, but generous people are remembered, and good news tends to find them.`}; }},
+      C>0 ? {label:`Keep ${C}%`, sub:`No change`, run:()=>({tom:'neutro', titulo:`Same pace`, texto:`You kept donating ${C}%. A steady gift is worth more than a one-time gesture.`})} : {label:`Not now`, sub:`Maybe later`, run:()=>({tom:'neutro', titulo:`Another time`, texto:`The offer stays open. The choice is yours.`})},
+      ...(C>0 ? [{label:`Stop donating`, sub:`The invitation may come back`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Donations paused`, texto:`You stopped donating. The invitation may come back someday.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Your brother lost his job", texto:()=>`He has two kids and no emergency fund. He asks for ${fmt0(C(8000))} to get through the next few months.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Help with ${fmt0(v)}`, sub:`${subAVista(v)} · + well-being`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -4923,6 +4929,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -5224,6 +5232,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Cost of living (home, groceries, car and bills)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donations (${s.doaPct}% of what came into the account)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Leisure (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -5257,6 +5267,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Achievement: ${novos[0].nome}`:`${novos.length} achievements!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Well-being +${4*novos.length}: seeing your own progress is also good for you.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Besides that, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 A new opportunity showed up in the Income tab: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -9141,7 +9152,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="No hay excedente que retirar: la caja está al nivel de la reserva."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} salió de la caja de la empresa a tu cuenta.${modo==='tudo'?" Sin reserva, un mes malo sale de tu bolsillo.":" Quedó una reserva de unos 3 meses de costes."}`;
 }
 function modalTyc(a){
@@ -9870,6 +9881,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`La suerte sigue a la generosidad`, texto:`Tu donación fue recibida con gratitud. Durante los próximos 12 meses tiras dos dados en cada turno. La generosidad también es parte de la riqueza: el dinero debe servir a un propósito más allá de sí mismo.${tx}`}; }}; })(),
       {label:`Esta vez no`, sub:`Conserva el dinero`, run:()=>({tom:'neutro', titulo:`Quizás la próxima vez`, texto:`El dinero sigue en tu cuenta. Una oferta así puede volver a aparecer.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Devolver: ${L}% de tus ingresos`; }, texto:()=>{ const L=doaProx(); return `Una fundación que apoya a familias necesitadas te invita a comprometer el ${L}% de todo lo que entra en tu cuenta cada mes: sueldo, retiros de empresas, alquileres y rendimientos. El dinero que dejas dentro de tus empresas no cuenta.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Donar el ${L}% cada mes`, sub:`Se descuenta de lo que entra en la cuenta`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Dar es parte de tener`, texto:`Desde ahora el ${L}% de lo que entra en tu cuenta va a quien lo necesita. Ningún puntaje lo muestra, pero a las personas generosas se las recuerda y las buenas noticias suelen encontrarlas.`}; }},
+      C>0 ? {label:`Mantener el ${C}%`, sub:`Sin cambios`, run:()=>({tom:'neutro', titulo:`Mismo ritmo`, texto:`Seguiste donando el ${C}%. Un aporte constante vale más que un gesto aislado.`})} : {label:`Ahora no`, sub:`Quizás más adelante`, run:()=>({tom:'neutro', titulo:`Otra vez será`, texto:`La oferta sigue abierta. La decisión es tuya.`})},
+      ...(C>0 ? [{label:`Dejar de donar`, sub:`La invitación puede volver`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Donaciones en pausa`, texto:`Dejaste de donar. La invitación puede volver algún día.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Tu hermano perdió el trabajo", texto:()=>`Tiene dos hijos y ningún fondo de emergencia. Te pide ${fmt0(C(8000))} para aguantar los próximos meses.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Ayudar con ${fmt0(v)}`, sub:`${subAVista(v)} · + bienestar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -11503,6 +11520,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -11804,6 +11823,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Coste de vida (casa, compra, coche y facturas)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donaciones (${s.doaPct}% de lo que entró en la cuenta)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Ocio (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -11837,6 +11858,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Logro: ${novos[0].nome}`:`¡${novos.length} logros!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bienestar +${4*novos.length}: ver tu propio progreso también te hace bien.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Además, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Apareció una nueva oportunidad en la pestaña Renta: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -15720,7 +15742,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Não há excedente para levantar: o caixa está no nível da reserva."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} saíram do caixa da empresa para a tua conta.${modo==='tudo'?" Sem reserva, um mês mau sai do teu bolso.":" Ficou uma reserva de cerca de 3 meses de custos."}`;
 }
 function modalTyc(a){
@@ -16449,6 +16471,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`A sorte acompanha a generosidade`, texto:`O teu donativo foi recebido com gratidão. Nos próximos 12 meses lanças dois dados em cada jogada. A generosidade também faz parte da riqueza: o dinheiro deve servir um propósito para além de si próprio.${tx}`}; }}; })(),
       {label:`Desta vez não`, sub:`Mantém o dinheiro`, run:()=>({tom:'neutro', titulo:`Talvez da próxima`, texto:`O dinheiro continua na tua conta. Uma oferta assim pode voltar a surgir.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Retribuir: ${L}% do teu rendimento`; }, texto:()=>{ const L=doaProx(); return `Uma fundação que apoia famílias carenciadas convida-te a comprometer ${L}% de tudo o que entra na tua conta todos os meses: salário, levantamentos das empresas, rendas e rendimentos. O dinheiro que fica dentro das tuas empresas não conta.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Doar ${L}% todos os meses`, sub:`Retirado do que entra na conta`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Dar faz parte de ter`, texto:`A partir de agora, ${L}% do que entra na tua conta vai para quem precisa. Nenhuma pontuação o mostra, mas as pessoas generosas são lembradas e as boas notícias tendem a encontrá-las.`}; }},
+      C>0 ? {label:`Manter ${C}%`, sub:`Sem alterações`, run:()=>({tom:'neutro', titulo:`Mesmo ritmo`, texto:`Continuaste a doar ${C}%. Um contributo constante vale mais do que um gesto isolado.`})} : {label:`Agora não`, sub:`Talvez mais tarde`, run:()=>({tom:'neutro', titulo:`Fica para outra vez`, texto:`A oferta continua aberta. A escolha é tua.`})},
+      ...(C>0 ? [{label:`Deixar de doar`, sub:`O convite pode voltar`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Donativos em pausa`, texto:`Deixaste de doar. O convite pode voltar um dia.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"O teu irmão perdeu o emprego", texto:()=>`Tem dois filhos e não tem fundo de emergência. Pede ${fmt0(C(8000))} para aguentar os próximos meses.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Ajudar com ${fmt0(v)}`, sub:`${subAVista(v)} · + bem-estar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -18082,6 +18110,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -18383,6 +18413,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Custo de vida (casa, compras, carro e contas)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donativos (${s.doaPct}% do que entrou na conta)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Lazer (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -18416,6 +18448,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Conquista: ${novos[0].nome}`:`${novos.length} conquistas!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bem-estar +${4*novos.length}: ver o teu próprio progresso também te faz bem.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Além disso, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Surgiu uma nova oportunidade no separador Rendimentos: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -22300,7 +22333,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Il n'y a pas d'excédent à retirer : la trésorerie est au niveau de la réserve."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} ont quitté la trésorerie de l'entreprise pour ton compte.${modo==='tudo'?" Sans réserve, un mauvais mois sort de ta poche.":" Une réserve d'environ 3 mois de coûts a été laissée."}`;
 }
 function modalTyc(a){
@@ -23029,6 +23062,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`La chance suit la générosité`, texto:`Ton don a été reçu avec gratitude. Pendant les 12 prochains mois, tu lances deux dés à chaque tour. La générosité fait aussi partie de la richesse : l'argent doit servir un but qui le dépasse.${tx}`}; }}; })(),
       {label:`Pas cette fois`, sub:`Garde l'argent`, run:()=>({tom:'neutro', titulo:`Peut-être la prochaine fois`, texto:`L'argent reste sur ton compte. Une offre comme celle-ci peut revenir.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Rendre : ${L} % de tes revenus`; }, texto:()=>{ const L=doaProx(); return `Une fondation qui aide des familles dans le besoin t'invite à t'engager à donner ${L} % de tout ce qui arrive sur ton compte chaque mois : salaire, retraits des entreprises, loyers et rendements. L'argent laissé dans tes entreprises ne compte pas.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Donner ${L} % chaque mois`, sub:`Prélevé sur ce qui entre sur le compte`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Donner fait partie d'avoir`, texto:`Désormais, ${L} % de ce qui arrive sur ton compte va à ceux qui en ont besoin. Aucun score ne le montre, mais les personnes généreuses sont retenues, et les bonnes nouvelles les trouvent plus facilement.`}; }},
+      C>0 ? {label:`Garder ${C} %`, sub:`Aucun changement`, run:()=>({tom:'neutro', titulo:`Même rythme`, texto:`Tu as continué à donner ${C} %. Un don régulier vaut mieux qu'un geste isolé.`})} : {label:`Pas maintenant`, sub:`Peut-être plus tard`, run:()=>({tom:'neutro', titulo:`Une autre fois`, texto:`L'offre reste ouverte. C'est ton choix.`})},
+      ...(C>0 ? [{label:`Arrêter de donner`, sub:`L'invitation peut revenir`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Dons suspendus`, texto:`Tu as arrêté de donner. L'invitation pourrait revenir un jour.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Ton frère a perdu son emploi", texto:()=>`Il a deux enfants et pas de fonds d'urgence. Il te demande ${fmt0(C(8000))} pour tenir les prochains mois.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Aider avec ${fmt0(v)}`, sub:`${subAVista(v)} · + bien-être`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -24662,6 +24701,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -24963,6 +25004,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Coût de la vie (logement, courses, voiture et factures)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Dons (${s.doaPct} % de ce qui est entré sur le compte)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Loisirs (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -24996,6 +25039,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Succès : ${novos[0].nome}`:`${novos.length} succès !`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bien-être +${4*novos.length} : voir ses propres progrès te fait aussi du bien.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` En plus, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Une nouvelle opportunité est apparue dans l'onglet Revenus : ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -28880,7 +28924,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Non c'è eccedenza da prelevare: la cassa è al livello di riserva."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} sono usciti dalla cassa dell'azienda verso il tuo conto.${modo==='tudo'?" Senza riserva, un mese cattivo esce dalla tua tasca.":" È rimasta una riserva di circa 3 mesi di costi."}`;
 }
 function modalTyc(a){
@@ -29609,6 +29653,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`La fortuna segue la generosità`, texto:`La tua donazione è stata accolta con gratitudine. Per i prossimi 12 mesi tiri due dadi a ogni turno. La generosità fa parte della ricchezza: il denaro deve servire a uno scopo che lo supera.${tx}`}; }}; })(),
       {label:`Non stavolta`, sub:`Tieni i soldi`, run:()=>({tom:'neutro', titulo:`Forse la prossima volta`, texto:`I soldi restano sul tuo conto. Un'offerta così può ripresentarsi.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Restituire: il ${L}% delle tue entrate`; }, texto:()=>{ const L=doaProx(); return `Una fondazione che aiuta famiglie in difficoltà ti invita a destinare il ${L}% di tutto ciò che entra sul tuo conto ogni mese: stipendio, prelievi dalle aziende, affitti e rendimenti. Il denaro lasciato nelle tue aziende non conta.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Dona il ${L}% ogni mese`, sub:`Detratto da ciò che entra sul conto`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Dare fa parte dell'avere`, texto:`Da ora il ${L}% di ciò che entra sul tuo conto va a chi ne ha bisogno. Nessun punteggio lo mostra, ma le persone generose vengono ricordate e le buone notizie le trovano più facilmente.`}; }},
+      C>0 ? {label:`Mantieni il ${C}%`, sub:`Nessun cambiamento`, run:()=>({tom:'neutro', titulo:`Stesso ritmo`, texto:`Hai continuato a donare il ${C}%. Un contributo costante vale più di un gesto isolato.`})} : {label:`Non ora`, sub:`Forse più avanti`, run:()=>({tom:'neutro', titulo:`Un'altra volta`, texto:`L'offerta resta aperta. La scelta è tua.`})},
+      ...(C>0 ? [{label:`Smetti di donare`, sub:`L'invito potrebbe tornare`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Donazioni sospese`, texto:`Hai smesso di donare. L'invito potrebbe tornare un giorno.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Tuo fratello ha perso il lavoro", texto:()=>`Ha due figli e nessun fondo di emergenza. Ti chiede ${fmt0(C(8000))} per superare i prossimi mesi.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Aiuta con ${fmt0(v)}`, sub:`${subAVista(v)} · + benessere`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -31242,6 +31292,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -31543,6 +31595,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Costo della vita (casa, spesa, auto e bollette)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donazioni (${s.doaPct}% di ciò che è entrato sul conto)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Tempo libero (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -31576,6 +31630,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Traguardo: ${novos[0].nome}`:`${novos.length} traguardi!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Benessere +${4*novos.length}: vedere i propri progressi fa bene anche a te.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Inoltre, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 È comparsa una nuova opportunità nella scheda Reddito: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -35460,7 +35515,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Es gibt keinen Überschuss zum Entnehmen: Die Kasse liegt auf Reservehöhe."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} haben die Unternehmenskasse in Richtung deines Kontos verlassen.${modo==='tudo'?" Ohne Reserve geht ein schlechter Monat auf deine Kosten.":" Eine Reserve von etwa 3 Monatskosten blieb übrig."}`;
 }
 function modalTyc(a){
@@ -36189,6 +36244,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`Glück folgt der Großzügigkeit`, texto:`Deine Spende wurde dankbar angenommen. In den nächsten 12 Monaten würfelst du in jedem Zug mit zwei Würfeln. Großzügigkeit gehört auch zum Reichtum: Geld sollte einem Zweck dienen, der über es selbst hinausgeht.${tx}`}; }}; })(),
       {label:`Diesmal nicht`, sub:`Behält das Geld`, run:()=>({tom:'neutro', titulo:`Vielleicht beim nächsten Mal`, texto:`Das Geld bleibt auf deinem Konto. Ein solches Angebot kann wiederkommen.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Etwas zurückgeben: ${L} % deines Einkommens`; }, texto:()=>{ const L=doaProx(); return `Eine Stiftung, die bedürftige Familien unterstützt, lädt dich ein, jeden Monat ${L} % von allem zuzusagen, was auf deinem Konto landet: Gehalt, Entnahmen aus Firmen, Mieten und Erträge. Geld, das in deinen Firmen bleibt, zählt nicht.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Jeden Monat ${L} % spenden`, sub:`Wird von den Eingängen abgezogen`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Geben gehört zum Haben`, texto:`Ab jetzt gehen ${L} % dessen, was auf deinem Konto landet, an Menschen in Not. Keine Punktzahl zeigt es, aber großzügige Menschen bleiben in Erinnerung, und gute Nachrichten finden sie leichter.`}; }},
+      C>0 ? {label:`${C} % beibehalten`, sub:`Keine Änderung`, run:()=>({tom:'neutro', titulo:`Gleiches Tempo`, texto:`Du spendest weiter ${C} %. Eine stetige Gabe ist mehr wert als eine einmalige Geste.`})} : {label:`Jetzt nicht`, sub:`Vielleicht später`, run:()=>({tom:'neutro', titulo:`Ein andermal`, texto:`Das Angebot bleibt offen. Die Entscheidung liegt bei dir.`})},
+      ...(C>0 ? [{label:`Nicht mehr spenden`, sub:`Die Einladung kann wiederkommen`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Spenden pausiert`, texto:`Du hast aufgehört zu spenden. Die Einladung kann eines Tages wiederkommen.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Dein Bruder hat seinen Job verloren", texto:()=>`Er hat zwei Kinder und keine Notfallreserve. Er bittet um ${fmt0(C(8000))}, um die nächsten Monate zu überstehen.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Mit ${fmt0(v)} helfen`, sub:`${subAVista(v)} · + Wohlbefinden`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -37822,6 +37883,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -38123,6 +38186,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Lebenshaltungskosten (Wohnen, Lebensmittel, Auto und Rechnungen)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Spenden (${s.doaPct} % der Kontoeingänge)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Freizeit (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -38156,6 +38221,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Erfolg: ${novos[0].nome}`:`${novos.length} Erfolge!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Wohlbefinden +${4*novos.length}: Den eigenen Fortschritt zu sehen tut dir auch gut.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Außerdem ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Eine neue Gelegenheit ist im Reiter Einkommen aufgetaucht: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -42040,7 +42106,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Выводить нечего: деньги в кассе на уровне резерва."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} вышло из кассы компании на твой счёт.${modo==='tudo'?" Без резерва плохой месяц оплачивается из твоего кармана.":" Остался резерв примерно на 3 месяца расходов."}`;
 }
 function modalTyc(a){
@@ -42769,6 +42835,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`Удача идёт за щедростью`, texto:`Твоё пожертвование принято с благодарностью. Следующие 12 месяцев ты бросаешь два кубика за ход. Щедрость тоже часть богатства: деньги должны служить цели, выходящей за их пределы.${tx}`}; }}; })(),
       {label:`Не в этот раз`, sub:`Деньги остаются`, run:()=>({tom:'neutro', titulo:`Может быть, в другой раз`, texto:`Деньги остаются на твоём счёте. Такое предложение может появиться снова.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Отдавать: ${L}% твоего дохода`; }, texto:()=>{ const L=doaProx(); return `Фонд, помогающий нуждающимся семьям, предлагает тебе направлять ${L}% всего, что поступает на твой счёт каждый месяц: зарплата, выплаты из компаний, аренда и доходность. Деньги, оставленные внутри компаний, не считаются.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Жертвовать ${L}% каждый месяц`, sub:`Вычитается из поступлений на счёт`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Отдавать — часть богатства`, texto:`Теперь ${L}% поступлений на твой счёт идут тем, кто в них нуждается. Ни один счёт очков этого не показывает, но щедрых людей помнят, и хорошие новости находят их чаще.`}; }},
+      C>0 ? {label:`Оставить ${C}%`, sub:`Без изменений`, run:()=>({tom:'neutro', titulo:`Тот же темп`, texto:`Ты продолжаешь жертвовать ${C}%. Постоянный вклад ценнее разового жеста.`})} : {label:`Не сейчас`, sub:`Может быть, позже`, run:()=>({tom:'neutro', titulo:`В другой раз`, texto:`Предложение остаётся в силе. Выбор за тобой.`})},
+      ...(C>0 ? [{label:`Прекратить жертвовать`, sub:`Предложение может вернуться`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Пожертвования приостановлены`, texto:`Ты перестал жертвовать. Предложение может вернуться когда-нибудь.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Твой брат потерял работу", texto:()=>`У него двое детей и нет финансовой подушки. Он просит ${fmt0(C(8000))}, чтобы пережить ближайшие месяцы.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Помочь суммой ${fmt0(v)}`, sub:`${subAVista(v)} · + самочувствие`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -44402,6 +44474,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -44703,6 +44777,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Стоимость жизни (дом, продукты, машина и счета)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Пожертвования (${s.doaPct}% от поступлений на счёт)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Досуг (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -44736,6 +44812,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Достижение: ${novos[0].nome}`:`Достижений: ${novos.length}!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Самочувствие +${4*novos.length}: видеть собственный прогресс тоже полезно для тебя.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Кроме того, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Во вкладке «Доход» появилась новая возможность: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -48620,7 +48697,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Tidak ada kelebihan untuk ditarik: kas ada di level cadangan."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} keluar dari kas perusahaan ke rekeningmu.${modo==='tudo'?" Tanpa cadangan, bulan buruk dibayar dari kantongmu.":" Tersisa cadangan sekitar 3 bulan biaya."}`;
 }
 function modalTyc(a){
@@ -49349,6 +49426,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`Keberuntungan mengikuti kemurahan hati`, texto:`Donasimu diterima dengan rasa syukur. Selama 12 bulan ke depan kamu melempar dua dadu setiap giliran. Kemurahan hati juga bagian dari kekayaan: uang harus melayani tujuan yang lebih besar dari dirinya sendiri.${tx}`}; }}; })(),
       {label:`Kali ini tidak`, sub:`Uang tetap ada`, run:()=>({tom:'neutro', titulo:`Mungkin lain kali`, texto:`Uang tetap di rekeningmu. Tawaran seperti ini mungkin datang lagi.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Berbagi: ${L}% dari penghasilanmu`; }, texto:()=>{ const L=doaProx(); return `Sebuah yayasan yang membantu keluarga yang membutuhkan mengajakmu menyisihkan ${L}% dari semua yang masuk ke rekeningmu setiap bulan: gaji, penarikan dari perusahaan, sewa, dan imbal hasil. Uang yang dibiarkan di dalam perusahaanmu tidak dihitung.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Donasikan ${L}% setiap bulan`, sub:`Dipotong dari uang yang masuk ke rekening`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Berbagi adalah bagian dari memiliki`, texto:`Mulai sekarang ${L}% dari uang yang masuk ke rekeningmu diberikan kepada orang yang membutuhkan. Tidak ada skor yang menunjukkannya, tetapi orang dermawan diingat dan kabar baik cenderung menemukan mereka.`}; }},
+      C>0 ? {label:`Pertahankan ${C}%`, sub:`Tidak ada perubahan`, run:()=>({tom:'neutro', titulo:`Tempo yang sama`, texto:`Kamu tetap berdonasi ${C}%. Pemberian yang konsisten lebih berarti daripada satu kali gestur.`})} : {label:`Belum sekarang`, sub:`Mungkin nanti`, run:()=>({tom:'neutro', titulo:`Lain kali`, texto:`Tawaran tetap terbuka. Pilihan ada di tanganmu.`})},
+      ...(C>0 ? [{label:`Berhenti berdonasi`, sub:`Ajakan bisa datang lagi`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Donasi dijeda`, texto:`Kamu berhenti berdonasi. Ajakan bisa datang lagi suatu hari.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Adikmu kehilangan pekerjaan", texto:()=>`Dia punya dua anak dan tidak punya dana darurat. Dia minta ${fmt0(C(8000))} untuk melewati beberapa bulan ke depan.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Bantu dengan ${fmt0(v)}`, sub:`${subAVista(v)} · + kesejahteraan`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -50982,6 +51065,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -51283,6 +51368,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Biaya hidup (rumah, belanja, mobil, dan tagihan)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donasi (${s.doaPct}% dari uang yang masuk ke rekening)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Hiburan (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -51316,6 +51403,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Pencapaian: ${novos[0].nome}`:`${novos.length} pencapaian!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Kesejahteraan +${4*novos.length}: melihat kemajuan sendiri juga baik untukmu.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Selain itu, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Peluang baru muncul di tab Pendapatan: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -55200,7 +55288,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="Çekilecek fazla yok: kasa rezerv seviyesinde."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)}, şirket kasasından hesabına çıktı.${modo==='tudo'?" Rezerv yoksa kötü bir ay cebinden çıkar.":" Yaklaşık 3 aylık giderlik bir rezerv bırakıldı."}`;
 }
 function modalTyc(a){
@@ -55929,6 +56017,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`Şans cömertliği izler`, texto:`Bağışın minnetle karşılandı. Önümüzdeki 12 ay boyunca her turda iki zar atacaksın. Cömertlik de zenginliğin bir parçasıdır: para kendisinden büyük bir amaca hizmet etmelidir.${tx}`}; }}; })(),
       {label:`Bu sefer değil`, sub:`Para kalır`, run:()=>({tom:'neutro', titulo:`Belki bir dahaki sefere`, texto:`Para hesabında kalır. Böyle bir teklif tekrar gelebilir.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Geri vermek: gelirinin %${L}'i`; }, texto:()=>{ const L=doaProx(); return `İhtiyaç sahibi ailelere destek olan bir vakıf, her ay hesabına giren her şeyin %${L}'ini ayırmaya seni davet ediyor: maaş, şirketlerden çekimler, kira ve getiriler. Şirketlerinin içinde bıraktığın para sayılmaz.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Her ay %${L} bağışla`, sub:`Hesaba giren paradan düşülür`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Vermek sahip olmanın parçasıdır`, texto:`Artık hesabına giren paranın %${L}'i ihtiyacı olanlara gidiyor. Hiçbir puan bunu göstermez ama cömert insanlar hatırlanır ve iyi haberler onları daha kolay bulur.`}; }},
+      C>0 ? {label:`%${C} olarak sürdür`, sub:`Değişiklik yok`, run:()=>({tom:'neutro', titulo:`Aynı tempo`, texto:`%${C} bağışa devam ettin. Düzenli bir bağış, tek seferlik bir jestten daha değerlidir.`})} : {label:`Şimdi değil`, sub:`Belki sonra`, run:()=>({tom:'neutro', titulo:`Başka zaman`, texto:`Teklif açık kalıyor. Karar senin.`})},
+      ...(C>0 ? [{label:`Bağışı bırak`, sub:`Davet tekrar gelebilir`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Bağışlar durduruldu`, texto:`Bağışı bıraktın. Davet bir gün tekrar gelebilir.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"Kardeşin işini kaybetti", texto:()=>`İki çocuğu var ve acil durum fonu yok. Önümüzdeki birkaç ayı atlatmak için ${fmt0(C(8000))} istiyor.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)} ile yardım et`, sub:`${subAVista(v)} · + iyi oluş`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -57562,6 +57656,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -57863,6 +57959,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Yaşam maliyeti (ev, market, araba ve faturalar)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Bağışlar (hesaba girenin %${s.doaPct}'i)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Boş zaman (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -57896,6 +57994,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Başarı: ${novos[0].nome}`:`${novos.length} başarı!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` İyi oluş +${4*novos.length}: kendi ilerlemeni görmek senin için de iyi.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Buna ek olarak, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Gelir sekmesinde yeni bir fırsat belirdi: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -61780,7 +61879,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="لا يوجد فائض للسحب: النقد عند مستوى الاحتياطي."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 خرج ${fmt0(v)} من نقد الشركة إلى حسابك.${modo==='tudo'?" بلا احتياطي، يخرج الشهر السيئ من جيبك.":" بقي احتياطي نحو 3 أشهر من التكاليف."}`;
 }
 function modalTyc(a){
@@ -62509,6 +62608,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`الحظ يتبع الكرم`, texto:`استُقبل تبرعك بامتنان. خلال الأشهر الـ12 القادمة سترمي نردين في كل دور. الكرم جزء من الثروة أيضًا: يجب أن يخدم المال غاية أكبر منه.${tx}`}; }}; })(),
       {label:`ليس هذه المرة`, sub:`تحتفظ بالمال`, run:()=>({tom:'neutro', titulo:`ربما في المرة القادمة`, texto:`يبقى المال في حسابك. قد يتكرر عرض كهذا.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `رد الجميل: ${L}% من دخلك`; }, texto:()=>{ const L=doaProx(); return `تدعوك مؤسسة تدعم الأسر المحتاجة إلى تخصيص ${L}% من كل ما يدخل حسابك كل شهر: الراتب، والسحوبات من الشركات، والإيجارات، والعوائد. المال الذي تتركه داخل شركاتك لا يُحتسب.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`تبرّع بـ ${L}% كل شهر`, sub:`يُخصم مما يدخل الحساب`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`العطاء جزء من الامتلاك`, texto:`من الآن يذهب ${L}% مما يدخل حسابك إلى المحتاجين. لا تُظهر أي نقاط ذلك، لكن الكرماء يُذكرون والأخبار الجيدة تجدهم أسهل.`}; }},
+      C>0 ? {label:`ابقَ على ${C}%`, sub:`بلا تغيير`, run:()=>({tom:'neutro', titulo:`الوتيرة نفسها`, texto:`واصلت التبرع بـ ${C}%. عطاء منتظم أفضل من لفتة واحدة.`})} : {label:`ليس الآن`, sub:`ربما لاحقًا`, run:()=>({tom:'neutro', titulo:`وقت آخر`, texto:`العرض لا يزال مفتوحًا. القرار لك.`})},
+      ...(C>0 ? [{label:`توقف عن التبرع`, sub:`قد تعود الدعوة`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`توقفت التبرعات`, texto:`توقفت عن التبرع. قد تعود الدعوة يومًا ما.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"أخوك فقد وظيفته", texto:()=>`لديه طفلان وبلا صندوق طوارئ. يطلب ${fmt0(C(8000))} ليتجاوز الأشهر القادمة.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`ساعد بمبلغ ${fmt0(v)}`, sub:`${subAVista(v)} · + رفاهية`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -64142,6 +64247,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -64443,6 +64550,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["تكلفة المعيشة (المنزل والبقالة والسيارة والفواتير)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`التبرعات (${s.doaPct}% مما دخل الحساب)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`الترفيه (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -64476,6 +64585,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`إنجاز: ${novos[0].nome}`:`${novos.length} إنجازات!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` الرفاه +${4*novos.length}: رؤية تقدمك بنفسك مفيدة لك أيضاً.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` إلى جانب ذلك، ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 ظهرت فرصة جديدة في تبويب الدخل: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -68360,7 +68470,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="引き出せる余剰金はありません：現金は準備金の水準です。"; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)}が会社の現金からあなたの口座へ移りました。${modo==='tudo'?" 準備金がなければ、悪い月はあなたの持ち出しになります。":" 費用約3か月分の準備金が残りました。"}`;
 }
 function modalTyc(a){
@@ -69089,6 +69199,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`運は寛大さについてくる`, texto:`寄付は感謝をもって受け取られました。これから12か月間、毎ターンサイコロを2個振ります。寛大さも富の一部です。お金は、お金自身を超えた目的のために使うものです。${tx}`}; }}; })(),
       {label:`今回は見送る`, sub:`お金は手元に残る`, run:()=>({tom:'neutro', titulo:`また次の機会に`, texto:`お金は口座に残ります。こうした話はまた来るかもしれません。`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `恩返し：収入の${L}%`; }, texto:()=>{ const L=doaProx(); return `困っている家族を支援する財団が、毎月口座に入るすべて（給料、会社からの引き出し、家賃、利回り）の${L}%を寄付するよう誘っています。会社の中に残したお金は対象外です。`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`毎月${L}%を寄付する`, sub:`口座に入ったお金から差し引かれます`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`与えることは持つことの一部`, texto:`これから口座に入るお金の${L}%が必要な人に届きます。どのスコアにも表示されませんが、寛大な人は覚えられ、良い知らせも見つけやすくなります。`}; }},
+      C>0 ? {label:`${C}%を続ける`, sub:`変更なし`, run:()=>({tom:'neutro', titulo:`同じペースで`, texto:`${C}%の寄付を続けました。続ける寄付は一度きりの行為より価値があります。`})} : {label:`今はしない`, sub:`また今度`, run:()=>({tom:'neutro', titulo:`また別の機会に`, texto:`話は残っています。選ぶのはあなたです。`})},
+      ...(C>0 ? [{label:`寄付をやめる`, sub:`誘いはまた来るかもしれません`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`寄付を一時停止`, texto:`寄付をやめました。誘いはいつかまた来るかもしれません。`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"弟が失業した", texto:()=>`子どもが2人いて、緊急資金がありません。この先の数か月をしのぐために${fmt0(C(8000))}を頼んできます。`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)}を助ける`, sub:`${subAVista(v)}・＋ウェルビーイング`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -70722,6 +70838,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -71023,6 +71141,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["生活費（家、食料品、車、請求書）",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`寄付（口座に入った額の${s.doaPct}%）`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`レジャー（${est.nome.toLowerCase()}）`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -71056,6 +71176,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`実績：${novos[0].nome}`:`${novos.length}個の実績！`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` ウェルビーイング+${4*novos.length}：自分の進歩を見ることも、あなたのためになります。`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` それ以外に、${t.toLowerCase()}。`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 収入タブに新しい機会が現れました：${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -74940,7 +75061,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="인출할 잉여금이 없어요: 현금이 준비금 수준이에요."; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 회사 현금에서 ${fmt0(v)}을(를) 당신 계좌로 옮겼어요.${modo==='tudo'?" 준비금이 없으면 힘든 달은 당신 주머니에서 나가요.":" 약 3개월치 비용의 준비금이 남았어요."}`;
 }
 function modalTyc(a){
@@ -75669,6 +75790,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`운은 너그러움을 따라와요`, texto:`기부가 감사히 전달되었어요. 앞으로 12개월 동안 매 턴 주사위를 두 개 굴려요. 너그러움도 부의 일부예요. 돈은 돈 자체를 넘어선 목적에 쓰여야 해요.${tx}`}; }}; })(),
       {label:`이번에는 안 할게요`, sub:`돈은 그대로`, run:()=>({tom:'neutro', titulo:`다음 기회에`, texto:`돈은 계좌에 그대로 있어요. 이런 제안은 다시 올 수 있어요.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `돌려주기: 수입의 ${L}%`; }, texto:()=>{ const L=doaProx(); return `어려운 가정을 돕는 재단이 매달 계좌에 들어오는 모든 돈(월급, 회사 인출, 임대료, 수익)의 ${L}%를 기부하자고 초대해요. 회사 안에 남겨 둔 돈은 포함되지 않아요.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`매달 ${L}% 기부하기`, sub:`계좌에 들어오는 돈에서 빠져나가요`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`주는 것도 가지는 것의 일부`, texto:`이제부터 계좌에 들어오는 돈의 ${L}%가 도움이 필요한 사람들에게 가요. 어떤 점수에도 나타나지 않지만, 베푸는 사람은 기억되고 좋은 소식이 더 쉽게 찾아와요.`}; }},
+      C>0 ? {label:`${C}% 유지하기`, sub:`변경 없음`, run:()=>({tom:'neutro', titulo:`같은 속도로`, texto:`${C}% 기부를 이어 갔어요. 꾸준한 기부는 한 번의 행동보다 값져요.`})} : {label:`지금은 말고`, sub:`나중에 아마도`, run:()=>({tom:'neutro', titulo:`다음 기회에`, texto:`제안은 열려 있어요. 선택은 당신 몫이에요.`})},
+      ...(C>0 ? [{label:`기부 중단하기`, sub:`초대는 다시 올 수 있어요`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`기부 일시 중지`, texto:`기부를 멈췄어요. 초대는 언젠가 다시 올 수 있어요.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"형이 실직했어요", texto:()=>`아이가 둘이고 비상금이 없어요. 앞으로 몇 달을 버티도록 ${fmt0(C(8000))}을(를) 부탁해요.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)} 도와주기`, sub:`${subAVista(v)} · + 웰빙`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -77302,6 +77429,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -77603,6 +77732,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["생활비(집, 장보기, 자동차, 공과금)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`기부 (계좌 입금액의 ${s.doaPct}%)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`여가(${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -77636,6 +77767,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`업적: ${novos[0].nome}`:`업적 ${novos.length}개!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` 웰빙 +${4*novos.length}: 자신의 발전을 보는 것은 당신에게도 좋아요.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` 그 외에, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 수입 탭에 새로운 기회가 나타났어요: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -81519,7 +81651,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="निकालने के लिए कोई अधिशेष नहीं: नकदी रिज़र्व के स्तर पर है।"; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 कंपनी की नकदी से ${fmt0(v)} आपके खाते में गए।${modo==='tudo'?" रिज़र्व न हो तो ख़राब महीना आपकी जेब से भरना पड़ता है।":" करीब 3 महीने के खर्च का रिज़र्व छोड़ा गया।"}`;
 }
 function modalTyc(a){
@@ -82248,6 +82380,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`भाग्य उदारता के पीछे चलता है`, texto:`आपका दान आभार के साथ स्वीकार हुआ। अगले 12 महीनों तक आप हर बारी में दो पासे फेंकेंगे। उदारता भी संपत्ति का हिस्सा है: पैसे को अपने से बड़े उद्देश्य की सेवा करनी चाहिए।${tx}`}; }}; })(),
       {label:`इस बार नहीं`, sub:`पैसा बना रहेगा`, run:()=>({tom:'neutro', titulo:`शायद अगली बार`, texto:`पैसा आपके खाते में ही रहेगा। ऐसा प्रस्ताव फिर आ सकता है।`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `लौटाना: आपकी आय का ${L}%`; }, texto:()=>{ const L=doaProx(); return `ज़रूरतमंद परिवारों की मदद करने वाली एक संस्था आपको हर महीने आपके खाते में आने वाली हर चीज़ (वेतन, कंपनियों से निकासी, किराया और रिटर्न) का ${L}% देने के लिए आमंत्रित करती है। कंपनियों के अंदर छोड़ा गया पैसा नहीं गिना जाता।`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`हर महीने ${L}% दान करें`, sub:`खाते में आए पैसे से कटता है`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`देना भी पाने का हिस्सा है`, texto:`अब से आपके खाते में आने वाले पैसे का ${L}% ज़रूरतमंदों को जाता है। कोई स्कोर इसे नहीं दिखाता, पर उदार लोग याद रखे जाते हैं और अच्छी ख़बरें उन्हें आसानी से ढूँढ लेती हैं।`}; }},
+      C>0 ? {label:`${C}% बनाए रखें`, sub:`कोई बदलाव नहीं`, run:()=>({tom:'neutro', titulo:`वही गति`, texto:`आपने ${C}% दान जारी रखा। लगातार दिया गया दान एक बार के भाव से ज़्यादा मायने रखता है।`})} : {label:`अभी नहीं`, sub:`शायद बाद में`, run:()=>({tom:'neutro', titulo:`फिर कभी`, texto:`प्रस्ताव खुला है। फ़ैसला आपका है।`})},
+      ...(C>0 ? [{label:`दान बंद करें`, sub:`निमंत्रण फिर आ सकता है`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`दान रुका हुआ है`, texto:`आपने दान देना बंद कर दिया। निमंत्रण किसी दिन फिर आ सकता है।`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"आपके भाई की नौकरी चली गई", texto:()=>`उसके दो बच्चे हैं और कोई आपातकालीन फंड नहीं। अगले कुछ महीने निकालने के लिए वह ${fmt0(C(8000))} माँगता है।`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`${fmt0(v)} से मदद करें`, sub:`${subAVista(v)} · + खुशहाली`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -83881,6 +84019,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -84182,6 +84322,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["रहने का खर्च (घर, राशन, कार और बिल)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`दान (खाते में आए पैसे का ${s.doaPct}%)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`मनोरंजन (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -84215,6 +84357,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`उपलब्धि: ${novos[0].nome}`:`${novos.length} उपलब्धियाँ!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` सेहत +${4*novos.length}: अपनी प्रगति देखना भी आपके लिए अच्छा है।`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` इसके अलावा, ${t.toLowerCase()}।`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 आय टैब में एक नया अवसर दिखा: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -88098,7 +88241,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg="没有可提取的盈余：现金已在储备水平。"; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)}从公司现金转入了你的账户。${modo==='tudo'?" 没有储备，坏月份的亏损要你自己掏腰包。":" 留下了约3个月成本的储备。"}`;
 }
 function modalTyc(a){
@@ -88827,6 +88970,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`好运跟随慷慨`, texto:`你的捐款被感激地收下了。接下来的12个月，每回合你都掷两个骰子。慷慨也是财富的一部分：金钱应该服务于比金钱本身更大的目的。${tx}`}; }}; })(),
       {label:`这次不了`, sub:`钱留在手里`, run:()=>({tom:'neutro', titulo:`也许下次`, texto:`钱仍在你的账户里。这样的机会可能还会再来。`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `回馈：收入的${L}%`; }, texto:()=>{ const L=doaProx(); return `一家帮助困难家庭的基金会邀请你，每月把进入你账户的全部款项（工资、公司提款、租金和收益）的${L}%捐出。留在公司里的钱不计算在内。`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`每月捐出${L}%`, sub:`从进入账户的钱中扣除`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`给予也是拥有的一部分`, texto:`从现在起，进入你账户的钱有${L}%会送给需要的人。没有任何分数会显示这一点，但慷慨的人会被记住，好消息也更容易找上门。`}; }},
+      C>0 ? {label:`保持${C}%`, sub:`没有变化`, run:()=>({tom:'neutro', titulo:`保持节奏`, texto:`你继续捐出${C}%。持续的给予比一次性的举动更有价值。`})} : {label:`现在不`, sub:`也许以后`, run:()=>({tom:'neutro', titulo:`下次吧`, texto:`邀请依然有效。选择权在你。`})},
+      ...(C>0 ? [{label:`停止捐款`, sub:`邀请以后可能会再来`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`捐款已暂停`, texto:`你停止了捐款。邀请也许有一天会再来。`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:"你兄弟失业了", texto:()=>`他有两个孩子，没有应急基金。他向你借${fmt0(C(8000))}来撑过接下来几个月。`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`帮助${fmt0(v)}`, sub:`${subAVista(v)} · +幸福感`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -90460,6 +90609,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -90761,6 +90912,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["生活成本（家、杂货、车和账单）",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`捐款（账户入账的${s.doaPct}%）`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`休闲（${est.nome.toLowerCase()}）`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -90794,6 +90947,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`成就：${novos[0].nome}`:`${novos.length}项成就！`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` 幸福感+${4*novos.length}：看到自己的进步，对你也有好处。`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` 此外，${t.toLowerCase()}。`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 收入页出现了一个新机会：${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
@@ -94673,7 +94827,7 @@ function tycSacar(uid, modo){
   const a=(s.ativos||[]).find(x=>x.uid===uid); if(!a||!a.tyc) return; const T=a.tyc;
   const val=modo==='tudo'? T.caixa : T.caixa-tycReserva(a); const v=Math.floor(val/100)*100;
   if(v<=0){ ui.tycMsg='Não há excedente para retirar: o caixa está no nível da reserva.'; return; }
-  T.caixa-=v; s.conta+=v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
+  T.caixa-=v; s.conta+=v; s.sacadoMes=(s.sacadoMes||0)+v; T.retTot=(T.retTot||0)+v; tycAtualizar(a);
   ui.tycMsg=`💸 ${fmt0(v)} saíram do caixa para a sua conta.${modo==='tudo'?' Sem reserva, um mês ruim sai do seu bolso.':' Ficou uma reserva de cerca de 3 meses de custos.'}`;
 }
 function modalTyc(a){
@@ -95402,6 +95556,12 @@ const EVENTOS = {
         return {tom:'bom', titulo:`A sorte acompanha a generosidade`, texto:`Sua doação foi recebida com gratidão. Nos próximos 12 meses você joga dois dados a cada jogada. A generosidade também faz parte da riqueza: o dinheiro deve servir a um propósito além dele mesmo.${tx}`}; }}; })(),
       {label:`Desta vez não`, sub:`Mantém o dinheiro`, run:()=>({tom:'neutro', titulo:`Quem sabe da próxima`, texto:`O dinheiro continua na sua conta. Uma oferta assim pode voltar a aparecer.`})}
     ]},
+  doaPct:{fases:[2,3], peso:3, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Retribuir: ${L}% da sua renda`; }, texto:()=>{ const L=doaProx(); return `Uma fundação que apoia famílias em necessidade convida você a comprometer ${L}% de tudo o que cai na sua conta todo mês: salário, retiradas das empresas, aluguéis e rendimentos. O dinheiro que fica dentro das suas empresas não conta.`; },
+    opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
+      {label:`Doar ${L}% todo mês`, sub:`Sai do que entra na conta`, run:()=>{ s.doaPct=L; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Dar faz parte de ter`, texto:`A partir de agora, ${L}% do que cai na sua conta vai para quem precisa. Nenhuma pontuação mostra isso, mas pessoas generosas são lembradas e as boas notícias tendem a encontrá-las.`}; }},
+      C>0 ? {label:`Manter ${C}%`, sub:`Sem mudança`, run:()=>({tom:'neutro', titulo:`Mesmo ritmo`, texto:`Você continuou doando ${C}%. Uma contribuição constante vale mais do que um gesto isolado.`})} : {label:`Agora não`, sub:`Talvez mais tarde`, run:()=>({tom:'neutro', titulo:`Fica para outra vez`, texto:`A oferta continua aberta. A escolha é sua.`})},
+      ...(C>0 ? [{label:`Parar de doar`, sub:`O convite pode voltar`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Doações pausadas`, texto:`Você parou de doar. O convite pode voltar um dia.`}; }}] : [])
+    ]; }},
   irmao:{fases:[3], peso:2, once:true, minMes:10, tipo:'opcoes', titulo:'Seu irmão perdeu o emprego', texto:()=>`Ele tem dois filhos e não tinha reserva. Pede ${fmt0(C(8000))} para atravessar os próximos meses.`,
     opcoes:()=>[
       (()=>{ const v=C(8000); return {label:`Ajudar com ${fmt0(v)}`, sub:`${subAVista(v)} · + bem-estar`, disabled:!podeAVista(v), run:()=>{ const t=pagarAVista(v); s.fel=clamp(s.fel+6,0,100);
@@ -97035,6 +97195,8 @@ function eventoDaCasa(t, forcar){
 }
 // joga o dado, anda e devolve a fila de acontecimentos do mês
 // sorteia os dois dados e escolhe a casa dentro da rua do mês atual
+const DOA_NIV=[5,10,15,20], DOA_MULT={5:1.5,10:2,15:2.5,20:3};   // doação: cada nível acelera, sem aviso, a chegada de oportunidades
+const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doaPct||0))||0;
 const doisDados=()=>!!(s&&s.doisDadosAte&&s.mes<s.doisDadosAte);   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -97336,6 +97498,8 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Custo de vida (casa, mercado, carro e contas)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Doações (${s.doaPct}% do que entrou na conta)`, -don]); } }
+  s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Lazer (${est.nome.toLowerCase()})`, -lazer()]);
   for(const id of habAtivos()){ const c=custoHab(id); if(c>0){ s.conta-=c; ex.push([HABITOS[id].nome, -c]); } }
@@ -97369,6 +97533,7 @@ function iniciarMes(){
   if(novos.length){ const t=novos.length===1?`Conquista: ${novos[0].nome}`:`${novos.length} conquistas!`, tx=novos.map(m=>novos.length===1?m.txt:`${m.nome}: ${m.txt}`).join(' ')+` Bem-estar +${4*novos.length}: ver o próprio progresso também faz bem.`;
     if(!lic) lic={tom:'bom', titulo:t, texto:tx}; else lic={...lic, texto:lic.texto+` Além disso, ${t.toLowerCase()}.`};
     s.conqPend=`🏆 ${t}.`; } else s.conqPend=null;
+  { const m=doaMult(); if(m>1){ const base=({1:0.05,2:0.19,3:0.24}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3), pr=Math.min(0.9,(m-1)*base); if(Math.random()<pr){ const o=novaOferta(); if(o) ex.push([`💼 Surgiu uma nova oportunidade na aba Renda: ${nomeOferta(o.id)}`, 0]); } } }
   s.extrato=ex; s.licao=lic;
   if(s.mes===1 && !s.rol?.mes){ s.filaEv=[]; return; }   // primeiro mês do jogo ou da fase: o ratinho ainda não andou, então nenhuma carta abre antes do primeiro lance de dados
   abrirEvento(jogarDado());
