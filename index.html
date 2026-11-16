@@ -2769,7 +2769,10 @@ function fluxo(){
   sai.push([`Leisure (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Habits", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salary and profit share)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Donations (${s.doaPct}% of what came into the account)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Scheduled stock contribution", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -9370,7 +9373,10 @@ function fluxo(){
   sai.push([`Ocio (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Hábitos", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salario y reparto de beneficios)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Donaciones (${s.doaPct}% de lo que entró en la cuenta)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Aportación programada a acciones", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -15970,7 +15976,10 @@ function fluxo(){
   sai.push([`Lazer (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Hábitos", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (ordenado e participação nos lucros)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Donativos (${s.doaPct}% do que entrou na conta)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Reforço programado em ações", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -22571,7 +22580,10 @@ function fluxo(){
   sai.push([`Loisirs (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Habitudes", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['PDG (salaire et intéressement)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Dons (${s.doaPct} % de ce qui est entré sur le compte)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Versement programmé en actions", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -29172,7 +29184,10 @@ function fluxo(){
   sai.push([`Tempo libero (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Abitudini", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['AD (stipendio e quota di profitto)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Donazioni (${s.doaPct}% di ciò che è entrato sul conto)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Versamento programmato in azioni", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -35773,7 +35788,10 @@ function fluxo(){
   sai.push([`Freizeit (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Gewohnheiten", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (Gehalt und Gewinnbeteiligung)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Spenden (${s.doaPct} % der Kontoeingänge)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Geplanter Aktiensparbetrag", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -42374,7 +42392,10 @@ function fluxo(){
   sai.push([`Досуг (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Привычки", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['Директор (зарплата и доля прибыли)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Пожертвования (${s.doaPct}% от поступлений на счёт)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Запланированный взнос в акции", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -48975,7 +48996,10 @@ function fluxo(){
   sai.push([`Hiburan (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Kebiasaan", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['Direktur (gaji dan bagi laba)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Donasi (${s.doaPct}% dari uang yang masuk ke rekening)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Setoran saham terjadwal", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -55576,7 +55600,10 @@ function fluxo(){
   sai.push([`Boş zaman (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["Alışkanlıklar", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (maaş ve kâr payı)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Bağışlar (hesaba girenin %${s.doaPct}'i)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Planlı hisse katkısı", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -62177,7 +62204,10 @@ function fluxo(){
   sai.push([`الترفيه (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["العادات", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['المدير التنفيذي (راتب وحصة من الأرباح)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`التبرعات (${s.doaPct}% مما دخل الحساب)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["مساهمة أسهم مجدولة", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -68778,7 +68808,10 @@ function fluxo(){
   sai.push([`レジャー（${ESTILOS[s.estilo].nome.toLowerCase()}）`, lazer()]);
   if(custoHabitos()) sai.push(["習慣", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO（給料と利益配分）', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`寄付（口座に入った額の${s.doaPct}%）`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["株の積立", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -75379,7 +75412,10 @@ function fluxo(){
   sai.push([`여가(${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["습관", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO(월급과 이익 배분)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`기부 (계좌 입금액의 ${s.doaPct}%)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["예약 주식 적립", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -81979,7 +82015,10 @@ function fluxo(){
   sai.push([`मनोरंजन (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(["आदतें", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['सीईओ (वेतन और मुनाफ़े में हिस्सा)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`दान (खाते में आए पैसे का ${s.doaPct}%)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["निर्धारित शेयर योगदान", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -88579,7 +88618,10 @@ function fluxo(){
   sai.push([`休闲（${ESTILOS[s.estilo].nome.toLowerCase()}）`, lazer()]);
   if(custoHabitos()) sai.push(["习惯", custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO（薪水和利润分成）', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`捐款（账户入账的${s.doaPct}%）`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["定投股票", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
@@ -95175,7 +95217,10 @@ function fluxo(){
   sai.push([`Lazer (${ESTILOS[s.estilo].nome.toLowerCase()})`, lazer()]);
   if(custoHabitos()) sai.push(['Hábitos', custoHabitos()]);
   if(s.ceo && s.ceo.on && ceoEmps().length) sai.push(['CEO (salário e participação no lucro)', ceoCustoMes()]);   // v433: a previsão passava por cima do custo do CEO
-  const E=ent.reduce((a,[,v])=>a+v,0), S=sai.reduce((a,[,v])=>a+v,0);
+  const E=ent.reduce((a,[,v])=>a+v,0);
+  if((s.doaPct||0)>0 && E>0) sai.push([`Doações (${s.doaPct}% do que entrou na conta)`, Math.round(E*s.doaPct/100)]);   // a previsão agora inclui a doação
+  { const ap=aporteMensal(); if(ap && s.acoesLib) sai.push(["Aporte programado em ações", ap]); }   // e o aporte programado em ações
+  const S=sai.reduce((a,[,v])=>a+v,0);
   return {ent:ent.filter(([,v])=>v>0), sai, E, S, sobra:E-S};
 }
 const fluxoBox = () => { const f=fluxo(), mx=Math.max(f.E,f.S,1), pos=f.sobra>=0;
