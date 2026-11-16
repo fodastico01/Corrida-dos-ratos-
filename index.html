@@ -6713,7 +6713,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Influence</span><h3 id="m-t">Your contacts brought 3 opportunities</h3>
+      <span class="tag bom">★ Influence</span><h3 id="m-t">Your contacts brought ${ids.length} opportunities</h3>
       <p class="hint">Choose one. All are good; the difference is what fits your plan.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Your account does not cover it: investments will be sold.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Save for later</button></div></div></div>`;
@@ -13317,7 +13317,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Influencia</span><h3 id="m-t">Tus contactos te trajeron 3 oportunidades</h3>
+      <span class="tag bom">★ Influencia</span><h3 id="m-t">Tus contactos te trajeron ${ids.length} oportunidades</h3>
       <p class="hint">Elige una. Todas son buenas; la diferencia es cuál encaja con tu plan.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Tu cuenta no lo cubre: se venderán inversiones.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Guardar para después</button></div></div></div>`;
@@ -19920,7 +19920,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Influência</span><h3 id="m-t">Os teus contactos trouxeram 3 oportunidades</h3>
+      <span class="tag bom">★ Influência</span><h3 id="m-t">Os teus contactos trouxeram ${ids.length} oportunidades</h3>
       <p class="hint">Escolhe uma. Todas são boas; a diferença é a que melhor se adapta ao teu plano.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>A tua conta não cobre: os investimentos serão vendidos.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Guardar para depois</button></div></div></div>`;
@@ -26524,7 +26524,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Influence</span><h3 id="m-t">Tes contacts ont apporté 3 opportunités</h3>
+      <span class="tag bom">★ Influence</span><h3 id="m-t">Tes contacts ont apporté ${ids.length} opportunités</h3>
       <p class="hint">Choisis-en une. Toutes sont bonnes ; la différence, c'est ce qui correspond à ton plan.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Ton compte ne couvre pas : des investissements seront vendus.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Garder pour plus tard</button></div></div></div>`;
@@ -33128,7 +33128,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Influenza</span><h3 id="m-t">I tuoi contatti hanno portato 3 opportunità</h3>
+      <span class="tag bom">★ Influenza</span><h3 id="m-t">I tuoi contatti hanno portato ${ids.length} opportunità</h3>
       <p class="hint">Scegline una. Sono tutte buone; la differenza è ciò che si adatta al tuo piano.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Il tuo conto non lo copre: gli investimenti saranno venduti.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Salva per dopo</button></div></div></div>`;
@@ -39732,7 +39732,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Einfluss</span><h3 id="m-t">Deine Kontakte haben 3 Gelegenheiten gebracht</h3>
+      <span class="tag bom">★ Einfluss</span><h3 id="m-t">Deine Kontakte haben ${ids.length} Gelegenheiten gebracht</h3>
       <p class="hint">Wähle eine. Alle sind gut; der Unterschied ist, was zu deinem Plan passt.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Dein Konto deckt es nicht: Anlagen werden verkauft.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Für später aufheben</button></div></div></div>`;
@@ -46336,7 +46336,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Влияние</span><h3 id="m-t">Твои контакты принесли 3 возможности</h3>
+      <span class="tag bom">★ Влияние</span><h3 id="m-t">Твои контакты принесли ${ids.length} возможности</h3>
       <p class="hint">Выбери одну. Все хороши; разница в том, что подходит твоему плану.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Денег на счёте не хватает: инвестиции будут проданы.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Отложить на потом</button></div></div></div>`;
@@ -52940,7 +52940,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Pengaruh</span><h3 id="m-t">Kontakmu membawa 3 peluang</h3>
+      <span class="tag bom">★ Pengaruh</span><h3 id="m-t">Kontakmu membawa ${ids.length} peluang</h3>
       <p class="hint">Pilih satu. Semuanya bagus; bedanya adalah mana yang cocok dengan rencanamu.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Rekeningmu tidak menutupinya: investasi akan dijual.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Simpan untuk nanti</button></div></div></div>`;
@@ -59544,7 +59544,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Etki</span><h3 id="m-t">Bağlantıların 3 fırsat getirdi</h3>
+      <span class="tag bom">★ Etki</span><h3 id="m-t">Bağlantıların ${ids.length} fırsat getirdi</h3>
       <p class="hint">Birini seç. Hepsi iyi; fark planına neyin uyduğu.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Hesabın bunu karşılamıyor: yatırımlar satılacak.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Sonraya sakla</button></div></div></div>`;
@@ -66148,7 +66148,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ النفوذ</span><h3 id="m-t">جلبت علاقاتك 3 فرص</h3>
+      <span class="tag bom">★ النفوذ</span><h3 id="m-t">جلبت علاقاتك ${ids.length} فرص</h3>
       <p class="hint">اختر واحدة. كلها جيدة؛ والفرق في ما يناسب خطتك.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>حسابك لا يغطي ذلك: ستُباع استثمارات.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">احفظ لوقت لاحق</button></div></div></div>`;
@@ -72752,7 +72752,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ 影響力</span><h3 id="m-t">あなたの人脈が3つのチャンスをもたらしました</h3>
+      <span class="tag bom">★ 影響力</span><h3 id="m-t">あなたの人脈が${ids.length}つのチャンスをもたらしました</h3>
       <p class="hint">1つ選んでください。どれも良いもので、違いはあなたの計画に合うかどうかです。</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>口座では足りません：投資が売却されます。</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">あとで保存</button></div></div></div>`;
@@ -79356,7 +79356,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ 영향력</span><h3 id="m-t">인맥이 기회 3개를 가져왔어요</h3>
+      <span class="tag bom">★ 영향력</span><h3 id="m-t">인맥이 기회 ${ids.length}개를 가져왔어요</h3>
       <p class="hint">하나를 고르세요. 모두 좋아요. 차이는 당신의 계획에 맞느냐예요.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>계좌로는 감당이 안 돼요: 투자가 팔려요.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">나중에 하기</button></div></div></div>`;
@@ -85959,7 +85959,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ प्रभाव</span><h3 id="m-t">आपके संपर्कों ने 3 अवसर दिए</h3>
+      <span class="tag bom">★ प्रभाव</span><h3 id="m-t">आपके संपर्कों ने ${ids.length} अवसर दिए</h3>
       <p class="hint">एक चुनें। सब अच्छे हैं; फ़र्क़ इसमें है कि आपकी योजना में क्या बैठता है।</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>आपका खाता इसे कवर नहीं करता: निवेश बेचे जाएँगे।</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">बाद के लिए सहेजें</button></div></div></div>`;
@@ -92562,7 +92562,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ 人脉影响力</span><h3 id="m-t">你的人脉带来了3个机会</h3>
+      <span class="tag bom">★ 人脉影响力</span><h3 id="m-t">你的人脉带来了${ids.length}个机会</h3>
       <p class="hint">选一个。每个都不错；区别在于哪个适合你的计划。</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>你的账户不够支付：将卖出投资。</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">留待以后</button></div></div></div>`;
@@ -99161,7 +99161,7 @@ function renderModal0(){
   if(ui.modal==='infl'){
     const ids=ui.cartasInfl||[];
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-      <span class="tag bom">★ Influência</span><h3 id="m-t">Seus contatos trouxeram 3 oportunidades</h3>
+      <span class="tag bom">★ Influência</span><h3 id="m-t">Seus contatos trouxeram ${ids.length} oportunidades</h3>
       <p class="hint">Escolha uma. Todas são boas; a diferença é o que combina com o seu plano.</p>
       <div class="opcoes">${ids.map(k=>`<button class="opcao" data-acao="cartaInfl" data-alvo="${k}"><b>${CARTAS_INFL[k].titulo}</b><span>${CARTAS_INFL[k].txt()}${CARTAS_INFL[k].custo&&CARTAS_INFL[k].custo()>Math.max(0,s.conta)?' <b>Sua conta não cobre: vai vender investimentos.</b>':''}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" data-acao="fechar">Guardar para depois</button></div></div></div>`;
