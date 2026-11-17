@@ -2663,7 +2663,9 @@ const HABS = {
   lideranca:{nome:"Leadership", ic:'👥', ramo:"Time", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Managers take 15% of income instead of 25% and need less supervision.", base:"A good leader develops people and sets clear goals. The team starts working without depending on you all the time."},
   dono:{nome:"Owner's mindset", ic:'👑', ramo:"Top", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"All your companies earn 10% more and fail 40% less. And you roll two dice from now on.", base:"Thinking like an owner means looking at the long term, the numbers and the people at once. It's what separates having a job from having a business."}
+    ef:"All your companies earn 10% more and fail 40% less.", base:"Thinking like an owner means looking at the long term, the numbers and the people at once. It's what separates having a job from having a business."},
+  dados:{nome:"Wealth vision", ic:'🎲', ramo:"Top", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"You roll two dice, for good.", base:"With your wealth built, you stop stopping on every little square and see the whole board."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -2699,8 +2701,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Beaten! The hours came back to you.":`−${hm(V.horas)} h per month${V.cansa?" and more tiredness":''} · beaten by <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -2711,6 +2713,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>A secret skill. It is revealed when you complete ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Close</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -4954,7 +4960,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Donating ${P}% of what comes into your account</h2><p class="hint">You can change this whenever you need. Given so far: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Lower to ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Stop donating</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -6041,7 +6047,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v509</p>
+    <p class="titulo-versao">version v510</p>
   </div>`;
 }
 function render(){
@@ -9281,7 +9287,9 @@ const HABS = {
   lideranca:{nome:"Liderazgo", ic:'👥', ramo:"Tiempo", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Los gerentes se llevan el 15% de los ingresos en lugar del 25% y necesitan menos supervisión.", base:"Un buen líder desarrolla a las personas y fija objetivos claros. El equipo empieza a funcionar sin depender de ti todo el rato."},
   dono:{nome:"Mentalidad de dueño", ic:'👑', ramo:"Cima", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Todas tus empresas ganan un 10% más y fallan un 40% menos. Y pasas a jugar con dos dados.", base:"Pensar como un dueño es mirar a la vez el largo plazo, los números y las personas. Es lo que separa tener un empleo de tener un negocio."}
+    ef:"Todas tus empresas ganan un 10% más y fallan un 40% menos.", base:"Pensar como un dueño es mirar a la vez el largo plazo, los números y las personas. Es lo que separa tener un empleo de tener un negocio."},
+  dados:{nome:"Visión de patrimonio", ic:'🎲', ramo:"Cima", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Pasas a jugar con dos dados, para siempre.", base:"Con el patrimonio armado, dejas de parar en cada casilla y ves todo el tablero."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -9317,8 +9325,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"¡Vencido! Las horas han vuelto a ti.":`−${hm(V.horas)} h al mes${V.cansa?" y más cansancio":''} · vencido por <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -9329,6 +9337,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Habilidad secreta. Se revela cuando completes ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Cerrar</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -11572,7 +11584,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Donando el ${P}% de lo que entra en tu cuenta</h2><p class="hint">Puedes cambiarlo cuando lo necesites. Donado hasta ahora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Bajar al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Dejar de donar</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -12659,7 +12671,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v509</p>
+    <p class="titulo-versao">versión v510</p>
   </div>`;
 }
 function render(){
@@ -15898,7 +15910,9 @@ const HABS = {
   lideranca:{nome:"Liderança", ic:'👥', ramo:"Tempo", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Os gerentes levam 15% do rendimento em vez de 25% e precisam de menos supervisão.", base:"Um bom líder desenvolve pessoas e define objetivos claros. A equipa passa a trabalhar sem depender sempre de ti."},
   dono:{nome:"Mentalidade de dono", ic:'👑', ramo:"Topo", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Todas as tuas empresas rendem mais 10% e falham menos 40%. E passas a jogar com dois dados.", base:"Pensar como dono é olhar ao mesmo tempo para o longo prazo, para os números e para as pessoas. É o que separa ter um emprego de ter um negócio."}
+    ef:"Todas as tuas empresas rendem mais 10% e falham menos 40%.", base:"Pensar como dono é olhar ao mesmo tempo para o longo prazo, para os números e para as pessoas. É o que separa ter um emprego de ter um negócio."},
+  dados:{nome:"Visão de património", ic:'🎲', ramo:"Topo", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Passas a jogar com dois dados, para sempre.", base:"Com o património montado, deixas de parar em cada casa e passas a ver o tabuleiro inteiro."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -15934,8 +15948,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Vencido! As horas voltaram para ti.":`−${hm(V.horas)} h por mês${V.cansa?" e mais cansaço":''} · vencido por <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -15946,6 +15960,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Habilidade secreta. Revela-se quando concluíres ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fechar</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -18189,7 +18207,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 A doar ${P}% do que entra na tua conta</h2><p class="hint">Podes mudar isto quando precisares. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Deixar de doar</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -19276,7 +19294,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v509</p>
+    <p class="titulo-versao">versão v510</p>
   </div>`;
 }
 function render(){
@@ -22516,7 +22534,9 @@ const HABS = {
   lideranca:{nome:"Leadership", ic:'👥', ramo:"Temps", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Les gérants prennent 15 % du revenu au lieu de 25 % et ont besoin de moins de supervision.", base:"Un bon leader fait grandir les gens et fixe des objectifs clairs. L'équipe se met à travailler sans dépendre de toi en permanence."},
   dono:{nome:"État d'esprit de propriétaire", ic:'👑', ramo:"Sommet", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Toutes tes entreprises rapportent 10 % de plus et échouent 40 % moins. Et vous lancez désormais deux dés.", base:"Penser en propriétaire, c'est regarder en même temps le long terme, les chiffres et les gens. C'est ce qui sépare avoir un emploi d'avoir une entreprise."}
+    ef:"Toutes tes entreprises rapportent 10 % de plus et échouent 40 % moins.", base:"Penser en propriétaire, c'est regarder en même temps le long terme, les chiffres et les gens. C'est ce qui sépare avoir un emploi d'avoir une entreprise."},
+  dados:{nome:"Vision du patrimoine", ic:'🎲', ramo:"Sommet", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Vous lancez désormais deux dés, pour toujours.", base:"Avec votre patrimoine bâti, vous ne vous arrêtez plus à chaque case et voyez tout le plateau."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -22552,8 +22572,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Vaincu ! Les heures te sont revenues.":`−${hm(V.horas)} h par mois${V.cansa?" et plus de fatigue":''} · vaincu par <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -22564,6 +22584,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Compétence secrète. Elle se révèle quand vous terminez ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fermer</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -24807,7 +24831,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Tu donnes ${P} % de ce qui entre sur ton compte</h2><p class="hint">Tu peux changer quand tu veux. Donné jusqu'ici : ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baisser à ${baixo} %</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Arrêter de donner</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -25894,7 +25918,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v509</p>
+    <p class="titulo-versao">version v510</p>
   </div>`;
 }
 function render(){
@@ -29134,7 +29158,9 @@ const HABS = {
   lideranca:{nome:"Leadership", ic:'👥', ramo:"Tempo", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"I direttori prendono il 15% del reddito invece del 25% e richiedono meno supervisione.", base:"Un buon leader fa crescere le persone e fissa obiettivi chiari. La squadra comincia a lavorare senza dipendere sempre da te."},
   dono:{nome:"Mentalità da titolare", ic:'👑', ramo:"Top", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Tutte le tue aziende rendono il 10% in più e falliscono il 40% in meno. E da ora lanci due dadi.", base:"Pensare da titolare significa guardare insieme il lungo periodo, i numeri e le persone. È ciò che separa avere un lavoro da avere un'attività."}
+    ef:"Tutte le tue aziende rendono il 10% in più e falliscono il 40% in meno.", base:"Pensare da titolare significa guardare insieme il lungo periodo, i numeri e le persone. È ciò che separa avere un lavoro da avere un'attività."},
+  dados:{nome:"Visione del patrimonio", ic:'🎲', ramo:"Top", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Da ora lanci due dadi, per sempre.", base:"Con il patrimonio costruito, non ti fermi più a ogni casella e vedi l'intero tabellone."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -29170,8 +29196,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Sconfitto! Le ore sono tornate a te.":`−${hm(V.horas)} h al mese${V.cansa?" e più stanchezza":''} · sconfitto da <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -29182,6 +29208,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Abilità segreta. Si rivela quando completi ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Chiudi</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -31425,7 +31455,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Doni il ${P}% di ciò che entra sul conto</h2><p class="hint">Puoi cambiare quando vuoi. Donato finora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Riduci al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Smetti di donare</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -32512,7 +32542,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v509</p>
+    <p class="titulo-versao">versione v510</p>
   </div>`;
 }
 function render(){
@@ -35752,7 +35782,9 @@ const HABS = {
   lideranca:{nome:"Führung", ic:'👥', ramo:"Zeit", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Manager nehmen 15 % des Einkommens statt 25 % und brauchen weniger Aufsicht.", base:"Eine gute Führungskraft entwickelt Menschen und setzt klare Ziele. Das Team arbeitet, ohne ständig von dir abzuhängen."},
   dono:{nome:"Denken wie ein Inhaber", ic:'👑', ramo:"Spitze", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Alle deine Unternehmen verdienen 10 % mehr und fallen 40 % seltener aus. Und du würfelst ab jetzt mit zwei Würfeln.", base:"Wie ein Inhaber zu denken heißt, die lange Sicht, die Zahlen und die Menschen zugleich zu sehen. Das trennt einen Job von einem Geschäft."}
+    ef:"Alle deine Unternehmen verdienen 10 % mehr und fallen 40 % seltener aus.", base:"Wie ein Inhaber zu denken heißt, die lange Sicht, die Zahlen und die Menschen zugleich zu sehen. Das trennt einen Job von einem Geschäft."},
+  dados:{nome:"Vermögensblick", ic:'🎲', ramo:"Spitze", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Du würfelst für immer mit zwei Würfeln.", base:"Mit aufgebautem Vermögen hältst du nicht mehr auf jedem Feld an und überblickst das ganze Brett."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -35788,8 +35820,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Besiegt! Die Stunden sind zu dir zurückgekehrt.":`−${hm(V.horas)} Std. pro Monat${V.cansa?" und mehr Müdigkeit":''} · besiegt von <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -35800,6 +35832,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Geheime Fähigkeit. Sie zeigt sich, wenn du abschließt: ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Schließen</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -38043,7 +38079,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Du spendest ${P} % der Kontoeingänge</h2><p class="hint">Du kannst das jederzeit ändern. Bisher gespendet: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Auf ${baixo} % senken</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Nicht mehr spenden</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -39130,7 +39166,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v509</p>
+    <p class="titulo-versao">Version v510</p>
   </div>`;
 }
 function render(){
@@ -42370,7 +42406,9 @@ const HABS = {
   lideranca:{nome:"Лидерство", ic:'👥', ramo:"Время", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Управляющие забирают 15 % дохода вместо 25 % и требуют меньше надзора.", base:"Хороший лидер развивает людей и ставит чёткие цели. Команда начинает работать, не завися от тебя постоянно."},
   dono:{nome:"Мышление владельца", ic:'👑', ramo:"Вершина", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Все твои компании зарабатывают на 10 % больше и терпят неудачи на 40 % реже. И вы бросаете два кубика.", base:"Думать как владелец — значит смотреть одновременно на долгий срок, цифры и людей. Именно это отличает наличие работы от наличия бизнеса."}
+    ef:"Все твои компании зарабатывают на 10 % больше и терпят неудачи на 40 % реже.", base:"Думать как владелец — значит смотреть одновременно на долгий срок, цифры и людей. Именно это отличает наличие работы от наличия бизнеса."},
+  dados:{nome:"Взгляд на капитал", ic:'🎲', ramo:"Вершина", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Вы навсегда начинаете бросать два кубика.", base:"Когда капитал построен, вы больше не останавливаетесь на каждой клетке и видите всё поле."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -42406,8 +42444,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Побеждено! Часы вернулись к тебе.":`−${hm(V.horas)} ч в месяц${V.cansa?" и больше усталости":''} · побеждено <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -42418,6 +42456,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Секретный навык. Откроется, когда вы завершите: ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Закрыть</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -44661,7 +44703,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Ты жертвуешь ${P}% поступлений на счёт</h2><p class="hint">Это можно изменить в любой момент. Пожертвовано: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Снизить до ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Прекратить жертвовать</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -45748,7 +45790,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v509</p>
+    <p class="titulo-versao">версия v510</p>
   </div>`;
 }
 function render(){
@@ -48988,7 +49030,9 @@ const HABS = {
   lideranca:{nome:"Kepemimpinan", ic:'👥', ramo:"Waktu", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Manajer mengambil 15% pendapatan, bukan 25%, dan butuh pengawasan lebih sedikit.", base:"Pemimpin yang baik mengembangkan orang dan menetapkan tujuan yang jelas. Tim mulai bekerja tanpa selalu bergantung padamu."},
   dono:{nome:"Pola pikir pemilik", ic:'👑', ramo:"Puncak", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Semua perusahaanmu menghasilkan 10% lebih banyak dan gagal 40% lebih jarang. Dan kamu melempar dua dadu mulai sekarang.", base:"Berpikir seperti pemilik berarti memandang jangka panjang, angka, dan orang sekaligus. Itulah yang membedakan punya pekerjaan dari punya bisnis."}
+    ef:"Semua perusahaanmu menghasilkan 10% lebih banyak dan gagal 40% lebih jarang.", base:"Berpikir seperti pemilik berarti memandang jangka panjang, angka, dan orang sekaligus. Itulah yang membedakan punya pekerjaan dari punya bisnis."},
+  dados:{nome:"Visi kekayaan", ic:'🎲', ramo:"Puncak", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Kamu melempar dua dadu, selamanya.", base:"Dengan kekayaan yang sudah terbangun, kamu tak perlu berhenti di setiap petak dan melihat seluruh papan."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -49024,8 +49068,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Terkalahkan! Jam-jammu kembali padamu.":`−${hm(V.horas)} jam per bulan${V.cansa?" dan lebih banyak kelelahan":''} · dikalahkan oleh <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -49036,6 +49080,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Keahlian rahasia. Terungkap saat kamu menyelesaikan ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Tutup</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -51279,7 +51327,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Berdonasi ${P}% dari uang yang masuk ke rekening</h2><p class="hint">Kamu bisa mengubahnya kapan saja. Total donasi: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Turunkan ke ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Berhenti berdonasi</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -52366,7 +52414,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v509</p>
+    <p class="titulo-versao">versi v510</p>
   </div>`;
 }
 function render(){
@@ -55606,7 +55654,9 @@ const HABS = {
   lideranca:{nome:"Liderlik", ic:'👥', ramo:"Zaman", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"Yöneticiler gelirin %25'i yerine %15'ini alır ve daha az gözetim ister.", base:"İyi bir lider insanları geliştirir ve net hedefler koyar. Ekip her zaman sana bağlı kalmadan çalışmaya başlar."},
   dono:{nome:"Sahip zihniyeti", ic:'👑', ramo:"Zirve", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"Tüm şirketlerin %10 daha çok kazanır ve %40 daha az aksar. Ve artık iki zar atarsın.", base:"Sahip gibi düşünmek uzun vadeye, rakamlara ve insanlara aynı anda bakmaktır. Bir işe sahip olmayı, bir iş yapmaktan ayıran budur."}
+    ef:"Tüm şirketlerin %10 daha çok kazanır ve %40 daha az aksar.", base:"Sahip gibi düşünmek uzun vadeye, rakamlara ve insanlara aynı anda bakmaktır. Bir işe sahip olmayı, bir iş yapmaktan ayıran budur."},
+  dados:{nome:"Servet vizyonu", ic:'🎲', ramo:"Zirve", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Artık sonsuza dek iki zar atarsın.", base:"Servetin kurulunca her karede durmazsın, tüm tahtayı görürsün."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -55642,8 +55692,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"Yendin! Saatler sana geri döndü.":`ayda −${hm(V.horas)} saat${V.cansa?" ve daha çok yorgunluk":''} · şunu yendi: <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -55654,6 +55704,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Gizli bir yetenek. Şunu tamamlayınca ortaya çıkar: ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Kapat</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -57897,7 +57951,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Hesaba girenin %${P}'ini bağışlıyorsun</h2><p class="hint">İstediğin zaman değiştirebilirsin. Şimdiye kadar: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">%${baixo}'e düşür</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Bağışı bırak</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -58984,7 +59038,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v509</p>
+    <p class="titulo-versao">sürüm v510</p>
   </div>`;
 }
 function render(){
@@ -62224,7 +62278,9 @@ const HABS = {
   lideranca:{nome:"القيادة", ic:'👥', ramo:"الوقت", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"يأخذ المديرون 15% من الدخل بدلاً من 25% ويحتاجون إشرافاً أقل.", base:"القائد الجيد ينمّي الناس ويضع أهدافاً واضحة. يبدأ الفريق بالعمل دون الاعتماد عليك طوال الوقت."},
   dono:{nome:"عقلية المالك", ic:'👑', ramo:"القمة", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"كل شركاتك تربح 10% أكثر وتفشل 40% أقل. وتلعب منذ الآن بنردين.", base:"التفكير كمالك يعني النظر إلى المدى البعيد والأرقام والناس معاً. هذا ما يفرّق بين امتلاك وظيفة وامتلاك عمل."}
+    ef:"كل شركاتك تربح 10% أكثر وتفشل 40% أقل.", base:"التفكير كمالك يعني النظر إلى المدى البعيد والأرقام والناس معاً. هذا ما يفرّق بين امتلاك وظيفة وامتلاك عمل."},
+  dados:{nome:"رؤية الثروة", ic:'🎲', ramo:"القمة", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"تلعب بنردين إلى الأبد.", base:"بعد بناء ثروتك، لا تتوقف عند كل خانة وترى اللوحة كلها."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -62260,8 +62316,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"هُزمت! عادت الساعات إليك.":`−${hm(V.horas)} ساعة شهرياً${V.cansa?" ومزيد من التعب":''} · هُزمت بواسطة <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -62272,6 +62328,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>مهارة سرية. تظهر عندما تكمل ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>إغلاق</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -64515,7 +64575,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 تتبرع بـ ${P}% مما يدخل حسابك</h2><p class="hint">يمكنك التغيير متى احتجت. المتبرَّع به حتى الآن: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">خفض إلى ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">توقف عن التبرع</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -65602,7 +65662,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v509</p>
+    <p class="titulo-versao">الإصدار v510</p>
   </div>`;
 }
 function render(){
@@ -68842,7 +68902,9 @@ const HABS = {
   lideranca:{nome:"リーダーシップ", ic:'👥', ramo:"時間", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"マネージャーの取り分が25%ではなく15%になり、監督も少なくて済みます。", base:"良いリーダーは人を育て、明確な目標を設定します。チームは常にあなたに頼らなくても動き始めます。"},
   dono:{nome:"オーナーの心構え", ic:'👑', ramo:"最上位", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"あなたのすべての会社の収益が10%増え、失敗が40%減ります。さらに、サイコロを2個振るようになります。", base:"オーナーのように考えるとは、長期、数字、人を同時に見ることです。それが、仕事を持つことと事業を持つことの違いです。"}
+    ef:"あなたのすべての会社の収益が10%増え、失敗が40%減ります。", base:"オーナーのように考えるとは、長期、数字、人を同時に見ることです。それが、仕事を持つことと事業を持つことの違いです。"},
+  dados:{nome:"資産のビジョン", ic:'🎲', ramo:"最上位", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"これからはずっとサイコロを2個振ります。", base:"資産が築けたら、すべてのマスで止まらず、盤面全体を見渡せます。"}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -68878,8 +68940,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"打ち勝ちました！時間が戻ってきました。":`月−${hm(V.horas)}時間${V.cansa?" そして疲れも増える":''}・打ち勝った相手： <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -68890,6 +68952,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>秘密のスキル。次を完了すると明らかになります： ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>閉じる</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -71133,7 +71199,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 口座に入るお金の${P}%を寄付中</h2><p class="hint">いつでも変更できます。これまでの寄付額：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%に下げる</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">寄付をやめる</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -72220,7 +72286,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v509</p>
+    <p class="titulo-versao">バージョン v510</p>
   </div>`;
 }
 function render(){
@@ -75460,7 +75526,9 @@ const HABS = {
   lideranca:{nome:"리더십", ic:'👥', ramo:"시간", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"매니저가 소득의 25%가 아니라 15%를 가져가고 감독도 덜 필요해요.", base:"좋은 리더는 사람을 키우고 분명한 목표를 세워요. 팀은 늘 당신에게 의존하지 않고 일하기 시작해요."},
   dono:{nome:"주인의 마인드", ic:'👑', ramo:"최상위", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"모든 회사가 10% 더 벌고 실패는 40% 줄어요. 그리고 이제 주사위를 두 개 굴립니다.", base:"주인처럼 생각한다는 것은 장기적 관점, 숫자, 사람을 한꺼번에 본다는 뜻이에요. 직업을 갖는 것과 사업을 갖는 것을 가르는 차이예요."}
+    ef:"모든 회사가 10% 더 벌고 실패는 40% 줄어요.", base:"주인처럼 생각한다는 것은 장기적 관점, 숫자, 사람을 한꺼번에 본다는 뜻이에요. 직업을 갖는 것과 사업을 갖는 것을 가르는 차이예요."},
+  dados:{nome:"자산을 보는 눈", ic:'🎲', ramo:"최상위", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"이제부터 영원히 주사위를 두 개 굴립니다.", base:"자산이 쌓이면 모든 칸에 멈추지 않고 보드 전체를 보게 됩니다."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -75496,8 +75564,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"이겨 냈어요! 시간이 돌아왔어요.":`−월 ${hm(V.horas)}시간${V.cansa?" 그리고 더 많은 피로":''} · 이겨 낸 것: <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -75508,6 +75576,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>비밀 기술입니다. 다음을 완료하면 공개됩니다: ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>닫기</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -77751,7 +77823,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 계좌 입금액의 ${P}%를 기부 중</h2><p class="hint">필요할 때 언제든 바꿀 수 있어요. 지금까지 기부액: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%로 낮추기</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">기부 중단하기</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -78838,7 +78910,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v509</p>
+    <p class="titulo-versao">버전 v510</p>
   </div>`;
 }
 function render(){
@@ -82077,7 +82149,9 @@ const HABS = {
   lideranca:{nome:"नेतृत्व", ic:'👥', ramo:"समय", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"मैनेजर आय का 25% की जगह 15% लेते हैं और उन्हें कम निगरानी चाहिए।", base:"अच्छा लीडर लोगों को विकसित करता है और साफ़ लक्ष्य रखता है। टीम हर समय आप पर निर्भर हुए बिना काम करने लगती है।"},
   dono:{nome:"मालिक की सोच", ic:'👑', ramo:"शिखर", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"आपकी सभी कंपनियाँ 10% ज़्यादा कमाती हैं और 40% कम असफल होती हैं। और अब आप दो पासे फेंकते हैं।", base:"मालिक की तरह सोचने का मतलब है लंबी अवधि, आँकड़ों और लोगों को एक साथ देखना। नौकरी होने और कारोबार होने में यही फ़र्क़ है।"}
+    ef:"आपकी सभी कंपनियाँ 10% ज़्यादा कमाती हैं और 40% कम असफल होती हैं।", base:"मालिक की तरह सोचने का मतलब है लंबी अवधि, आँकड़ों और लोगों को एक साथ देखना। नौकरी होने और कारोबार होने में यही फ़र्क़ है।"},
+  dados:{nome:"संपत्ति की दृष्टि", ic:'🎲', ramo:"शिखर", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"अब आप हमेशा दो पासे फेंकते हैं।", base:"संपत्ति बन जाने के बाद आप हर खाने पर नहीं रुकते, पूरा बोर्ड देख पाते हैं।"}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -82113,8 +82187,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"हरा दिया! घंटे आपके पास लौट आए।":`−महीने के ${hm(V.horas)} घंटे${V.cansa?" और ज़्यादा थकान":''} · हराया गया <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -82125,6 +82199,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>एक गुप्त कौशल। इसे पूरा करने पर खुलेगा: ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>बंद करें</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -84368,7 +84446,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 खाते में आने वाले पैसे का ${P}% दान कर रहे हैं</h2><p class="hint">आप जब चाहें बदल सकते हैं। अब तक दान: ${T}।</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}% पर घटाएँ</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">दान बंद करें</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -85455,7 +85533,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v509</p>
+    <p class="titulo-versao">वर्ज़न v510</p>
   </div>`;
 }
 function render(){
@@ -88694,7 +88772,9 @@ const HABS = {
   lideranca:{nome:"领导力", ic:'👥', ramo:"时间", req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:"经理只拿收入的15%而不是25%，需要的监督也更少。", base:"好的领导者培养人，设定清晰的目标。团队开始运转，不再时刻依赖你。"},
   dono:{nome:"老板思维", ic:'👑', ramo:"顶级", req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:"你所有的公司多赚10%，失败率降低40%。并且从此掷两颗骰子。", base:"像老板一样思考，就是同时着眼长远、数字和人。这正是有一份工作和拥有一门生意的区别。"}
+    ef:"你所有的公司多赚10%，失败率降低40%。", base:"像老板一样思考，就是同时着眼长远、数字和人。这正是有一份工作和拥有一门生意的区别。"},
+  dados:{nome:"财富视野", ic:'🎲', ramo:"顶级", req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"从此永远掷两颗骰子。", base:"财富建成后，你不必在每一格停留，而是看清整个棋盘。"}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -88730,8 +88810,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?"战胜了！时间回到了你手里。":`每月−${hm(V.horas)}小时${V.cansa?" 且更疲劳":''} · 已战胜 <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -88742,6 +88822,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>隐藏技能。完成以下技能后揭晓： ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>关闭</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -90985,7 +91069,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 正在捐出账户入账的${P}%</h2><p class="hint">你可以随时更改。目前累计捐款：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">降到${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">停止捐款</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -92072,7 +92156,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v509</p>
+    <p class="titulo-versao">版本 v510</p>
   </div>`;
 }
 function render(){
@@ -95307,7 +95391,9 @@ const HABS = {
   lideranca:{nome:'Liderança', ic:'👥', ramo:'Tempo', req:['automatizar','negociacao'], meses:6, horas:3, custo:2500, fase:2, x:30, r:5,
     ef:'Gerentes ficam com 15% da renda em vez de 25% e pedem menos supervisão.', base:'Um bom líder forma pessoas e define metas claras. A equipe passa a funcionar sem depender de você o tempo todo.'},
   dono:{nome:'Mentalidade de dono', ic:'👑', ramo:'Topo', req:['lideranca','emocional'], meses:6, horas:3, custo:4000, fase:2, x:58, r:6,
-    ef:'Todas as suas empresas rendem 10% a mais e quebram 40% menos. E você passa a jogar com dois dados.', base:'Pensar como dono é olhar o longo prazo, os números e as pessoas ao mesmo tempo. É o que separa quem tem um emprego de quem tem um negócio.'}
+    ef:'Todas as suas empresas rendem 10% a mais e quebram 40% menos.', base:'Pensar como dono é olhar o longo prazo, os números e as pessoas ao mesmo tempo. É o que separa quem tem um emprego de quem tem um negócio.'},
+  dados:{nome:"Visão de patrimônio", ic:'🎲', ramo:'Topo', req:['dono'], meses:6, horas:3, custo:5000, fase:2, x:58, r:7,
+    ef:"Você passa a jogar com dois dados, para sempre.", base:"Com o patrimônio montado, você deixa de parar em cada casinha e passa a enxergar o tabuleiro inteiro."}
 };
 const custoHabC = id => HABS[id].custo ? Math.round(C(HABS[id].custo)/10)*10 : 0;
 const horasHabEst = () => s.habEst && HABS[s.habEst.id] ? HABS[s.habEst.id].horas : 0;
@@ -95343,8 +95429,8 @@ const ROW_H=82, ARV_PAD=46;
 function arvoreCard(){
   const linhas=Object.values(HABS).reduce((m,H)=>Math.max(m,H.r),0), H_=linhas*ROW_H+ARV_PAD*2, y=r=>H_-ARV_PAD-r*ROW_H;
   const arestas=Object.entries(HABS).flatMap(([id,H])=>H.req.map(r=>{ const A=HABS[r]; const on=temHab(r); return `<line x1="${A.x}" y1="${y(A.r)}" x2="${H.x}" y2="${y(H.r)}" class="${on?'on':''}" vector-effect="non-scaling-stroke"/>`; })).join('');
-  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id];
-    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${H.nome}"><span class="hab-ic">${img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${H.nome}</small></button>`; }).join('');
+  const nos=Object.entries(HABS).map(([id,H])=>{ const st=estadoHab(id), img=ARTE.habs?.[id], mist=id==='dados'&&!temHab('dono');
+    return `<button class="hab-no ${st}" style="left:${H.x}%;top:${y(H.r)}px" data-acao="habVer" data-alvo="${id}" aria-label="${mist?'?':H.nome}"><span class="hab-ic">${mist?'❓':img?`<img src="${img}" alt="">`:H.ic}</span>${st==='bloq'?`<i class="hab-cad">${pix('🔒')}</i>`:''}${st==='feito'?'<i class="hab-ok">✓</i>':''}<small>${mist?'???':H.nome}</small></button>`; }).join('');
   const vic=(s.vicios||[]).filter(v=>VICIOS[v]);
   const vicTxt=vic.length?`<div class="vicios">${vic.map(v=>{ const V=VICIOS[v], ok=temHab(V.cura); return `<div class="vicio ${ok?'vencido':''}"><span class="v-ic">${ARTE.vicios?.[v]?`<img src="${ARTE.vicios[v]}" alt="">`:V.ic}</span><div><b>${V.nome}</b><span>${ok?'Vencido! As horas voltaram para você.':`−${hm(V.horas)} h por mês${V.cansa?' e mais cansaço':''} · vence com <b>${HABS[V.cura].nome}</b>`}</span></div></div>`; }).join('')}</div>`:'';
   const prog=habProg();
@@ -95355,6 +95441,10 @@ function arvoreCard(){
     <div class="arvore" style="height:${H_}px"><svg class="arv-linhas" viewBox="0 0 100 ${H_}" preserveAspectRatio="none" aria-hidden="true">${arestas}</svg>${nos}</div></section>`;
 }
 function modalHab(id){
+  if(id==='dados' && !temHab('dono')) return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+    <div class="hab-topo"><span class="hab-ic grande bloq">❓</span><div><h3 id="m-t">???</h3></div></div>
+    <p>Habilidade secreta. Ela se revela quando você concluir ${HABS.dono.nome}.</p>
+    <div class="opcoes"><button class="opcao" data-acao="fechar"><b>Fechar</b></button></div></div></div>`;
   const H=HABS[id], st=estadoHab(id), motivo=porQueNaoHab(id), img=ARTE.habs?.[id], c=custoHabC(id);
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
     <div class="hab-topo"><span class="hab-ic grande ${st}">${img?`<img src="${img}" alt="">`:H.ic}</span><div><span class="tag neutro">${H.ramo}</span><h3 id="m-t">${H.nome}</h3></div></div>
@@ -97598,7 +97688,7 @@ function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
   return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Doando ${P}% do que entra na sua conta</h2><p class="hint">Você pode mudar quando precisar. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Parar de doar</button></div></section>`; }
-const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dono)));   // dois dados: bônus temporário da doação, ou para sempre com a Mentalidade de dono (última habilidade da árvore)
+const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
   const m=mesCal(), ini=MES_INI[m-1], L=MES_LEN[m-1], de=R.de??R.pos??0;
@@ -98685,7 +98775,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v509</p>
+    <p class="titulo-versao">versão v510</p>
   </div>`;
 }
 function render(){
