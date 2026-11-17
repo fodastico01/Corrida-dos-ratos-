@@ -1275,6 +1275,12 @@ iframe.ritmo{width:100%;height:100%;border:0;display:block;background:#171b2e}
 /* ===== bandeirinhas de idioma ===== */
 .seg-flags button{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px}
 .seg-flags svg,.lang-flags svg{width:30px;height:21px;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.3);display:block}
+.so-carregar [data-acao="slotSalvar"]{display:none}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:60vh;overflow:auto}
+.lang-grid svg{width:30px;height:21px;flex:none;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.3);display:block}
+.lang-grid .btn span{min-width:0}
+.lang-grid .btn{display:flex;align-items:center;gap:10px;justify-content:flex-start;text-align:left;font-size:14px;padding:8px 10px;line-height:1.2}
+.lang-grid .btn[aria-pressed="true"]{outline:2px solid var(--coin)}
 .lang-flags{position:absolute;top:10px;right:10px;z-index:6;display:flex;gap:6px}
 .lang-flags button{background:rgba(255,255,255,.88);border:2px solid transparent;border-radius:10px;padding:4px;line-height:0;cursor:pointer}
 .lang-flags button[aria-pressed="true"]{border-color:var(--coin);box-shadow:0 0 0 2px rgba(19,32,58,.55)}
@@ -1571,6 +1577,7 @@ window.__PAIS=(function(){
   const P=window.__PAIS;
   const btn=(l,svg,nome,on)=>'<button data-acao="idioma" data-alvo="'+l+'" aria-pressed="'+on+'" aria-label="'+nome+'" title="'+nome+'">'+svg+'</button>';
   window.__flagsBtns=()=>btn('pt',BR,'Português (Brasil)',L==='pt')+btn('ptpt',ptpt,'Português (Portugal)',L==='pt-pt')+btn('de',dEf,'Deutsch (Deutschland)',L==='de')+btn('ru',ruf,'Русский (Россия)',L==='ru')+btn('id',idf,'Bahasa Indonesia (Indonesia)',L==='id')+btn('tr',trf,'Türkçe (Türkiye)',L==='tr')+btn('ar',arf,'العربية (السعودية)',L==='ar')+btn('ja',jaf,'日本語（日本）',L==='ja')+btn('ko',kof,'한국어 (대한민국)',L==='ko')+btn('hi',hif,'हिन्दी (भारत)',L==='hi')+btn('zh',zhf,'简体中文（中国）',L==='zh')+btn('it',itf,'Italiano (Italia)',L==='it')+btn('fr',fr,'Français (France)',L==='fr'&&P==='FR')+btn('frqc',qc,'Français (Québec)',L==='fr'&&P==='QC')+btn('en',us,'English (US)',L==='en'&&P==='US')+btn('gb',gb,'English (UK)',L==='en'&&P==='GB')+btn('au',au,'English (Australia)',L==='en'&&P==='AU')+btn('ca',ca,'English (Canada)',L==='en'&&P==='CA')+btn('nz',nz,'English (New Zealand)',L==='en'&&P==='NZ')+btn('ie',ie,'English (Ireland)',L==='en'&&P==='IE')+btn('es',es,'Español (España)',L==='es'&&P==='ES')+btn('esmx',mx,'Español (México)',L==='es'&&P==='MX')+btn('esar',ar,'Español (Argentina)',L==='es'&&P==='AR')+btn('esco',co,'Español (Colombia)',L==='es'&&P==='CO')+btn('escl',cl,'Español (Chile)',L==='es'&&P==='CL')+btn('espe',pe,'Español (Perú)',L==='es'&&P==='PE');
+  window.__flagsLista=()=>window.__flagsBtns().replace(/<button data-acao="idioma"([^>]*)aria-label="([^"]*)"([^>]*)>(<svg.*?<\/svg>)<\/button>/g,'<button class="btn" data-acao="idioma"$1aria-label="$2"$3>$4<span>$2</span></button>');
   window.__flagsTitulo=()=>'';   // sem bandeiras na abertura: idioma e país são detectados sozinhos (a escolha manual fica nas Configurações)
 })();
 /* arte em pixel (gerada a partir das imagens do Gemini, grade 128x128) */
@@ -6026,18 +6033,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Continue<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">New game</button>
+        <button class="btn" data-acao="abrirCarregar">Load game</button>
         <button class="btn" data-acao="config">Settings</button>
+        <button class="btn" data-acao="abrirIdioma">Language</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v447</p>
+    <p class="titulo-versao">version v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -6678,11 +6687,20 @@ function renderModal0(){
       <h3 id="m-t">Start a new game?</h3><p>The current game (${s.fase?"Phase "+s.fase+' · '+rotulo(s.mes):''}) will be deleted and you go back to Phase 1. Records, discovered endings and the album of other lives are kept.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Yes, start from zero</b></button><button class="opcao" data-acao="fechar"><b>Cancel</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Load game</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Done</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Language</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Done</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Settings</h3>
-      <div class="cfg"><span class="label-c">Language</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Each language keeps its own saved game.</p>
       <div class="cfg"><span class="label-c">Game colors</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Background music</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz on</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">No music</button></div></div>
       <div class="cfg"><span class="label-c">Wheel sound</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tick-tock</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silence</button></div></div>
@@ -7344,6 +7362,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -12630,18 +12650,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Continuar<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Partida nueva</button>
+        <button class="btn" data-acao="abrirCarregar">Cargar partida</button>
         <button class="btn" data-acao="config">Ajustes</button>
+        <button class="btn" data-acao="abrirIdioma">Idioma</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v447</p>
+    <p class="titulo-versao">versión v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -13282,11 +13304,20 @@ function renderModal0(){
       <h3 id="m-t">¿Empezar una partida nueva?</h3><p>La partida actual (${s.fase?"Fase "+s.fase+' · '+rotulo(s.mes):''}) se borrará y volverás a la Fase 1. Los récords, los finales descubiertos y el álbum de otras vidas se conservan.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Sí, empezar de cero</b></button><button class="opcao" data-acao="fechar"><b>Cancelar</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Cargar partida</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Hecho</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Idioma</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Hecho</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Ajustes</h3>
-      <div class="cfg"><span class="label-c">Idioma</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Cada idioma conserva su propia partida guardada.</p>
       <div class="cfg"><span class="label-c">Colores del juego</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Música de fondo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz activado</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sin música</button></div></div>
       <div class="cfg"><span class="label-c">Sonido de la ruleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silencio</button></div></div>
@@ -13948,6 +13979,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -19233,18 +19266,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Continuar<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Novo jogo</button>
+        <button class="btn" data-acao="abrirCarregar">Carregar jogo</button>
         <button class="btn" data-acao="config">Definições</button>
+        <button class="btn" data-acao="abrirIdioma">Idioma</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v447</p>
+    <p class="titulo-versao">versão v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -19885,11 +19920,20 @@ function renderModal0(){
       <h3 id="m-t">Começar um novo jogo?</h3><p>O jogo atual (${s.fase?"Fase "+s.fase+' · '+rotulo(s.mes):''}) será apagado e voltas à Fase 1. Os recordes, os finais descobertos e o álbum de outras vidas ficam guardados.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Sim, recomeçar do zero</b></button><button class="opcao" data-acao="fechar"><b>Cancelar</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Carregar jogo</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Concluído</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Idioma</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Concluído</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Definições</h3>
-      <div class="cfg"><span class="label-c">Idioma</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Cada idioma guarda o seu próprio jogo.</p>
       <div class="cfg"><span class="label-c">Cores do jogo</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Música de fundo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz ligado</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sem música</button></div></div>
       <div class="cfg"><span class="label-c">Som da roleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silêncio</button></div></div>
@@ -20551,6 +20595,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -25837,18 +25883,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Continuer<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Nouvelle partie</button>
+        <button class="btn" data-acao="abrirCarregar">Charger une partie</button>
         <button class="btn" data-acao="config">Réglages</button>
+        <button class="btn" data-acao="abrirIdioma">Langue</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v447</p>
+    <p class="titulo-versao">version v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -26489,11 +26537,20 @@ function renderModal0(){
       <h3 id="m-t">Commencer une nouvelle partie ?</h3><p>La partie en cours (${s.fase?"Phase "+s.fase+' · '+rotulo(s.mes):''}) sera supprimée et tu reviens à la phase 1. Les records, les fins découvertes et l'album des autres vies sont conservés.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Oui, repartir de zéro</b></button><button class="opcao" data-acao="fechar"><b>Annuler</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Charger une partie</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Terminé</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Langue</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Terminé</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Réglages</h3>
-      <div class="cfg"><span class="label-c">Langue</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Chaque langue garde sa propre partie sauvegardée.</p>
       <div class="cfg"><span class="label-c">Couleurs du jeu</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Musique de fond</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz activé</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sans musique</button></div></div>
       <div class="cfg"><span class="label-c">Son de la roue</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silence</button></div></div>
@@ -27155,6 +27212,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -32441,18 +32500,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Continua<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Nuova partita</button>
+        <button class="btn" data-acao="abrirCarregar">Carica partita</button>
         <button class="btn" data-acao="config">Impostazioni</button>
+        <button class="btn" data-acao="abrirIdioma">Lingua</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v447</p>
+    <p class="titulo-versao">versione v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -33093,11 +33154,20 @@ function renderModal0(){
       <h3 id="m-t">Iniziare una nuova partita?</h3><p>La partita attuale (${s.fase?"Fase "+s.fase+' · '+rotulo(s.mes):''}) sarà cancellata e tornerai alla Fase 1. Record, finali scoperti e album delle altre vite restano.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Sì, ricomincia da zero</b></button><button class="opcao" data-acao="fechar"><b>Annulla</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Carica partita</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Fatto</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Lingua</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Fatto</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Impostazioni</h3>
-      <div class="cfg"><span class="label-c">Lingua</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Ogni lingua conserva la propria partita salvata.</p>
       <div class="cfg"><span class="label-c">Colori del gioco</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Musica di sottofondo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz acceso</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Senza musica</button></div></div>
       <div class="cfg"><span class="label-c">Suono della ruota</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silenzio</button></div></div>
@@ -33759,6 +33829,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -39045,18 +39117,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Weiter<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Neues Spiel</button>
+        <button class="btn" data-acao="abrirCarregar">Spiel laden</button>
         <button class="btn" data-acao="config">Einstellungen</button>
+        <button class="btn" data-acao="abrirIdioma">Sprache</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v447</p>
+    <p class="titulo-versao">Version v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -39697,11 +39771,20 @@ function renderModal0(){
       <h3 id="m-t">Neues Spiel starten?</h3><p>Das aktuelle Spiel (${s.fase?"Phase "+s.fase+' · '+rotulo(s.mes):''}) wird gelöscht, und du gehst zurück zu Phase 1. Rekorde, entdeckte Enden und das Album anderer Leben bleiben erhalten.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Ja, bei null anfangen</b></button><button class="opcao" data-acao="fechar"><b>Absagen</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Spiel laden</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Fertig</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Sprache</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Fertig</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Einstellungen</h3>
-      <div class="cfg"><span class="label-c">Sprache</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Jede Sprache behält ihren eigenen Spielstand.</p>
       <div class="cfg"><span class="label-c">Spielfarben</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Hintergrundmusik</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz an</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Keine Musik</button></div></div>
       <div class="cfg"><span class="label-c">Radklang</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tick-Tack</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Stille</button></div></div>
@@ -40363,6 +40446,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -45649,18 +45734,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Продолжить<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Новая игра</button>
+        <button class="btn" data-acao="abrirCarregar">Загрузить игру</button>
         <button class="btn" data-acao="config">Настройки</button>
+        <button class="btn" data-acao="abrirIdioma">Язык</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v447</p>
+    <p class="titulo-versao">версия v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -46301,11 +46388,20 @@ function renderModal0(){
       <h3 id="m-t">Начать новую игру?</h3><p>Текущая игра (${s.fase?"Этап "+s.fase+' · '+rotulo(s.mes):''}) будет удалена, и ты вернёшься к 1-му этапу. Рекорды, открытые концовки и альбом других жизней сохранятся.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Да, начать с нуля</b></button><button class="opcao" data-acao="fechar"><b>Отменить</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Загрузить игру</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Готово</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Язык</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Готово</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Настройки</h3>
-      <div class="cfg"><span class="label-c">Язык</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Для каждого языка своё сохранение игры.</p>
       <div class="cfg"><span class="label-c">Цвета игры</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Фоновая музыка</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Джаз включён</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Без музыки</button></div></div>
       <div class="cfg"><span class="label-c">Звук колеса</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Тик-так</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Тишина</button></div></div>
@@ -46967,6 +47063,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -52253,18 +52351,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Lanjut<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Game baru</button>
+        <button class="btn" data-acao="abrirCarregar">Muat game</button>
         <button class="btn" data-acao="config">Pengaturan</button>
+        <button class="btn" data-acao="abrirIdioma">Bahasa</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v447</p>
+    <p class="titulo-versao">versi v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -52905,11 +53005,20 @@ function renderModal0(){
       <h3 id="m-t">Mulai game baru?</h3><p>Game saat ini (${s.fase?"Tahap "+s.fase+' · '+rotulo(s.mes):''}) akan dihapus dan kamu kembali ke Fase 1. Rekor, akhir yang ditemukan, dan album kehidupan lain tetap tersimpan.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Ya, mulai dari nol</b></button><button class="opcao" data-acao="fechar"><b>Batalkan</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Muat game</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Selesai</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Bahasa</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Selesai</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Pengaturan</h3>
-      <div class="cfg"><span class="label-c">Bahasa</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Setiap bahasa menyimpan game-nya sendiri.</p>
       <div class="cfg"><span class="label-c">Warna game</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Musik latar</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz menyala</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Tanpa musik</button></div></div>
       <div class="cfg"><span class="label-c">Suara roda</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tik-tok</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Hening</button></div></div>
@@ -53571,6 +53680,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -58857,18 +58968,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Devam<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Yeni oyun</button>
+        <button class="btn" data-acao="abrirCarregar">Oyunu yükle</button>
         <button class="btn" data-acao="config">Ayarlar</button>
+        <button class="btn" data-acao="abrirIdioma">Dil</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v447</p>
+    <p class="titulo-versao">sürüm v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -59509,11 +59622,20 @@ function renderModal0(){
       <h3 id="m-t">Yeni oyun başlatılsın mı?</h3><p>Mevcut oyun (${s.fase?"Aşama "+s.fase+' · '+rotulo(s.mes):''}) silinecek ve 1. Aşamaya döneceksin. Rekorlar, keşfedilen sonlar ve diğer hayatların albümü korunur.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Evet, sıfırdan başla</b></button><button class="opcao" data-acao="fechar"><b>İptal et</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Oyunu yükle</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Tamam</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Dil</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Tamam</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Ayarlar</h3>
-      <div class="cfg"><span class="label-c">Dil</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Her dil kendi kayıtlı oyununu tutar.</p>
       <div class="cfg"><span class="label-c">Oyun renkleri</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Arka plan müziği</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Caz açık</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Müzik yok</button></div></div>
       <div class="cfg"><span class="label-c">Çark sesi</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tik-tak</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Sessizlik</button></div></div>
@@ -60175,6 +60297,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -65461,18 +65585,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">متابعة<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">لعبة جديدة</button>
+        <button class="btn" data-acao="abrirCarregar">تحميل لعبة</button>
         <button class="btn" data-acao="config">الإعدادات</button>
+        <button class="btn" data-acao="abrirIdioma">اللغة</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v447</p>
+    <p class="titulo-versao">الإصدار v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -66113,11 +66239,20 @@ function renderModal0(){
       <h3 id="m-t">بدء لعبة جديدة؟</h3><p>ستُحذف اللعبة الحالية (${s.fase?"المرحلة "+s.fase+' · '+rotulo(s.mes):''}) وتعود إلى المرحلة 1. تُحفظ الأرقام القياسية والنهايات المكتشفة وألبوم الحيوات الأخرى.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>نعم، ابدأ من الصفر</b></button><button class="opcao" data-acao="fechar"><b>ألغِ</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">تحميل لعبة</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">تم</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">اللغة</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">تم</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">الإعدادات</h3>
-      <div class="cfg"><span class="label-c">اللغة</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">لكل لغة لعبتها المحفوظة الخاصة.</p>
       <div class="cfg"><span class="label-c">ألوان اللعبة</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">الموسيقى الخلفية</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">الجاز يعمل</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">بلا موسيقى</button></div></div>
       <div class="cfg"><span class="label-c">صوت العجلة</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">تك تك</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">صمت</button></div></div>
@@ -66779,6 +66914,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -72065,18 +72202,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">続ける<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">新しいゲーム</button>
+        <button class="btn" data-acao="abrirCarregar">ゲームをロード</button>
         <button class="btn" data-acao="config">設定</button>
+        <button class="btn" data-acao="abrirIdioma">言語</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v447</p>
+    <p class="titulo-versao">バージョン v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -72717,11 +72856,20 @@ function renderModal0(){
       <h3 id="m-t">新しいゲームを始めますか？</h3><p>現在のゲーム（${s.fase?"フェーズ "+s.fase+' · '+rotulo(s.mes):''}）は削除され、フェーズ1に戻ります。記録、発見したエンディング、他の人生のアルバムは残ります。</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>はい、ゼロから始める</b></button><button class="opcao" data-acao="fechar"><b>中止する</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">ゲームをロード</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">完了</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">言語</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">完了</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">設定</h3>
-      <div class="cfg"><span class="label-c">言語</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">言語ごとに、それぞれのセーブデータを持ちます。</p>
       <div class="cfg"><span class="label-c">ゲームの色</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">BGM</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">ジャズ オン</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">音楽なし</button></div></div>
       <div class="cfg"><span class="label-c">ルーレットの音</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">チクタク</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">無音</button></div></div>
@@ -73383,6 +73531,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -78669,18 +78819,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">계속<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">새 게임</button>
+        <button class="btn" data-acao="abrirCarregar">게임 불러오기</button>
         <button class="btn" data-acao="config">설정</button>
+        <button class="btn" data-acao="abrirIdioma">언어</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v447</p>
+    <p class="titulo-versao">버전 v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -79321,11 +79473,20 @@ function renderModal0(){
       <h3 id="m-t">새 게임을 시작할까요?</h3><p>현재 게임(${s.fase?"단계 "+s.fase+' · '+rotulo(s.mes):''})이 삭제되고 1단계로 돌아가요. 기록, 발견한 엔딩, 다른 삶의 앨범은 유지돼요.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>네, 처음부터 시작</b></button><button class="opcao" data-acao="fechar"><b>취소하기</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">게임 불러오기</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">완료</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">언어</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">완료</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">설정</h3>
-      <div class="cfg"><span class="label-c">언어</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">언어마다 각자의 저장 게임을 유지해요.</p>
       <div class="cfg"><span class="label-c">게임 색상</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">배경 음악</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">재즈 켜기</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">음악 없음</button></div></div>
       <div class="cfg"><span class="label-c">룰렛 소리</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">똑딱</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">무음</button></div></div>
@@ -79987,6 +80148,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -85272,18 +85435,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">जारी रखें<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">नया खेल</button>
+        <button class="btn" data-acao="abrirCarregar">खेल लोड करें</button>
         <button class="btn" data-acao="config">सेटिंग्स</button>
+        <button class="btn" data-acao="abrirIdioma">भाषा</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v447</p>
+    <p class="titulo-versao">वर्ज़न v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -85924,11 +86089,20 @@ function renderModal0(){
       <h3 id="m-t">नया खेल शुरू करें?</h3><p>मौजूदा खेल (${s.fase?"चरण "+s.fase+' · '+rotulo(s.mes):''}) मिटा दिया जाएगा और आप चरण 1 पर लौटेंगे। रिकॉर्ड, खोजे गए अंत और दूसरी ज़िंदगियों का एल्बम बने रहते हैं।</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>हाँ, शून्य से शुरू करें</b></button><button class="opcao" data-acao="fechar"><b>रद्द करें</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">खेल लोड करें</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">हो गया</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">भाषा</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">हो गया</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">सेटिंग्स</h3>
-      <div class="cfg"><span class="label-c">भाषा</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">हर भाषा का अपना सहेजा हुआ खेल रहता है।</p>
       <div class="cfg"><span class="label-c">खेल के रंग</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">पृष्ठभूमि संगीत</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">जैज़ चालू</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">कोई संगीत नहीं</button></div></div>
       <div class="cfg"><span class="label-c">चक्र की ध्वनि</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">टिक-टॉक</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">ख़ामोशी</button></div></div>
@@ -86590,6 +86764,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -91875,18 +92051,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">继续<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">新游戏</button>
+        <button class="btn" data-acao="abrirCarregar">读取存档</button>
         <button class="btn" data-acao="config">设置</button>
+        <button class="btn" data-acao="abrirIdioma">语言</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v447</p>
+    <p class="titulo-versao">版本 v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -92527,11 +92705,20 @@ function renderModal0(){
       <h3 id="m-t">开始新游戏？</h3><p>当前游戏（${s.fase?"阶段 "+s.fase+' · '+rotulo(s.mes):''}）将被删除，你回到阶段1。纪录、已发现的结局和其他人生相册会保留。</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>是，从零开始</b></button><button class="opcao" data-acao="fechar"><b>取消</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">读取存档</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">完成</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">语言</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">完成</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">设置</h3>
-      <div class="cfg"><span class="label-c">语言</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">每种语言保留各自的存档。</p>
       <div class="cfg"><span class="label-c">游戏配色</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">背景音乐</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">爵士乐开</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">无音乐</button></div></div>
       <div class="cfg"><span class="label-c">轮盘音效</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">滴答声</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">静音</button></div></div>
@@ -93193,6 +93380,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
@@ -98474,18 +98663,20 @@ function telaTitulo(){
       <div class="titulo-botoes">
         ${temJogo()?`<button class="avancar" data-acao="continuar">Continuar<small>${info}</small></button>`:''}
         <button class="${temJogo()?'btn':'avancar'}" data-acao="novoJogo">Novo jogo</button>
+        <button class="btn" data-acao="abrirCarregar">Carregar jogo</button>
         <button class="btn" data-acao="config">Configurações</button>
+        <button class="btn" data-acao="abrirIdioma">Idioma</button>
       </div>
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v447</p>
+    <p class="titulo-versao">versão v508</p>
   </div>`;
 }
 function render(){
   if(window.__corridaMudo) return;
   if(s && s.iniciado && s.evento && !s.fim && !ui.girando && !ui.modal && ui.tela!=='titulo'){ let ok=false; try{ ok=!!evento(s.evento); }catch(e){} if(ok) ui.modal='evento'; else s.evento=null; }   // carta pendente sempre aparece: nunca fica marcada sem janela (jogo parado)
-  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
+  if(ui.tela==='titulo'){ app.innerHTML=telaTitulo(); ui.splashVisto=true; if(['novoJogo','config','avatar','carregar','idioma','confirmOperacao'].includes(ui.modal)) renderModal(); else modal.innerHTML=''; return; }
   if(s && s.iniciado && F3() && !s.fim && !s.evento && !s.vitoriaVista && F3Vitoria() && ui.modal==null){ s.vitoriaVista=true; foto('vitoria'); s.venceuEm=s.mes; ui.modal='vitoria'; salvar(); } // usado só nos testes automáticos
   const m=mesesReserva(), neg=s.conta<0, tot=totalMes();
   const humorCor = s.fel>=50 ? 'var(--gain)' : s.fel>=25 ? 'var(--warn)' : 'var(--loss)';
@@ -99126,11 +99317,20 @@ function renderModal0(){
       <h3 id="m-t">Começar um jogo novo?</h3><p>O jogo atual (${s.fase?'Fase '+s.fase+' · '+rotulo(s.mes):''}) será apagado e você volta para a Fase 1. Recordes, finais descobertos e o álbum de outras vidas ficam guardados.</p>
       <div class="opcoes"><button class="opcao coin" data-acao="novoJogoOk"><b>Sim, começar do zero</b></button><button class="opcao" data-acao="fechar"><b>Cancelar</b></button></div></div></div>`;
     return; }
+  if(ui.modal==='carregar'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Carregar jogo</h3><div class="so-carregar">${slotsHtml()}</div><p class="hint" id="bkMsg" role="status"></p>
+      <div class="row"><button class="btn coin" data-acao="fechar">Pronto</button></div></div></div>`;
+    return; }
+  if(ui.modal==='idioma'){
+    modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+      <h3 id="m-t">Idioma</h3><div class="lang-grid">${window.__flagsLista()}</div>
+      <div class="row"><button class="btn coin" data-acao="fechar">Pronto</button></div></div></div>`;
+    return; }
   if(ui.modal==='config'){
     const p=prefs();
     modal.innerHTML=`<div class="overlay" data-acao="fechar-fundo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
       <h3 id="m-t">Configurações</h3>
-      <div class="cfg"><span class="label-c">Idioma</span><div class="seg seg-flags">${window.__flagsBtns()}</div></div><p class="hint">Cada idioma tem o seu próprio jogo salvo.</p>
       <div class="cfg"><span class="label-c">Cores do jogo</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Música de fundo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz ligado</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sem música</button></div></div>
       <div class="cfg"><span class="label-c">Som da roleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tique-taque</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silêncio</button></div></div>
@@ -99792,6 +99992,8 @@ document.addEventListener('click', e=>{
     case 'avOk': { const c=ui.av; c.nome=(c.nome||'').trim(); if(!c.nome){ const i=document.getElementById('av-nome'); if(i){ i.focus(); i.classList.add('av-erro'); } const h=document.getElementById('av-nome-dica'); if(h) h.hidden=false; break; } avSalvar(c); const novo=ui.avOrigem==='novo'; ui.modal=(novo&&s.evento)?'evento':null; modal.innerHTML=''; if(novo){ ui.tela=null; } render(); if(novo){ scrollTo(0,0); ajustarAltura(); setTimeout(ajustarAltura,300); } break; }
     case 'novoJogoOk': ui.modal=null; novoEstado(1); salvar(); avAbrir('novo'); break;
     case 'config': ui.modal='config'; renderModal(); break;
+    case 'abrirCarregar': ui.modal='carregar'; renderModal(); break;
+    case 'abrirIdioma': ui.modal='idioma'; renderModal(); break;
     case 'habVer': ui.modal='hab'; ui.hab=alvo; renderModal(); break;
     case 'tycAbrir': ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; render(); break;
     case 'tycSubir': { const [u,i,f]=alvo.split(':'); tycSubir(Number(u),Number(i),f); salvar(); render(); break; }
