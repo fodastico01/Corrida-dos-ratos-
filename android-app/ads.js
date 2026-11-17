@@ -43,6 +43,26 @@
     document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 3500);
   }
 
+  /* ---------- apoio (doação): mesma compra única, texto de agradecimento ---------- */
+  var AP = {
+    pt:{b:'Apoiar o jogo', d:'Gostou do jogo? Ajude a mantê-lo e a criar novidades. Quem apoia também fica sem anúncios.'},
+    en:{b:'Support the game', d:'Enjoying the game? Help keep it going and growing. Supporters also get no ads.'},
+    es:{b:'Apoyar el juego', d:'¿Te gusta el juego? Ayúdanos a mantenerlo y a crear novedades. Quien apoya también se queda sin anuncios.'},
+    'pt-pt':{b:'Apoiar o jogo', d:'Gostaste do jogo? Ajuda a mantê-lo e a criar novidades. Quem apoia também fica sem anúncios.'},
+    fr:{b:'Soutenir le jeu', d:'Le jeu vous plaît ? Aidez-nous à le faire vivre. Les soutiens n\'ont plus de publicités.'},
+    it:{b:'Sostieni il gioco', d:'Ti piace il gioco? Aiutaci a mantenerlo e a farlo crescere. Chi sostiene non vede più annunci.'},
+    de:{b:'Spiel unterstützen', d:'Gefällt dir das Spiel? Hilf mit, es am Laufen zu halten. Unterstützer sehen keine Werbung mehr.'},
+    ru:{b:'Поддержать игру', d:'Нравится игра? Помогите ей развиваться. Поддержавшие игру больше не видят рекламу.'},
+    id:{b:'Dukung game ini', d:'Suka game ini? Bantu kami merawat dan mengembangkannya. Pendukung juga bebas iklan.'},
+    tr:{b:'Oyunu destekle', d:'Oyunu beğendin mi? Sürmesine ve gelişmesine yardım et. Destekçiler reklam görmez.'},
+    ar:{b:'ادعم اللعبة', d:'هل أعجبتك اللعبة؟ ساعدنا على الاستمرار والتطوير. الداعمون لا يرون إعلانات.'},
+    ja:{b:'ゲームを応援する', d:'ゲームを気に入っていただけましたか？応援していただくと、今後の開発の力になり、広告も表示されなくなります。'},
+    ko:{b:'게임 후원하기', d:'게임이 마음에 드셨나요? 계속 발전할 수 있도록 도와주세요. 후원하시면 광고도 사라집니다.'},
+    hi:{b:'खेल का समर्थन करें', d:'खेल पसंद आया? इसे चलाते रहने और बेहतर बनाने में मदद करें। समर्थन करने वालों को विज्ञापन नहीं दिखते।'},
+    zh:{b:'支持游戏', d:'喜欢这个游戏吗？帮助我们继续做下去。支持者也不会再看到广告。'}
+  };
+  function ap(){ var l = String(window.__LANG||'pt'); return AP[l] || AP[l.split('-')[0]] || AP.en; }
+
   /* ---------- compra ---------- */
   function ehComprado(lista){
     return (lista||[]).some(function(p){ return p.productIdentifier===PRODUTO && (p.purchaseState==='PURCHASED' || p.purchaseState==='1' || p.purchaseState===undefined); });
@@ -161,6 +181,8 @@
     if(comp) h += '<div style="font-size:14px;opacity:.85;margin-bottom:8px">'+t.ok+'</div>';
     else h += '<button class="btn" data-ads="comprar" style="margin:3px">'+t.rem+(preco?' · '+preco:'')+'</button>'
       + '<button class="btn" data-ads="restaurar" style="margin:3px">'+t.res+'</button>';
+    if(!comp) h += '<div style="font-size:13px;opacity:.85;margin:12px 6px 6px">'+ap().d+'</div>'
+      + '<button class="btn coin" data-ads="comprar" style="margin:3px">♥ '+ap().b+(preco?' · '+preco:'')+'</button>';
     if(!comp && consentimentoOpcoes) h += '<button class="btn" data-ads="consentimento" style="margin:3px">'+t.cons+'</button>';
     h += '<button class="btn" data-ads="privacidade" style="margin:3px">'+t.priv+'</button></div>';
     return h;
@@ -169,12 +191,19 @@
     var s = document.querySelector('.ads-secao'); if(!s) return;
     var n = document.createElement('div'); n.innerHTML = secao(); s.replaceWith(n.firstChild);
   }
+  function injetarTitulo(){
+    var box = document.querySelector('.titulo-botoes');
+    if(!box || semAnuncios()){ var x=document.querySelector('.ads-titulo'); if(x) x.remove(); return; }
+    if(box.querySelector('.ads-titulo')) return;
+    var b = document.createElement('button'); b.className='btn ads-titulo'; b.setAttribute('data-ads','comprar');
+    b.textContent = '♥ ' + ap().b; box.appendChild(b);
+  }
   function injetar(){
+    injetarTitulo();
     if(document.querySelector('.ads-secao')) return;
-    var b = document.querySelector('button[data-acao="idioma"]'); if(!b) return;
-    var cfg = b.closest('.cfg') || b.parentElement; if(!cfg) return;
-    var ref = cfg.nextElementSibling && cfg.nextElementSibling.classList.contains('hint') ? cfg.nextElementSibling : cfg;
-    ref.insertAdjacentHTML('afterend', secao());
+    var sh = document.querySelector('#modal .sheet'); if(!sh || !sh.querySelector('.slots')) return;   // so na janela de Configurações
+    var cfg = sh.querySelector('.cfg'); if(!cfg) return;
+    cfg.insertAdjacentHTML('beforebegin', secao());
   }
   var pend=false;
   new MutationObserver(function(){ if(pend) return; pend=true; setTimeout(function(){ pend=false; injetar(); }, 60); }).observe(document.documentElement,{childList:true,subtree:true});
