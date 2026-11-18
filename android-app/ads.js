@@ -191,6 +191,7 @@
     var s = document.querySelector('.ads-secao'); if(!s) return;
     var n = document.createElement('div'); n.innerHTML = secao(); s.replaceWith(n.firstChild);
   }
+  (function(){ var st=document.createElement('style'); st.textContent='.ads-titulo{background:linear-gradient(180deg,#f0668a 0%,#c9365f 100%)!important;color:#fff!important;border-color:#ffd1dd!important;box-shadow:0 4px 0 #8f2145,0 0 0 2px rgba(240,102,138,.35)!important;text-shadow:0 1px 0 rgba(0,0,0,.25);animation:none!important}'; (document.head||document.documentElement).appendChild(st); })();
   function injetarTitulo(){
     var box = document.querySelector('.titulo-botoes');
     if(!box || semAnuncios()){ var x=document.querySelector('.ads-titulo'); if(x) x.remove(); return; }
