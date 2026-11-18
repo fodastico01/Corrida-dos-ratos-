@@ -6047,7 +6047,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v517</p>
+    <p class="titulo-versao">version v518</p>
   </div>`;
 }
 function render(){
@@ -6501,7 +6501,7 @@ function ceoMotivo(a){
   return `next: ${S.nome} (${S.niv[n]}) for ${fmt0(o.c)}, starts next month.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -6544,10 +6544,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'The CEO could not open the store', texto:'The company is under construction or no longer meets the conditions for a new store.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'The CEO waited', texto:'Your account would have no slack to pay expenses after the construction.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'New store on the way', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'The CEO could not open the store', texto:'The company is under construction or no longer meets the conditions for a new store.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'The CEO waited', texto:'Your account would have no slack to pay expenses after the construction.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'New store on the way', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="The CEO couldn't upgrade: the company is under construction or no longer exists."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="The CEO couldn't upgrade now: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"the company is blocked for improvements."); return; }
@@ -12671,7 +12671,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v517</p>
+    <p class="titulo-versao">versión v518</p>
   </div>`;
 }
 function render(){
@@ -13125,7 +13125,7 @@ function ceoMotivo(a){
   return `siguiente: ${S.nome} (${S.niv[n]}) por ${fmt0(o.c)}, empieza el mes que viene.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -13168,10 +13168,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'El CEO no pudo abrir la tienda', texto:'La empresa está en obras o ya no cumple las condiciones para una tienda nueva.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'El CEO esperó', texto:'Tu cuenta no tendría margen para pagar los gastos tras la obra.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Tienda nueva en camino', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'El CEO no pudo abrir la tienda', texto:'La empresa está en obras o ya no cumple las condiciones para una tienda nueva.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'El CEO esperó', texto:'Tu cuenta no tendría margen para pagar los gastos tras la obra.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Tienda nueva en camino', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="El CEO no pudo hacer la mejora: la empresa está en obras o ya no existe."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="El CEO no pudo hacer la mejora ahora: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"la empresa está bloqueada para mejoras."); return; }
@@ -19294,7 +19294,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v517</p>
+    <p class="titulo-versao">versão v518</p>
   </div>`;
 }
 function render(){
@@ -19748,7 +19748,7 @@ function ceoMotivo(a){
   return `seguinte: ${S.nome} (${S.niv[n]}) por ${fmt0(o.c)}, começa no próximo mês.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -19791,10 +19791,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO não conseguiu abrir a loja', texto:'A empresa está em obras ou já não cumpre as condições para uma nova loja.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO esperou', texto:'A tua conta ficaria sem folga para pagar as despesas depois da obra.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Nova loja a caminho', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO não conseguiu abrir a loja', texto:'A empresa está em obras ou já não cumpre as condições para uma nova loja.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO esperou', texto:'A tua conta ficaria sem folga para pagar as despesas depois da obra.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Nova loja a caminho', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="O CEO não conseguiu fazer a melhoria: a empresa está em obras ou já não existe."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="O CEO não conseguiu fazer a melhoria agora: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"a empresa está bloqueada para melhorias."); return; }
@@ -25918,7 +25918,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v517</p>
+    <p class="titulo-versao">version v518</p>
   </div>`;
 }
 function render(){
@@ -26372,7 +26372,7 @@ function ceoMotivo(a){
   return `prochain : ${S.nome} (${S.niv[n]}) pour ${fmt0(o.c)}, démarre le mois prochain.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -26415,10 +26415,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Le PDG n\'a pas pu ouvrir le magasin', texto:'L\'entreprise est en construction ou ne remplit plus les conditions pour un nouveau magasin.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Le PDG a attendu', texto:'Ton compte n\'aurait pas eu la marge pour payer les dépenses après la construction.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Nouveau magasin en route', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Le PDG n\'a pas pu ouvrir le magasin', texto:'L\'entreprise est en construction ou ne remplit plus les conditions pour un nouveau magasin.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Le PDG a attendu', texto:'Ton compte n\'aurait pas eu la marge pour payer les dépenses après la construction.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Nouveau magasin en route', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="Le PDG n'a pas pu faire l'amélioration : l'entreprise est en construction ou n'existe plus."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="Le PDG n'a pas pu améliorer pour l'instant : "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"l'entreprise est bloquée pour les améliorations."); return; }
@@ -32542,7 +32542,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v517</p>
+    <p class="titulo-versao">versione v518</p>
   </div>`;
 }
 function render(){
@@ -32996,7 +32996,7 @@ function ceoMotivo(a){
   return `prossima: ${S.nome} (${S.niv[n]}) per ${fmt0(o.c)}, inizia il mese prossimo.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -33039,10 +33039,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Il CEO non è riuscito ad aprire il negozio', texto:'L\'azienda è in costruzione o non soddisfa più le condizioni per un nuovo negozio.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Il CEO ha aspettato', texto:'Il tuo conto non avrebbe margine per pagare le spese dopo la costruzione.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Nuovo negozio in arrivo', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Il CEO non è riuscito ad aprire il negozio', texto:'L\'azienda è in costruzione o non soddisfa più le condizioni per un nuovo negozio.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Il CEO ha aspettato', texto:'Il tuo conto non avrebbe margine per pagare le spese dopo la costruzione.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Nuovo negozio in arrivo', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="Il CEO non è riuscito a migliorare: l'azienda è in costruzione o non esiste più."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="Il CEO non è riuscito a migliorare ora: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"l'azienda è bloccata per i miglioramenti."); return; }
@@ -39166,7 +39166,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v517</p>
+    <p class="titulo-versao">Version v518</p>
   </div>`;
 }
 function render(){
@@ -39620,7 +39620,7 @@ function ceoMotivo(a){
   return `als Nächstes: ${S.nome} (${S.niv[n]}) für ${fmt0(o.c)}, beginnt nächsten Monat.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -39663,10 +39663,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Der CEO konnte den Laden nicht eröffnen', texto:'Das Unternehmen ist im Bau oder erfüllt die Bedingungen für einen neuen Laden nicht mehr.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Der CEO hat gewartet', texto:'Dein Konto hätte nach dem Bau keinen Spielraum, um Ausgaben zu zahlen.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Neuer Laden unterwegs', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Der CEO konnte den Laden nicht eröffnen', texto:'Das Unternehmen ist im Bau oder erfüllt die Bedingungen für einen neuen Laden nicht mehr.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Der CEO hat gewartet', texto:'Dein Konto hätte nach dem Bau keinen Spielraum, um Ausgaben zu zahlen.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Neuer Laden unterwegs', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="Der CEO konnte nicht ausbauen: Das Unternehmen ist im Bau oder existiert nicht mehr."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="Der CEO konnte jetzt nicht ausbauen: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"das Unternehmen ist für Verbesserungen gesperrt."); return; }
@@ -45790,7 +45790,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v517</p>
+    <p class="titulo-versao">версия v518</p>
   </div>`;
 }
 function render(){
@@ -46244,7 +46244,7 @@ function ceoMotivo(a){
   return `далее: ${S.nome} (${S.niv[n]}) за ${fmt0(o.c)}, начнётся в следующем месяце.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -46287,10 +46287,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Директор не смог открыть магазин', texto:'Компания строится или больше не отвечает условиям для нового магазина.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'Директор подождал', texto:'На твоём счёте после стройки не останется запаса на расходы.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Новый магазин в пути', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Директор не смог открыть магазин', texto:'Компания строится или больше не отвечает условиям для нового магазина.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'Директор подождал', texto:'На твоём счёте после стройки не останется запаса на расходы.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Новый магазин в пути', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="Директор не смог улучшить: компания строится или больше не существует."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="Директор сейчас не смог улучшить: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"компания заблокирована для улучшений."); return; }
@@ -52414,7 +52414,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v517</p>
+    <p class="titulo-versao">versi v518</p>
   </div>`;
 }
 function render(){
@@ -52868,7 +52868,7 @@ function ceoMotivo(a){
   return `berikutnya: ${S.nome} (${S.niv[n]}) seharga ${fmt0(o.c)}, mulai bulan depan.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -52911,10 +52911,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO tidak bisa membuka toko', texto:'Perusahaan sedang dibangun atau tidak lagi memenuhi syarat untuk toko baru.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO menunggu', texto:'Rekeningmu tidak akan punya kelonggaran untuk membayar pengeluaran setelah konstruksi.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Toko baru dalam perjalanan', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO tidak bisa membuka toko', texto:'Perusahaan sedang dibangun atau tidak lagi memenuhi syarat untuk toko baru.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO menunggu', texto:'Rekeningmu tidak akan punya kelonggaran untuk membayar pengeluaran setelah konstruksi.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Toko baru dalam perjalanan', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="CEO tidak bisa meningkatkan: perusahaan sedang dibangun atau sudah tidak ada."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="CEO tidak bisa meningkatkan sekarang: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"perusahaan diblokir untuk peningkatan."); return; }
@@ -59038,7 +59038,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v517</p>
+    <p class="titulo-versao">sürüm v518</p>
   </div>`;
 }
 function render(){
@@ -59492,7 +59492,7 @@ function ceoMotivo(a){
   return `sıradaki: ${S.nome} (${S.niv[n]}) ${fmt0(o.c)} karşılığında, gelecek ay başlıyor.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -59535,10 +59535,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO mağazayı açamadı', texto:'Şirket inşa halinde ya da artık yeni mağaza koşullarını karşılamıyor.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO bekledi', texto:'İnşaattan sonra hesabında giderleri ödeyecek pay kalmayacaktı.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Yeni mağaza yolda', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO mağazayı açamadı', texto:'Şirket inşa halinde ya da artık yeni mağaza koşullarını karşılamıyor.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO bekledi', texto:'İnşaattan sonra hesabında giderleri ödeyecek pay kalmayacaktı.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Yeni mağaza yolda', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="CEO yükseltemedi: şirket inşa halinde ya da artık yok."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="CEO şu an yükseltemedi: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"şirket iyileştirmelere kapalı."); return; }
@@ -65662,7 +65662,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v517</p>
+    <p class="titulo-versao">الإصدار v518</p>
   </div>`;
 }
 function render(){
@@ -66116,7 +66116,7 @@ function ceoMotivo(a){
   return `التالي: ${S.nome} (${S.niv[n]}) بمبلغ ${fmt0(o.c)}، يبدأ الشهر القادم.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -66159,10 +66159,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'لم يستطع المدير التنفيذي فتح المتجر', texto:'الشركة قيد الإنشاء أو لم تعد تستوفي شروط متجر جديد.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'انتظر المدير التنفيذي', texto:'لن يكون في حسابك متسع لدفع النفقات بعد الإنشاء.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'متجر جديد في الطريق', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'لم يستطع المدير التنفيذي فتح المتجر', texto:'الشركة قيد الإنشاء أو لم تعد تستوفي شروط متجر جديد.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'انتظر المدير التنفيذي', texto:'لن يكون في حسابك متسع لدفع النفقات بعد الإنشاء.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'متجر جديد في الطريق', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="لم يستطع المدير التنفيذي التطوير: الشركة قيد الإنشاء أو لم تعد موجودة."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="لم يستطع المدير التنفيذي التطوير الآن: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"الشركة محظورة من التحسينات."); return; }
@@ -72286,7 +72286,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v517</p>
+    <p class="titulo-versao">バージョン v518</p>
   </div>`;
 }
 function render(){
@@ -72740,7 +72740,7 @@ function ceoMotivo(a){
   return `次：${S.nome}（${S.niv[n]}）を${fmt0(o.c)}で、来月に開始。`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -72783,10 +72783,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEOは店を開けなかった', texto:'会社は工事中か、新しい店の条件を満たさなくなりました。'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEOは待った', texto:'工事のあと、口座に支出を払う余裕がなくなります。'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'新しい店が進行中', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEOは店を開けなかった', texto:'会社は工事中か、新しい店の条件を満たさなくなりました。'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEOは待った', texto:'工事のあと、口座に支出を払う余裕がなくなります。'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'新しい店が進行中', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="CEOは改善できませんでした：会社は工事中か、もう存在しません。"; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="CEOは今は改善できませんでした： "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"会社は改善がブロックされています。"); return; }
@@ -78910,7 +78910,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v517</p>
+    <p class="titulo-versao">버전 v518</p>
   </div>`;
 }
 function render(){
@@ -79364,7 +79364,7 @@ function ceoMotivo(a){
   return `다음: ${fmt0(o.c)}에 ${S.nome}(${S.niv[n]}), 다음 달 시작해요.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -79407,10 +79407,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO가 매장을 열 수 없었어요', texto:'회사가 공사 중이거나 더 이상 새 매장 조건을 충족하지 않아요.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO가 기다렸어요', texto:'공사 후 계좌에 지출을 낼 여유가 없을 거예요.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'새 매장이 오는 중', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO가 매장을 열 수 없었어요', texto:'회사가 공사 중이거나 더 이상 새 매장 조건을 충족하지 않아요.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO가 기다렸어요', texto:'공사 후 계좌에 지출을 낼 여유가 없을 거예요.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'새 매장이 오는 중', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="CEO가 업그레이드할 수 없었어요: 회사가 공사 중이거나 더 이상 존재하지 않아요."; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="CEO가 지금은 업그레이드할 수 없었어요: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"회사가 개선이 막혀 있어요."); return; }
@@ -85533,7 +85533,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v517</p>
+    <p class="titulo-versao">वर्ज़न v518</p>
   </div>`;
 }
 function render(){
@@ -85987,7 +85987,7 @@ function ceoMotivo(a){
   return `अगला: ${S.nome} (${S.niv[n]}) ${fmt0(o.c)} में, अगले महीने शुरू।`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -86030,10 +86030,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO स्टोर नहीं खोल सका', texto:'कंपनी निर्माणाधीन है या नए स्टोर की शर्तें अब पूरी नहीं करती।'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO ने इंतज़ार किया', texto:'निर्माण के बाद आपके खाते में खर्च चुकाने की गुंजाइश नहीं बचती।'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'नया स्टोर रास्ते में', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO स्टोर नहीं खोल सका', texto:'कंपनी निर्माणाधीन है या नए स्टोर की शर्तें अब पूरी नहीं करती।'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO ने इंतज़ार किया', texto:'निर्माण के बाद आपके खाते में खर्च चुकाने की गुंजाइश नहीं बचती।'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'नया स्टोर रास्ते में', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="CEO अपग्रेड नहीं कर सका: कंपनी निर्माणाधीन है या अब मौजूद नहीं।"; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="CEO अभी अपग्रेड नहीं कर सका: "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"कंपनी सुधार के लिए अवरुद्ध है।"); return; }
@@ -92156,7 +92156,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v517</p>
+    <p class="titulo-versao">版本 v518</p>
   </div>`;
 }
 function render(){
@@ -92610,7 +92610,7 @@ function ceoMotivo(a){
   return `下一步：${S.nome}（${S.niv[n]}），花费${fmt0(o.c)}，下个月开始。`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -92653,10 +92653,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO无法开新店', texto:'公司正在施工，或不再满足开新店的条件。'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'CEO等待了', texto:'施工结束后，你的账户将没有余地支付开支。'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'新店在路上', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO无法开新店', texto:'公司正在施工，或不再满足开新店的条件。'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'CEO等待了', texto:'施工结束后，你的账户将没有余地支付开支。'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'新店在路上', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg="CEO无法升级：公司正在施工或已不存在。"; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg="CEO现在无法升级： "+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):"公司被封锁，无法改进。"); return; }
@@ -98775,7 +98775,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v517</p>
+    <p class="titulo-versao">versão v518</p>
   </div>`;
 }
 function render(){
@@ -99229,7 +99229,7 @@ function ceoMotivo(a){
   return `próxima: ${S.nome} (${S.niv[n]}) por ${fmt0(o.c)}, entra no próximo mês.`;
 }
 const ceoLojaV = a => { const v=tycCustoLoja(a); return ceoLiq()-v>=Math.max(v*0.5,C(200000)) ? v : 0; };
-const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0);
+const ceoLojaOpcao = () => ceoEmps().find(a=>!a.tyc.obra && tycPodeLoja(a) && ceoLojaV(a)>0 && s.mes>=((ceo().pausaLojaE||{})[a.uid]||0));
 // melhorias do CEO no automático: roda todo mês E também a cada jogada em que o mês não vira (empresa liberada = upgrade na hora)
 function ceoMelhorias(ex){
   const c=ceo(); if(!c.on||!c.auto) return;
@@ -99272,10 +99272,10 @@ function ceoMes(ex){
 }
 function ceoResponder(sim){
   const lista=s.avisosEvolucao||[], ix=lista.findIndex(x=>x.tipo==='ceo'); if(ix<0) return; const av=lista.splice(ix,1)[0]; const c=ceo();
-  if(av.loja){ if(!sim){ c.pausaLoja=s.mes+6; return; }
-    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO não pôde abrir a loja', texto:'A empresa está em obra ou não atende mais às condições para uma loja nova.'}; return; }
-    if(!ceoLojaV(a)){ c.pausaLoja=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO esperou', texto:'A sua conta ficaria sem folga para pagar as despesas depois da obra.'}; return; }
-    tycFranquia(a.uid); c.pausaLoja=s.mes+6; s.licao={tom:'bom', titulo:'Nova loja a caminho', texto:ui.tycMsg||''}; return; }
+  if(av.loja){ if(!sim){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+6; return; }
+    const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra||!tycPodeLoja(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO não pôde abrir a loja', texto:'A empresa está em obra ou não atende mais às condições para uma loja nova.'}; return; }
+    if(!ceoLojaV(a)){ (c.pausaLojaE=c.pausaLojaE||{})[av.uid]=s.mes+2; s.licao={tom:'neutro', titulo:'O CEO esperou', texto:'A sua conta ficaria sem folga para pagar as despesas depois da obra.'}; return; }
+    tycFranquia(a.uid); c.pausaLoja=s.mes+1; s.licao={tom:'bom', titulo:'Nova loja a caminho', texto:ui.tycMsg||''}; return; }
   if(!sim){ c.pausa=s.mes+6; return; }
   const a=(s.ativos||[]).find(x=>x.uid===av.uid); if(!a||!a.tyc||a.tyc.obra){ ui.tycMsg='O CEO não pôde evoluir: a empresa está em obra ou não existe mais.'; return; }
   const k=TYC_KEYS[av.ki]; if(tycBloqueio(a,k)){ ui.tycMsg='O CEO não pôde evoluir agora: '+(typeof tycBloqueio(a,k)==='string'?tycBloqueio(a,k):'a empresa está bloqueada para melhorias.'); return; }
