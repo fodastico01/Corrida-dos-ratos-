@@ -77,4 +77,7 @@ if 'com.google.android.gms.ads.APPLICATION_ID' not in x:
 if 'com.android.vending.BILLING' not in x:
     x = x.replace('</manifest>', '    <uses-permission android:name="com.android.vending.BILLING" />\n</manifest>', 1)
 open(m, 'w').write(x)
+if 'android.hardware.screen.portrait' not in x:
+    x = x.replace('</manifest>', '    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />\n</manifest>', 1)
+    open(m, 'w').write(x)
 print('AndroidManifest: AdMob APPLICATION_ID e permissao BILLING')
