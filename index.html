@@ -4964,11 +4964,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 A new opportunity showed up in the Income tab: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 A new opportunity showed up in the Income tab: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Donating ${P}% of what comes into your account</h2><p class="hint">You can change this whenever you need. Given so far: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Lower to ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Stop donating</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Donating ${P}% of what comes into your account</h2><p class="hint">Donated this year: ${fmt0(s.doadoAno||0)} · Tax refund in January: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Already refunded: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Extra opportunities brought by giving: '+s.doaOppN:''}</p><p class="hint">You can change this whenever you need. Given so far: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Lower to ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Stop donating</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -5273,7 +5273,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Cost of living (home, groceries, car, bills, kids and lifestyle)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donations (${s.doaPct}% of what came into the account)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Donations (${s.doaPct}% of what came into the account)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Income tax refund on this year's donations (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Leisure (${est.nome.toLowerCase()})`, -lazer()]);
@@ -6002,7 +6004,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Mint",'#F5F3EF','#A9DDBF'],ouro:["Gold and navy",'#F3ECDC','#F0B83C'],ceu:["Sky and sand",'#E4EEF7','#F4B942'],noite:["Night",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -11611,11 +11613,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Apareció una nueva oportunidad en la pestaña Renta: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Apareció una nueva oportunidad en la pestaña Renta: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Donando el ${P}% de lo que entra en tu cuenta</h2><p class="hint">Puedes cambiarlo cuando lo necesites. Donado hasta ahora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Bajar al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Dejar de donar</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Donando el ${P}% de lo que entra en tu cuenta</h2><p class="hint">Donado en el año: ${fmt0(s.doadoAno||0)} · Devolución en enero: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Ya devuelto: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Oportunidades extra por donar: '+s.doaOppN:''}</p><p class="hint">Puedes cambiarlo cuando lo necesites. Donado hasta ahora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Bajar al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Dejar de donar</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -11920,7 +11922,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Coste de vida (casa, compra, coche, facturas, hijos y estilo de vida)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donaciones (${s.doaPct}% de lo que entró en la cuenta)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Donaciones (${s.doaPct}% de lo que entró en la cuenta)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Devolución del IRPF por las donaciones del año (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Ocio (${est.nome.toLowerCase()})`, -lazer()]);
@@ -12649,7 +12653,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menta",'#F5F3EF','#A9DDBF'],ouro:["Dorado y azul marino",'#F3ECDC','#F0B83C'],ceu:["Cielo y arena",'#E4EEF7','#F4B942'],noite:["Noche",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -18257,11 +18261,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Surgiu uma nova oportunidade no separador Rendimentos: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Surgiu uma nova oportunidade no separador Rendimentos: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 A doar ${P}% do que entra na tua conta</h2><p class="hint">Podes mudar isto quando precisares. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Deixar de doar</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 A doar ${P}% do que entra na tua conta</h2><p class="hint">Doado no ano: ${fmt0(s.doadoAno||0)} · Restituição em janeiro: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Já devolvido: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Oportunidades extra por doar: '+s.doaOppN:''}</p><p class="hint">Podes mudar isto quando precisares. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Deixar de doar</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -18566,7 +18570,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Custo de vida (casa, compras, carro, contas, filhos e estilo de vida)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donativos (${s.doaPct}% do que entrou na conta)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Donativos (${s.doaPct}% do que entrou na conta)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Restituição do IRS pelas doações do ano (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Lazer (${est.nome.toLowerCase()})`, -lazer()]);
@@ -19295,7 +19301,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menta",'#F5F3EF','#A9DDBF'],ouro:["Dourado e azul-marinho",'#F3ECDC','#F0B83C'],ceu:["Céu e areia",'#E4EEF7','#F4B942'],noite:["Noite",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -24904,11 +24910,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Une nouvelle opportunité est apparue dans l'onglet Revenus : ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Une nouvelle opportunité est apparue dans l'onglet Revenus : ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Tu donnes ${P} % de ce qui entre sur ton compte</h2><p class="hint">Tu peux changer quand tu veux. Donné jusqu'ici : ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baisser à ${baixo} %</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Arrêter de donner</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Tu donnes ${P} % de ce qui entre sur ton compte</h2><p class="hint">Donné cette année: ${fmt0(s.doadoAno||0)} · Remboursement en janvier: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Déjà remboursé: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Opportunités en plus grâce aux dons: '+s.doaOppN:''}</p><p class="hint">Tu peux changer quand tu veux. Donné jusqu'ici : ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baisser à ${baixo} %</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Arrêter de donner</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -25213,7 +25219,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Coût de la vie (logement, courses, voiture, factures, enfants et train de vie)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Dons (${s.doaPct} % de ce qui est entré sur le compte)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Dons (${s.doaPct} % de ce qui est entré sur le compte)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Remboursement d'impôt pour les dons de l'année (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Loisirs (${est.nome.toLowerCase()})`, -lazer()]);
@@ -25942,7 +25950,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menthe",'#F5F3EF','#A9DDBF'],ouro:["Or et bleu marine",'#F3ECDC','#F0B83C'],ceu:["Ciel et sable",'#E4EEF7','#F4B942'],noite:["Nuit",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -31551,11 +31559,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 È comparsa una nuova opportunità nella scheda Reddito: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 È comparsa una nuova opportunità nella scheda Reddito: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Doni il ${P}% di ciò che entra sul conto</h2><p class="hint">Puoi cambiare quando vuoi. Donato finora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Riduci al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Smetti di donare</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Doni il ${P}% di ciò che entra sul conto</h2><p class="hint">Donato nell'anno: ${fmt0(s.doadoAno||0)} · Rimborso a gennaio: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Già rimborsato: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Opportunità in più grazie alle donazioni: '+s.doaOppN:''}</p><p class="hint">Puoi cambiare quando vuoi. Donato finora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Riduci al ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Smetti di donare</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -31860,7 +31868,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Costo della vita (casa, spesa, auto, bollette, figli e tenore di vita)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donazioni (${s.doaPct}% di ciò che è entrato sul conto)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Donazioni (${s.doaPct}% di ciò che è entrato sul conto)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Rimborso fiscale per le donazioni dell'anno (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Tempo libero (${est.nome.toLowerCase()})`, -lazer()]);
@@ -32589,7 +32599,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menta",'#F5F3EF','#A9DDBF'],ouro:["Oro e blu",'#F3ECDC','#F0B83C'],ceu:["Cielo e sabbia",'#E4EEF7','#F4B942'],noite:["Notte",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -38198,11 +38208,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Eine neue Gelegenheit ist im Reiter Einkommen aufgetaucht: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Eine neue Gelegenheit ist im Reiter Einkommen aufgetaucht: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Du spendest ${P} % der Kontoeingänge</h2><p class="hint">Du kannst das jederzeit ändern. Bisher gespendet: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Auf ${baixo} % senken</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Nicht mehr spenden</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Du spendest ${P} % der Kontoeingänge</h2><p class="hint">Dieses Jahr gespendet: ${fmt0(s.doadoAno||0)} · Erstattung im Januar: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Bereits erstattet: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Zusätzliche Chancen durch Spenden: '+s.doaOppN:''}</p><p class="hint">Du kannst das jederzeit ändern. Bisher gespendet: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Auf ${baixo} % senken</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Nicht mehr spenden</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -38507,7 +38517,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Lebenshaltungskosten (Wohnen, Lebensmittel, Auto, Rechnungen, Kinder und Lebensstil)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Spenden (${s.doaPct} % der Kontoeingänge)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Spenden (${s.doaPct} % der Kontoeingänge)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Steuererstattung für die Spenden des Jahres (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Freizeit (${est.nome.toLowerCase()})`, -lazer()]);
@@ -39236,7 +39248,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Minze",'#F5F3EF','#A9DDBF'],ouro:["Gold und Marine",'#F3ECDC','#F0B83C'],ceu:["Himmel und Sand",'#E4EEF7','#F4B942'],noite:["Nacht",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -44845,11 +44857,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Во вкладке «Доход» появилась новая возможность: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Во вкладке «Доход» появилась новая возможность: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Ты жертвуешь ${P}% поступлений на счёт</h2><p class="hint">Это можно изменить в любой момент. Пожертвовано: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Снизить до ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Прекратить жертвовать</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Ты жертвуешь ${P}% поступлений на счёт</h2><p class="hint">Пожертвовано за год: ${fmt0(s.doadoAno||0)} · Возврат налога в январе: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Уже возвращено: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Дополнительные возможности от пожертвований: '+s.doaOppN:''}</p><p class="hint">Это можно изменить в любой момент. Пожертвовано: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Снизить до ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Прекратить жертвовать</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -45154,7 +45166,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Стоимость жизни (дом, продукты, машина, счета, дети и уровень жизни)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Пожертвования (${s.doaPct}% от поступлений на счёт)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Пожертвования (${s.doaPct}% от поступлений на счёт)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Возврат налога за пожертвования года (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Досуг (${est.nome.toLowerCase()})`, -lazer()]);
@@ -45883,7 +45897,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Мята",'#F5F3EF','#A9DDBF'],ouro:["Золото и тёмно-синий",'#F3ECDC','#F0B83C'],ceu:["Небо и песок",'#E4EEF7','#F4B942'],noite:["Ночь",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -51492,11 +51506,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Peluang baru muncul di tab Pendapatan: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Peluang baru muncul di tab Pendapatan: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Berdonasi ${P}% dari uang yang masuk ke rekening</h2><p class="hint">Kamu bisa mengubahnya kapan saja. Total donasi: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Turunkan ke ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Berhenti berdonasi</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Berdonasi ${P}% dari uang yang masuk ke rekening</h2><p class="hint">Didonasikan tahun ini: ${fmt0(s.doadoAno||0)} · Pengembalian pajak di Januari: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Sudah dikembalikan: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Peluang tambahan dari berdonasi: '+s.doaOppN:''}</p><p class="hint">Kamu bisa mengubahnya kapan saja. Total donasi: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Turunkan ke ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Berhenti berdonasi</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -51801,7 +51815,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Biaya hidup (rumah, belanja, mobil, tagihan, anak, dan gaya hidup)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Donasi (${s.doaPct}% dari uang yang masuk ke rekening)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Donasi (${s.doaPct}% dari uang yang masuk ke rekening)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Pengembalian pajak atas donasi tahun ini (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Hiburan (${est.nome.toLowerCase()})`, -lazer()]);
@@ -52530,7 +52546,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Mint",'#F5F3EF','#A9DDBF'],ouro:["Emas dan navy",'#F3ECDC','#F0B83C'],ceu:["Langit dan pasir",'#E4EEF7','#F4B942'],noite:["Malam",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -58139,11 +58155,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Gelir sekmesinde yeni bir fırsat belirdi: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Gelir sekmesinde yeni bir fırsat belirdi: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Hesaba girenin %${P}'ini bağışlıyorsun</h2><p class="hint">İstediğin zaman değiştirebilirsin. Şimdiye kadar: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">%${baixo}'e düşür</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Bağışı bırak</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Hesaba girenin %${P}'ini bağışlıyorsun</h2><p class="hint">Bu yıl bağışlanan: ${fmt0(s.doadoAno||0)} · Ocak'ta vergi iadesi: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Şimdiye kadar iade edilen: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Bağışın getirdiği ek fırsatlar: '+s.doaOppN:''}</p><p class="hint">İstediğin zaman değiştirebilirsin. Şimdiye kadar: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">%${baixo}'e düşür</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Bağışı bırak</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -58448,7 +58464,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Yaşam maliyeti (ev, market, araba, faturalar, çocuklar ve yaşam standardı)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Bağışlar (hesaba girenin %${s.doaPct}'i)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Bağışlar (hesaba girenin %${s.doaPct}'i)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Yıl içindeki bağışlar için vergi iadesi (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Boş zaman (${est.nome.toLowerCase()})`, -lazer()]);
@@ -59177,7 +59195,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Nane",'#F5F3EF','#A9DDBF'],ouro:["Altın ve lacivert",'#F3ECDC','#F0B83C'],ceu:["Gökyüzü ve kum",'#E4EEF7','#F4B942'],noite:["Gece",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -64786,11 +64804,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 ظهرت فرصة جديدة في تبويب الدخل: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 ظهرت فرصة جديدة في تبويب الدخل: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 تتبرع بـ ${P}% مما يدخل حسابك</h2><p class="hint">يمكنك التغيير متى احتجت. المتبرَّع به حتى الآن: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">خفض إلى ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">توقف عن التبرع</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 تتبرع بـ ${P}% مما يدخل حسابك</h2><p class="hint">تبرعت هذا العام: ${fmt0(s.doadoAno||0)} · الاسترداد الضريبي في يناير: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · ما تم استرداده: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · فرص إضافية بفضل التبرع: '+s.doaOppN:''}</p><p class="hint">يمكنك التغيير متى احتجت. المتبرَّع به حتى الآن: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">خفض إلى ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">توقف عن التبرع</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -65095,7 +65113,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["تكلفة المعيشة (المنزل والبقالة والسيارة والفواتير والأطفال ونمط الحياة)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`التبرعات (${s.doaPct}% مما دخل الحساب)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`التبرعات (${s.doaPct}% مما دخل الحساب)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`استرداد ضريبي عن تبرعات السنة (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`الترفيه (${est.nome.toLowerCase()})`, -lazer()]);
@@ -65824,7 +65844,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["نعناعي",'#F5F3EF','#A9DDBF'],ouro:["ذهبي وكحلي",'#F3ECDC','#F0B83C'],ceu:["سماء ورمال",'#E4EEF7','#F4B942'],noite:["ليل",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -71433,11 +71453,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 収入タブに新しい機会が現れました：${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 収入タブに新しい機会が現れました：${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 口座に入るお金の${P}%を寄付中</h2><p class="hint">いつでも変更できます。これまでの寄付額：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%に下げる</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">寄付をやめる</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 口座に入るお金の${P}%を寄付中</h2><p class="hint">今年の寄付額: ${fmt0(s.doadoAno||0)} · 1月の税還付: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · これまでの還付額: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · 寄付がもたらした追加チャンス: '+s.doaOppN:''}</p><p class="hint">いつでも変更できます。これまでの寄付額：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%に下げる</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">寄付をやめる</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -71742,7 +71762,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["生活費（家、食料品、車、請求書、子ども、生活水準）",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`寄付（口座に入った額の${s.doaPct}%）`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`寄付（口座に入った額の${s.doaPct}%）`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`今年の寄付に対する所得税の還付 (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`レジャー（${est.nome.toLowerCase()}）`, -lazer()]);
@@ -72471,7 +72493,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["ミント",'#F5F3EF','#A9DDBF'],ouro:["ゴールドとネイビー",'#F3ECDC','#F0B83C'],ceu:["空と砂",'#E4EEF7','#F4B942'],noite:["夜",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -78080,11 +78102,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 수입 탭에 새로운 기회가 나타났어요: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 수입 탭에 새로운 기회가 나타났어요: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 계좌 입금액의 ${P}%를 기부 중</h2><p class="hint">필요할 때 언제든 바꿀 수 있어요. 지금까지 기부액: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%로 낮추기</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">기부 중단하기</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 계좌 입금액의 ${P}%를 기부 중</h2><p class="hint">올해 기부액: ${fmt0(s.doadoAno||0)} · 1월 세금 환급: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · 지금까지 환급액: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · 기부로 생긴 추가 기회: '+s.doaOppN:''}</p><p class="hint">필요할 때 언제든 바꿀 수 있어요. 지금까지 기부액: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}%로 낮추기</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">기부 중단하기</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -78389,7 +78411,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["생활비(집, 장보기, 자동차, 공과금, 자녀, 생활 수준)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`기부 (계좌 입금액의 ${s.doaPct}%)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`기부 (계좌 입금액의 ${s.doaPct}%)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`올해 기부에 대한 세금 환급 (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`여가(${est.nome.toLowerCase()})`, -lazer()]);
@@ -79118,7 +79142,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["민트",'#F5F3EF','#A9DDBF'],ouro:["골드와 네이비",'#F3ECDC','#F0B83C'],ceu:["하늘과 모래",'#E4EEF7','#F4B942'],noite:["밤",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -84726,11 +84750,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 आय टैब में एक नया अवसर दिखा: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 आय टैब में एक नया अवसर दिखा: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 खाते में आने वाले पैसे का ${P}% दान कर रहे हैं</h2><p class="hint">आप जब चाहें बदल सकते हैं। अब तक दान: ${T}।</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}% पर घटाएँ</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">दान बंद करें</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 खाते में आने वाले पैसे का ${P}% दान कर रहे हैं</h2><p class="hint">इस साल का दान: ${fmt0(s.doadoAno||0)} · जनवरी में कर वापसी: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · अब तक वापस मिला: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · दान से मिले अतिरिक्त अवसर: '+s.doaOppN:''}</p><p class="hint">आप जब चाहें बदल सकते हैं। अब तक दान: ${T}।</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">${baixo}% पर घटाएँ</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">दान बंद करें</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -85035,7 +85059,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["रहने का खर्च (घर, राशन, कार, बिल, बच्चे और जीवनशैली)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`दान (खाते में आए पैसे का ${s.doaPct}%)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`दान (खाते में आए पैसे का ${s.doaPct}%)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`इस साल के दान पर आयकर वापसी (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`मनोरंजन (${est.nome.toLowerCase()})`, -lazer()]);
@@ -85764,7 +85790,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["पुदीना",'#F5F3EF','#A9DDBF'],ouro:["सुनहरा और नेवी",'#F3ECDC','#F0B83C'],ceu:["आसमान और रेत",'#E4EEF7','#F4B942'],noite:["रात",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -91372,11 +91398,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 收入页出现了一个新机会：${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 收入页出现了一个新机会：${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 正在捐出账户入账的${P}%</h2><p class="hint">你可以随时更改。目前累计捐款：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">降到${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">停止捐款</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 正在捐出账户入账的${P}%</h2><p class="hint">今年已捐: ${fmt0(s.doadoAno||0)} · 一月退税: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · 已退还: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · 捐款带来的额外机会: '+s.doaOppN:''}</p><p class="hint">你可以随时更改。目前累计捐款：${T}。</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">降到${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">停止捐款</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -91681,7 +91707,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["生活成本（家、杂货、车、账单、孩子和生活水平）",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`捐款（账户入账的${s.doaPct}%）`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`捐款（账户入账的${s.doaPct}%）`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`本年度捐款的个税退还 (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`休闲（${est.nome.toLowerCase()}）`, -lazer()]);
@@ -92410,7 +92438,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["薄荷绿",'#F5F3EF','#A9DDBF'],ouro:["金色与藏青",'#F3ECDC','#F0B83C'],ceu:["天蓝与沙色",'#E4EEF7','#F4B942'],noite:["夜晚",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -96371,7 +96399,7 @@ const EVENTOS = {
     ]},
   doaPct:{fases:[2,3], peso:6, cd:18, minMes:4, tipo:'opcoes', cond:()=>doaProx()>0, titulo:()=>{ const L=doaProx(); return `Retribuir: ${L}% da sua renda`; }, texto:()=>{ const L=doaProx(); return `Uma fundação que apoia famílias em necessidade convida você a comprometer ${L}% de tudo o que cai na sua conta todo mês: salário, retiradas das empresas, aluguéis e rendimentos. O dinheiro que fica dentro das suas empresas não conta. ${[`Quem dá abre espaço para receber: a generosidade faz parte da mentalidade de riqueza. — T. Harv Eker, Os Segredos da Mente Milionária`,`Para receber, dê primeiro: quem só espera pegar fica preso à escassez. — Robert Kiyosaki, Pai Rico, Pai Pobre`,`Dar antes de pedir muda a forma de ver o dinheiro. — Robert Kiyosaki, Pai Rico, Pai Pobre`,`Dar com constância treina a mente para a abundância, e não para a escassez. — T. Harv Eker, Os Segredos da Mente Milionária`][Math.max(0,DOA_NIV.indexOf(L))]}`; },
     opcoes:()=>{ const L=doaProx(), C=s.doaPct||0; return [
-      {label:`Doar ${L}% todo mês`, sub:`Sai do que entra na conta`, run:()=>{ s.doaPct=L; s.doaUlt=s.mes; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Dar faz parte de ter`, texto:`A partir de agora, ${L}% do que cai na sua conta vai para quem precisa. Nenhuma pontuação mostra isso, mas pessoas generosas são lembradas e as boas notícias tendem a encontrá-las.`}; }},
+      {label:`Doar ${L}% todo mês`, sub:`Sai do que entra na conta`, run:()=>{ s.doaPct=L; s.doaUlt=s.mes; s.doaN=(s.doaN||0)+1; s.fel=clamp(s.fel+4,0,100); return {tom:'bom', titulo:`Dar faz parte de ter`, texto:`A partir de agora, ${L}% do que cai na sua conta vai para quem precisa. Além de abrir mais oportunidades, em janeiro parte do que você doou volta como restituição do imposto de renda: quanto mais você doa, maior a devolução.`}; }},
       C>0 ? {label:`Manter ${C}%`, sub:`Sem mudança`, run:()=>({tom:'neutro', titulo:`Mesmo ritmo`, texto:`Você continuou doando ${C}%. Uma contribuição constante vale mais do que um gesto isolado.`})} : {label:`Agora não`, sub:`Talvez mais tarde`, run:()=>({tom:'neutro', titulo:`Fica para outra vez`, texto:`A oferta continua aberta. A escolha é sua.`})},
       ...(C>0 ? [{label:`Parar de doar`, sub:`O convite pode voltar`, run:()=>{ s.doaPct=0; return {tom:'neutro', titulo:`Doações pausadas`, texto:`Você parou de doar. O convite pode voltar um dia.`}; }}] : [])
     ]; }},
@@ -98014,11 +98042,11 @@ const doaMult=()=>DOA_MULT[s.doaPct||0]||1, doaProx=()=>DOA_NIV.find(x=>x>(s.doa
 function doaOpp(fila){ const m=doaMult(); fila=Array.isArray(fila)?fila:[]; if(m<=1) return fila;
   const base=({1:0.042,2:0.21,3:0.29}[Math.min(3,s.fase||1)]||0.2)*(doisDados()?1.14:2.3);
   s.doaAcc=Math.min(2,(s.doaAcc||0)+(m-1)*base); let n=0;
-  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Surgiu uma nova oportunidade na aba Renda: ${nomeOferta(o.id)}`, 0]); }
+  while(s.doaAcc>=1 && n<2){ s.doaAcc-=1; const o=novaOferta(); if(!o) break; n++; s.doaOppN=(s.doaOppN||0)+1; if(n===1 && !fila.some(e=>e==='oportunidade'||e==='grande')) fila=['oportunidade',...fila]; else (s.extrato||(s.extrato=[])).push([`💼 Surgiu uma nova oportunidade na aba Renda: ${nomeOferta(o.id)}`, 0]); }
   return fila; }
 function doaCard(){ const P=s.doaPct||0; if(!(P>0)) return '';
   const baixo=DOA_NIV.filter(x=>x<P).pop(), T=fmt0(s.doadoTotal||0);
-  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Doando ${P}% do que entra na sua conta</h2><p class="hint">Você pode mudar quando precisar. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Parar de doar</button></div></section>`; }
+  return `<section class="card doa-card">${(typeof ARTE!=='undefined'&&ARTE.cards&&ARTE.cards['doa_voluntario'])?`<img class="ceo-img" src="${ARTE.cards['doa_voluntario']}" alt="" width="560" height="276">`:''}<h2>🤝 Doando ${P}% do que entra na sua conta</h2><p class="hint">Doado no ano: ${fmt0(s.doadoAno||0)} · Restituição em janeiro: ~${fmt0(Math.round((s.doadoAno||0)*(({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)))} (${Math.round((({5:0.15,10:0.25,15:0.35,20:0.45})[s.doaNivAno]||0.15)*100)}%) · Já devolvido: ${fmt0(s.restDoaTotal||0)}${(s.doaOppN||0)>0?' · Oportunidades extras trazidas pela doação: '+s.doaOppN:''}</p><p class="hint">Você pode mudar quando precisar. Doado até agora: ${T}.</p><div class="conta-acoes">${baixo?`<button class="btn" data-acao="doaMudar" data-alvo="${baixo}">Baixar para ${baixo}%</button>`:''}<button class="btn" data-acao="doaMudar" data-alvo="0">Parar de doar</button></div></section>`; }
 const doisDados=()=>!!(s&&((s.doisDadosAte&&s.mes<s.doisDadosAte)||(s.habs&&s.habs.dados)));   // dois dados: bônus temporário da doação, ou para sempre com a habilidade Visão de patrimônio (a última da árvore)
 //   // teste: 1 dado por jogada (s.doisDados liga o bônus de 2 dados)
 function lancar(R){
@@ -98323,7 +98351,9 @@ function iniciarMes(){
     if(_bs>0) ex.push(["Custo de vida (casa, mercado, carro, contas, filhos e padrão de vida)",-_bs]); }
   for(const p of s.parcelas){ s.conta-=p.valor; s.jp+=p.juros||0; ex.push([`${p.nome} (${p.total-p.restante+1}/${p.total})`, -p.valor]); p.restante--; }
   s.parcelas=s.parcelas.filter(p=>p.restante>0);
-  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; ex.push([`Doações (${s.doaPct}% do que entrou na conta)`, -don]); } }
+  const DOA_REST={5:0.15,10:0.25,15:0.35,20:0.45}; let _rest=0,_tx=0; if((s.doadoAno||0)>0 && s.doaAnoRef!==anoAtual()){ _tx=DOA_REST[s.doaNivAno]||0.15; _rest=Math.round(s.doadoAno*_tx); s.doadoAno=0; s.doaNivAno=0; }   // restituição do IR: volta uma parte do que foi doado no ano anterior
+  if((s.doaPct||0)>0){ const ent=ex.reduce((a,l)=>a+((l[1]>0 && !l[2] && l[3]!=='transf')?l[1]:0),0)+(s.sacadoMes||0), don=Math.round(ent*s.doaPct/100); if(don>0){ s.conta-=don; s.doadoTotal=(s.doadoTotal||0)+don; s.doadoAno=(s.doadoAno||0)+don; s.doaAnoRef=anoAtual(); s.doaNivAno=Math.max(s.doaNivAno||0,s.doaPct); ex.push([`Doações (${s.doaPct}% do que entrou na conta)`, -don]); } }
+  if(_rest>0){ s.conta+=_rest; s.restDoaTotal=(s.restDoaTotal||0)+_rest; ex.push([`Restituição do IR pelas doações do ano (${Math.round(_tx*100)}%)`, _rest]); }
   s.sacadoMes=0;
   const est=ESTILOS[s.estilo];
   s.conta-=lazer(); ex.push([`Lazer (${est.nome.toLowerCase()})`, -lazer()]);
@@ -99052,7 +99082,7 @@ function montarCena(){
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
 const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
-document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled && !b.classList.contains('overlay') && !b.matches('.sheet *:not(button):not(.opcao):not([role=tab])')) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:['Menta','#F5F3EF','#A9DDBF'],ouro:['Ouro e marinho','#F3ECDC','#F0B83C'],ceu:['Céu e areia','#E4EEF7','#F4B942'],noite:['Noite','#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
