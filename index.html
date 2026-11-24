@@ -4904,12 +4904,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -5011,9 +5011,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -11545,12 +11546,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -11652,9 +11653,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -18185,12 +18187,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -18292,9 +18294,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -24826,12 +24829,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -24933,9 +24936,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -31467,12 +31471,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -31574,9 +31578,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -38108,12 +38113,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -38215,9 +38220,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -44749,12 +44755,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -44856,9 +44862,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -51390,12 +51397,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -51497,9 +51504,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -58031,12 +58039,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -58138,9 +58146,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -64672,12 +64681,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -64779,9 +64788,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -71313,12 +71323,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -71420,9 +71430,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -77954,12 +77965,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -78061,9 +78072,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -84594,12 +84606,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -84701,9 +84713,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -91234,12 +91247,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -91341,9 +91354,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
@@ -97870,12 +97884,12 @@ ESPECIAIS.balanco = {tipo:'aviso', antes:()=>{ balCalc(); },
 
 // acontecimentos que não dependem da casa (agenda, saúde mental, promoção, crise...): entram antes da carta da casa
 function eventoForcado(){
-  const due=s.agenda.find(a=>a.mes<=s.mes);
-  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim){
     if(mesCal()<=2 && s.mes-s.snapAno.mes>=4) return 'balanco';   // o balanço só abre em janeiro (ou fevereiro, se o dado pulou janeiro por um motivo raro)
     if(mesCal()>2){ s.balAno=anoAtual(); s.snapAno=tirarSnap(); }   // perdeu a janela do ano: começa o ano novo sem balanço atrasado
   }
+  const due=s.agenda.find(a=>a.mes<=s.mes);
+  if(due){ s.agenda=s.agenda.filter(a=>a!==due); if(due.id==='titulo_fim') s.tituloValor=due.valor; return due.id; }
   if(F3() && !s.livreEm && rendaPassiva()>=custoMensal()){ s.livreEm=s.mes; if(!s.aposentado) return 'liberdade'; }
   if(F3() && s.aposentado && cobertura()<0.7 && (!s.apertadoEm || s.mes-s.apertadoEm>=12)) return 'apertado';
   if(!esgotado() && (s.mesesBaixo||0)>=2 && (s.cansaco||0)>=4 && !s.aposentado && (!s.esgotAte || s.mes-s.esgotAte>=6)) return 'esgotamento';
@@ -97977,9 +97991,10 @@ function jogarDado(){
   return filaDoTurno(true);
 }
 // uma carta por jogada: primeiro a história do mês, senão o imprevisto da reserva, senão a casa
+const balancoDevido = () => !!(s.snapAno && anoAtual()>s.snapAno.ano && s.balAno!==anoAtual() && !s.fim && mesCal()<=2 && s.mes-s.snapAno.mes>=4);   // balanço anual ainda não aberto neste janeiro: abre na primeira jogada, mesmo sem virar o mês
 function filaDoTurno(comForcado){
   const R=s.rol, fila=[];
-  const fz=comForcado?eventoForcado():null;
+  const fz=comForcado?eventoForcado():(balancoDevido()?'balanco':null);
   if(fz) fila.push(fz);
   else if(s.emergForcada){ s.emergForcada=false; const e=eventoDaCasa('imp',true); if(e){ fila.push(e); R.alarmeEv=e; } }
   else { const ce=eventoDaCasa(R.tipo); if(ce){ fila.push(ce); R.casaEv=ce; } }
