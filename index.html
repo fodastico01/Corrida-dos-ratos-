@@ -1431,7 +1431,7 @@ html[data-paleta="noite"] .topo2 .topo-conta .tc-r{border-left-color:rgba(255,25
 .seg.aporte-seg{display:grid!important;grid-template-columns:repeat(4,1fr);width:100%;gap:6px}
 .seg.aporte-seg button{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap}
 
-.seg.aporte-seg button{font-size:.92rem;line-height:1.25}.seg.aporte-seg button small{display:block;font-size:.72rem;overflow:hidden;text-overflow:ellipsis}
+.seg.aporte-seg button{font-size:.84rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;padding-left:2px;padding-right:2px}.seg.aporte-seg button small{white-space:nowrap}.seg.aporte-seg button small{display:block;font-size:.72rem;overflow:hidden;text-overflow:ellipsis}
 </style>
 
 <div class="app" id="app"></div>
@@ -2763,7 +2763,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -5539,6 +5542,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -5559,7 +5565,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Month's leftover:</small><div class="seg seg-hud" role="group" aria-label="Month's leftover"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Stays in the account<small>you decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Goes to ${p.curto}<small>automatic</small></button></div><p class="hint">Once the month's bills are paid, whatever is left in your checking account goes by itself into ${p.curto}. If something unexpected comes up, the game redeems from here first.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Automatic monthly investing:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Automatic investing">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Off':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Every month, <b>${fmt0(aporteMensal())}</b> moves from your account into stocks${prods().cdb?', and government bonds make up the difference if short':''}, as long as ${3} months of reserve costs remain. The percentage follows your income.`:'Pick a percentage of your income to invest in stocks every month, without having to remember. It only invests if the 3-month reserve is left over.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Automatic monthly investing:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Automatic investing">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Off':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Every month, <b>${fmt0(aporteExec(aporteMensal()))}</b> moves from your account into stocks${prods().cdb?', and government bonds make up the difference if short':''}, as long as ${3} months of reserve costs remain. The percentage follows your income.`:'Pick a percentage of your income to invest in stocks every month, without having to remember. It only invests if the 3-month reserve is left over.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctuates every month":"last month "+pctFmt(p.taxa())):pct2(p.taxa())+" a month"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -6048,7 +6054,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v521</p>
+    <p class="titulo-versao">version v522</p>
   </div>`;
 }
 function render(){
@@ -6250,7 +6256,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     <div class="ficha">
       <div><span class="label-c">Income per month</span>
         <div class="fl"><span>${s.aposentado?"Salary (stopped)":s.empresario?"Salary (became entrepreneur)":s.desemp>0?"Unemployment insurance":prof().comissao?"Salary + commission (average)":"Salary"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Investments (0.4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Investments</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Rents and businesses</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Spending per month</span>
@@ -6316,7 +6322,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (manager)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Coffee shop partner", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Franchise royalties (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Investments (estimate)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Investments", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">no hours</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">Where your money comes from</h2>
@@ -6792,7 +6798,7 @@ function renderModal0(){
       <span class="tag neutro">Phase 3 · Financial freedom</span>
       <p>You are ${idadeJog()} years old and start with <b>${fmt(s.inicioPatr||patrimonio())}</b>. The goal now is just one: make investments pay your bills.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Grade"])?'open':''}><summary>How to play this phase</summary><ul class="regras">
-        <li><b>Passive income</b> is how much you can take from the portfolio every month without the money running out: about 0.4% of what's invested per month (around 5% a year, the famous "4% rule" adapted to this game's interest rates).</li>
+        <li><b>Passive income</b> is the money that lands in your account every month without you working: fixed-income interest you chose to receive, stock dividends (monthly average), rent, business profit withdrawals and franchise royalties. Stock appreciation only becomes money when you sell, so it doesn't count.</li>
         <li>When passive income exceeds the cost of living, you are <b>out of the rat race</b> and can quit your job.</li>
         <li>Living off income, the salary stops and the portfolio pays the bills. If it shrinks too much, you go back to work.</li>
         <li>Life also happens: children, own home, career, businesses and crises.</li>
@@ -6809,7 +6815,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} today</span></button>`).join('')}</div>
       <p>You are 25 years old and have <b>${fmt0(s.conta)}</b> in the account.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Grade"])?'open':''}><summary>How to play this phase</summary><ul class="regras">
-        <li>Each round is a month. Salary comes in and bills go out automatically.</li>
+        <li>Walk around the board: each time you pass a new month's sign, salary comes in and bills go out automatically.</li>
         <li>Keep an eye on <b>opportunities</b>: small businesses that pay you every month, like in Cashflow.</li>
         <li>Save in government bonds: it's safe, can be withdrawn any day and counts as an emergency fund. Setbacks will show up.</li>
         <li><b>Stocks are for the long term.</b> Here they follow the real stock market, month by month. They pay dividends and grow over 5, 10 years, but have fallen more than 30% in crises. That's why they only unlock when you have 3 months of emergency fund.</li>
@@ -7198,7 +7204,7 @@ const INFO = {
       <p><b>Balance and flow are different things.</b> The balance (${fmt0(s.conta)}) is what's in the account now, after everything you've already spent and invested. The flow is how much that balance changes each month. Like a bucket: the balance is the water inside; the flow is what the tap fills minus what leaks out.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Total in",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Total out",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Besides this, your investments earn about ${fmt0(rendaInvest())} per month, which stay reinvested and don't land in the account.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Besides this, your investments earn about ${fmt0(rendaReinv())} per month, which stay reinvested and don't land in the account.</p>`:''}
       <p class="hint">Positive flow is the fuel: it's the leftover that becomes emergency fund and investment. To increase it, earn more or spend less. To escape the rat race, make income that doesn't depend on your work cover the "out" column.</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Checking account",s.conta],["Emergency fund (government bonds)",reserva()],["Stocks",valor('acoes')],["Other investments",out],["Properties and businesses",valorAtivos()],["Your home",s.casa||0],["Your car",s.carro?.valor||0],["Debts",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Net worth: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -9393,7 +9399,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -12169,6 +12178,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -12189,7 +12201,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Sobrante del mes:</small><div class="seg seg-hud" role="group" aria-label="Sobrante del mes"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Se queda en la cuenta<small>tú decides</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Va a ${p.curto}<small>automático</small></button></div><p class="hint">Una vez pagadas las facturas del mes, lo que quede en tu cuenta corriente pasa solo a ${p.curto}. Si surge un imprevisto, el juego rescata de aquí primero.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Inversión mensual automática:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Inversión automática">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desactivado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Cada mes, <b>${fmt0(aporteMensal())}</b> pasa de tu cuenta a acciones${prods().cdb?', y los bonos del Estado cubren la diferencia si falta':''}, siempre que queden ${3} meses de costes de reserva. El porcentaje sigue tus ingresos.`:'Elige un porcentaje de tus ingresos para invertir en acciones cada mes, sin tener que acordarte. Solo invierte si sobra la reserva de 3 meses.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Inversión mensual automática:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Inversión automática">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desactivado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Cada mes, <b>${fmt0(aporteExec(aporteMensal()))}</b> pasa de tu cuenta a acciones${prods().cdb?', y los bonos del Estado cubren la diferencia si falta':''}, siempre que queden ${3} meses de costes de reserva. El porcentaje sigue tus ingresos.`:'Elige un porcentaje de tus ingresos para invertir en acciones cada mes, sin tener que acordarte. Solo invierte si sobra la reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctúa cada mes":"el mes pasado "+pctFmt(p.taxa())):pct2(p.taxa())+" al mes"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -12678,7 +12690,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v521</p>
+    <p class="titulo-versao">versión v522</p>
   </div>`;
 }
 function render(){
@@ -12880,7 +12892,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
     <div class="ficha">
       <div><span class="label-c">Ingresos al mes</span>
         <div class="fl"><span>${s.aposentado?"Salario (detenido)":s.empresario?"Salario (te hiciste emprendedor)":s.desemp>0?"Seguro de desempleo":prof().comissao?"Salario + comisión (media)":"Salario"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Inversiones (0,4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Inversiones</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Alquileres y negocios</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Gastos al mes</span>
@@ -12946,7 +12958,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (gerente)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Socio de la cafetería", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Royalties de franquicias (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Inversiones (estimación)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Inversiones", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">sin horas</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">De dónde viene tu dinero</h2>
@@ -13422,7 +13434,7 @@ function renderModal0(){
       <span class="tag neutro">Fase 3 · Libertad financiera</span>
       <p>Tienes ${idadeJog()} años y empiezas con <b>${fmt(s.inicioPatr||patrimonio())}</b>. El objetivo ahora es solo uno: que las inversiones paguen tus facturas.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Nota"])?'open':''}><summary>Cómo se juega esta fase</summary><ul class="regras">
-        <li><b>Ingreso pasivo</b> es cuánto puedes sacar de la cartera cada mes sin que se acabe el dinero: cerca del 0,4% de lo invertido al mes (alrededor del 5% anual, la famosa «regla del 4%» adaptada a los tipos de interés de este juego).</li>
+        <li><b>Ingreso pasivo</b> es el dinero que entra en tu cuenta cada mes sin que trabajes: intereses de renta fija que elegiste recibir, dividendos de acciones (promedio mensual), alquileres, retiros de beneficios de negocios y regalías de franquicias. La revalorización de las acciones solo se convierte en dinero cuando vendes, así que no cuenta.</li>
         <li>Cuando el ingreso pasivo supera el coste de vida, estás <b>fuera de la carrera de ratas</b> y puedes dejar el empleo.</li>
         <li>Viviendo de las rentas, el salario se acaba y la cartera paga las facturas. Si se reduce demasiado, vuelves a trabajar.</li>
         <li>La vida también pasa: hijos, casa propia, carrera, negocios y crisis.</li>
@@ -13439,7 +13451,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} hoy</span></button>`).join('')}</div>
       <p>Tienes 25 años y tienes <b>${fmt0(s.conta)}</b> en la cuenta.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Nota"])?'open':''}><summary>Cómo se juega esta fase</summary><ul class="regras">
-        <li>Cada ronda es un mes. El salario entra y las facturas salen automáticamente.</li>
+        <li>Avanza por el tablero: cada vez que pasas el cartel de un mes nuevo, el salario entra y las facturas salen automáticamente.</li>
         <li>Vigila <b>oportunidades</b>: pequeños negocios que te pagan cada mes, como en Cashflow.</li>
         <li>Ahorra en bonos del Estado: es seguro, se puede retirar cualquier día y cuenta como fondo de emergencia. Los contratiempos aparecerán.</li>
         <li><b>Las acciones son para el largo plazo.</b> Aquí siguen el mercado bursátil real, mes a mes. Pagan dividendos y crecen a 5, 10 años, pero han caído más de un 30% en crisis. Por eso solo se desbloquean cuando tienes 3 meses de fondo de emergencia.</li>
@@ -13828,7 +13840,7 @@ const INFO = {
       <p><b>Saldo y flujo son cosas distintas.</b> El saldo (${fmt0(s.conta)}) es lo que hay ahora en la cuenta, después de todo lo que ya gastaste e invertiste. El flujo es cuánto cambia ese saldo cada mes. Como un cubo: el saldo es el agua que hay dentro; el flujo es lo que llena el grifo menos lo que se escapa.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Total entra",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Total sale",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Además, tus inversiones rinden unos ${fmt0(rendaInvest())} al mes, que se quedan reinvertidos y no llegan a la cuenta.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Además, tus inversiones rinden unos ${fmt0(rendaReinv())} al mes, que se quedan reinvertidos y no llegan a la cuenta.</p>`:''}
       <p class="hint">El flujo positivo es el combustible: es lo que sobra y se convierte en fondo de emergencia e inversión. Para aumentarlo, gana más o gasta menos. Para escapar de la carrera de ratas, haz que un ingreso que no dependa de tu trabajo cubra la columna «sale».</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Cuenta corriente",s.conta],["Fondo de emergencia (bonos del Estado)",reserva()],["Acciones",valor('acoes')],["Otras inversiones",out],["Inmuebles y negocios",valorAtivos()],["Tu casa",s.casa||0],["Tu coche",s.carro?.valor||0],["Deudas",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Patrimonio: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -16022,7 +16034,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -18798,6 +18813,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -18818,7 +18836,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Sobra do mês:</small><div class="seg seg-hud" role="group" aria-label="Sobra do mês"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Fica na conta<small>tu decides</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Vai para ${p.curto}<small>automático</small></button></div><p class="hint">Depois de pagas as contas do mês, o que sobrar na tua conta à ordem vai sozinho para ${p.curto}. Se surgir um imprevisto, o jogo resgata primeiro daqui.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Investimento mensal automático:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investimento automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todos os meses, <b>${fmt0(aporteMensal())}</b> passa da tua conta para ações${prods().cdb?', e as obrigações do Estado completam a diferença se faltar':''}, desde que restem ${3} meses de custos de reserva. A percentagem acompanha o teu rendimento.`:'Escolhe uma percentagem do teu rendimento para investir em ações todos os meses, sem teres de te lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Investimento mensal automático:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investimento automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todos os meses, <b>${fmt0(aporteExec(aporteMensal()))}</b> passa da tua conta para ações${prods().cdb?', e as obrigações do Estado completam a diferença se faltar':''}, desde que restem ${3} meses de custos de reserva. A percentagem acompanha o teu rendimento.`:'Escolhe uma percentagem do teu rendimento para investir em ações todos os meses, sem teres de te lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"oscila todos os meses":"mês passado "+pctFmt(p.taxa())):pct2(p.taxa())+" por mês"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -19307,7 +19325,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v521</p>
+    <p class="titulo-versao">versão v522</p>
   </div>`;
 }
 function render(){
@@ -19509,7 +19527,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
     <div class="ficha">
       <div><span class="label-c">Rendimento por mês</span>
         <div class="fl"><span>${s.aposentado?"Salário (parado)":s.empresario?"Salário (passaste a empreendedor)":s.desemp>0?"Subsídio de desemprego":prof().comissao?"Salário + comissão (média)":"Ordenado"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Investimentos (0,4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Investimentos</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Rendas e negócios</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Gastos por mês</span>
@@ -19575,7 +19593,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (gerente)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Sócio da cafetaria", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Royalties da franquia (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Investimentos (estimativa)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Investimentos", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">sem horas</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">De onde vem o teu dinheiro</h2>
@@ -20051,7 +20069,7 @@ function renderModal0(){
       <span class="tag neutro">Fase 3 · Liberdade financeira</span>
       <p>Tens ${idadeJog()} anos e começas com <b>${fmt(s.inicioPatr||patrimonio())}</b>. O objetivo agora é só um: fazer os investimentos pagarem as tuas contas.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Nota"])?'open':''}><summary>Como jogar esta fase</summary><ul class="regras">
-        <li><b>Rendimento passivo</b> é quanto podes tirar da carteira todos os meses sem o dinheiro acabar: cerca de 0,4% do que está investido por mês (à volta de 5% ao ano, a famosa "regra dos 4%" adaptada às taxas de juro deste jogo).</li>
+        <li><b>Rendimento passivo</b> é o dinheiro que entra na tua conta todos os meses sem trabalhares: juros da renda fixa que escolheste receber, dividendos das ações (média mensal), rendas de arrendamento, levantamentos de lucro dos negócios e royalties de franquias. A valorização das ações só se torna dinheiro quando vendes, por isso não conta.</li>
         <li>Quando o rendimento passivo supera o custo de vida, estás <b>fora da corrida dos ratos</b> e podes deixar o emprego.</li>
         <li>Vivendo de rendimentos, o salário pára e a carteira paga as contas. Se encolher demasiado, voltas ao trabalho.</li>
         <li>A vida também acontece: filhos, casa própria, carreira, negócios e crises.</li>
@@ -20068,7 +20086,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} hoje</span></button>`).join('')}</div>
       <p>Tens 25 anos e tens <b>${fmt0(s.conta)}</b> na conta.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Nota"])?'open':''}><summary>Como jogar esta fase</summary><ul class="regras">
-        <li>Cada ronda é um mês. O salário entra e as contas saem automaticamente.</li>
+        <li>Avança pelo tabuleiro: sempre que passas a placa de um novo mês, o salário entra e as contas saem automaticamente.</li>
         <li>Fica atento a <b>oportunidades</b>: pequenos negócios que te pagam todos os meses, como no Cashflow.</li>
         <li>Poupa em obrigações do Estado: é seguro, pode levantar-se qualquer dia e conta como fundo de emergência. Os contratempos vão aparecer.</li>
         <li><b>As ações são para o longo prazo.</b> Aqui seguem a bolsa real, mês a mês. Pagam dividendos e crescem em 5, 10 anos, mas já caíram mais de 30% em crises. Por isso só desbloqueiam quando tens 3 meses de fundo de emergência.</li>
@@ -20457,7 +20475,7 @@ const INFO = {
       <p><b>Saldo e fluxo são coisas diferentes.</b> O saldo (${fmt0(s.conta)}) é o que está na conta agora, depois de tudo o que já gastaste e investiste. O fluxo é quanto esse saldo muda todos os meses. Como um balde: o saldo é a água lá dentro; o fluxo é o que a torneira enche menos o que pinga para fora.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Total a entrar",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Total a sair",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Além disto, os teus investimentos rendem cerca de ${fmt0(rendaInvest())} por mês, que ficam reinvestidos e não caem na conta.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Além disto, os teus investimentos rendem cerca de ${fmt0(rendaReinv())} por mês, que ficam reinvestidos e não caem na conta.</p>`:''}
       <p class="hint">O fluxo positivo é o combustível: é a sobra que vira fundo de emergência e investimento. Para o aumentar, ganha mais ou gasta menos. Para escapar à corrida dos ratos, faz com que um rendimento que não depende do teu trabalho cubra a coluna "sai".</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Conta à ordem",s.conta],["Fundo de emergência (obrigações do Estado)",reserva()],["Ações",valor('acoes')],["Outros investimentos",out],["Imóveis e negócios",valorAtivos()],["A tua casa",s.casa||0],["O teu carro",s.carro?.valor||0],["Dívidas",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Património líquido: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -22652,7 +22670,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -25428,6 +25449,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -25448,7 +25472,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Excédent du mois :</small><div class="seg seg-hud" role="group" aria-label="Excédent du mois"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Reste sur le compte<small>tu décides</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Va vers ${p.curto}<small>automatique</small></button></div><p class="hint">Une fois les factures du mois payées, ce qui reste sur ton compte courant va tout seul dans ${p.curto}. En cas d'imprévu, le jeu rachète d'abord à partir d'ici.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Investissement mensuel automatique :</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investissement automatique">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Désactivé':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Chaque mois, <b>${fmt0(aporteMensal())}</b> passe de ton compte vers les actions${prods().cdb?', et les obligations d\'État complètent la différence s\'il en manque':''}, tant qu'il reste ${3} mois de coûts en réserve. Le pourcentage suit ton revenu.`:'Choisis un pourcentage de ton revenu à investir en actions chaque mois, sans avoir à y penser. Il n\'investit que s\'il reste la réserve de 3 mois.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Investissement mensuel automatique :</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investissement automatique">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Désactivé':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Chaque mois, <b>${fmt0(aporteExec(aporteMensal()))}</b> passe de ton compte vers les actions${prods().cdb?', et les obligations d\'État complètent la différence s\'il en manque':''}, tant qu'il reste ${3} mois de coûts en réserve. Le pourcentage suit ton revenu.`:'Choisis un pourcentage de ton revenu à investir en actions chaque mois, sans avoir à y penser. Il n\'investit que s\'il reste la réserve de 3 mois.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"fluctue chaque mois":"le mois dernier "+pctFmt(p.taxa())):pct2(p.taxa())+" par mois"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -25937,7 +25961,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v521</p>
+    <p class="titulo-versao">version v522</p>
   </div>`;
 }
 function render(){
@@ -26139,7 +26163,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
     <div class="ficha">
       <div><span class="label-c">Revenus par mois</span>
         <div class="fl"><span>${s.aposentado?"Salaire (arrêté)":s.empresario?"Salaire (devenu entrepreneur)":s.desemp>0?"Allocation chômage":prof().comissao?"Salaire + commission (moyenne)":"Salaire"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Investissements (0,4 %)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Investissements</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Loyers et entreprises</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Dépenses par mois</span>
@@ -26205,7 +26229,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (gérant)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Associé du café", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Redevances de franchise (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Investissements (estimation)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Investissements", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">sans heures</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">D'où vient ton argent</h2>
@@ -26681,7 +26705,7 @@ function renderModal0(){
       <span class="tag neutro">Phase 3 · Liberté financière</span>
       <p>Tu as ${idadeJog()} ans et tu commences avec <b>${fmt(s.inicioPatr||patrimonio())}</b>. L'objectif est désormais unique : faire en sorte que les investissements paient tes factures.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Note"])?'open':''}><summary>Comment jouer cette phase</summary><ul class="regras">
-        <li><b>Revenus passifs</b> est ce que tu peux prélever chaque mois sur le portefeuille sans que l'argent s'épuise : environ 0,4 % de ce qui est investi par mois (environ 5 % par an, la fameuse « règle des 4 % » adaptée aux taux d'intérêt de ce jeu).</li>
+        <li><b>Revenus passifs</b> est l'argent qui arrive sur ton compte chaque mois sans que tu travailles : intérêts du revenu fixe que tu as choisi de recevoir, dividendes des actions (moyenne mensuelle), loyers, prélèvements sur les bénéfices des entreprises et redevances de franchises. La hausse des actions ne devient de l'argent que lorsque tu vends, donc elle ne compte pas.</li>
         <li>Quand les revenus passifs dépassent le coût de la vie, tu es <b>sorti de la course des rats</b> et tu peux quitter ton emploi.</li>
         <li>En vivant de tes rentes, le salaire s'arrête et le portefeuille paie les factures. S'il rétrécit trop, tu retournes travailler.</li>
         <li>La vie suit aussi son cours : enfants, logement à toi, carrière, entreprises et crises.</li>
@@ -26698,7 +26722,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} aujourd'hui</span></button>`).join('')}</div>
       <p>Tu as 25 ans et tu as <b>${fmt0(s.conta)}</b> sur le compte.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Note"])?'open':''}><summary>Comment jouer cette phase</summary><ul class="regras">
-        <li>Chaque tour est un mois. Le salaire rentre et les factures sortent automatiquement.</li>
+        <li>Avance sur le plateau : chaque fois que tu passes le panneau d'un nouveau mois, le salaire rentre et les factures sortent automatiquement.</li>
         <li>Garde un œil sur <b>opportunités</b> : de petites entreprises qui te paient chaque mois, comme dans Cashflow.</li>
         <li>Épargne en obligations d'État : c'est sûr, retirable n'importe quel jour et ça compte comme fonds d'urgence. Des contretemps vont arriver.</li>
         <li><b>Les actions sont pour le long terme.</b> Ici elles suivent le vrai marché boursier, mois après mois. Elles versent des dividendes et croissent sur 5, 10 ans, mais ont chuté de plus de 30 % lors de crises. C'est pourquoi elles ne se débloquent que lorsque tu as 3 mois de fonds d'urgence.</li>
@@ -27087,7 +27111,7 @@ const INFO = {
       <p><b>Le solde et le flux sont deux choses différentes.</b> Le solde (${fmt0(s.conta)}) est ce qu'il y a sur le compte maintenant, après tout ce que tu as déjà dépensé et investi. Le flux est de combien ce solde change chaque mois. Comme un seau : le solde est l'eau à l'intérieur ; le flux est ce que le robinet remplit moins ce qui fuit.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Total entrées",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Total sorties",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">En plus de cela, tes investissements rapportent environ ${fmt0(rendaInvest())} par mois, qui restent réinvestis et n'arrivent pas sur le compte.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">En plus de cela, tes investissements rapportent environ ${fmt0(rendaReinv())} par mois, qui restent réinvestis et n'arrivent pas sur le compte.</p>`:''}
       <p class="hint">Un flux positif est le carburant : c'est l'excédent qui devient fonds d'urgence et investissement. Pour l'augmenter, gagne plus ou dépense moins. Pour sortir de la course des rats, fais en sorte que des revenus qui ne dépendent pas de ton travail couvrent la colonne « sorties ».</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Compte courant",s.conta],["Fonds d'urgence (obligations d'État)",reserva()],["Actions",valor('acoes')],["Autres investissements",out],["Biens immobiliers et entreprises",valorAtivos()],["Ton logement",s.casa||0],["Ta voiture",s.carro?.valor||0],["Dettes",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Patrimoine : ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -29282,7 +29306,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -32058,6 +32085,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -32078,7 +32108,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Avanzo del mese:</small><div class="seg seg-hud" role="group" aria-label="Avanzo del mese"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Resta sul conto<small>decidi tu</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Va in ${p.curto}<small>automatico</small></button></div><p class="hint">Pagate le spese del mese, ciò che resta sul tuo conto corrente va da solo in ${p.curto}. Se capita un imprevisto, il gioco riscatta da qui per primo.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Investimento mensile automatico:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investimento automatico">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Spento':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Ogni mese, <b>${fmt0(aporteMensal())}</b> passa dal tuo conto alle azioni${prods().cdb?', e i titoli di Stato coprono la differenza se manca':''}, finché restano ${3} mesi di costi di riserva. La percentuale segue il tuo reddito.`:'Scegli una percentuale del tuo reddito da investire in azioni ogni mese, senza doverti ricordare. Investe solo se avanza la riserva di 3 mesi.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Investimento mensile automatico:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investimento automatico">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Spento':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Ogni mese, <b>${fmt0(aporteExec(aporteMensal()))}</b> passa dal tuo conto alle azioni${prods().cdb?', e i titoli di Stato coprono la differenza se manca':''}, finché restano ${3} mesi di costi di riserva. La percentuale segue il tuo reddito.`:'Scegli una percentuale del tuo reddito da investire in azioni ogni mese, senza doverti ricordare. Investe solo se avanza la riserva di 3 mesi.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"varia ogni mese":"mese scorso "+pctFmt(p.taxa())):pct2(p.taxa())+" al mese"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -32567,7 +32597,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v521</p>
+    <p class="titulo-versao">versione v522</p>
   </div>`;
 }
 function render(){
@@ -32769,7 +32799,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
     <div class="ficha">
       <div><span class="label-c">Reddito al mese</span>
         <div class="fl"><span>${s.aposentado?"Stipendio (sospeso)":s.empresario?"Stipendio (diventato imprenditore)":s.desemp>0?"Indennità di disoccupazione":prof().comissao?"Stipendio + commissioni (media)":"Stipendio"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Investimenti (0,4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Investimenti</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Affitti e attività</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Spese al mese</span>
@@ -32835,7 +32865,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (responsabile)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Socio della caffetteria", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Royalty del franchising (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Investimenti (stima)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Investimenti", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">senza ore</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">Da dove viene il tuo denaro</h2>
@@ -33311,7 +33341,7 @@ function renderModal0(){
       <span class="tag neutro">Fase 3 · Libertà finanziaria</span>
       <p>Hai ${idadeJog()} anni e parti con <b>${fmt(s.inicioPatr||patrimonio())}</b>. L'obiettivo ora è uno solo: fare in modo che gli investimenti paghino le tue spese.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Voto"])?'open':''}><summary>Come giocare questa fase</summary><ul class="regras">
-        <li><b>Reddito passivo</b> è quanto puoi prelevare dal portafoglio ogni mese senza che il denaro finisca: circa lo 0,4% di ciò che è investito al mese (circa il 5% l'anno, la famosa "regola del 4%" adattata ai tassi di questo gioco).</li>
+        <li><b>Reddito passivo</b> è il denaro che entra sul tuo conto ogni mese senza che tu lavori: interessi del reddito fisso che hai scelto di ricevere, dividendi delle azioni (media mensile), affitti, prelievi di utili delle attività e royalty dei franchising. L'apprezzamento delle azioni diventa denaro solo quando vendi, quindi non conta.</li>
         <li>Quando il reddito passivo supera il costo della vita, sei <b>fuori dalla corsa dei topi</b> e puoi lasciare il lavoro.</li>
         <li>Vivendo di rendita, lo stipendio si ferma e il portafoglio paga le spese. Se si riduce troppo, torni al lavoro.</li>
         <li>La vita succede anche: figli, casa propria, carriera, attività e crisi.</li>
@@ -33328,7 +33358,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} oggi</span></button>`).join('')}</div>
       <p>Hai 25 anni e hai <b>${fmt0(s.conta)}</b> sul conto.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Voto"])?'open':''}><summary>Come giocare questa fase</summary><ul class="regras">
-        <li>Ogni turno è un mese. Lo stipendio entra e le spese escono in automatico.</li>
+        <li>Avanza sul tabellone: ogni volta che superi il cartello di un nuovo mese, lo stipendio entra e le spese escono in automatico.</li>
         <li>Tieni d'occhio <b>opportunità</b>: piccole attività che ti pagano ogni mese, come in Cashflow.</li>
         <li>Risparmia in titoli di Stato: è sicuro, si può prelevare ogni giorno e conta come fondo di emergenza. Gli imprevisti arriveranno.</li>
         <li><b>Le azioni sono per il lungo periodo.</b> Qui seguono il vero mercato azionario, mese dopo mese. Pagano dividendi e crescono in 5, 10 anni, ma sono scese di oltre il 30% nelle crisi. Per questo si sbloccano solo quando hai 3 mesi di fondo di emergenza.</li>
@@ -33717,7 +33747,7 @@ const INFO = {
       <p><b>Saldo e flusso sono cose diverse.</b> Il saldo (${fmt0(s.conta)}) è ciò che c'è sul conto adesso, dopo tutto ciò che hai già speso e investito. Il flusso è quanto cambia quel saldo ogni mese. Come un secchio: il saldo è l'acqua dentro; il flusso è ciò che il rubinetto riempie meno ciò che perde.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Totale in entrata",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Totale in uscita",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Oltre a questo, i tuoi investimenti rendono circa ${fmt0(rendaInvest())} al mese, che restano reinvestiti e non arrivano sul conto.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Oltre a questo, i tuoi investimenti rendono circa ${fmt0(rendaReinv())} al mese, che restano reinvestiti e non arrivano sul conto.</p>`:''}
       <p class="hint">Il flusso positivo è il carburante: è l'avanzo che diventa fondo di emergenza e investimento. Per aumentarlo, guadagna di più o spendi di meno. Per uscire dalla corsa dei topi, fai in modo che un reddito che non dipende dal tuo lavoro copra la colonna "uscite".</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Conto corrente",s.conta],["Fondo di emergenza (titoli di Stato)",reserva()],["Azioni",valor('acoes')],["Altri investimenti",out],["Immobili e attività",valorAtivos()],["La tua casa",s.casa||0],["La tua auto",s.carro?.valor||0],["Debiti",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Patrimonio netto: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -35912,7 +35942,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -38688,6 +38721,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -38708,7 +38744,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Monatsrest:</small><div class="seg seg-hud" role="group" aria-label="Monatsrest"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Bleibt auf dem Konto<small>du entscheidest</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Geht in ${p.curto}<small>automatisch</small></button></div><p class="hint">Sobald die Rechnungen des Monats bezahlt sind, fließt alles, was auf deinem Girokonto übrig ist, von selbst in ${p.curto}. Wenn etwas Unerwartetes kommt, löst das Spiel zuerst von hier ein.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Automatisches monatliches Investieren:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Automatisches Investieren">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Aus':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Jeden Monat <b>${fmt0(aporteMensal())}</b> wechselt von deinem Konto in Aktien${prods().cdb?', und Staatsanleihen gleichen die Differenz aus, wenn es nicht reicht':''}, solange ${3} Monate Reservekosten übrig bleiben. Der Prozentsatz folgt deinem Einkommen.`:'Wähle einen Prozentsatz deines Einkommens, den du jeden Monat in Aktien investierst, ohne daran denken zu müssen. Es wird nur investiert, wenn die Reserve von 3 Monaten übrig bleibt.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Automatisches monatliches Investieren:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Automatisches Investieren">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Aus':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Jeden Monat <b>${fmt0(aporteExec(aporteMensal()))}</b> wechselt von deinem Konto in Aktien${prods().cdb?', und Staatsanleihen gleichen die Differenz aus, wenn es nicht reicht':''}, solange ${3} Monate Reservekosten übrig bleiben. Der Prozentsatz folgt deinem Einkommen.`:'Wähle einen Prozentsatz deines Einkommens, den du jeden Monat in Aktien investierst, ohne daran denken zu müssen. Es wird nur investiert, wenn die Reserve von 3 Monaten übrig bleibt.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"schwankt jeden Monat":"letzter Monat "+pctFmt(p.taxa())):pct2(p.taxa())+" im Monat"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -39197,7 +39233,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v521</p>
+    <p class="titulo-versao">Version v522</p>
   </div>`;
 }
 function render(){
@@ -39399,7 +39435,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
     <div class="ficha">
       <div><span class="label-c">Einkommen pro Monat</span>
         <div class="fl"><span>${s.aposentado?"Gehalt (gestoppt)":s.empresario?"Gehalt (Unternehmer geworden)":s.desemp>0?"Arbeitslosengeld":prof().comissao?"Gehalt + Provision (Durchschnitt)":"Gehalt"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Anlagen (0,4 %)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Anlagen</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Mieten und Geschäfte</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Ausgaben pro Monat</span>
@@ -39465,7 +39501,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (Manager)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Café-Teilhaber", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Franchise-Lizenzgebühren (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Anlagen (Schätzung)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Anlagen", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">keine Stunden</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">Woher dein Geld kommt</h2>
@@ -39941,7 +39977,7 @@ function renderModal0(){
       <span class="tag neutro">Phase 3 · Finanzielle Freiheit</span>
       <p>Du bist ${idadeJog()} Jahre alt und startest mit <b>${fmt(s.inicioPatr||patrimonio())}</b>. Das Ziel ist jetzt nur eines: Anlagen deine Rechnungen zahlen zu lassen.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Note"])?'open':''}><summary>So spielst du diese Phase</summary><ul class="regras">
-        <li><b>Passives Einkommen</b> ist, wie viel du jeden Monat aus dem Portfolio entnehmen kannst, ohne dass das Geld ausgeht: etwa 0,4 % des Angelegten pro Monat (rund 5 % im Jahr, die berühmte "4-%-Regel", angepasst an die Zinssätze dieses Spiels).</li>
+        <li><b>Passives Einkommen</b> ist das Geld, das jeden Monat auf dein Konto kommt, ohne dass du arbeitest: Zinsen aus festverzinslichen Anlagen, die du dir auszahlen lässt, Aktiendividenden (Monatsdurchschnitt), Mieten, Gewinnentnahmen aus Unternehmen und Franchise-Lizenzgebühren. Kursgewinne bei Aktien werden erst beim Verkauf zu Geld und zählen daher nicht.</li>
         <li>Wenn das passive Einkommen die Lebenshaltungskosten übersteigt, bist du <b>raus aus dem Rattenrennen</b> und kannst den Job kündigen.</li>
         <li>Wenn du von Einkünften lebst, hört das Gehalt auf, und das Portfolio zahlt die Rechnungen. Schrumpft es zu stark, gehst du wieder arbeiten.</li>
         <li>Auch das Leben passiert: Kinder, eigenes Zuhause, Karriere, Geschäfte und Krisen.</li>
@@ -39958,7 +39994,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} heute</span></button>`).join('')}</div>
       <p>Du bist 25 Jahre alt und hast <b>${fmt0(s.conta)}</b> auf dem Konto.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Note"])?'open':''}><summary>So spielst du diese Phase</summary><ul class="regras">
-        <li>Jede Runde ist ein Monat. Das Gehalt kommt herein, und die Rechnungen gehen automatisch ab.</li>
+        <li>Geh über das Spielbrett: Jedes Mal, wenn du das Schild eines neuen Monats passierst, kommt das Gehalt herein und die Rechnungen gehen automatisch ab.</li>
         <li>Behalte im Auge <b>Gelegenheiten</b>: kleine Geschäfte, die dir jeden Monat zahlen, wie in Cashflow.</li>
         <li>Spare in Staatsanleihen: Das ist sicher, jeden Tag abhebbar und zählt als Notfallreserve. Rückschläge werden kommen.</li>
         <li><b>Aktien sind für die lange Frist.</b> Hier folgen sie dem echten Aktienmarkt, Monat für Monat. Sie zahlen Dividenden und wachsen über 5, 10 Jahre, sind in Krisen aber um mehr als 30 % gefallen. Deshalb werden sie erst freigeschaltet, wenn du 3 Monate Notfallreserve hast.</li>
@@ -40347,7 +40383,7 @@ const INFO = {
       <p><b>Saldo und Fluss sind verschiedene Dinge.</b> Der Saldo (${fmt0(s.conta)}) ist das, was jetzt auf dem Konto liegt, nach allem, was du schon ausgegeben und angelegt hast. Der Fluss ist, wie sehr sich dieser Saldo jeden Monat ändert. Wie ein Eimer: Der Saldo ist das Wasser darin; der Fluss ist, was der Hahn einfüllt minus das, was ausläuft.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Insgesamt rein",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Insgesamt raus",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Darüber hinaus bringen deine Anlagen etwa ${fmt0(rendaInvest())} im Monat, die reinvestiert bleiben und nicht auf dem Konto landen.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Darüber hinaus bringen deine Anlagen etwa ${fmt0(rendaReinv())} im Monat, die reinvestiert bleiben und nicht auf dem Konto landen.</p>`:''}
       <p class="hint">Positiver Fluss ist der Treibstoff: Es ist der Rest, der zu Notfallreserve und Anlage wird. Um ihn zu erhöhen, verdiene mehr oder gib weniger aus. Um dem Rattenrennen zu entkommen, lass Einkommen, das nicht von deiner Arbeit abhängt, die Spalte "raus" decken.</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Girokonto",s.conta],["Notfallreserve (Staatsanleihen)",reserva()],["Aktien",valor('acoes')],["Andere Anlagen",out],["Immobilien und Unternehmen",valorAtivos()],["Dein Zuhause",s.casa||0],["Dein Auto",s.carro?.valor||0],["Schulden",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Nettovermögen: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -42542,7 +42578,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -45318,6 +45357,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -45338,7 +45380,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Остаток месяца:</small><div class="seg seg-hud" role="group" aria-label="Остаток месяца"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Остаётся на счёте<small>решаешь ты</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Идёт в ${p.curto}<small>автоматически</small></button></div><p class="hint">После оплаты счетов месяца всё, что осталось на твоём расчётном счёте, само идёт в ${p.curto}. Если случится неожиданное, игра выкупает отсюда в первую очередь.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Автоматическое ежемесячное инвестирование:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Автоинвестирование">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Выкл.':Math.round(pc*100)+'%'}<small>${pc===0?'вручную':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Каждый месяц <b>${fmt0(aporteMensal())}</b> переводится с твоего счёта в акции${prods().cdb?', а государственные облигации восполняют разницу, если не хватает':''}, пока остаётся резерв на ${3} мес. расходов. Процент следует за твоим доходом.`:'Выбери процент от дохода для инвестирования в акции каждый месяц, не вспоминая об этом. Инвестирует только если остаётся резерв на 3 месяца.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Автоматическое ежемесячное инвестирование:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Автоинвестирование">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Выкл.':Math.round(pc*100)+'%'}<small>${pc===0?'вручную':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Каждый месяц <b>${fmt0(aporteExec(aporteMensal()))}</b> переводится с твоего счёта в акции${prods().cdb?', а государственные облигации восполняют разницу, если не хватает':''}, пока остаётся резерв на ${3} мес. расходов. Процент следует за твоим доходом.`:'Выбери процент от дохода для инвестирования в акции каждый месяц, не вспоминая об этом. Инвестирует только если остаётся резерв на 3 месяца.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"колеблется каждый месяц":"в прошлом месяце "+pctFmt(p.taxa())):pct2(p.taxa())+" в месяц"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -45827,7 +45869,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v521</p>
+    <p class="titulo-versao">версия v522</p>
   </div>`;
 }
 function render(){
@@ -46029,7 +46071,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
     <div class="ficha">
       <div><span class="label-c">Доход в месяц</span>
         <div class="fl"><span>${s.aposentado?"Зарплата (остановлена)":s.empresario?"Зарплата (стал предпринимателем)":s.desemp>0?"Страховка по безработице":prof().comissao?"Зарплата + комиссия (в среднем)":"Зарплата"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Инвестиции (0,4 %)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Инвестиции</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Аренда и бизнесы</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Траты в месяц</span>
@@ -46095,7 +46137,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (управляющий)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Партнёр кофейни", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Роялти франшизы (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Инвестиции (оценка)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Инвестиции", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">без часов</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">Откуда твои деньги</h2>
@@ -46571,7 +46613,7 @@ function renderModal0(){
       <span class="tag neutro">3-й этап · Финансовая свобода</span>
       <p>Тебе ${idadeJog()} лет, и ты начинаешь с <b>${fmt(s.inicioPatr||patrimonio())}</b>. Теперь цель одна: чтобы инвестиции оплачивали твои счета.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Оценка"])?'open':''}><summary>Как играть на этом этапе</summary><ul class="regras">
-        <li><b>Пассивный доход</b> — сколько можно брать из портфеля каждый месяц, чтобы деньги не закончились: около 0,4 % от инвестированного в месяц (примерно 5 % в год, знаменитое «правило 4 %», адаптированное под процентные ставки этой игры).</li>
+        <li><b>Пассивный доход</b> — это деньги, которые поступают на твой счёт каждый месяц без твоей работы: проценты по облигациям, которые ты выбрал получать на счёт, дивиденды по акциям (среднее за месяц), аренда, выплаты прибыли от бизнеса и роялти от франшиз. Рост цены акций превращается в деньги, только когда ты продаёшь, поэтому он не учитывается.</li>
         <li>Когда пассивный доход превышает стоимость жизни, ты <b>вышел из крысиных бегов</b> и можешь уволиться.</li>
         <li>Когда живёшь на доход, зарплата прекращается, и портфель оплачивает счета. Если он слишком сильно сократится, придётся вернуться к работе.</li>
         <li>Жизнь тоже идёт: дети, собственный дом, карьера, бизнес и кризисы.</li>
@@ -46588,7 +46630,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} сегодня</span></button>`).join('')}</div>
       <p>Тебе 25 лет, и у тебя есть <b>${fmt0(s.conta)}</b> на счёте.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Оценка"])?'open':''}><summary>Как играть на этом этапе</summary><ul class="regras">
-        <li>Каждый ход — месяц. Зарплата поступает, а счета оплачиваются автоматически.</li>
+        <li>Иди по игровому полю: каждый раз, когда ты проходишь знак нового месяца, зарплата поступает, а счета оплачиваются автоматически.</li>
         <li>Следи за <b>возможностями</b>: небольшие бизнесы, которые платят тебе каждый месяц, как в Cashflow.</li>
         <li>Копи в государственных облигациях: это безопасно, можно снять в любой день, и это считается финансовой подушкой. Неприятности будут.</li>
         <li><b>Акции — для долгого срока.</b> Здесь они следуют за реальным фондовым рынком, месяц за месяцем. Они платят дивиденды и растут на горизонте 5–10 лет, но в кризисы падали больше чем на 30 %. Поэтому они открываются, только когда у тебя есть подушка на 3 месяца.</li>
@@ -46977,7 +47019,7 @@ const INFO = {
       <p><b>Баланс и поток — разные вещи.</b> Баланс (${fmt0(s.conta)}) — это то, что на счёте сейчас, после всего, что ты уже потратил и вложил. Поток — на сколько этот баланс меняется каждый месяц. Как ведро: баланс — вода внутри; поток — что наливает кран минус то, что вытекает.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Всего приход",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Всего расход",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Кроме этого, твои инвестиции приносят около ${fmt0(rendaInvest())} в месяц, которые остаются вложенными и на счёт не попадают.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Кроме этого, твои инвестиции приносят около ${fmt0(rendaReinv())} в месяц, которые остаются вложенными и на счёт не попадают.</p>`:''}
       <p class="hint">Положительный поток — это топливо: остаток, который становится финансовой подушкой и инвестициями. Чтобы увеличить его, зарабатывай больше или трать меньше. Чтобы выйти из крысиных бегов, добейся, чтобы доход, не зависящий от твоей работы, покрывал колонку «расход».</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Расчётный счёт",s.conta],["Финансовая подушка (государственные облигации)",reserva()],["Акции",valor('acoes')],["Другие инвестиции",out],["Недвижимость и бизнесы",valorAtivos()],["Твой дом",s.casa||0],["Твоя машина",s.carro?.valor||0],["Долги",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Капитал: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -49172,7 +49214,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -51948,6 +51993,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -51968,7 +52016,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Sisa bulan ini:</small><div class="seg seg-hud" role="group" aria-label="Sisa bulan ini"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Tetap di rekening<small>kamu yang memutuskan</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Masuk ke ${p.curto}<small>otomatis</small></button></div><p class="hint">Setelah tagihan bulan ini dibayar, sisa di rekening gironya masuk sendiri ke ${p.curto}. Jika ada kejadian tak terduga, game mencairkan dari sini lebih dulu.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Investasi bulanan otomatis:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investasi otomatis">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Mati':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Setiap bulan, <b>${fmt0(aporteMensal())}</b> berpindah dari rekeningmu ke saham${prods().cdb?', dan obligasi pemerintah menutup selisihnya jika kurang':''}, selama masih tersisa ${3} bulan biaya cadangan. Persentasenya mengikuti penghasilanmu.`:'Pilih persentase penghasilanmu untuk diinvestasikan di saham setiap bulan, tanpa harus mengingat. Hanya berinvestasi jika cadangan 3 bulan tersisa.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Investasi bulanan otomatis:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Investasi otomatis">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Mati':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Setiap bulan, <b>${fmt0(aporteExec(aporteMensal()))}</b> berpindah dari rekeningmu ke saham${prods().cdb?', dan obligasi pemerintah menutup selisihnya jika kurang':''}, selama masih tersisa ${3} bulan biaya cadangan. Persentasenya mengikuti penghasilanmu.`:'Pilih persentase penghasilanmu untuk diinvestasikan di saham setiap bulan, tanpa harus mengingat. Hanya berinvestasi jika cadangan 3 bulan tersisa.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"berfluktuasi setiap bulan":"bulan lalu "+pctFmt(p.taxa())):pct2(p.taxa())+" sebulan"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -52457,7 +52505,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v521</p>
+    <p class="titulo-versao">versi v522</p>
   </div>`;
 }
 function render(){
@@ -52659,7 +52707,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
     <div class="ficha">
       <div><span class="label-c">Penghasilan per bulan</span>
         <div class="fl"><span>${s.aposentado?"Gaji (berhenti)":s.empresario?"Gaji (menjadi pengusaha)":s.desemp>0?"Asuransi pengangguran":prof().comissao?"Gaji + komisi (rata-rata)":"Gaji"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Investasi (0,4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Investasi</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Sewa dan bisnis</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Pengeluaran per bulan</span>
@@ -52725,7 +52773,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (manajer)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Mitra kedai kopi", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Royalti waralaba (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Investasi (perkiraan)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Investasi", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">tanpa jam</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">Dari mana uangmu berasal</h2>
@@ -53201,7 +53249,7 @@ function renderModal0(){
       <span class="tag neutro">Fase 3 · Kebebasan finansial</span>
       <p>Usiamu ${idadeJog()} tahun dan kamu mulai dengan <b>${fmt(s.inicioPatr||patrimonio())}</b>. Tujuan sekarang hanya satu: membuat investasi membayar tagihanmu.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Nilai"])?'open':''}><summary>Cara bermain fase ini</summary><ul class="regras">
-        <li><b>Penghasilan pasif</b> adalah berapa yang bisa kamu ambil dari portofolio setiap bulan tanpa uangnya habis: sekitar 0,4% dari yang diinvestasikan per bulan (sekitar 5% setahun, "aturan 4%" yang terkenal yang disesuaikan dengan suku bunga game ini).</li>
+        <li><b>Penghasilan pasif</b> adalah uang yang masuk ke rekeningmu setiap bulan tanpa kamu bekerja: bunga pendapatan tetap yang kamu pilih untuk diterima, dividen saham (rata-rata bulanan), sewa, penarikan laba bisnis, dan royalti waralaba. Kenaikan nilai saham baru menjadi uang saat dijual, jadi tidak dihitung.</li>
         <li>Saat penghasilan pasif melebihi biaya hidup, kamu <b>keluar dari perlombaan tikus</b> dan bisa berhenti bekerja.</li>
         <li>Hidup dari penghasilan pasif, gaji berhenti dan portofolio membayar tagihan. Jika menyusut terlalu banyak, kamu kembali bekerja.</li>
         <li>Hidup juga terjadi: anak, rumah sendiri, karier, bisnis, dan krisis.</li>
@@ -53218,7 +53266,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} hari ini</span></button>`).join('')}</div>
       <p>Usiamu 25 tahun dan kamu punya <b>${fmt0(s.conta)}</b> di rekening.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Nilai"])?'open':''}><summary>Cara bermain fase ini</summary><ul class="regras">
-        <li>Setiap putaran adalah satu bulan. Gaji masuk dan tagihan keluar otomatis.</li>
+        <li>Jalan di papan: setiap kali kamu melewati papan bulan baru, gaji masuk dan tagihan keluar otomatis.</li>
         <li>Perhatikan <b>peluang</b>: bisnis kecil yang membayarmu setiap bulan, seperti di Cashflow.</li>
         <li>Simpan di obligasi pemerintah: aman, bisa ditarik kapan saja, dan dihitung sebagai dana darurat. Kemunduran akan muncul.</li>
         <li><b>Saham untuk jangka panjang.</b> Di sini saham mengikuti pasar saham sungguhan, bulan demi bulan. Mereka membayar dividen dan tumbuh dalam 5, 10 tahun, tapi pernah turun lebih dari 30% saat krisis. Karena itu baru terbuka saat kamu punya dana darurat 3 bulan.</li>
@@ -53607,7 +53655,7 @@ const INFO = {
       <p><b>Saldo dan arus adalah dua hal berbeda.</b> Saldo (${fmt0(s.conta)}) adalah yang ada di rekening sekarang, setelah semua yang sudah kamu belanjakan dan investasikan. Arus adalah seberapa besar saldo itu berubah tiap bulan. Seperti ember: saldo adalah air di dalamnya; arus adalah yang diisi keran dikurangi yang bocor.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Total masuk",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Total keluar",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Selain ini, investasimu menghasilkan sekitar ${fmt0(rendaInvest())} per bulan, yang tetap diinvestasikan kembali dan tidak masuk ke rekening.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Selain ini, investasimu menghasilkan sekitar ${fmt0(rendaReinv())} per bulan, yang tetap diinvestasikan kembali dan tidak masuk ke rekening.</p>`:''}
       <p class="hint">Arus positif adalah bahan bakar: itulah sisa yang menjadi dana darurat dan investasi. Untuk menaikkannya, hasilkan lebih banyak atau belanjakan lebih sedikit. Untuk lolos dari perlombaan tikus, buat penghasilan yang tidak bergantung pada kerjamu menutup kolom "keluar".</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Rekening giro",s.conta],["Dana darurat (obligasi pemerintah)",reserva()],["Saham",valor('acoes')],["Investasi lain",out],["Properti dan bisnis",valorAtivos()],["Rumahmu",s.casa||0],["Mobilmu",s.carro?.valor||0],["Utang",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Kekayaan bersih: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -55802,7 +55850,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -58578,6 +58629,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -58598,7 +58652,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Ayın artanı:</small><div class="seg seg-hud" role="group" aria-label="Ayın artanı"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Hesapta kalır<small>sen karar verirsin</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">${p.curto} içine gider<small>otomatik</small></button></div><p class="hint">Ayın faturaları ödendikten sonra vadesiz hesapta kalan her şey kendiliğinden ${p.curto} içine gider. Beklenmedik bir şey çıkarsa oyun önce buradan bozdurur.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Aylık otomatik yatırım:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Otomatik yatırım">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Kapalı':Math.round(pc*100)+'%'}<small>${pc===0?'elle':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Her ay, <b>${fmt0(aporteMensal())}</b> hesabından hisse senetlerine geçer${prods().cdb?', ve eksik kalırsa devlet tahvilleri farkı kapatır':''}, ${3} aylık rezerv gideri kaldığı sürece. Yüzde gelirini izler.`:'Hatırlamana gerek kalmadan her ay hisse senetlerine yatırmak için gelirinin bir yüzdesini seç. Sadece 3 aylık rezerv artarsa yatırır.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Aylık otomatik yatırım:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Otomatik yatırım">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Kapalı':Math.round(pc*100)+'%'}<small>${pc===0?'elle':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Her ay, <b>${fmt0(aporteExec(aporteMensal()))}</b> hesabından hisse senetlerine geçer${prods().cdb?', ve eksik kalırsa devlet tahvilleri farkı kapatır':''}, ${3} aylık rezerv gideri kaldığı sürece. Yüzde gelirini izler.`:'Hatırlamana gerek kalmadan her ay hisse senetlerine yatırmak için gelirinin bir yüzdesini seç. Sadece 3 aylık rezerv artarsa yatırır.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"her ay dalgalanır":"geçen ay "+pctFmt(p.taxa())):pct2(p.taxa())+" ayda"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -59087,7 +59141,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v521</p>
+    <p class="titulo-versao">sürüm v522</p>
   </div>`;
 }
 function render(){
@@ -59289,7 +59343,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
     <div class="ficha">
       <div><span class="label-c">Aylık gelir</span>
         <div class="fl"><span>${s.aposentado?"Maaş (durdu)":s.empresario?"Maaş (girişimci oldu)":s.desemp>0?"İşsizlik sigortası":prof().comissao?"Maaş + prim (ortalama)":"Maaş"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Yatırımlar (%0,4)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Yatırımlar</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Kiralar ve işletmeler</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Aylık harcama</span>
@@ -59355,7 +59409,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (yönetici)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["Kahve dükkânı ortağı", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Bayilik telifleri (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["Yatırımlar (tahmin)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["Yatırımlar", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : "<span style=\"color:var(--gain)\">saatsiz</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">Paran nereden geliyor</h2>
@@ -59831,7 +59885,7 @@ function renderModal0(){
       <span class="tag neutro">3. Aşama · Finansal özgürlük</span>
       <p>${idadeJog()} yaşındasın ve şununla başlıyorsun <b>${fmt(s.inicioPatr||patrimonio())}</b>. Şimdi hedef tek: yatırımların faturalarını ödesin.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Not"])?'open':''}><summary>Bu aşama nasıl oynanır</summary><ul class="regras">
-        <li><b>Pasif gelir</b> paranın bitmeden portföyden her ay ne kadar çekebileceğindir: yatırılanın ayda yaklaşık %0,4'ü (yılda yaklaşık %5, bu oyunun faiz oranlarına uyarlanmış ünlü "%4 kuralı").</li>
+        <li><b>Pasif gelir</b> çalışmadan her ay hesabına giren paradır: hesaba almayı seçtiğin sabit getirili faizler, hisse temettüleri (aylık ortalama), kiralar, işletmelerden kâr çekimleri ve franchise telif ücretleri. Hisse değer artışı ancak sattığında paraya dönüşür, bu yüzden sayılmaz.</li>
         <li>Pasif gelir yaşam maliyetini aştığında <b>fare yarışından çıkmış olursun</b> ve işinden ayrılabilirsin.</li>
         <li>Gelirle yaşarken maaş durur ve portföy faturaları öder. Çok küçülürse işe geri dönersin.</li>
         <li>Hayat da olur: çocuklar, kendi evin, kariyer, işletmeler ve krizler.</li>
@@ -59848,7 +59902,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>bugün ${fmt0(S.preco)}</span></button>`).join('')}</div>
       <p>25 yaşındasın ve hesapta <b>${fmt0(s.conta)}</b> var.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"Not"])?'open':''}><summary>Bu aşama nasıl oynanır</summary><ul class="regras">
-        <li>Her tur bir aydır. Maaş girer ve faturalar otomatik çıkar.</li>
+        <li>Tahtada ilerle: yeni bir ayın tabelasını her geçtiğinde maaş girer ve faturalar otomatik çıkar.</li>
         <li>Şuna göz kulak ol <b>fırsatlar</b>: Cashflow'daki gibi, sana her ay ödeyen küçük işletmeler.</li>
         <li>Devlet tahvillerinde biriktir: güvenli, her gün çekilebilir ve acil durum fonu sayılır. Aksilikler çıkacak.</li>
         <li><b>Hisse senetleri uzun vade içindir.</b> Burada ay be ay gerçek borsayı izlerler. Temettü öderler ve 5, 10 yıl içinde büyürler, ama krizlerde %30'dan fazla düşmüşlerdir. Bu yüzden ancak 3 aylık acil durum fonun olunca açılırlar.</li>
@@ -60237,7 +60291,7 @@ const INFO = {
       <p><b>Bakiye ile akış farklı şeylerdir.</b> Bakiye (${fmt0(s.conta)}) şu an hesapta olandır, yani harcadığın ve yatırdığın her şeyden sonra kalan. Akış ise bu bakiyenin her ay ne kadar değiştiğidir. Bir kova gibi: bakiye içindeki sudur; akış musluğun doldurduğu eksi sızan kadardır.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("Toplam giren",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("Toplam çıkan",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Bunun dışında yatırımların ayda yaklaşık ${fmt0(rendaInvest())} kazandırıyor; bu para yeniden yatırılır ve hesaba düşmez.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Bunun dışında yatırımların ayda yaklaşık ${fmt0(rendaReinv())} kazandırıyor; bu para yeniden yatırılır ve hesaba düşmez.</p>`:''}
       <p class="hint">Pozitif akış yakıttır: acil durum fonuna ve yatırıma dönüşen artıktır. Artırmak için daha çok kazan ya da daha az harca. Fare yarışından çıkmak için işine bağlı olmayan gelirin "çıkan" sütununu karşılamasını sağla.</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["Vadesiz hesap",s.conta],["Acil durum fonu (devlet tahvilleri)",reserva()],["Hisse senetleri",valor('acoes')],["Diğer yatırımlar",out],["Mülkler ve işletmeler",valorAtivos()],["Evin",s.casa||0],["Araban",s.carro?.valor||0],["Borçlar",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Net varlık: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -62432,7 +62486,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -65208,6 +65265,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -65228,7 +65288,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>المتبقي من الشهر:</small><div class="seg seg-hud" role="group" aria-label="المتبقي من الشهر"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">يبقى في الحساب<small>أنت تقرر</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">يذهب إلى ${p.curto}<small>تلقائي</small></button></div><p class="hint">بعد دفع فواتير الشهر، ما يتبقى في حسابك الجاري يذهب تلقائياً إلى ${p.curto}. وإذا ظهر أمر غير متوقع، تسترد اللعبة من هنا أولاً.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>استثمار شهري تلقائي:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="استثمار تلقائي">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'متوقف':Math.round(pc*100)+'%'}<small>${pc===0?'يدوي':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`كل شهر، <b>${fmt0(aporteMensal())}</b> ينتقل من حسابك إلى الأسهم${prods().cdb?'، وتغطي السندات الحكومية الفرق إن نقص':''}، ما دامت تكاليف ${3} أشهر من الاحتياطي باقية. تتبع النسبة دخلك.`:'اختر نسبة من دخلك لاستثمارها في الأسهم كل شهر، دون الحاجة إلى التذكر. لا يستثمر إلا إذا بقي احتياطي الأشهر الثلاثة.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>استثمار شهري تلقائي:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="استثمار تلقائي">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'متوقف':Math.round(pc*100)+'%'}<small>${pc===0?'يدوي':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`كل شهر، <b>${fmt0(aporteExec(aporteMensal()))}</b> ينتقل من حسابك إلى الأسهم${prods().cdb?'، وتغطي السندات الحكومية الفرق إن نقص':''}، ما دامت تكاليف ${3} أشهر من الاحتياطي باقية. تتبع النسبة دخلك.`:'اختر نسبة من دخلك لاستثمارها في الأسهم كل شهر، دون الحاجة إلى التذكر. لا يستثمر إلا إذا بقي احتياطي الأشهر الثلاثة.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"يتقلب كل شهر":"الشهر الماضي "+pctFmt(p.taxa())):pct2(p.taxa())+" في الشهر"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -65717,7 +65777,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v521</p>
+    <p class="titulo-versao">الإصدار v522</p>
   </div>`;
 }
 function render(){
@@ -65919,7 +65979,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
     <div class="ficha">
       <div><span class="label-c">الدخل في الشهر</span>
         <div class="fl"><span>${s.aposentado?"الراتب (متوقف)":s.empresario?"الراتب (أصبحت رائد أعمال)":s.desemp>0?"تأمين البطالة":prof().comissao?"الراتب + العمولة (المتوسط)":"الراتب"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>الاستثمارات (0.4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>الاستثمارات</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>الإيجارات والأعمال</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">الإنفاق في الشهر</span>
@@ -65985,7 +66045,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (مدير)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["شريك المقهى", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`إتاوات الامتياز (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["الاستثمارات (تقدير)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["الاستثمارات", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/ساعة' : "<span style=\"color:var(--gain)\">بلا ساعات</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">من أين يأتي مالك</h2>
@@ -66461,7 +66521,7 @@ function renderModal0(){
       <span class="tag neutro">المرحلة 3 · الحرية المالية</span>
       <p>عمرك ${idadeJog()} سنة وتبدأ بـ <b>${fmt(s.inicioPatr||patrimonio())}</b>. الهدف الآن واحد فقط: اجعل الاستثمارات تدفع فواتيرك.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"الدرجة"])?'open':''}><summary>كيف تلعب هذه المرحلة</summary><ul class="regras">
-        <li><b>الدخل السلبي</b> هو ما يمكنك سحبه من المحفظة كل شهر دون أن ينفد المال: نحو 0.4% مما هو مستثمر في الشهر (نحو 5% سنوياً، "قاعدة الـ4%" الشهيرة مكيّفة مع أسعار الفائدة في هذه اللعبة).</li>
+        <li><b>الدخل السلبي</b> هو المال الذي يدخل حسابك كل شهر دون أن تعمل: فوائد الدخل الثابت التي اخترت استلامها، وأرباح الأسهم الموزعة (المتوسط الشهري)، والإيجارات، وسحوبات أرباح الأعمال، وعوائد الامتياز التجاري. ارتفاع قيمة الأسهم لا يتحول إلى مال إلا عند البيع، لذلك لا يُحسب.</li>
         <li>عندما يتجاوز الدخل السلبي تكلفة المعيشة، تكون <b>خارج سباق الفئران</b> ويمكنك ترك وظيفتك.</li>
         <li>بالعيش على الدخل يتوقف الراتب وتدفع المحفظة الفواتير. إذا تقلصت كثيراً، تعود إلى العمل.</li>
         <li>والحياة تحدث أيضاً: الأولاد والمنزل الخاص والمسيرة المهنية والأعمال والأزمات.</li>
@@ -66478,7 +66538,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} اليوم</span></button>`).join('')}</div>
       <p>عمرك 25 سنة ولديك <b>${fmt0(s.conta)}</b> في الحساب.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"الدرجة"])?'open':''}><summary>كيف تلعب هذه المرحلة</summary><ul class="regras">
-        <li>كل جولة شهر. يدخل الراتب وتخرج الفواتير تلقائياً.</li>
+        <li>تقدّم على اللوحة: كلما مررت بلافتة شهر جديد يدخل الراتب وتخرج الفواتير تلقائياً.</li>
         <li>راقب <b>فرص</b>: أعمال صغيرة تدفع لك كل شهر، كما في Cashflow.</li>
         <li>ادخر في السندات الحكومية: آمنة، ويمكن سحبها أي يوم وتُحتسب صندوق طوارئ. ستظهر الانتكاسات.</li>
         <li><b>الأسهم للأجل الطويل.</b> هنا تتبع سوق الأسهم الحقيقية، شهراً بشهر. تدفع أرباحاً موزعة وتنمو على 5 و10 سنوات، لكنها هبطت أكثر من 30% في الأزمات. لهذا لا تُفتح إلا عندما يكون لديك صندوق طوارئ لـ3 أشهر.</li>
@@ -66867,7 +66927,7 @@ const INFO = {
       <p><b>الرصيد والتدفق شيئان مختلفان.</b> الرصيد (${fmt0(s.conta)}) هو ما في الحساب الآن، بعد كل ما أنفقته واستثمرته. والتدفق هو مقدار تغير هذا الرصيد كل شهر. مثل دلو: الرصيد هو الماء بداخله؛ والتدفق ما يملؤه الصنبور ناقص ما يتسرب.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("إجمالي الداخل",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("إجمالي الخارج",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">إضافة إلى هذا، تربح استثماراتك نحو ${fmt0(rendaInvest())} في الشهر، تبقى معاد استثمارها ولا تصل إلى الحساب.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">إضافة إلى هذا، تربح استثماراتك نحو ${fmt0(rendaReinv())} في الشهر، تبقى معاد استثمارها ولا تصل إلى الحساب.</p>`:''}
       <p class="hint">التدفق الموجب هو الوقود: هو الفائض الذي يتحول إلى صندوق طوارئ واستثمار. لزيادته، اكسب أكثر أو أنفق أقل. وللهروب من سباق الفئران، اجعل دخلاً لا يعتمد على عملك يغطي عمود "الخارج".</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["الحساب الجاري",s.conta],["صندوق الطوارئ (سندات حكومية)",reserva()],["الأسهم",valor('acoes')],["استثمارات أخرى",out],["العقارات والأعمال",valorAtivos()],["منزلك",s.casa||0],["سيارتك",s.carro?.valor||0],["الديون",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`الثروة الصافية: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -69062,7 +69122,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -71838,6 +71901,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -71858,7 +71924,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>月の余り：</small><div class="seg seg-hud" role="group" aria-label="月の余り"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">口座に残す<small>あなたが決める</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">${p.curto}へ<small>自動</small></button></div><p class="hint">月の請求書を払ったあと、当座預金に余ったお金は、自動的に${p.curto}に入ります。予期せぬことがあれば、ゲームはまずここから引き出します。</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>毎月の自動投資：</small><div class="seg seg-hud aporte-seg" role="group" aria-label="自動投資">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'オフ':Math.round(pc*100)+'%'}<small>${pc===0?'手動':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`毎月、 <b>${fmt0(aporteMensal())}</b> 口座から株${prods().cdb?'、足りなければ国債が差額を補います':''}へ移ります。${3}か月分の予備費が残る限りです。割合は収入に連動します。`:'毎月、収入の何%かを株に投資するよう選べます。覚えておく必要はありません。3か月分の予備費が残る場合にだけ投資されます。'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>毎月の自動投資：</small><div class="seg seg-hud aporte-seg" role="group" aria-label="自動投資">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'オフ':Math.round(pc*100)+'%'}<small>${pc===0?'手動':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`毎月、 <b>${fmt0(aporteExec(aporteMensal()))}</b> 口座から株${prods().cdb?'、足りなければ国債が差額を補います':''}へ移ります。${3}か月分の予備費が残る限りです。割合は収入に連動します。`:'毎月、収入の何%かを株に投資するよう選べます。覚えておく必要はありません。3か月分の予備費が残る場合にだけ投資されます。'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"毎月変動します":"先月 "+pctFmt(p.taxa())):pct2(p.taxa())+" 月"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -72347,7 +72413,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v521</p>
+    <p class="titulo-versao">バージョン v522</p>
   </div>`;
 }
 function render(){
@@ -72549,7 +72615,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
     <div class="ficha">
       <div><span class="label-c">月の収入</span>
         <div class="fl"><span>${s.aposentado?"給料（停止中）":s.empresario?"給料（起業家になった）":s.desemp>0?"失業保険":prof().comissao?"給料＋歩合（平均）":"給料"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>投資（0.4%）</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>投資</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>家賃と事業</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">月の支出</span>
@@ -72615,7 +72681,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" （マネージャー）":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["コーヒーショップのパートナー", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`フランチャイズのロイヤルティ（${s.franqs.length}）`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["投資（見積り）", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["投資", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/時間' : "<span style=\"color:var(--gain)\">時間なし</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">お金の出どころ</h2>
@@ -73091,7 +73157,7 @@ function renderModal0(){
       <span class="tag neutro">フェーズ3・経済的自由</span>
       <p>あなたは${idadeJog()}歳で、手元には <b>${fmt(s.inicioPatr||patrimonio())}</b>があります。今の目標はひとつだけ：投資に請求書を払わせること。</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"評価"])?'open':''}><summary>このフェーズの遊び方</summary><ul class="regras">
-        <li><b>不労所得</b> とは、お金が尽きずにポートフォリオから毎月引き出せる額です：投資額の約0.4%/月（年約5%で、有名な「4%ルール」をこのゲームの金利に合わせたもの）。</li>
+        <li><b>不労所得</b> は、あなたが働かなくても毎月口座に入ってくるお金です：受け取りを選んだ固定利付商品の利息、株の配当（月平均）、家賃、事業の利益の引き出し、フランチャイズのロイヤルティ。株価の値上がりは売ったときに初めてお金になるので、含みません。</li>
         <li>不労所得が生活費を上回ると、あなたは <b>ラットレースから抜け出し</b> 仕事を辞められます。</li>
         <li>収入で暮らすと、給料は止まり、ポートフォリオが請求書を払います。大きく縮めば、仕事に戻ります。</li>
         <li>人生も起こります：子ども、持ち家、キャリア、事業、危機。</li>
@@ -73108,7 +73174,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>今日は${fmt0(S.preco)}</span></button>`).join('')}</div>
       <p>あなたは25歳で、口座には <b>${fmt0(s.conta)}</b> があります。</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"評価"])?'open':''}><summary>このフェーズの遊び方</summary><ul class="regras">
-        <li>1ラウンドが1か月です。給料が入り、請求書は自動で出ていきます。</li>
+        <li>ボードを進みます：新しい月の看板を通るたびに、給料が入り、請求書は自動で出ていきます。</li>
         <li>注目してください <b>チャンス</b>：毎月あなたに払ってくれる小さな事業、『キャッシュフロー』のように。</li>
         <li>国債で貯めましょう：安全で、いつでも引き出せ、緊急資金として数えられます。アクシデントが現れます。</li>
         <li><b>株は長期のためのものです。</b> ここでは実際の株式市場に沿って、月ごとに動きます。配当を払い、5年、10年で成長しますが、危機では30%以上下がったこともあります。だから、緊急資金が3か月分あるときにだけ解放されます。</li>
@@ -73497,7 +73563,7 @@ const INFO = {
       <p><b>残高とフローは別のものです。</b> 残高（${fmt0(s.conta)}）は、これまで使ったり投資したりしたあとの、今の口座にあるものです。フローは、その残高が毎月どれだけ変わるかです。バケツのように：残高は中の水で、フローは蛇口が入れる量から漏れる量を引いたものです。</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("入金合計",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("出金合計",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">これに加えて、投資が月に約${fmt0(rendaInvest())}を稼いでいますが、再投資されたままで、口座には入りません。</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">これに加えて、投資が月に約${fmt0(rendaReinv())}を稼いでいますが、再投資されたままで、口座には入りません。</p>`:''}
       <p class="hint">プラスのフローは燃料です：緊急資金と投資になる余りです。増やすには、もっと稼ぐか、もっと使わないことです。ラットレースから抜け出すには、働くことに頼らない収入で「出金」の列をカバーしましょう。</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["当座預金",s.conta],["緊急資金（国債）",reserva()],["株式",valor('acoes')],["その他の投資",out],["不動産と事業",valorAtivos()],["あなたの家",s.casa||0],["あなたの車",s.carro?.valor||0],["負債",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`純資産：${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -75692,7 +75758,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -78468,6 +78537,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -78488,7 +78560,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>이번 달 남은 돈:</small><div class="seg seg-hud" role="group" aria-label="이번 달 남은 돈"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">계좌에 남기기<small>직접 결정</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">${p.curto}(으)로 보내기<small>자동</small></button></div><p class="hint">이번 달 청구서를 내고 나면 입출금 계좌에 남은 돈이 저절로 ${p.curto}(으)로 들어가요. 예상치 못한 일이 생기면 게임이 여기서 먼저 환매해요.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>월 자동 투자:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="자동 투자">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'끔':Math.round(pc*100)+'%'}<small>${pc===0?'수동':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`매달 <b>${fmt0(aporteMensal())}</b> 계좌에서 주식으로 옮겨져요${prods().cdb?', 부족하면 국채가 차액을 메워요':''}, 준비금 비용 ${3}개월치가 남아 있는 한. 비율은 소득을 따라가요.`:'매달 소득의 몇 %를 주식에 투자할지 골라 두면 기억할 필요가 없어요. 3개월 준비금이 남아 있을 때만 투자해요.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>월 자동 투자:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="자동 투자">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'끔':Math.round(pc*100)+'%'}<small>${pc===0?'수동':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`매달 <b>${fmt0(aporteExec(aporteMensal()))}</b> 계좌에서 주식으로 옮겨져요${prods().cdb?', 부족하면 국채가 차액을 메워요':''}, 준비금 비용 ${3}개월치가 남아 있는 한. 비율은 소득을 따라가요.`:'매달 소득의 몇 %를 주식에 투자할지 골라 두면 기억할 필요가 없어요. 3개월 준비금이 남아 있을 때만 투자해요.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"매달 변동해요":"지난달 "+pctFmt(p.taxa())):pct2(p.taxa())+" 월"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -78977,7 +79049,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v521</p>
+    <p class="titulo-versao">버전 v522</p>
   </div>`;
 }
 function render(){
@@ -79179,7 +79251,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
     <div class="ficha">
       <div><span class="label-c">월 소득</span>
         <div class="fl"><span>${s.aposentado?"월급(중단됨)":s.empresario?"월급(사업가가 됨)":s.desemp>0?"실업 보험":prof().comissao?"월급 + 수당(평균)":"월급"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>투자(0.4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>투자</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>월세와 사업</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">월 지출</span>
@@ -79245,7 +79317,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (매니저)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["카페 동업자", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`프랜차이즈 로열티(${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["투자(추정)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["투자", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/시간' : "<span style=\"color:var(--gain)\">시간 없음</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">당신의 돈이 나오는 곳</h2>
@@ -79721,7 +79793,7 @@ function renderModal0(){
       <span class="tag neutro">3단계 · 경제적 자유</span>
       <p>당신은 ${idadeJog()}세이고 시작 자금은 <b>${fmt(s.inicioPatr||patrimonio())}</b>이에요. 이제 목표는 하나예요: 투자가 청구서를 내게 하기.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"등급"])?'open':''}><summary>이 단계를 플레이하는 방법</summary><ul class="regras">
-        <li><b>불로소득</b> 은 돈이 바닥나지 않고 매달 포트폴리오에서 꺼낼 수 있는 금액이에요: 투자액의 월 약 0.4%(연 약 5%, 이 게임의 금리에 맞춘 그 유명한 "4% 법칙")예요.</li>
+        <li><b>불로소득</b> 은 일하지 않아도 매달 계좌로 들어오는 돈이에요: 받기로 선택한 확정수익 이자, 주식 배당(월평균), 임대료, 사업 이익 인출, 프랜차이즈 로열티. 주식의 가격 상승은 팔아야 돈이 되기 때문에 포함하지 않아요.</li>
         <li>불로소득이 생활비를 넘으면 당신은 <b>쥐 레이스를 벗어나요</b> 그리고 일을 그만둘 수 있어요.</li>
         <li>소득으로 살면 월급은 멈추고 포트폴리오가 청구서를 내요. 너무 줄어들면 다시 일하러 돌아가요.</li>
         <li>인생도 흘러가요: 자녀, 내 집, 커리어, 사업, 위기.</li>
@@ -79738,7 +79810,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>오늘 ${fmt0(S.preco)}</span></button>`).join('')}</div>
       <p>당신은 25세이고 <b>${fmt0(s.conta)}</b> 계좌에 있어요.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"등급"])?'open':''}><summary>이 단계를 플레이하는 방법</summary><ul class="regras">
-        <li>한 턴이 한 달이에요. 월급이 들어오고 청구서는 자동으로 나가요.</li>
+        <li>보드를 따라 움직여요. 새 달의 표지판을 지날 때마다 월급이 들어오고 청구서는 자동으로 나가요.</li>
         <li>주목하세요 <b>기회</b>: 캐시플로처럼 매달 돈을 주는 작은 사업이에요.</li>
         <li>국채에 저축하세요: 안전하고, 언제든 인출할 수 있고, 비상금으로 인정돼요. 시련이 닥칠 거예요.</li>
         <li><b>주식은 장기용이에요.</b> 여기서는 실제 주식시장을 월별로 따라가요. 배당을 주고 5년, 10년에 걸쳐 오르지만 위기 때는 30% 넘게 떨어졌어요. 그래서 비상금 3개월치를 갖춰야 열려요.</li>
@@ -80127,7 +80199,7 @@ const INFO = {
       <p><b>잔액과 흐름은 달라요.</b> 잔액(${fmt0(s.conta)})은 이미 쓰고 투자한 뒤 지금 계좌에 있는 돈이에요. 흐름은 그 잔액이 매달 얼마나 바뀌는지예요. 양동이처럼: 잔액은 안에 든 물이고, 흐름은 수도꼭지가 채우는 양에서 새는 양을 뺀 것이에요.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("총 들어옴",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("총 나감",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">이 밖에 투자가 월 약 ${fmt0(rendaInvest())}을(를) 벌지만 재투자되어 계좌에는 들어오지 않아요.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">이 밖에 투자가 월 약 ${fmt0(rendaReinv())}을(를) 벌지만 재투자되어 계좌에는 들어오지 않아요.</p>`:''}
       <p class="hint">플러스 흐름이 연료예요: 비상금과 투자가 되는 남는 돈이에요. 늘리려면 더 벌거나 덜 쓰세요. 쥐 레이스를 벗어나려면 일에 의존하지 않는 소득이 "나감" 열을 채우게 하세요.</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["입출금 계좌",s.conta],["비상금(국채)",reserva()],["주식",valor('acoes')],["기타 투자",out],["부동산과 사업",valorAtivos()],["당신의 집",s.casa||0],["당신의 차",s.carro?.valor||0],["빚",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`순자산: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -82321,7 +82393,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -85097,6 +85172,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -85117,7 +85195,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>महीने की बचत:</small><div class="seg seg-hud" role="group" aria-label="महीने की बचत"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">खाते में रहती है<small>आप तय करें</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">${p.curto} में जाती है<small>स्वचालित</small></button></div><p class="hint">महीने के बिल चुकने के बाद आपके चालू खाते में जो बचता है वह अपने आप ${p.curto} में चला जाता है। कुछ अनपेक्षित आए तो खेल पहले यहीं से निकालता है।</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>स्वचालित मासिक निवेश:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="स्वचालित निवेश">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'बंद':Math.round(pc*100)+'%'}<small>${pc===0?'मैन्युअल':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`हर महीने, <b>${fmt0(aporteMensal())}</b> आपके खाते से शेयरों में जाता है${prods().cdb?', और कम पड़ने पर सरकारी बॉन्ड फ़र्क़ पूरा करते हैं':''}, जब तक रिज़र्व खर्च के ${3} महीने बचे रहें। प्रतिशत आपकी आमदनी के साथ चलता है।`:'हर महीने शेयरों में निवेश करने के लिए अपनी आमदनी का एक प्रतिशत चुनें, बिना याद रखे। यह तभी निवेश करता है जब 3 महीने का रिज़र्व बचा रहे।'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>स्वचालित मासिक निवेश:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="स्वचालित निवेश">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'बंद':Math.round(pc*100)+'%'}<small>${pc===0?'मैन्युअल':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`हर महीने, <b>${fmt0(aporteExec(aporteMensal()))}</b> आपके खाते से शेयरों में जाता है${prods().cdb?', और कम पड़ने पर सरकारी बॉन्ड फ़र्क़ पूरा करते हैं':''}, जब तक रिज़र्व खर्च के ${3} महीने बचे रहें। प्रतिशत आपकी आमदनी के साथ चलता है।`:'हर महीने शेयरों में निवेश करने के लिए अपनी आमदनी का एक प्रतिशत चुनें, बिना याद रखे। यह तभी निवेश करता है जब 3 महीने का रिज़र्व बचा रहे।'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"हर महीने ऊपर-नीचे होता है":"पिछला महीना "+pctFmt(p.taxa())):pct2(p.taxa())+" प्रति माह"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -85606,7 +85684,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v521</p>
+    <p class="titulo-versao">वर्ज़न v522</p>
   </div>`;
 }
 function render(){
@@ -85808,7 +85886,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
     <div class="ficha">
       <div><span class="label-c">प्रति माह आमदनी</span>
         <div class="fl"><span>${s.aposentado?"वेतन (रुका हुआ)":s.empresario?"वेतन (उद्यमी बने)":s.desemp>0?"बेरोज़गारी बीमा":prof().comissao?"वेतन + कमीशन (औसत)":"वेतन"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>निवेश (0.4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>निवेश</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>किराये और कारोबार</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">प्रति माह खर्च</span>
@@ -85874,7 +85952,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" (मैनेजर)":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["कॉफ़ी शॉप का साझेदार", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`फ़्रैंचाइज़ी रॉयल्टी (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["निवेश (अनुमान)", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["निवेश", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/घंटा' : "<span style=\"color:var(--gain)\">बिना घंटों के</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">आपका पैसा कहाँ से आता है</h2>
@@ -86350,7 +86428,7 @@ function renderModal0(){
       <span class="tag neutro">चरण 3 · वित्तीय आज़ादी</span>
       <p>आप ${idadeJog()} साल के हैं और शुरू करते हैं <b>${fmt(s.inicioPatr||patrimonio())}</b>के साथ। अब लक्ष्य सिर्फ़ एक है: निवेशों से अपने बिल चुकवाना।</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"ग्रेड"])?'open':''}><summary>इस चरण को कैसे खेलें</summary><ul class="regras">
-        <li><b>निष्क्रिय आय</b> वह राशि है जो आप हर महीने पोर्टफ़ोलियो से निकाल सकते हैं, पैसा ख़त्म हुए बिना: निवेशित राशि का लगभग 0.4% प्रति माह (सालाना लगभग 5%, मशहूर "4% नियम" इस खेल की ब्याज दरों के हिसाब से ढला हुआ)।</li>
+        <li><b>निष्क्रिय आय</b> वह पैसा है जो आपके काम किए बिना हर महीने आपके खाते में आता है: आपके चुने हुए निश्चित आय का ब्याज, शेयरों का लाभांश (मासिक औसत), किराया, कारोबार के मुनाफ़े की निकासी और फ्रैंचाइज़ी रॉयल्टी। शेयरों की कीमत बढ़ना तभी पैसा बनता है जब आप बेचते हैं, इसलिए उसे नहीं गिना जाता।</li>
         <li>जब निष्क्रिय आय रहने के खर्च से ज़्यादा हो जाती है, तो आप <b>चूहा दौड़ से बाहर हैं</b> और नौकरी छोड़ सकते हैं।</li>
         <li>आमदनी पर जीते हुए वेतन रुक जाता है और पोर्टफ़ोलियो बिल चुकाता है। अगर वह बहुत घट जाए तो आप काम पर लौटते हैं।</li>
         <li>ज़िंदगी भी चलती रहती है: बच्चे, अपना घर, करियर, कारोबार और संकट।</li>
@@ -86367,7 +86445,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>आज ${fmt0(S.preco)}</span></button>`).join('')}</div>
       <p>आप 25 साल के हैं और आपके पास है <b>${fmt0(s.conta)}</b> खाते में।</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"ग्रेड"])?'open':''}><summary>इस चरण को कैसे खेलें</summary><ul class="regras">
-        <li>हर दौर एक महीना है। वेतन आता है और बिल अपने आप जाते हैं।</li>
+        <li>बोर्ड पर आगे बढ़ें: जब भी आप नए महीने के बोर्ड से गुज़रते हैं, वेतन आता है और बिल अपने आप जाते हैं।</li>
         <li>नज़र रखें <b>अवसर</b>पर: छोटे कारोबार जो हर महीने आपको भुगतान करते हैं, जैसे कैशफ़्लो में।</li>
         <li>सरकारी बॉन्ड में बचाएँ: यह सुरक्षित है, किसी भी दिन निकाला जा सकता है और आपातकालीन फ़ंड में गिना जाता है। झटके आएँगे।</li>
         <li><b>शेयर लंबी अवधि के लिए हैं।</b> यहाँ वे असली शेयर बाज़ार के पीछे चलते हैं, महीने-दर-महीने। वे लाभांश देते हैं और 5, 10 साल में बढ़ते हैं, पर संकटों में 30% से ज़्यादा गिरे हैं। इसीलिए वे तभी खुलते हैं जब आपके पास 3 महीने का आपातकालीन फ़ंड हो।</li>
@@ -86756,7 +86834,7 @@ const INFO = {
       <p><b>शेष राशि और प्रवाह अलग चीज़ें हैं।</b> शेष राशि (${fmt0(s.conta)}) वह है जो अब खाते में है, जो कुछ आप खर्च और निवेश कर चुके उसके बाद। प्रवाह यह है कि वह शेष राशि हर महीने कितनी बदलती है। बाल्टी की तरह: शेष राशि अंदर का पानी है; प्रवाह वह है जो नल भरता है घटा जो रिसता है।</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("कुल आवक",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("कुल जावक",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">इसके अलावा, आपके निवेश प्रति माह लगभग ${fmt0(rendaInvest())} कमाते हैं, जो दोबारा निवेशित रहते हैं और खाते में नहीं आते।</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">इसके अलावा, आपके निवेश प्रति माह लगभग ${fmt0(rendaReinv())} कमाते हैं, जो दोबारा निवेशित रहते हैं और खाते में नहीं आते।</p>`:''}
       <p class="hint">सकारात्मक प्रवाह ईंधन है: यह वह बचत है जो आपातकालीन फ़ंड और निवेश बनती है। इसे बढ़ाने के लिए ज़्यादा कमाएँ या कम खर्च करें। चूहा दौड़ से निकलने के लिए ऐसी आमदनी बनाएँ जो आपके काम पर निर्भर न हो और "जावक" स्तंभ को कवर करे।</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["चालू खाता",s.conta],["आपातकालीन फ़ंड (सरकारी बॉन्ड)",reserva()],["शेयर",valor('acoes')],["अन्य निवेश",out],["संपत्तियाँ और कारोबार",valorAtivos()],["आपका घर",s.casa||0],["आपकी कार",s.carro?.valor||0],["कर्ज़",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`कुल संपत्ति: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -88950,7 +89028,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -91726,6 +91807,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -91746,7 +91830,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>当月结余：</small><div class="seg seg-hud" role="group" aria-label="当月结余"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">留在账户里<small>由你决定</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">转入${p.curto}<small>自动</small></button></div><p class="hint">付完当月账单后，活期账户里剩下的钱会自动转入${p.curto}。如果遇到意外，游戏会先从这里赎回。</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>每月自动投资：</small><div class="seg seg-hud aporte-seg" role="group" aria-label="自动投资">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'关':Math.round(pc*100)+'%'}<small>${pc===0?'手动':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`每月， <b>${fmt0(aporteMensal())}</b> 从你的账户转入股票${prods().cdb?'，不足时由国债补足':''}，只要还剩${3}个月的储备开销。比例随你的收入而变。`:'选择你收入的一个百分比，每月投入股票，不必自己记着。只有在3个月储备之外还有剩余时才会投入。'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>每月自动投资：</small><div class="seg seg-hud aporte-seg" role="group" aria-label="自动投资">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'关':Math.round(pc*100)+'%'}<small>${pc===0?'手动':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`每月， <b>${fmt0(aporteExec(aporteMensal()))}</b> 从你的账户转入股票${prods().cdb?'，不足时由国债补足':''}，只要还剩${3}个月的储备开销。比例随你的收入而变。`:'选择你收入的一个百分比，每月投入股票，不必自己记着。只有在3个月储备之外还有剩余时才会投入。'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?"每月都有波动":"上个月 "+pctFmt(p.taxa())):pct2(p.taxa())+" 每月"}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -92235,7 +92319,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v521</p>
+    <p class="titulo-versao">版本 v522</p>
   </div>`;
 }
 function render(){
@@ -92437,7 +92521,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
     <div class="ficha">
       <div><span class="label-c">每月收入</span>
         <div class="fl"><span>${s.aposentado?"薪水（已停止）":s.empresario?"薪水（成为创业者）":s.desemp>0?"失业保险":prof().comissao?"薪水+提成（平均）":"薪水"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>投资（0.4%）</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>投资</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>租金和生意</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">每月支出</span>
@@ -92503,7 +92587,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?" （经理）":''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(["咖啡馆合伙人", s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`加盟特许权使用费（${s.franqs.length}）`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(["投资（估算）", rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(["投资", rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/小时' : "<span style=\"color:var(--gain)\">不占用时间</span>";
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">你的钱从哪里来</h2>
@@ -92979,7 +93063,7 @@ function renderModal0(){
       <span class="tag neutro">阶段3 · 财务自由</span>
       <p>你${idadeJog()}岁，起始资金 <b>${fmt(s.inicioPatr||patrimonio())}</b>。现在的目标只有一个：让投资支付你的账单。</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"评级"])?'open':''}><summary>如何玩这个阶段</summary><ul class="regras">
-        <li><b>被动收入</b> 是你每月能从投资组合取走而钱不会花光的金额：约为所投资金额的0.4%每月（年化约5%，著名的“4%法则”，按本游戏的利率做了调整）。</li>
+        <li><b>被动收入</b> 是你不用工作、每个月都会进入账户的钱：你选择入账的固定收益利息、股票分红（月均）、租金、生意利润提取和特许经营权使用费。股票升值只有卖出才会变成钱，所以不计入。</li>
         <li>当被动收入超过生活成本时，你就 <b>跳出了老鼠赛跑</b> ，可以辞掉工作。</li>
         <li>靠收入生活时，薪水停止，由投资组合支付账单。如果它缩水太多，你就回去工作。</li>
         <li>生活也会发生：孩子、自有住房、职业、生意和危机。</li>
@@ -92996,7 +93080,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>今天${fmt0(S.preco)}</span></button>`).join('')}</div>
       <p>你25岁，账户里有 <b>${fmt0(s.conta)}</b> 在账户里。</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+"评级"])?'open':''}><summary>如何玩这个阶段</summary><ul class="regras">
-        <li>每一回合是一个月。薪水进账，账单自动支出。</li>
+        <li>沿着棋盘前进：每经过一个新月份的路牌，薪水就会进账，账单自动支出。</li>
         <li>留意 <b>机会</b>：每月给你付钱的小生意，就像Cashflow里那样。</li>
         <li>存在国债里：安全，任何一天都能取出，并算作应急基金。挫折会出现。</li>
         <li><b>股票是为长期准备的。</b> 这里它们跟随真实的股市，逐月变化。它们派息，5年、10年会增长，但在危机中跌过30%以上。所以只有当你有3个月应急基金时才会解锁。</li>
@@ -93385,7 +93469,7 @@ const INFO = {
       <p><b>余额和现金流是两回事。</b> 余额（${fmt0(s.conta)}）是现在账户里的钱，是你已经花掉和投资之后剩下的。现金流是这笔余额每月的变化。就像一个水桶：余额是桶里的水；现金流是水龙头注入的减去漏掉的。</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl("总收入",fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl("总支出",fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">除此之外，你的投资每月大约赚${fmt0(rendaInvest())}，这些钱继续再投资，不会进入账户。</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">除此之外，你的投资每月大约赚${fmt0(rendaReinv())}，这些钱继续再投资，不会进入账户。</p>`:''}
       <p class="hint">正的现金流是燃料：它是变成应急基金和投资的结余。要增加它，就多赚或少花。要跳出老鼠赛跑，就让不依赖你工作的收入覆盖“支出”这一列。</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[["活期账户",s.conta],["应急基金（国债）",reserva()],["股票",valor('acoes')],["其他投资",out],["房产和生意",valorAtivos()],["你的家",s.casa||0],["你的车",s.carro?.valor||0],["债务",-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`净资产：${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
@@ -95575,7 +95659,10 @@ const largado = a => a.tipo==='negocio' && !a.gerente && a.horas>0 && sobrecarga
 const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonusGestao(a)*(a.gerente?1-gerCusto():largado(a)?0.7:1)*(a.gerente?(1+Math.min(0.2,0.008*Math.max(0,s.mes-(a.gerDesde||s.mes)))):1);
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
-const rendaInvest = () => investido()*TAXA_RENDA;
+const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
 function fluxo(){
@@ -98351,6 +98438,9 @@ const APORTE_PCT=[0,0.10,0.20,0.30];
 const aporteBase = () => Math.max(rendaTotal(), rendaFamilia());
 const aporteDePct = pc => Math.max(50, Math.round(aporteBase()*pc/50)*50);
 const aporteMensal = () => s.aportePct ? aporteDePct(s.aportePct) : (s.aporteAuto||0);
+const aporteFolga = () => Math.max(0, Math.max(0,s.conta) + (prods().cdb?disponivel('cdb'):0) - 3*custoMensal());
+const aporteExec = x => Math.max(0, Math.min(x, Math.floor(aporteFolga()/50)*50));
+const aporteVis = pc => aporteExec(aporteDePct(pc));
 function linhaProduto(id,p){
   const v=valor(id), c=custoDe(id), varp = c>0 ? v/c-1 : 0;
   const trancado = p.trava && !s.acoesLib;
@@ -98371,7 +98461,7 @@ function linhaProduto(id,p){
     sobraHtml=`<div class="juros-modo"><small>Sobra do mês:</small><div class="seg seg-hud" role="group" aria-label="Sobra do mês"><button data-acao="sobraCdb" data-alvo="0" aria-pressed="${!on}">Fica na conta<small>você decide</small></button><button data-acao="sobraCdb" data-alvo="1" aria-pressed="${on}">Vai para o ${p.curto}<small>automático</small></button></div><p class="hint">Depois que as contas do mês são pagas, tudo o que sobrar na conta corrente vai sozinho para o ${p.curto}. Se aparecer um imprevisto, o jogo resgata daqui primeiro.</p></div>`; }
   let aporteHtml='';
   if(id==='acoes' && !trancado){ const cur=s.aportePct||0, fixo=!cur && s.aporteAuto;
-    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteDePct(pc)>=1e5?fmtC(aporteDePct(pc)):fmt0(aporteDePct(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteMensal())}</b> vão da sua conta para as ações${prods().cdb?', e o CDB completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
+    aporteHtml=`<div class="juros-modo"><small>Aporte automático por mês:</small><div class="seg seg-hud aporte-seg" role="group" aria-label="Aporte automático">${APORTE_PCT.map(pc=>`<button data-acao="aportePct" data-alvo="${pc}" aria-pressed="${pc===0?(!cur&&!fixo):cur===pc}">${pc===0?'Desligado':Math.round(pc*100)+'%'}<small>${pc===0?'manual':(aporteVis(pc)>=1e5?fmtC(aporteVis(pc)):fmt0(aporteVis(pc)))}</small></button>`).join('')}</div><p class="hint">${aporteMensal()?`Todo mês, <b>${fmt0(aporteExec(aporteMensal()))}</b> vão da sua conta para as ações${prods().cdb?', e o CDB completa se faltar':''}, desde que sobrem ${3} meses de custo de reserva. A porcentagem acompanha a sua renda.`:'Escolha uma porcentagem da sua renda para investir em ações todo mês, sem precisar lembrar. Só investe se sobrar a reserva de 3 meses.'}</p></div>`; }
   return `<div class="conta">
     <div data-info="prod:${id}"><div class="conta-nome">${icProd(id,trancado)||`<i class="dot" style="background:var(${p.cor})"></i>`}${p.nome} ${ii}</div><div class="conta-taxa">${p.variavel?(p.taxa()==null?'oscila todo mês':'último mês '+pctFmt(p.taxa())):pct2(p.taxa())+' ao mês'}${extra}</div></div>
     <div class="conta-valor">${fmt(v)}${v>0.5&&Math.abs(varp)>0.0005?`<span class="var ${varp>=0?'pos':'neg'}">${pctFmt(varp)}</span>`:''}</div>
@@ -98860,7 +98950,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v521</p>
+    <p class="titulo-versao">versão v522</p>
   </div>`;
 }
 function render(){
@@ -99062,7 +99152,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     <div class="ficha">
       <div><span class="label-c">Entradas por mês</span>
         <div class="fl"><span>${s.aposentado?'Salário (parou)':s.empresario?'Salário (virou empresário)':s.desemp>0?'Seguro-desemprego':prof().comissao?'Salário + comissão (média)':'Salário'}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
-        <div class="fl"><span>Investimentos (0,4%)</span><b>${fmt0(rendaInvest())}</b></div>
+        <div class="fl"><span>Investimentos</span><b>${fmt0(rendaInvest())}</b></div>
         <div class="fl"><span>Aluguéis e negócios</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Saídas por mês</span>
@@ -99128,7 +99218,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   for(const a of (s.ativos||[])) if(a.tipo!=='terreno') fontes.push([a.nome+(a.gerente?' (gerente)':''), a.vagoAte>=s.mes?0:rendaAtivo(a), horasAtivo(a), true]);
   if(s.rendaNegocio) fontes.push(['Sócio da cafeteria', s.rendaNegocio, 0, true]);
   if(s.franqs&&s.franqs.length) fontes.push([`Royalties de franquias (${s.franqs.length})`, tycRoyTotal(), 0, true]);
-  if(rendaInvest()>0.5) fontes.push(['Investimentos (estimativa)', rendaInvest(), 0, true]);
+  if(rendaInvest()>0.5) fontes.push(['Investimentos', rendaInvest(), 0, true]);
   const totA=fontes.filter(f=>!f[3]).reduce((x,f)=>x+f[1],0), totP=fontes.filter(f=>f[3]).reduce((x,f)=>x+f[1],0), hT=fontes.reduce((x,f)=>x+f[2],0);
   const porHora = (v,h) => h>0 ? fmt0(v/(h*4.33))+'/h' : '<span style="color:var(--gain)">sem horas</span>';
   const rendaCard=`<section class="card" aria-labelledby="t-renda"><h2 id="t-renda">De onde vem o seu dinheiro</h2>
@@ -99604,7 +99694,7 @@ function renderModal0(){
       <span class="tag neutro">Fase 3 · Liberdade financeira</span>
       <p>Você tem ${idadeJog()} anos e começa com <b>${fmt(s.inicioPatr||patrimonio())}</b>. O objetivo agora é um só: fazer os investimentos pagarem as suas contas.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+'Nota'])?'open':''}><summary>Como jogar esta fase</summary><ul class="regras">
-        <li><b>Renda passiva</b> é quanto você pode tirar da carteira todo mês sem o dinheiro acabar: cerca de 0,4% do que está investido por mês (uns 5% ao ano, a famosa "regra dos 4%" adaptada aos juros do Brasil).</li>
+        <li><b>Renda passiva</b> é o dinheiro que entra na sua conta todo mês sem você trabalhar: juros da renda fixa que você escolheu receber, dividendos das ações (média mensal), aluguéis, retiradas de lucro dos negócios e royalties de franquias. A valorização das ações só vira dinheiro quando você vende, então não conta.</li>
         <li>Quando a renda passiva passar do custo de vida, você está <b>fora da corrida dos ratos</b> e pode pedir demissão.</li>
         <li>Vivendo de renda, o salário para e a carteira paga as contas. Se ela encolher demais, você volta a trabalhar.</li>
         <li>A vida também acontece: filhos, casa própria, carreira, negócios e crises.</li>
@@ -99621,7 +99711,7 @@ function renderModal0(){
       <div class="escolhas">${Object.entries(SONHOS).map(([id,S])=>`<button class="escolha ${s.sonho===id?'atual':''}" data-acao="sonhoEsc" data-alvo="${id}">${icEscolha('sonho',id)}<b>${S.nome}</b><span>${fmt0(S.preco)} hoje</span></button>`).join('')}</div>
       <p>Você tem 25 anos e <b>${fmt0(s.conta)}</b> na conta.</p>
       <details class="mais intro-det" data-k="regras${s.fase}" ${(ui.aberto?.['regras'+s.fase] ?? !lerCamp()['f'+s.fase+'Nota'])?'open':''}><summary>Como jogar esta fase</summary><ul class="regras">
-        <li>Cada rodada é um mês. O salário entra e as contas saem sozinhos.</li>
+        <li>Ande pelo tabuleiro: cada vez que você passa pela placa de um novo mês, o salário entra e as contas saem sozinhos.</li>
         <li>Fique de olho nas <b>oportunidades</b>: pequenos negócios que pagam você todo mês, como no Cashflow.</li>
         <li>Guarde no CDB: é seguro, dá para resgatar a qualquer dia e conta como reserva. Imprevistos vão aparecer.</li>
         <li><b>Ações são para o longo prazo.</b> Aqui elas seguem o S&amp;P 500 de verdade, mês a mês. Pagam dividendos e crescem em 5, 10 anos, mas já caíram mais de 30% em crises. Por isso elas só liberam quando você tiver 3 meses de reserva.</li>
@@ -100010,7 +100100,7 @@ const INFO = {
       <p><b>Saldo e fluxo são coisas diferentes.</b> O saldo (${fmt0(s.conta)}) é o que está na conta agora, depois de tudo o que você já gastou e investiu. O fluxo é quanto esse saldo muda a cada mês. Como um balde: o saldo é a água que tem dentro; o fluxo é o que a torneira enche menos o que o furo deixa sair.</p>
       <div class="info-lista">${f.ent.map(([n,v])=>fl(n,'+'+fmt0(v),'var(--gain)')).join('')}${fl('Total que entra',fmt0(f.E),'','tot')}</div>
       <div class="info-lista">${f.sai.map(([n,v])=>fl(n,'−'+fmt0(v),'var(--loss)')).join('')}${fl('Total que sai',fmt0(f.S),'','tot')}</div>
-      ${rendaInvest()>=1?`<p class="hint">Fora isso, seus investimentos rendem cerca de ${fmt0(rendaInvest())} por mês, que ficam reinvestidos e não caem na conta.</p>`:''}
+      ${rendaReinv()>=1?`<p class="hint">Fora isso, seus investimentos rendem cerca de ${fmt0(rendaReinv())} por mês, que ficam reinvestidos e não caem na conta.</p>`:''}
       <p class="hint">Fluxo positivo é o combustível: é a sobra que vira reserva e investimento. Para aumentar, ganhe mais ou gaste menos. Para sair da corrida dos ratos, faça a renda que não depende do seu trabalho cobrir a coluna do "sai".</p>`}; },
   patr:()=>{ const out=investido()-reserva()-valor('acoes'), r=[['Conta corrente',s.conta],['Reserva (CDB)',reserva()],['Ações',valor('acoes')],['Outros investimentos',out],['Imóveis e negócios',valorAtivos()],['Sua casa',s.casa||0],['Seu carro',s.carro?.valor||0],['Dívidas',-dividaParcelada()]].filter(([,v])=>Math.abs(v)>=1);
     return {t:`Patrimônio: ${fmt0(patrimonio())}`, h:`<div class="info-lista">${r.map(([n,v])=>fl(n,fmt0(v),v<0?'var(--loss)':'')).join('')}</div>
