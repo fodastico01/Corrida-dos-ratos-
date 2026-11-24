@@ -6390,7 +6390,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Your profile: income, expenses and the dream</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · month ${s.mes} of ${tot}</small></div>
@@ -6402,6 +6402,10 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -6669,6 +6673,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Account",s.conta]]; if(P.cdb) it.push(["Emergency fund",valor('cdb')]); if(P.acoes) it.push(["Stocks",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Your money right now');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -13032,7 +13037,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Tu perfil: ingresos, gastos y el sueño</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opciones">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mes ${s.mes} de ${tot}</small></div>
@@ -13044,6 +13049,10 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Secciones del juego">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -13311,6 +13320,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Cuenta",s.conta]]; if(P.cdb) it.push(["Fondo de emergencia",valor('cdb')]); if(P.acoes) it.push(["Acciones",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Tu dinero ahora mismo');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -19673,7 +19683,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>O teu perfil: rendimento, despesas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
@@ -19685,6 +19695,10 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Secções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -19952,6 +19966,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Conta",s.conta]]; if(P.cdb) it.push(["Fundo de emergência",valor('cdb')]); if(P.acoes) it.push(["Ações",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','O teu dinheiro neste momento');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -26315,7 +26330,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Ton profil : revenus, dépenses et le rêve</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Options">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mois ${s.mes} sur ${tot}</small></div>
@@ -26327,6 +26342,10 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Sections du jeu">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -26594,6 +26613,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Compte",s.conta]]; if(P.cdb) it.push(["Fonds d'urgence",valor('cdb')]); if(P.acoes) it.push(["Actions",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Ton argent en ce moment');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+' Md\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+' M\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -32957,7 +32977,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Il tuo profilo: reddito, spese e il sogno</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opzioni">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mese ${s.mes} di ${tot}</small></div>
@@ -32969,6 +32989,10 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Sezioni del gioco">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -33236,6 +33260,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Conto",s.conta]]; if(P.cdb) it.push(["Fondo di emergenza",valor('cdb')]); if(P.acoes) it.push(["Azioni",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Il tuo denaro in questo momento');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+' Mrd\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+' M\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -39599,7 +39624,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Dein Profil: Einkommen, Ausgaben und der Traum</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Optionen">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · Monat ${s.mes} von ${tot}</small></div>
@@ -39611,6 +39636,10 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Spielbereiche">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -39878,6 +39907,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Konto",s.conta]]; if(P.cdb) it.push(["Notfallreserve",valor('cdb')]); if(P.acoes) it.push(["Aktien",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Dein Geld im Moment');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+' Mrd\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+' Mio\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -46241,7 +46271,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Твой профиль: доходы, расходы и мечта</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Варианты">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · месяц ${s.mes} из ${tot}</small></div>
@@ -46253,6 +46283,10 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Разделы игры">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -46520,6 +46554,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Счёт",s.conta]]; if(P.cdb) it.push(["Финансовая подушка",valor('cdb')]); if(P.acoes) it.push(["Акции",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Твои деньги сейчас');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+'\u00a0млрд\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+'\u00a0млн\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -52883,7 +52918,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Profilmu: penghasilan, pengeluaran, dan impian</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opsi">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · bulan ${s.mes} dari ${tot}</small></div>
@@ -52895,6 +52930,10 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Bagian game">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -53162,6 +53201,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Rekening",s.conta]]; if(P.cdb) it.push(["Dana darurat",valor('cdb')]); if(P.acoes) it.push(["Saham",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Uangmu sekarang');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+'\u00a0'+f(a/1e9).replace('.',',')+'\u00a0M': a>=1e6? sg+PAIS.simb+'\u00a0'+f(a/1e6).replace('.',',')+'\u00a0jt' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -59525,7 +59565,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Profilin: gelir, giderler ve hayal</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Seçenekler">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · ${tot} aydan ${s.mes}. ay</small></div>
@@ -59537,6 +59577,10 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Oyun bölümleri">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -59804,6 +59848,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["Hesap",s.conta]]; if(P.cdb) it.push(["Acil durum fonu",valor('cdb')]); if(P.acoes) it.push(["Hisse senetleri",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Şu an paran');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9).replace('.',',')+'\u00a0Mr': a>=1e6? sg+PAIS.simb+f(a/1e6).replace('.',',')+'\u00a0Mn' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -66167,7 +66212,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>ملفك: الدخل والمصروفات والحلم</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="خيارات">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · الشهر ${s.mes} من ${tot}</small></div>
@@ -66179,6 +66224,10 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} ←</button>
     <nav class="abas2" role="tablist" aria-label="أقسام اللعبة">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -66446,6 +66495,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["الحساب",s.conta]]; if(P.cdb) it.push(["صندوق الطوارئ",valor('cdb')]); if(P.acoes) it.push(["الأسهم",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','مالك الآن');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9)+'\u00a0مليار\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6)+'\u00a0مليون\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -72809,7 +72859,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>あなたのプロフィール：収入、支出、夢</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="オプション">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()}・${tot}か月中${s.mes}か月目</small></div>
@@ -72821,6 +72871,10 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="ゲームのセクション">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -73088,6 +73142,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["口座",s.conta]]; if(P.cdb) it.push(["緊急資金",valor('cdb')]); if(P.acoes) it.push(["株式",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','今のあなたのお金');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e8)+'億': a>=1e6? sg+PAIS.simb+f(a/1e4)+'万' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -79451,7 +79506,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>당신의 프로필: 소득, 지출, 꿈</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="옵션">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · ${tot}개월 중 ${s.mes}개월</small></div>
@@ -79463,6 +79518,10 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="게임 섹션">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -79730,6 +79789,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["계좌",s.conta]]; if(P.cdb) it.push(["비상금",valor('cdb')]); if(P.acoes) it.push(["주식",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','지금 가진 돈');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e8)+'억': a>=1e6? sg+PAIS.simb+f(a/1e4)+'만' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -86092,7 +86152,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>आपकी प्रोफ़ाइल: आमदनी, खर्च और सपना</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="विकल्प">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · महीना ${s.mes}/${tot}</small></div>
@@ -86104,6 +86164,10 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="खेल के भाग">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -86371,6 +86435,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["खाता",s.conta]]; if(P.cdb) it.push(["आपातकालीन फंड",valor('cdb')]); if(P.acoes) it.push(["शेयर",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','अभी आपका पैसा');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e7)+' करोड़': a>=1e6? sg+PAIS.simb+f(a/1e5)+' लाख' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -92733,7 +92798,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>你的档案：收入、开支和梦想</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="选项">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · 第${s.mes}/${tot}个月</small></div>
@@ -92745,6 +92810,10 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="游戏分区">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -93012,6 +93081,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[["账户",s.conta]]; if(P.cdb) it.push(["应急基金",valor('cdb')]); if(P.acoes) it.push(["股票",valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','你现在的钱');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e8)+'亿': a>=1e6? sg+PAIS.simb+f(a/1e4)+'万' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
@@ -99370,7 +99440,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
     carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
-  app.innerHTML=`
+  const _appHtml=`
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opções">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · mês ${s.mes} de ${tot}</small></div>
@@ -99382,6 +99452,10 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
     <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
+  // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
+  const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
+  if(ui.modal && app.firstChild && (_jaAberta || _appHtml===app.__h)){ ui._appVelho=true; renderModal(); return; }
+  ui._appVelho=false; app.__h=_appHtml; app.innerHTML=_appHtml;
   const tela=document.getElementById('tela'); if(tela && ui.telaScroll && ui.telaAba===aba) tela.scrollTop=ui.telaScroll; ui.telaAba=aba;
   if(ui.ancora){ const el=document.getElementById(ui.ancora); ui.ancora=null; if(el && tela){ tela.scrollTop=Math.max(0, el.getBoundingClientRect().top-tela.getBoundingClientRect().top+tela.scrollTop-16); ui.telaScroll=tela.scrollTop; } }   // vai direto à seção pedida
   renderModal();
@@ -99649,6 +99723,7 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const P=prods(), it=[['Conta',s.conta]]; if(P.cdb) it.push(['Reserva',valor('cdb')]); if(P.acoes) it.push(['Ações',valor('acoes')]);
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Seu dinheiro agora');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' bi': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' mi' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
+try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
   const mEl=document.getElementById('modal'), ov0=mEl?.querySelector('.overlay'), top0=ov0?ov0.scrollTop:0, sh0=mEl?.querySelector('.sheet'), stop0=sh0?sh0.scrollTop:0;
