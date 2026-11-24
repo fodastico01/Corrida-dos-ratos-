@@ -1432,6 +1432,12 @@ html[data-paleta="noite"] .topo2 .topo-conta .tc-r{border-left-color:rgba(255,25
 .seg.aporte-seg button{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap}
 
 .seg.aporte-seg button{font-size:.84rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;padding-left:2px;padding-right:2px}.seg.aporte-seg button small{white-space:nowrap}.seg.aporte-seg button small{display:block;font-size:.72rem;overflow:hidden;text-overflow:ellipsis}
+/* v522: botoes pequenos (segmentados) com relevo, como os botoes grandes */
+.seg{padding:4px 4px 7px}
+.seg button{background:color-mix(in srgb,var(--surface) 55%,transparent);border:1px solid rgba(255,255,255,.10);box-shadow:0 3px 0 rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.14);transition:transform .06s,box-shadow .06s}
+.seg button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.10)}
+.seg button[aria-pressed="true"],.seg-hud button[aria-pressed="true"]{border-color:rgba(255,255,255,.28);box-shadow:0 3px 0 color-mix(in srgb,var(--coin) 55%,#000),inset 0 1px 0 rgba(255,255,255,.45)}
+.seg button[aria-pressed="true"]:active,.seg-hud button[aria-pressed="true"]:active{box-shadow:0 1px 0 color-mix(in srgb,var(--coin) 55%,#000),inset 0 1px 0 rgba(255,255,255,.45)}
 </style>
 
 <div class="app" id="app"></div>
