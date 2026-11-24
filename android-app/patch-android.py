@@ -76,6 +76,8 @@ if 'com.google.android.gms.ads.APPLICATION_ID' not in x:
     x = x.replace('</application>', '    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="%s"/>\n    </application>' % admob, 1)
 if 'com.android.vending.BILLING' not in x:
     x = x.replace('</manifest>', '    <uses-permission android:name="com.android.vending.BILLING" />\n</manifest>', 1)
+if 'android.permission.VIBRATE' not in x:
+    x = x.replace('</manifest>', '    <uses-permission android:name="android.permission.VIBRATE" />\n</manifest>', 1)
 open(m, 'w').write(x)
 if 'android.hardware.screen.portrait' not in x:
     x = x.replace('</manifest>', '    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />\n</manifest>', 1)

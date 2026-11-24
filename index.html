@@ -6000,6 +6000,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Mint",'#F5F3EF','#A9DDBF'],ouro:["Gold and navy",'#F3ECDC','#F0B83C'],ceu:["Sky and sand",'#E4EEF7','#F4B942'],noite:["Night",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -6729,6 +6731,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Game colors</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Background music</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz on</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">No music</button></div></div>
       <div class="cfg"><span class="label-c">Wheel sound</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tick-tock</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silence</button></div></div>
+      <div class="cfg"><span class="label-c">Vibration</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">On</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Off</button></div></div>
       <div class="cfg"><span class="label-c">Text size</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Large</button></div></div>
       <div class="cfg"><span class="label-c">Events</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cards</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Simple window</button></div></div>
       <div class="cfg"><span class="label-c">Save and load</span><p class="hint">The game saves by itself every month. Here you can keep up to 3 separate games and go back to them whenever you like.</p>
@@ -7397,6 +7400,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -12636,6 +12640,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menta",'#F5F3EF','#A9DDBF'],ouro:["Dorado y azul marino",'#F3ECDC','#F0B83C'],ceu:["Cielo y arena",'#E4EEF7','#F4B942'],noite:["Noche",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -13365,6 +13371,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Colores del juego</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Música de fondo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz activado</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sin música</button></div></div>
       <div class="cfg"><span class="label-c">Sonido de la ruleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silencio</button></div></div>
+      <div class="cfg"><span class="label-c">Vibración</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Activada</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Desactivada</button></div></div>
       <div class="cfg"><span class="label-c">Tamaño del texto</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grande</button></div></div>
       <div class="cfg"><span class="label-c">Eventos</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cartas</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Ventana sencilla</button></div></div>
       <div class="cfg"><span class="label-c">Guardar y cargar</span><p class="hint">El juego se guarda solo cada mes. Aquí puedes conservar hasta 3 partidas separadas y volver a ellas cuando quieras.</p>
@@ -14033,6 +14040,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -19271,6 +19279,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menta",'#F5F3EF','#A9DDBF'],ouro:["Dourado e azul-marinho",'#F3ECDC','#F0B83C'],ceu:["Céu e areia",'#E4EEF7','#F4B942'],noite:["Noite",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -20000,6 +20010,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Cores do jogo</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Música de fundo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz ligado</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sem música</button></div></div>
       <div class="cfg"><span class="label-c">Som da roleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silêncio</button></div></div>
+      <div class="cfg"><span class="label-c">Vibração</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Ligada</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Desligada</button></div></div>
       <div class="cfg"><span class="label-c">Tamanho do texto</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grande</button></div></div>
       <div class="cfg"><span class="label-c">Acontecimentos</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cartas</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Janela simples</button></div></div>
       <div class="cfg"><span class="label-c">Guardar e carregar</span><p class="hint">O jogo guarda-se sozinho todos os meses. Aqui podes manter até 3 jogos separados e voltar a eles quando quiseres.</p>
@@ -20668,6 +20679,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -25907,6 +25919,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menthe",'#F5F3EF','#A9DDBF'],ouro:["Or et bleu marine",'#F3ECDC','#F0B83C'],ceu:["Ciel et sable",'#E4EEF7','#F4B942'],noite:["Nuit",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -26636,6 +26650,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Couleurs du jeu</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Musique de fond</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz activé</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sans musique</button></div></div>
       <div class="cfg"><span class="label-c">Son de la roue</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silence</button></div></div>
+      <div class="cfg"><span class="label-c">Vibration</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Activée</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Désactivée</button></div></div>
       <div class="cfg"><span class="label-c">Taille du texte</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grand</button></div></div>
       <div class="cfg"><span class="label-c">Événements</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cartes</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Fenêtre simple</button></div></div>
       <div class="cfg"><span class="label-c">Sauvegarder et charger</span><p class="hint">Le jeu se sauvegarde tout seul chaque mois. Ici, tu peux garder jusqu'à 3 parties séparées et y revenir quand tu veux.</p>
@@ -27304,6 +27319,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -32543,6 +32559,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Menta",'#F5F3EF','#A9DDBF'],ouro:["Oro e blu",'#F3ECDC','#F0B83C'],ceu:["Cielo e sabbia",'#E4EEF7','#F4B942'],noite:["Notte",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -33272,6 +33290,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Colori del gioco</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Musica di sottofondo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz acceso</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Senza musica</button></div></div>
       <div class="cfg"><span class="label-c">Suono della ruota</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tic-tac</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silenzio</button></div></div>
+      <div class="cfg"><span class="label-c">Vibrazione</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Attiva</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Disattiva</button></div></div>
       <div class="cfg"><span class="label-c">Dimensione del testo</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normale</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grande</button></div></div>
       <div class="cfg"><span class="label-c">Eventi</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Carte</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Finestra semplice</button></div></div>
       <div class="cfg"><span class="label-c">Salva e carica</span><p class="hint">Il gioco si salva da solo ogni mese. Qui puoi conservare fino a 3 partite separate e tornarci quando vuoi.</p>
@@ -33940,6 +33959,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -39179,6 +39199,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Minze",'#F5F3EF','#A9DDBF'],ouro:["Gold und Marine",'#F3ECDC','#F0B83C'],ceu:["Himmel und Sand",'#E4EEF7','#F4B942'],noite:["Nacht",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -39908,6 +39930,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Spielfarben</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Hintergrundmusik</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz an</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Keine Musik</button></div></div>
       <div class="cfg"><span class="label-c">Radklang</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tick-Tack</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Stille</button></div></div>
+      <div class="cfg"><span class="label-c">Vibration</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">An</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Aus</button></div></div>
       <div class="cfg"><span class="label-c">Textgröße</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Groß</button></div></div>
       <div class="cfg"><span class="label-c">Ereignisse</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Karten</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Einfaches Fenster</button></div></div>
       <div class="cfg"><span class="label-c">Speichern und Laden</span><p class="hint">Das Spiel speichert jeden Monat von selbst. Hier kannst du bis zu 3 getrennte Spiele behalten und jederzeit zu ihnen zurückkehren.</p>
@@ -40576,6 +40599,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -45815,6 +45839,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Мята",'#F5F3EF','#A9DDBF'],ouro:["Золото и тёмно-синий",'#F3ECDC','#F0B83C'],ceu:["Небо и песок",'#E4EEF7','#F4B942'],noite:["Ночь",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -46544,6 +46570,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Цвета игры</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Фоновая музыка</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Джаз включён</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Без музыки</button></div></div>
       <div class="cfg"><span class="label-c">Звук колеса</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Тик-так</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Тишина</button></div></div>
+      <div class="cfg"><span class="label-c">Вибрация</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Вкл</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Выкл</button></div></div>
       <div class="cfg"><span class="label-c">Размер текста</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Обычный</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Большая</button></div></div>
       <div class="cfg"><span class="label-c">События</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Карточки</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Простое окно</button></div></div>
       <div class="cfg"><span class="label-c">Сохранить и загрузить</span><p class="hint">Игра сохраняется сама каждый месяц. Здесь можно хранить до 3 отдельных игр и возвращаться к ним когда захочешь.</p>
@@ -47212,6 +47239,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -52451,6 +52479,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Mint",'#F5F3EF','#A9DDBF'],ouro:["Emas dan navy",'#F3ECDC','#F0B83C'],ceu:["Langit dan pasir",'#E4EEF7','#F4B942'],noite:["Malam",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -53180,6 +53210,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Warna game</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Musik latar</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz menyala</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Tanpa musik</button></div></div>
       <div class="cfg"><span class="label-c">Suara roda</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tik-tok</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Hening</button></div></div>
+      <div class="cfg"><span class="label-c">Getar</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Aktif</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Mati</button></div></div>
       <div class="cfg"><span class="label-c">Ukuran teks</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Besar</button></div></div>
       <div class="cfg"><span class="label-c">Kejadian</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Kartu</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Jendela sederhana</button></div></div>
       <div class="cfg"><span class="label-c">Simpan dan muat</span><p class="hint">Game tersimpan sendiri setiap bulan. Di sini kamu bisa menyimpan hingga 3 game terpisah dan kembali ke sana kapan saja.</p>
@@ -53848,6 +53879,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -59087,6 +59119,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["Nane",'#F5F3EF','#A9DDBF'],ouro:["Altın ve lacivert",'#F3ECDC','#F0B83C'],ceu:["Gökyüzü ve kum",'#E4EEF7','#F4B942'],noite:["Gece",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -59816,6 +59850,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Oyun renkleri</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Arka plan müziği</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Caz açık</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Müzik yok</button></div></div>
       <div class="cfg"><span class="label-c">Çark sesi</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tik-tak</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Sessizlik</button></div></div>
+      <div class="cfg"><span class="label-c">Titreşim</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Açık</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Kapalı</button></div></div>
       <div class="cfg"><span class="label-c">Metin boyutu</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Büyük</button></div></div>
       <div class="cfg"><span class="label-c">Olaylar</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Kartlar</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Basit pencere</button></div></div>
       <div class="cfg"><span class="label-c">Kaydet ve yükle</span><p class="hint">Oyun her ay kendiliğinden kaydedilir. Burada en fazla 3 ayrı oyun tutabilir ve istediğin zaman onlara dönebilirsin.</p>
@@ -60484,6 +60519,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -65723,6 +65759,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["نعناعي",'#F5F3EF','#A9DDBF'],ouro:["ذهبي وكحلي",'#F3ECDC','#F0B83C'],ceu:["سماء ورمال",'#E4EEF7','#F4B942'],noite:["ليل",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -66452,6 +66490,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">ألوان اللعبة</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">الموسيقى الخلفية</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">الجاز يعمل</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">بلا موسيقى</button></div></div>
       <div class="cfg"><span class="label-c">صوت العجلة</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">تك تك</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">صمت</button></div></div>
+      <div class="cfg"><span class="label-c">الاهتزاز</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">تشغيل</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">إيقاف</button></div></div>
       <div class="cfg"><span class="label-c">حجم النص</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">عادي</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">كبير</button></div></div>
       <div class="cfg"><span class="label-c">الأحداث</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">البطاقات</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">نافذة بسيطة</button></div></div>
       <div class="cfg"><span class="label-c">الحفظ والتحميل</span><p class="hint">تُحفظ اللعبة تلقائياً كل شهر. هنا يمكنك الاحتفاظ بما يصل إلى 3 ألعاب منفصلة والعودة إليها متى شئت.</p>
@@ -67120,6 +67159,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -72359,6 +72399,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["ミント",'#F5F3EF','#A9DDBF'],ouro:["ゴールドとネイビー",'#F3ECDC','#F0B83C'],ceu:["空と砂",'#E4EEF7','#F4B942'],noite:["夜",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -73088,6 +73130,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">ゲームの色</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">BGM</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">ジャズ オン</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">音楽なし</button></div></div>
       <div class="cfg"><span class="label-c">ルーレットの音</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">チクタク</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">無音</button></div></div>
+      <div class="cfg"><span class="label-c">振動</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">オン</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">オフ</button></div></div>
       <div class="cfg"><span class="label-c">文字サイズ</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">ふつう</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">大</button></div></div>
       <div class="cfg"><span class="label-c">イベント</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">カード</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">シンプルウィンドウ</button></div></div>
       <div class="cfg"><span class="label-c">セーブとロード</span><p class="hint">ゲームは毎月自動で保存されます。ここでは最大3つの別のゲームを残し、いつでも戻れます。</p>
@@ -73756,6 +73799,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -78995,6 +79039,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["민트",'#F5F3EF','#A9DDBF'],ouro:["골드와 네이비",'#F3ECDC','#F0B83C'],ceu:["하늘과 모래",'#E4EEF7','#F4B942'],noite:["밤",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -79724,6 +79770,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">게임 색상</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">배경 음악</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">재즈 켜기</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">음악 없음</button></div></div>
       <div class="cfg"><span class="label-c">룰렛 소리</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">똑딱</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">무음</button></div></div>
+      <div class="cfg"><span class="label-c">진동</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">켜짐</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">꺼짐</button></div></div>
       <div class="cfg"><span class="label-c">글자 크기</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">보통</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">대형</button></div></div>
       <div class="cfg"><span class="label-c">이벤트</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">카드</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">간단한 창</button></div></div>
       <div class="cfg"><span class="label-c">저장과 불러오기</span><p class="hint">게임은 매달 자동으로 저장돼요. 여기서는 별도의 게임을 최대 3개까지 보관하고 언제든 돌아갈 수 있어요.</p>
@@ -80392,6 +80439,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -85630,6 +85678,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["पुदीना",'#F5F3EF','#A9DDBF'],ouro:["सुनहरा और नेवी",'#F3ECDC','#F0B83C'],ceu:["आसमान और रेत",'#E4EEF7','#F4B942'],noite:["रात",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -86359,6 +86409,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">खेल के रंग</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">पृष्ठभूमि संगीत</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">जैज़ चालू</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">कोई संगीत नहीं</button></div></div>
       <div class="cfg"><span class="label-c">चक्र की ध्वनि</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">टिक-टॉक</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">ख़ामोशी</button></div></div>
+      <div class="cfg"><span class="label-c">कंपन</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">चालू</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">बंद</button></div></div>
       <div class="cfg"><span class="label-c">अक्षर का आकार</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">सामान्य</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">बड़ी</button></div></div>
       <div class="cfg"><span class="label-c">घटनाएँ</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">कार्ड</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">सरल विंडो</button></div></div>
       <div class="cfg"><span class="label-c">सहेजें और लोड करें</span><p class="hint">खेल हर महीने अपने आप सहेजता है। यहाँ आप 3 अलग खेल रख सकते हैं और जब चाहें उन पर लौट सकते हैं।</p>
@@ -87027,6 +87078,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -92265,6 +92317,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:["薄荷绿",'#F5F3EF','#A9DDBF'],ouro:["金色与藏青",'#F3ECDC','#F0B83C'],ceu:["天蓝与沙色",'#E4EEF7','#F4B942'],noite:["夜晚",'#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -92994,6 +93048,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">游戏配色</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">背景音乐</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">爵士乐开</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">无音乐</button></div></div>
       <div class="cfg"><span class="label-c">轮盘音效</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">滴答声</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">静音</button></div></div>
+      <div class="cfg"><span class="label-c">振动</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">开</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">关</button></div></div>
       <div class="cfg"><span class="label-c">文字大小</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">正常</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">大</button></div></div>
       <div class="cfg"><span class="label-c">事件</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">卡牌</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">简洁窗口</button></div></div>
       <div class="cfg"><span class="label-c">存档与读档</span><p class="hint">游戏每月自动存档。在这里你可以保留最多3个独立的游戏，随时回去。</p>
@@ -93662,6 +93717,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
@@ -98896,6 +98952,8 @@ function montarCena(){
 /* ================= tela inicial ================= */
 const PREF_KEY='corrida-prefs';
 const prefs = () => { try{ return JSON.parse(localStorage.getItem(PREF_KEY))||{}; }catch(e){ return {}; } };
+const vib = ms => { try{ if(prefs().vib===false || window.__corridaMudo || navigator.webdriver) return; navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }; // toque leve nos botões
+document.addEventListener('pointerdown', e=>{ const b=e.target.closest && e.target.closest('button,[data-acao]'); if(b && !b.disabled) vib(8); }, {passive:true});
 const gravarPrefs = p => { try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} };
 const PALETAS={menta:['Menta','#F5F3EF','#A9DDBF'],ouro:['Ouro e marinho','#F3ECDC','#F0B83C'],ceu:['Céu e areia','#E4EEF7','#F4B942'],noite:['Noite','#151C33','#F2C14E']};
 // verso das cartas (Gemini): vale para a carta que vira e para o montinho do deck
@@ -99625,6 +99683,7 @@ function renderModal0(){
       <div class="cfg"><span class="label-c">Cores do jogo</span><div class="cores">${Object.entries(PALETAS).map(([id,[n,f,d]])=>`<button data-acao="cfgCor" data-alvo="${id}" aria-pressed="${(PALETAS[p.cor]?p.cor:'menta')===id}"><span class="cor-am" style="background:${f}"><i style="background:${d}"></i></span>${n}</button>`).join('')}</div></div>
       <div class="cfg"><span class="label-c">Música de fundo</span><div class="seg"><button data-acao="cfgMus" data-alvo="1" aria-pressed="${p.musica!==false}">Jazz ligado</button><button data-acao="cfgMus" data-alvo="0" aria-pressed="${p.musica===false}">Sem música</button></div></div>
       <div class="cfg"><span class="label-c">Som da roleta</span><div class="seg"><button data-acao="cfgSom" data-alvo="1" aria-pressed="${p.som!==false}">Tique-taque</button><button data-acao="cfgSom" data-alvo="0" aria-pressed="${p.som===false}">Silêncio</button></div></div>
+      <div class="cfg"><span class="label-c">Vibração</span><div class="seg"><button data-acao="cfgVib" data-alvo="1" aria-pressed="${p.vib!==false}">Ligada</button><button data-acao="cfgVib" data-alvo="0" aria-pressed="${p.vib===false}">Desligada</button></div></div>
       <div class="cfg"><span class="label-c">Tamanho da letra</span><div class="seg"><button data-acao="cfgLetra" data-alvo="0" aria-pressed="${!p.letraGrande}">Normal</button><button data-acao="cfgLetra" data-alvo="1" aria-pressed="${!!p.letraGrande}">Grande</button></div></div>
       <div class="cfg"><span class="label-c">Eventos</span><div class="seg"><button data-acao="cfgCartas" data-alvo="1" aria-pressed="${p.cartas!==false}">Cartas</button><button data-acao="cfgCartas" data-alvo="0" aria-pressed="${p.cartas===false}">Janela simples</button></div></div>
       <div class="cfg"><span class="label-c">Salvar e carregar</span><p class="hint">O jogo salva sozinho a cada mês. Aqui você guarda até 3 jogos à parte e volta a eles quando quiser.</p>
@@ -100293,6 +100352,7 @@ document.addEventListener('click', e=>{
     case 'habComecar': comecarHab(alvo); ui.modal=null; salvar(); render(); break;
     case 'cfgMus': { const p=prefs(); p.musica=alvo==='1'; gravarPrefs(p); if(p.musica) MUS.ligar(); else MUS.desligar(); renderModal(); break; }
     case 'cfgSom': { const p=prefs(); p.som=alvo==='1'; gravarPrefs(p); renderModal(); break; }
+    case 'cfgVib': { const p=prefs(); p.vib=alvo==='1'; gravarPrefs(p); if(p.vib) vib(15); renderModal(); break; }
     case 'cfgLetra': { const p=prefs(); p.letraGrande=alvo==='1'; gravarPrefs(p); aplicarPrefs(); renderModal(); break; }
     case 'mapaVista': mapaVista(); break;
     case 'minhaCasa': ui.modal='minhaCasa'; render(); break;
