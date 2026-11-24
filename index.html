@@ -6384,9 +6384,9 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     dinheiro: `<section class="hud" aria-label="Month status">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: loans and installments</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Where your money comes from (per hour)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Your profile: income, expenses and the dream</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Your profile: income, expenses and the dream</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -7452,7 +7452,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -13024,9 +13024,9 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
     dinheiro: `<section class="hud" aria-label="Estado del mes">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: préstamos y cuotas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De dónde viene tu dinero (por hora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Tu perfil: ingresos, gastos y el sueño</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Tu perfil: ingresos, gastos y el sueño</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -14092,7 +14092,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -19663,9 +19663,9 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
     dinheiro: `<section class="hud" aria-label="Estado do mês">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e prestações</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o teu dinheiro (por hora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>O teu perfil: rendimento, despesas e o sonho</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>O teu perfil: rendimento, despesas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -20731,7 +20731,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -26303,9 +26303,9 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
     dinheiro: `<section class="hud" aria-label="Situation du mois">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banque : prêts et mensualités</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>D'où vient ton argent (par heure)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Ton profil : revenus, dépenses et le rêve</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Ton profil : revenus, dépenses et le rêve</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -27371,7 +27371,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -32943,9 +32943,9 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
     dinheiro: `<section class="hud" aria-label="Stato del mese">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banca: prestiti e rate</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Da dove viene il tuo denaro (all'ora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Il tuo profilo: reddito, spese e il sogno</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Il tuo profilo: reddito, spese e il sogno</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -34011,7 +34011,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -39583,9 +39583,9 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
     dinheiro: `<section class="hud" aria-label="Monatsstand">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: Kredite und Raten</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Woher dein Geld kommt (pro Stunde)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Dein Profil: Einkommen, Ausgaben und der Traum</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Dein Profil: Einkommen, Ausgaben und der Traum</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -40651,7 +40651,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -46223,9 +46223,9 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
     dinheiro: `<section class="hud" aria-label="Состояние месяца">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Банк: кредиты и рассрочки</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Откуда твои деньги (в час)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Твой профиль: доходы, расходы и мечта</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Твой профиль: доходы, расходы и мечта</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -47291,7 +47291,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -52863,9 +52863,9 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
     dinheiro: `<section class="hud" aria-label="Status bulan ini">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Bank: pinjaman dan cicilan</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Dari mana uangmu berasal (per jam)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Profilmu: penghasilan, pengeluaran, dan impian</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Profilmu: penghasilan, pengeluaran, dan impian</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -53931,7 +53931,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -59503,9 +59503,9 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
     dinheiro: `<section class="hud" aria-label="Ay durumu">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banka: krediler ve taksitler</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>Paran nereden geliyor (saat başı)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Profilin: gelir, giderler ve hayal</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Profilin: gelir, giderler ve hayal</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -60571,7 +60571,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -66143,9 +66143,9 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
     dinheiro: `<section class="hud" aria-label="حالة الشهر">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} البنك: القروض والأقساط</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>من أين يأتي مالك (بالساعة)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>ملفك: الدخل والمصروفات والحلم</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>ملفك: الدخل والمصروفات والحلم</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -67211,7 +67211,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -72783,9 +72783,9 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
     dinheiro: `<section class="hud" aria-label="今月の状況">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} 銀行：ローンと分割払い</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>お金の出どころ（1時間あたり）</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>あなたのプロフィール：収入、支出、夢</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>あなたのプロフィール：収入、支出、夢</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -73851,7 +73851,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -79423,9 +79423,9 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
     dinheiro: `<section class="hud" aria-label="월 현황">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} 은행: 대출과 할부</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>당신의 돈이 나오는 곳(시간당)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>당신의 프로필: 소득, 지출, 꿈</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>당신의 프로필: 소득, 지출, 꿈</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -80491,7 +80491,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -86062,9 +86062,9 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
     dinheiro: `<section class="hud" aria-label="महीने की स्थिति">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} बैंक: लोन और किस्तें</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>आपका पैसा कहाँ से आता है (प्रति घंटा)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>आपकी प्रोफ़ाइल: आमदनी, खर्च और सपना</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>आपकी प्रोफ़ाइल: आमदनी, खर्च और सपना</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -87130,7 +87130,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -92701,9 +92701,9 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
     dinheiro: `<section class="hud" aria-label="月度状态">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')}银行：贷款和分期</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>你的钱从哪里来（每小时）</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>你的档案：收入、开支和梦想</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>你的档案：收入、开支和梦想</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -93769,7 +93769,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
@@ -99336,9 +99336,9 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     dinheiro: `<section class="hud" aria-label="Situação do mês">${hud}</section>${doaCard()}<details class="mais card-det" data-k="banco" ${ui.aberto?.banco||s.conta<0?'open':''}><summary>${pix('🏦','mini')} Banco: empréstimos e parcelas</summary>${banco}${parcelas}</details>`,
     investir: investirCard,
     renda: `${ofertas}${ativos}${ceoCard()}${extraCard}${inflCard}<details class="mais card-det" data-k="fontes" ${ui.aberto?.fontes?'open':''}><summary>De onde vem o seu dinheiro (por hora)</summary>${rendaCard}</details>`,
-    vida: `${barrasVida}${lazerCardComIntro()}${arvoreCard()}`,
+    vida: `${barrasVida}${lazerCardComIntro()}`,
     casa: `${casaCard}${carroCard}${luxoCard()}${albumCard()}`,
-    carreira: `${evoCard}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
+    carreira: `${evoCard}${arvoreCard()}${metasCard}${estCard}${tempoCard()}<details class="mais card-det" data-k="ficha" ${ui.aberto?.ficha?'open':''}><summary>Sua ficha: entradas, saídas e o sonho</summary>${ficha}</details>`
   }[aba] || '';
   app.innerHTML=`
   <header class="topo2">
@@ -100404,7 +100404,7 @@ document.addEventListener('click', e=>{
     case 'ceoSozinho': ceoResponder(true); ceo().auto=true; salvar(); render(); break;
     case 'evolucaoFechar': s.avisosEvolucao?.shift(); salvar(); render(); break;
     case 'evolucaoConferir': s.avisosEvolucao?.shift(); if((s.ativos||[]).find(x=>x.uid===Number(alvo)&&x.tyc)){ ui.tycUid=Number(alvo); ui.tycMsg=''; ui.modal='tyc'; } salvar(); render(); break;
-    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba=(av&&av.tipo==='habilidade')?'vida':'carreira'; }  ui.telaScroll=0; salvar(); render(); break;
+    case 'evolucaoVer': { const av=s.avisosEvolucao?.shift(); ui.aba='carreira'; }  ui.telaScroll=0; salvar(); render(); break;
     case 'quitar': quitarEmprestimo(Number(alvo)); salvar(); render(); break;
     case 'cobrir': { if(s.conta<0 && prod(alvo)){ const p=prod(alvo), divida=-s.conta, r=resgatarLiquido(alvo, divida, true);
       if(Math.abs(s.conta)<0.01) s.conta=0;
