@@ -2770,8 +2770,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -6265,6 +6265,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
       <div><span class="label-c">Income per month</span>
         <div class="fl"><span>${s.aposentado?"Salary (stopped)":s.empresario?"Salary (became entrepreneur)":s.desemp>0?"Unemployment insurance":prof().comissao?"Salary + commission (average)":"Salary"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Investments</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Reinvested (not paid out)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Rents and businesses</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Spending per month</span>
@@ -9410,8 +9411,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -12905,6 +12906,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
       <div><span class="label-c">Ingresos al mes</span>
         <div class="fl"><span>${s.aposentado?"Salario (detenido)":s.empresario?"Salario (te hiciste emprendedor)":s.desemp>0?"Seguro de desempleo":prof().comissao?"Salario + comisión (media)":"Salario"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Inversiones</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Reinvertido (no entra)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Alquileres y negocios</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Gastos al mes</span>
@@ -16049,8 +16051,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -19544,6 +19546,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
       <div><span class="label-c">Rendimento por mês</span>
         <div class="fl"><span>${s.aposentado?"Salário (parado)":s.empresario?"Salário (passaste a empreendedor)":s.desemp>0?"Subsídio de desemprego":prof().comissao?"Salário + comissão (média)":"Ordenado"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Investimentos</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Reinvestido (não entra)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Rendas e negócios</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Gastos por mês</span>
@@ -22689,8 +22692,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -26184,6 +26187,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
       <div><span class="label-c">Revenus par mois</span>
         <div class="fl"><span>${s.aposentado?"Salaire (arrêté)":s.empresario?"Salaire (devenu entrepreneur)":s.desemp>0?"Allocation chômage":prof().comissao?"Salaire + commission (moyenne)":"Salaire"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Investissements</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Réinvesti (non versé)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Loyers et entreprises</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Dépenses par mois</span>
@@ -29329,8 +29333,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -32824,6 +32828,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
       <div><span class="label-c">Reddito al mese</span>
         <div class="fl"><span>${s.aposentado?"Stipendio (sospeso)":s.empresario?"Stipendio (diventato imprenditore)":s.desemp>0?"Indennità di disoccupazione":prof().comissao?"Stipendio + commissioni (media)":"Stipendio"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Investimenti</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Reinvestito (non entra)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Affitti e attività</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Spese al mese</span>
@@ -35969,8 +35974,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -39464,6 +39469,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
       <div><span class="label-c">Einkommen pro Monat</span>
         <div class="fl"><span>${s.aposentado?"Gehalt (gestoppt)":s.empresario?"Gehalt (Unternehmer geworden)":s.desemp>0?"Arbeitslosengeld":prof().comissao?"Gehalt + Provision (Durchschnitt)":"Gehalt"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Anlagen</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Reinvestiert (nicht ausgezahlt)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Mieten und Geschäfte</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Ausgaben pro Monat</span>
@@ -42609,8 +42615,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -46104,6 +46110,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
       <div><span class="label-c">Доход в месяц</span>
         <div class="fl"><span>${s.aposentado?"Зарплата (остановлена)":s.empresario?"Зарплата (стал предпринимателем)":s.desemp>0?"Страховка по безработице":prof().comissao?"Зарплата + комиссия (в среднем)":"Зарплата"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Инвестиции</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Реинвестировано (не на счёт)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Аренда и бизнесы</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Траты в месяц</span>
@@ -49249,8 +49256,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -52744,6 +52751,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
       <div><span class="label-c">Penghasilan per bulan</span>
         <div class="fl"><span>${s.aposentado?"Gaji (berhenti)":s.empresario?"Gaji (menjadi pengusaha)":s.desemp>0?"Asuransi pengangguran":prof().comissao?"Gaji + komisi (rata-rata)":"Gaji"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Investasi</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Diinvestasi ulang (tidak masuk)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Sewa dan bisnis</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Pengeluaran per bulan</span>
@@ -55889,8 +55897,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -59384,6 +59392,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
       <div><span class="label-c">Aylık gelir</span>
         <div class="fl"><span>${s.aposentado?"Maaş (durdu)":s.empresario?"Maaş (girişimci oldu)":s.desemp>0?"İşsizlik sigortası":prof().comissao?"Maaş + prim (ortalama)":"Maaş"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Yatırımlar</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Yeniden yatırılan (hesaba girmez)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Kiralar ve işletmeler</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Aylık harcama</span>
@@ -62529,8 +62538,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -66024,6 +66033,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
       <div><span class="label-c">الدخل في الشهر</span>
         <div class="fl"><span>${s.aposentado?"الراتب (متوقف)":s.empresario?"الراتب (أصبحت رائد أعمال)":s.desemp>0?"تأمين البطالة":prof().comissao?"الراتب + العمولة (المتوسط)":"الراتب"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>الاستثمارات</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>معاد استثماره (لا يدخل الحساب)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>الإيجارات والأعمال</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">الإنفاق في الشهر</span>
@@ -69169,8 +69179,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -72664,6 +72674,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
       <div><span class="label-c">月の収入</span>
         <div class="fl"><span>${s.aposentado?"給料（停止中）":s.empresario?"給料（起業家になった）":s.desemp>0?"失業保険":prof().comissao?"給料＋歩合（平均）":"給料"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>投資</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>再投資分（口座に入らない）</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>家賃と事業</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">月の支出</span>
@@ -75809,8 +75820,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -79304,6 +79315,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
       <div><span class="label-c">월 소득</span>
         <div class="fl"><span>${s.aposentado?"월급(중단됨)":s.empresario?"월급(사업가가 됨)":s.desemp>0?"실업 보험":prof().comissao?"월급 + 수당(평균)":"월급"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>투자</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>재투자분(계좌에 안 들어옴)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>월세와 사업</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">월 지출</span>
@@ -82448,8 +82460,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -85943,6 +85955,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
       <div><span class="label-c">प्रति माह आमदनी</span>
         <div class="fl"><span>${s.aposentado?"वेतन (रुका हुआ)":s.empresario?"वेतन (उद्यमी बने)":s.desemp>0?"बेरोज़गारी बीमा":prof().comissao?"वेतन + कमीशन (औसत)":"वेतन"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>निवेश</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>पुनर्निवेश (खाते में नहीं)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>किराये और कारोबार</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">प्रति माह खर्च</span>
@@ -89087,8 +89100,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -92582,6 +92595,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
       <div><span class="label-c">每月收入</span>
         <div class="fl"><span>${s.aposentado?"薪水（已停止）":s.empresario?"薪水（成为创业者）":s.desemp>0?"失业保险":prof().comissao?"薪水+提成（平均）":"薪水"}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>投资</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>再投资部分（不入账）</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>租金和生意</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">每月支出</span>
@@ -95722,8 +95736,8 @@ const rendaAtivo = a => a.tipo==='terreno' ? 0 : a.tyc ? a.renda : a.renda*bonus
 const rendaAtivos = () => (s.ativos||[]).reduce((x,a)=>x+rendaAtivo(a),0) + (typeof tycRoyTotal==='function' ? tycRoyTotal() : 0);
 const patrimonio = () => s.conta + investido() + valorAtivos() + (s.casa||0) + (s.carro?.valor||0) + luxoValor() - dividaParcelada();
 const DIV_MEDIO_ANO = 0.0184; // dividendo médio anual das ações (real, média da série)
-const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=v*p.taxa(); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
-const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=v*p.taxa(); } return r; }; // juros que ficam reinvestidos na carteira
+const rendaInvest = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v<0.01) continue; if(p.reserva){ if((s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } else if(p.div) r+=v*DIV_MEDIO_ANO/12; } return r; }; // só o que entra na conta: juros pagos na conta + dividendos (média mensal)
+const rendaReinv = () => { let r=0; for(const [id,p] of Object.entries(prods())){ const v=valor(id); if(v>=0.01 && p.reserva && !(s.jurosConta||{})[id]) r+=Math.max(0,v*p.taxa()); } return r; }; // juros que ficam reinvestidos na carteira
 const rendaSaque = () => investido()*TAXA_RENDA; // informação: quanto dá para sacar com segurança (não é renda passiva)
 const rendaPassiva = () => rendaInvest() + rendaAtivos() + (s.rendaNegocio||0) + ((s.franqs&&s.franqs.length)?tycRoyTotal():0);
 // fluxo de caixa previsto do mês: o que entra e o que sai da conta corrente
@@ -99217,6 +99231,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
       <div><span class="label-c">Entradas por mês</span>
         <div class="fl"><span>${s.aposentado?'Salário (parou)':s.empresario?'Salário (virou empresário)':s.desemp>0?'Seguro-desemprego':prof().comissao?'Salário + comissão (média)':'Salário'}</span><b>${fmt0(entradaTrab)}</b></div>${temExtra()?`<div class="fl"><span>${prof().extra.nome}</span><b>${fmt0(valorExtra())}</b></div>`:''}
         <div class="fl"><span>Investimentos</span><b>${fmt0(rendaInvest())}</b></div>
+        ${rendaReinv()>=1?`<div class="fl" style="opacity:.7"><span>Reinvestido (não entra)</span><b>~${fmt0(rendaReinv())}</b></div>`:''}
         <div class="fl"><span>Aluguéis e negócios</span><b>${fmt0(rendaAtivos()+(s.rendaNegocio||0))}</b></div>
       </div>
       <div><span class="label-c">Saídas por mês</span>
