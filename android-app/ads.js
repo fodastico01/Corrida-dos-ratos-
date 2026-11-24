@@ -20,21 +20,21 @@
 
   /* ---------- textos (por idioma do jogo) ---------- */
   var T = {
-    pt:{t:'Anúncios', rem:'Remover anúncios', ok:'Anúncios removidos. Obrigado por apoiar o jogo!', res:'Restaurar compra', priv:'Avisos e privacidade', cons:'Preferências de anúncios', fail:'Não foi possível concluir a compra. Tente de novo.', none:'Nenhuma compra encontrada nesta conta.', rest:'Compra restaurada.'},
-    en:{t:'Ads', rem:'Remove ads', ok:'Ads removed. Thank you for supporting the game!', res:'Restore purchase', priv:'Notices and privacy', cons:'Ad preferences', fail:'The purchase could not be completed. Please try again.', none:'No purchase found on this account.', rest:'Purchase restored.'},
-    es:{t:'Anuncios', rem:'Quitar anuncios', ok:'Anuncios eliminados. ¡Gracias por apoyar el juego!', res:'Restaurar compra', priv:'Avisos y privacidad', cons:'Preferencias de anuncios', fail:'No se pudo completar la compra. Inténtalo de nuevo.', none:'No se encontró ninguna compra en esta cuenta.', rest:'Compra restaurada.'},
-    'pt-pt':{t:'Anúncios', rem:'Remover anúncios', ok:'Anúncios removidos. Obrigado por apoiares o jogo!', res:'Restaurar compra', priv:'Avisos e privacidade', cons:'Preferências de anúncios', fail:'Não foi possível concluir a compra. Tenta de novo.', none:'Nenhuma compra encontrada nesta conta.', rest:'Compra restaurada.'},
-    fr:{t:'Publicités', rem:'Supprimer les publicités', ok:'Publicités supprimées. Merci de soutenir le jeu !', res:'Restaurer l\'achat', priv:'Avis et confidentialité', cons:'Préférences publicitaires', fail:'L\'achat n\'a pas pu être finalisé. Réessaie.', none:'Aucun achat trouvé sur ce compte.', rest:'Achat restauré.'},
-    it:{t:'Annunci', rem:'Rimuovi gli annunci', ok:'Annunci rimossi. Grazie per aver sostenuto il gioco!', res:'Ripristina acquisto', priv:'Avvisi e privacy', cons:'Preferenze annunci', fail:'Impossibile completare l\'acquisto. Riprova.', none:'Nessun acquisto trovato su questo account.', rest:'Acquisto ripristinato.'},
-    de:{t:'Werbung', rem:'Werbung entfernen', ok:'Werbung entfernt. Danke, dass du das Spiel unterstützt!', res:'Kauf wiederherstellen', priv:'Hinweise und Datenschutz', cons:'Werbeeinstellungen', fail:'Der Kauf konnte nicht abgeschlossen werden. Versuche es erneut.', none:'Kein Kauf in diesem Konto gefunden.', rest:'Kauf wiederhergestellt.'},
-    ru:{t:'Реклама', rem:'Отключить рекламу', ok:'Реклама отключена. Спасибо, что поддержали игру!', res:'Восстановить покупку', priv:'Уведомления и конфиденциальность', cons:'Настройки рекламы', fail:'Не удалось завершить покупку. Попробуйте ещё раз.', none:'Покупок в этом аккаунте не найдено.', rest:'Покупка восстановлена.'},
-    id:{t:'Iklan', rem:'Hapus iklan', ok:'Iklan dihapus. Terima kasih sudah mendukung game ini!', res:'Pulihkan pembelian', priv:'Pemberitahuan dan privasi', cons:'Preferensi iklan', fail:'Pembelian tidak dapat diselesaikan. Coba lagi.', none:'Tidak ada pembelian di akun ini.', rest:'Pembelian dipulihkan.'},
-    tr:{t:'Reklamlar', rem:'Reklamları kaldır', ok:'Reklamlar kaldırıldı. Oyunu desteklediğin için teşekkürler!', res:'Satın alımı geri yükle', priv:'Bildirimler ve gizlilik', cons:'Reklam tercihleri', fail:'Satın alma tamamlanamadı. Tekrar dene.', none:'Bu hesapta satın alma bulunamadı.', rest:'Satın alma geri yüklendi.'},
-    ar:{t:'الإعلانات', rem:'إزالة الإعلانات', ok:'تمت إزالة الإعلانات. شكرًا على دعمك اللعبة!', res:'استعادة الشراء', priv:'الإشعارات والخصوصية', cons:'تفضيلات الإعلانات', fail:'تعذر إتمام الشراء. حاول مرة أخرى.', none:'لم يتم العثور على أي عملية شراء في هذا الحساب.', rest:'تمت استعادة الشراء.'},
-    ja:{t:'広告', rem:'広告を削除', ok:'広告を削除しました。ご支援ありがとうございます！', res:'購入を復元', priv:'お知らせとプライバシー', cons:'広告の設定', fail:'購入を完了できませんでした。もう一度お試しください。', none:'このアカウントに購入が見つかりません。', rest:'購入を復元しました。'},
-    ko:{t:'광고', rem:'광고 제거', ok:'광고가 제거되었습니다. 게임을 응원해 주셔서 감사합니다!', res:'구매 복원', priv:'알림 및 개인정보', cons:'광고 설정', fail:'구매를 완료하지 못했습니다. 다시 시도해 주세요.', none:'이 계정에서 구매 내역을 찾을 수 없습니다.', rest:'구매가 복원되었습니다.'},
-    hi:{t:'विज्ञापन', rem:'विज्ञापन हटाएँ', ok:'विज्ञापन हटा दिए गए। खेल का समर्थन करने के लिए धन्यवाद!', res:'खरीदारी बहाल करें', priv:'सूचनाएँ और गोपनीयता', cons:'विज्ञापन प्राथमिकताएँ', fail:'खरीदारी पूरी नहीं हो सकी। कृपया फिर प्रयास करें।', none:'इस खाते में कोई खरीदारी नहीं मिली।', rest:'खरीदारी बहाल हो गई।'},
-    zh:{t:'广告', rem:'移除广告', ok:'广告已移除。感谢你支持游戏！', res:'恢复购买', priv:'通知与隐私', cons:'广告偏好', fail:'无法完成购买，请重试。', none:'此账号下未找到购买记录。', rest:'已恢复购买。'}
+    pt:{av:'Avaliar o jogo', t:'Anúncios', rem:'Remover anúncios', ok:'Anúncios removidos. Obrigado por apoiar o jogo!', res:'Restaurar compra', priv:'Avisos e privacidade', cons:'Preferências de anúncios', fail:'Não foi possível concluir a compra. Tente de novo.', none:'Nenhuma compra encontrada nesta conta.', rest:'Compra restaurada.'},
+    en:{av:'Rate the game', t:'Ads', rem:'Remove ads', ok:'Ads removed. Thank you for supporting the game!', res:'Restore purchase', priv:'Notices and privacy', cons:'Ad preferences', fail:'The purchase could not be completed. Please try again.', none:'No purchase found on this account.', rest:'Purchase restored.'},
+    es:{av:'Valorar el juego', t:'Anuncios', rem:'Quitar anuncios', ok:'Anuncios eliminados. ¡Gracias por apoyar el juego!', res:'Restaurar compra', priv:'Avisos y privacidad', cons:'Preferencias de anuncios', fail:'No se pudo completar la compra. Inténtalo de nuevo.', none:'No se encontró ninguna compra en esta cuenta.', rest:'Compra restaurada.'},
+    'pt-pt':{av:'Avaliar o jogo', t:'Anúncios', rem:'Remover anúncios', ok:'Anúncios removidos. Obrigado por apoiares o jogo!', res:'Restaurar compra', priv:'Avisos e privacidade', cons:'Preferências de anúncios', fail:'Não foi possível concluir a compra. Tenta de novo.', none:'Nenhuma compra encontrada nesta conta.', rest:'Compra restaurada.'},
+    fr:{av:'Noter le jeu', t:'Publicités', rem:'Supprimer les publicités', ok:'Publicités supprimées. Merci de soutenir le jeu !', res:'Restaurer l\'achat', priv:'Avis et confidentialité', cons:'Préférences publicitaires', fail:'L\'achat n\'a pas pu être finalisé. Réessaie.', none:'Aucun achat trouvé sur ce compte.', rest:'Achat restauré.'},
+    it:{av:'Valuta il gioco', t:'Annunci', rem:'Rimuovi gli annunci', ok:'Annunci rimossi. Grazie per aver sostenuto il gioco!', res:'Ripristina acquisto', priv:'Avvisi e privacy', cons:'Preferenze annunci', fail:'Impossibile completare l\'acquisto. Riprova.', none:'Nessun acquisto trovato su questo account.', rest:'Acquisto ripristinato.'},
+    de:{av:'Spiel bewerten', t:'Werbung', rem:'Werbung entfernen', ok:'Werbung entfernt. Danke, dass du das Spiel unterstützt!', res:'Kauf wiederherstellen', priv:'Hinweise und Datenschutz', cons:'Werbeeinstellungen', fail:'Der Kauf konnte nicht abgeschlossen werden. Versuche es erneut.', none:'Kein Kauf in diesem Konto gefunden.', rest:'Kauf wiederhergestellt.'},
+    ru:{av:'Оценить игру', t:'Реклама', rem:'Отключить рекламу', ok:'Реклама отключена. Спасибо, что поддержали игру!', res:'Восстановить покупку', priv:'Уведомления и конфиденциальность', cons:'Настройки рекламы', fail:'Не удалось завершить покупку. Попробуйте ещё раз.', none:'Покупок в этом аккаунте не найдено.', rest:'Покупка восстановлена.'},
+    id:{av:'Beri nilai game', t:'Iklan', rem:'Hapus iklan', ok:'Iklan dihapus. Terima kasih sudah mendukung game ini!', res:'Pulihkan pembelian', priv:'Pemberitahuan dan privasi', cons:'Preferensi iklan', fail:'Pembelian tidak dapat diselesaikan. Coba lagi.', none:'Tidak ada pembelian di akun ini.', rest:'Pembelian dipulihkan.'},
+    tr:{av:'Oyunu değerlendir', t:'Reklamlar', rem:'Reklamları kaldır', ok:'Reklamlar kaldırıldı. Oyunu desteklediğin için teşekkürler!', res:'Satın alımı geri yükle', priv:'Bildirimler ve gizlilik', cons:'Reklam tercihleri', fail:'Satın alma tamamlanamadı. Tekrar dene.', none:'Bu hesapta satın alma bulunamadı.', rest:'Satın alma geri yüklendi.'},
+    ar:{av:'قيّم اللعبة', t:'الإعلانات', rem:'إزالة الإعلانات', ok:'تمت إزالة الإعلانات. شكرًا على دعمك اللعبة!', res:'استعادة الشراء', priv:'الإشعارات والخصوصية', cons:'تفضيلات الإعلانات', fail:'تعذر إتمام الشراء. حاول مرة أخرى.', none:'لم يتم العثور على أي عملية شراء في هذا الحساب.', rest:'تمت استعادة الشراء.'},
+    ja:{av:'ゲームを評価する', t:'広告', rem:'広告を削除', ok:'広告を削除しました。ご支援ありがとうございます！', res:'購入を復元', priv:'お知らせとプライバシー', cons:'広告の設定', fail:'購入を完了できませんでした。もう一度お試しください。', none:'このアカウントに購入が見つかりません。', rest:'購入を復元しました。'},
+    ko:{av:'게임 평가하기', t:'광고', rem:'광고 제거', ok:'광고가 제거되었습니다. 게임을 응원해 주셔서 감사합니다!', res:'구매 복원', priv:'알림 및 개인정보', cons:'광고 설정', fail:'구매를 완료하지 못했습니다. 다시 시도해 주세요.', none:'이 계정에서 구매 내역을 찾을 수 없습니다.', rest:'구매가 복원되었습니다.'},
+    hi:{av:'गेम को रेट करें', t:'विज्ञापन', rem:'विज्ञापन हटाएँ', ok:'विज्ञापन हटा दिए गए। खेल का समर्थन करने के लिए धन्यवाद!', res:'खरीदारी बहाल करें', priv:'सूचनाएँ और गोपनीयता', cons:'विज्ञापन प्राथमिकताएँ', fail:'खरीदारी पूरी नहीं हो सकी। कृपया फिर प्रयास करें।', none:'इस खाते में कोई खरीदारी नहीं मिली।', rest:'खरीदारी बहाल हो गई।'},
+    zh:{av:'给游戏评分', t:'广告', rem:'移除广告', ok:'广告已移除。感谢你支持游戏！', res:'恢复购买', priv:'通知与隐私', cons:'广告偏好', fail:'无法完成购买，请重试。', none:'此账号下未找到购买记录。', rest:'已恢复购买。'}
   };
   function tx(){ var l = String(window.__LANG||'pt'); return T[l] || T[l.split('-')[0]] || (/^(es|fr|it|de|ru|id|tr|ar|ja|ko|hi|zh)/.test(l) ? T[l.slice(0,2)] : null) || T.en; }
   function toast(m){
@@ -173,6 +173,36 @@
     }, 1500);
   }, true);
 
+
+  /* ---------- pedido de avaliação (API oficial do Google Play; sem filtrar quem recebe) ---------- */
+  var IAR = C.Plugins && C.Plugins.InAppReview;
+  var AV_MIN_JOGADAS = 40, AV_MIN_MS = 10*60*1000, AV_DIAS = 30*24*3600*1000, AV_MAX = 3;
+  function avCont(){ var n = parseInt(lsGet('corrida-av-jogadas')||'0',10)||0; return n; }
+  document.addEventListener('click', function(ev){
+    var el = ev.target && ev.target.closest && ev.target.closest('[data-acao="avancar"]'); if(!el) return;
+    lsSet('corrida-av-jogadas', String(avCont()+1));
+    if(!lsGet('corrida-av-inicio')) lsSet('corrida-av-inicio', String(Date.now()));
+  }, true);
+  var avEspera = null;
+  function talvezAvaliar(){
+    if(!IAR || avEspera) return;
+    var vezes = parseInt(lsGet('corrida-av-vezes')||'0',10)||0, ultimoAv = parseInt(lsGet('corrida-av-ultimo')||'0',10)||0;
+    var ini = parseInt(lsGet('corrida-av-inicio')||'0',10)||0;
+    if(vezes>=AV_MAX || avCont()<AV_MIN_JOGADAS || !ini || Date.now()-ini<AV_MIN_MS || Date.now()-ultimoAv<AV_DIAS) return;
+    var t0 = Date.now();
+    avEspera = setInterval(function(){
+      if(Date.now()-t0 > 30000){ clearInterval(avEspera); avEspera = null; return; }
+      if(document.querySelector('.overlay')) return;          // carta ou janela aberta: espera
+      if(Date.now()-ultimo < 20000) return;                   // nunca logo depois de um anúncio
+      clearInterval(avEspera); avEspera = null;
+      lsSet('corrida-av-vezes', String(vezes+1)); lsSet('corrida-av-ultimo', String(Date.now()));
+      try{ IAR.requestReview(); }catch(e){}
+    }, 2500);
+  }
+  document.addEventListener('click', function(ev){
+    var el = ev.target && ev.target.closest && ev.target.closest('[data-acao="avancar"]'); if(el) setTimeout(talvezAvaliar, 4000);
+  }, true);
+
   /* ---------- tela de Configurações ---------- */
   function secao(){
     var t = tx(), comp = semAnuncios();
@@ -184,6 +214,7 @@
     if(!comp) h += '<div style="font-size:13px;opacity:.85;margin:12px 6px 6px">'+ap().d+'</div>'
       + '<button class="btn coin" data-ads="comprar" style="margin:3px">♥ '+ap().b+(preco?' · '+preco:'')+'</button>';
     if(!comp && consentimentoOpcoes) h += '<button class="btn" data-ads="consentimento" style="margin:3px">'+t.cons+'</button>';
+    h += '<button class="btn" data-ads="avaliar" style="margin:3px">★ '+t.av+'</button>';
     h += '<button class="btn" data-ads="privacidade" style="margin:3px">'+t.priv+'</button></div>';
     return h;
   }
@@ -215,6 +246,7 @@
     if(a==='comprar') comprar();
     else if(a==='restaurar') restaurar();
     else if(a==='consentimento' && AdMob) AdMob.showPrivacyOptionsForm().catch(function(){});
+    else if(a==='avaliar') window.open('https://play.google.com/store/apps/details?id=br.com.legendariobr.financegame','_blank');
     else if(a==='privacidade') window.open('https://fodastico01.github.io/Corrida-dos-ratos-/privacidade.html','_blank');
   }, true);
 
