@@ -6143,7 +6143,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v529</p>
+    <p class="titulo-versao">version v530</p>
   </div>`;
 }
 function render(){
@@ -6754,6 +6754,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Your money right now');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -12812,7 +12822,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v529</p>
+    <p class="titulo-versao">versión v530</p>
   </div>`;
 }
 function render(){
@@ -13423,6 +13433,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Tu dinero ahora mismo');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -19480,7 +19500,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v529</p>
+    <p class="titulo-versao">versão v530</p>
   </div>`;
 }
 function render(){
@@ -20091,6 +20111,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','O teu dinheiro neste momento');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9)+' B': a>=1e6? sg+PAIS.simb+f(a/1e6)+' M' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -26149,7 +26179,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v529</p>
+    <p class="titulo-versao">version v530</p>
   </div>`;
 }
 function render(){
@@ -26760,6 +26790,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Ton argent en ce moment');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+' Md\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+' M\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -32818,7 +32858,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v529</p>
+    <p class="titulo-versao">versione v530</p>
   </div>`;
 }
 function render(){
@@ -33429,6 +33469,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Il tuo denaro in questo momento');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+' Mrd\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+' M\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -39487,7 +39537,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v529</p>
+    <p class="titulo-versao">Version v530</p>
   </div>`;
 }
 function render(){
@@ -40098,6 +40148,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Dein Geld im Moment');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+' Mrd\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+' Mio\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -46156,7 +46216,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v529</p>
+    <p class="titulo-versao">версия v530</p>
   </div>`;
 }
 function render(){
@@ -46767,6 +46827,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Твои деньги сейчас');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9).replace('.',',')+'\u00a0млрд\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6).replace('.',',')+'\u00a0млн\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -52825,7 +52895,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v529</p>
+    <p class="titulo-versao">versi v530</p>
   </div>`;
 }
 function render(){
@@ -53436,6 +53506,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Uangmu sekarang');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+'\u00a0'+f(a/1e9).replace('.',',')+'\u00a0M': a>=1e6? sg+PAIS.simb+'\u00a0'+f(a/1e6).replace('.',',')+'\u00a0jt' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -59494,7 +59574,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v529</p>
+    <p class="titulo-versao">sürüm v530</p>
   </div>`;
 }
 function render(){
@@ -60105,6 +60185,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Şu an paran');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e9).replace('.',',')+'\u00a0Mr': a>=1e6? sg+PAIS.simb+f(a/1e6).replace('.',',')+'\u00a0Mn' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -66163,7 +66253,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v529</p>
+    <p class="titulo-versao">الإصدار v530</p>
   </div>`;
 }
 function render(){
@@ -66774,6 +66864,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','مالك الآن');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+f(a/1e9)+'\u00a0مليار\u00a0'+PAIS.simb: a>=1e6? sg+f(a/1e6)+'\u00a0مليون\u00a0'+PAIS.simb : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -72832,7 +72932,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v529</p>
+    <p class="titulo-versao">バージョン v530</p>
   </div>`;
 }
 function render(){
@@ -73443,6 +73543,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','今のあなたのお金');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e8)+'億': a>=1e6? sg+PAIS.simb+f(a/1e4)+'万' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -79501,7 +79611,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v529</p>
+    <p class="titulo-versao">버전 v530</p>
   </div>`;
 }
 function render(){
@@ -80112,6 +80222,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','지금 가진 돈');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e8)+'억': a>=1e6? sg+PAIS.simb+f(a/1e4)+'만' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -86169,7 +86289,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v529</p>
+    <p class="titulo-versao">वर्ज़न v530</p>
   </div>`;
 }
 function render(){
@@ -86780,6 +86900,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','अभी आपका पैसा');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e7)+' करोड़': a>=1e6? sg+PAIS.simb+f(a/1e5)+' लाख' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -92837,7 +92967,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v529</p>
+    <p class="titulo-versao">版本 v530</p>
   </div>`;
 }
 function render(){
@@ -93448,6 +93578,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','你现在的钱');
   const _cp=v=>{ const a=Math.abs(v)*PAIS.fator, sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+PAIS.simb+f(a/1e8)+'亿': a>=1e6? sg+PAIS.simb+f(a/1e4)+'万' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
@@ -99501,7 +99641,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v529</p>
+    <p class="titulo-versao">versão v530</p>
   </div>`;
 }
 function render(){
@@ -100112,6 +100252,16 @@ function injetarSaldo(){ const ov=modal.querySelector('.overlay'); modal.querySe
   const d=document.createElement('div'); d.className='saldo-faixa'; d.setAttribute('aria-label','Seu dinheiro agora');
   const _cp=v=>{ const a=Math.abs(v), sg=v<0?'-':'', f=x=>x.toFixed(x>=100?0:x>=10?1:2).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''); return a>=1e9? sg+'R$ '+f(a/1e9).replace('.',',')+' bi': a>=1e6? sg+'R$ '+f(a/1e6).replace('.',',')+' mi' : fmt0(v); }; const _long=false; d.innerHTML=it.map(([n,v])=>'<span>'+n+' <b'+(v<0?' class="neg"':'')+'>'+fmt0(v)+'</b></span>').join(''); ov.classList.add('com-saldo'); ov.appendChild(d); const _max=window.innerWidth-16; if(d.getBoundingClientRect().width>_max){ d.querySelectorAll('b').forEach((b,i)=>{ b.textContent=_cp(it[i][1]); }); } for(let fs=12; fs>8 && d.getBoundingClientRect().width>_max; fs--) d.style.fontSize=fs+'px'; }
 try{ new MutationObserver(()=>{ if(ui._appVelho && !ui.modal && !modal.firstChild){ ui._appVelho=false; render(); } }).observe(modal,{childList:true}); }catch(_){}
+window.__voltarSistema=function(){ try{
+  if(document.querySelector('#modal .intro-ov')) return false;
+  if(ui.modal){ const m=document.getElementById('modal');
+    if(ui.modal==='avatar'){ ui.modal=null; ui.erro=''; if(m) m.innerHTML=''; render(); return true; }
+    const f=m&&m.querySelector('[data-acao="fechar"]'); if(f){ f.click(); return true; }
+    const o=m&&m.querySelector('.overlay[data-acao="fechar-fundo"]'); if(o){ ui.modal=null; ui.erro=''; render(); return true; }
+    return true; }
+  if(ui.tela==='titulo') return false;
+  if(ui.aba && ui.aba!=='inicio'){ const t=document.querySelector('[data-acao="aba"][data-alvo="inicio"]'); if(t){ t.click(); return true; } }
+  return false; }catch(_){ return false; } };
 function ajustarSheets(){ try{ document.querySelectorAll('#modal .sheet').forEach(sh=>{ if(sh.querySelector(':scope>.sheet-x')) return; if(!sh.querySelector('[data-acao="fechar"]')) return; const x=document.createElement('button'); x.type='button'; x.className='sheet-x'; x.setAttribute('data-acao','fechar'); x.setAttribute('aria-label','Fechar'); x.textContent='\u00d7'; sh.insertBefore(x,sh.firstChild); }); }catch(_){} }
 function renderModal(){ window.__tModal=performance.now();
   renderAvisoEvolucao();
