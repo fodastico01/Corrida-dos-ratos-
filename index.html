@@ -1464,6 +1464,9 @@ body .mp-vista .dado-slot.grande{left:50%;right:auto;top:50%;bottom:auto;transfo
 body .dado-slot.grande .dados{padding:16px 20px;background:rgba(255,255,255,.55);border-radius:24px;box-shadow:0 6px 24px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 body .dado-slot.grande .dado{width:76px;height:76px;padding:7px}
 body .dado-slot.grande .dado i{width:13px;height:13px}
+/* v525: janela abre opaca (sem fade que mostrava o tabuleiro atras) */
+@keyframes sobe{from{transform:translateY(14px)}to{transform:none}}
+body .sheet{animation-duration:.2s}
 body .topo-menu,body .topo-conta,body .topo-fel2,body .btn-hud,body .conta-acoes .btn{min-height:44px!important}
 body .topo-menu{min-width:48px!important;min-height:48px!important}
 body .topo-fel2{min-height:48px!important}
@@ -6103,7 +6106,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v524</p>
+    <p class="titulo-versao">version v525</p>
   </div>`;
 }
 function render(){
@@ -12756,7 +12759,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v524</p>
+    <p class="titulo-versao">versión v525</p>
   </div>`;
 }
 function render(){
@@ -19408,7 +19411,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v524</p>
+    <p class="titulo-versao">versão v525</p>
   </div>`;
 }
 function render(){
@@ -26061,7 +26064,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v524</p>
+    <p class="titulo-versao">version v525</p>
   </div>`;
 }
 function render(){
@@ -32714,7 +32717,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v524</p>
+    <p class="titulo-versao">versione v525</p>
   </div>`;
 }
 function render(){
@@ -39367,7 +39370,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v524</p>
+    <p class="titulo-versao">Version v525</p>
   </div>`;
 }
 function render(){
@@ -46020,7 +46023,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v524</p>
+    <p class="titulo-versao">версия v525</p>
   </div>`;
 }
 function render(){
@@ -52673,7 +52676,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v524</p>
+    <p class="titulo-versao">versi v525</p>
   </div>`;
 }
 function render(){
@@ -59326,7 +59329,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v524</p>
+    <p class="titulo-versao">sürüm v525</p>
   </div>`;
 }
 function render(){
@@ -65979,7 +65982,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v524</p>
+    <p class="titulo-versao">الإصدار v525</p>
   </div>`;
 }
 function render(){
@@ -72632,7 +72635,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v524</p>
+    <p class="titulo-versao">バージョン v525</p>
   </div>`;
 }
 function render(){
@@ -79285,7 +79288,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v524</p>
+    <p class="titulo-versao">버전 v525</p>
   </div>`;
 }
 function render(){
@@ -85937,7 +85940,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v524</p>
+    <p class="titulo-versao">वर्ज़न v525</p>
   </div>`;
 }
 function render(){
@@ -92589,7 +92592,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v524</p>
+    <p class="titulo-versao">版本 v525</p>
   </div>`;
 }
 function render(){
@@ -99237,7 +99240,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v524</p>
+    <p class="titulo-versao">versão v525</p>
   </div>`;
 }
 function render(){
