@@ -5,6 +5,7 @@
   'use strict';
   var C = window.Capacitor;
   if(!C || !C.getPlatform || C.getPlatform()!=='android') return;
+  try{ document.documentElement.classList.add('nativo'); }catch(e){}
   var CFG = window.__ADS_CFG || {};
   var AdMob = C.Plugins && C.Plugins.AdMob, Compra = C.Plugins && C.Plugins.NativePurchases;
   var PRODUTO = CFG.produto || 'remover_anuncios';
