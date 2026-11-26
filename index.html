@@ -1459,6 +1459,11 @@ html[data-paleta="noite"] .topo2 .topo-conta .tc-r{border-left-color:rgba(255,25
 .fases-mini .fase{overflow:hidden}
 .escolha b,.escolha span{hyphens:manual;-webkit-hyphens:manual;overflow-wrap:normal;word-break:normal}
 .tela .desc{-webkit-line-clamp:3}
+/* v524: dado grande centralizado no quadro do mapa */
+body .mp-vista .dado-slot.grande{left:50%;right:auto;top:50%;bottom:auto;transform:translate(-50%,-50%);z-index:6500}
+body .dado-slot.grande .dados{padding:16px 20px;background:rgba(255,255,255,.55);border-radius:24px;box-shadow:0 6px 24px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+body .dado-slot.grande .dado{width:76px;height:76px;padding:7px}
+body .dado-slot.grande .dado i{width:13px;height:13px}
 body .topo-menu,body .topo-conta,body .topo-fel2,body .btn-hud,body .conta-acoes .btn{min-height:44px!important}
 body .topo-menu{min-width:48px!important;min-height:48px!important}
 body .topo-fel2{min-height:48px!important}
@@ -5903,7 +5908,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -6098,7 +6103,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v523</p>
+    <p class="titulo-versao">version v524</p>
   </div>`;
 }
 function render(){
@@ -12556,7 +12561,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -12751,7 +12756,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v523</p>
+    <p class="titulo-versao">versión v524</p>
   </div>`;
 }
 function render(){
@@ -19208,7 +19213,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -19403,7 +19408,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v523</p>
+    <p class="titulo-versao">versão v524</p>
   </div>`;
 }
 function render(){
@@ -25861,7 +25866,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -26056,7 +26061,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v523</p>
+    <p class="titulo-versao">version v524</p>
   </div>`;
 }
 function render(){
@@ -32514,7 +32519,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -32709,7 +32714,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v523</p>
+    <p class="titulo-versao">versione v524</p>
   </div>`;
 }
 function render(){
@@ -39167,7 +39172,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -39362,7 +39367,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v523</p>
+    <p class="titulo-versao">Version v524</p>
   </div>`;
 }
 function render(){
@@ -45820,7 +45825,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -46015,7 +46020,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v523</p>
+    <p class="titulo-versao">версия v524</p>
   </div>`;
 }
 function render(){
@@ -52473,7 +52478,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -52668,7 +52673,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v523</p>
+    <p class="titulo-versao">versi v524</p>
   </div>`;
 }
 function render(){
@@ -59126,7 +59131,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -59321,7 +59326,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v523</p>
+    <p class="titulo-versao">sürüm v524</p>
   </div>`;
 }
 function render(){
@@ -65779,7 +65784,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -65974,7 +65979,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v523</p>
+    <p class="titulo-versao">الإصدار v524</p>
   </div>`;
 }
 function render(){
@@ -72432,7 +72437,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -72627,7 +72632,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v523</p>
+    <p class="titulo-versao">バージョン v524</p>
   </div>`;
 }
 function render(){
@@ -79085,7 +79090,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -79280,7 +79285,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v523</p>
+    <p class="titulo-versao">버전 v524</p>
   </div>`;
 }
 function render(){
@@ -85737,7 +85742,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -85932,7 +85937,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v523</p>
+    <p class="titulo-versao">वर्ज़न v524</p>
   </div>`;
 }
 function render(){
@@ -92389,7 +92394,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -92584,7 +92589,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v523</p>
+    <p class="titulo-versao">版本 v524</p>
   </div>`;
 }
 function render(){
@@ -99037,7 +99042,7 @@ function animarPeao(){
   const pintaDado=(a,b)=>{ ui.dadoFace=a; ui.dadoFace2=b; const e1=document.getElementById('dado'), e2=document.getElementById('dado2'); if(e1) e1.innerHTML=facesHTML(a); if(e2) e2.innerHTML=facesHTML(b); };
   const rolar=()=>{ r++; pintaDado(r<9?1+Math.floor(Math.random()*6):G.d1, r<9?1+Math.floor(Math.random()*6):G.d2); tique(r>=9);
     if(r<9){ ui.peaoTimer=setTimeout(rolar, 50+r*14); return; }
-    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 420); };
+    document.querySelectorAll('.dado').forEach(d=>d.classList.add('parou')); ui.peaoTimer=setTimeout(anda, 750); };
   const fimGiro=()=>{ ui.peaoTimer=null; ui.girando=false; ui.giro=null; ui.camPt=null; if(ui.modalPend) ui.modal=ui.modalPend; ui.modalPend=null; if(!ui.modal && s && s.evento && !s.fim) ui.modal='evento'; render(); };
   const anda=()=>{ if(n===0){ ui.peaoTimer=setTimeout(fimGiro,500); return; }
     const dur=Math.min(3200,Math.max(900,n*120)), t0=performance.now();
@@ -99232,7 +99237,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v523</p>
+    <p class="titulo-versao">versão v524</p>
   </div>`;
 }
 function render(){
