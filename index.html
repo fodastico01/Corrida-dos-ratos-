@@ -6148,7 +6148,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v535</p>
+    <p class="titulo-versao">version v536</p>
   </div>`;
 }
 function render(){
@@ -6281,11 +6281,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mo</span></div>
-        <div class="opp-dados"><span>Rent ${cabeA?"<b style=\"color:var(--gain)\">up to 30% of income</b>":"<b style=\"color:var(--warn)\">over 30% of income</b>"}</span>${pr&&F2()?`<span>Purchase <b>${fmt0(pr)}</b></span>`:''}<span>Well-being <b>${dif>0?'+':''}${dif}/mo</b></span></div>
+        <div class="opp-dados"><span>Rent ${cabeA?"<b style=\"color:var(--gain)\">up to 30% of income</b>":"<b style=\"color:var(--warn)\">over 30% of income</b>"}</span>${pr&&F2()?`<span>Purchase <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Well-being: ${dif>0?'+':''}${dif}/mo</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Rent</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Buy the home you live in':"Buy"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Your home ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Owned":"Rented"} · ${fmt0(cm)} per month${morPropria()?" (condo fees, property tax and loan payment)":''}</span></div></div>
-      <div class="fl"><span>Housing well-being</span><b>${fm>0?'+':''}${fm}/mo</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Well-being: ${fm>0?'+':''}${fm}/mo</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Family: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">asks for ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Fits the budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Yes":!cabeRenda()?"No: over 30% of income":"No: emergency fund below 3 months"}</b></div>
 ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
@@ -6293,11 +6293,11 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/mo"}</span></div>
-        <div class="opp-dados">${i?`<span>Price ${ok?"<b style=\"color:var(--gain)\">up to half a year's income</b>":"<b style=\"color:var(--warn)\">more than half a year's income</b>"}</span><span>Cost <b>${fmt0(custoCarro(i))}/mo</b></span>`:"<span>Sells the current car</span>"}<span>Well-being <b>${dif>0?'+':''}${dif}/mo</b></span></div>
+        <div class="opp-dados">${i?`<span>Price ${ok?"<b style=\"color:var(--gain)\">up to half a year's income</b>":"<b style=\"color:var(--warn)\">more than half a year's income</b>"}</span><span>Cost <b>${fmt0(custoCarro(i))}/mo</b></span>`:"<span>Sells the current car</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Well-being: ${dif>0?'+':''}${dif}/mo</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Swap for this one":"Go without a car"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Your car ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Worth about ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} per month${pc?` · loan ${pc.restante}x of ${fmt0(pc.valor)}`:''}`:`Transport: ${fmt0(s.fixos["Transport"]||0)} per month`}</span></div></div>
-      <div class="fl"><span>Car well-being</span><b>${fc>0?'+':''}${fc}/mo</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Well-being: ${fc>0?'+':''}${fc}/mo</b></div>
       ${n?`<div class="fl"><span>Fits the budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Yes":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Trade in your car</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -6319,7 +6319,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/mo":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Time <b>${h.horas} h/wk</b></span><span>Well-being <b>+${h.fel}/mo</b></span>${on?`<span>For <b>${mesesHab(id)} ${mesesHab(id)===1?"month":"months"}</b>${mesesHab(id)>=6?" · solid":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Time <b>${h.horas} h/wk</b></span><span><b style="color:var(--gain)">Well-being: +${h.fel}/mo</b></span>${on?`<span>For <b>${mesesHab(id)} ${mesesHab(id)===1?"month":"months"}</b>${mesesHab(id)>=6?" · solid":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Stop":"Start"}</button></div>
         ${semTempo?"<p class=\"hint\">No free time for this right now.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -12889,7 +12889,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v535</p>
+    <p class="titulo-versao">versión v536</p>
   </div>`;
 }
 function render(){
@@ -13022,11 +13022,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mes</span></div>
-        <div class="opp-dados"><span>Alquiler ${cabeA?"<b style=\"color:var(--gain)\">hasta el 30% de los ingresos</b>":"<b style=\"color:var(--warn)\">más del 30% de los ingresos</b>"}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span>Bienestar <b>${dif>0?'+':''}${dif}/mes</b></span></div>
+        <div class="opp-dados"><span>Alquiler ${cabeA?"<b style=\"color:var(--gain)\">hasta el 30% de los ingresos</b>":"<b style=\"color:var(--warn)\">más del 30% de los ingresos</b>"}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bienestar: ${dif>0?'+':''}${dif}/mes</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Alquiler</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Comprar la casa en la que vives':"Comprar"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Tu casa ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"En propiedad":"Alquilada"} · ${fmt0(cm)} al mes${morPropria()?" (comunidad, impuesto del inmueble y cuota del préstamo)":''}</span></div></div>
-      <div class="fl"><span>Bienestar de la vivienda</span><b>${fm>0?'+':''}${fm}/mes</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Bienestar: ${fm>0?'+':''}${fm}/mes</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Familia: ${s.casado?"casado":"soltero"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'hijos':'hijo'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">pide ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>¿Cabe en el presupuesto?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Sí":!cabeRenda()?"No: más del 30% de los ingresos":"No: fondo de emergencia por debajo de 3 meses"}</b></div>
 ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p>"}
@@ -13034,11 +13034,11 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/mo"}</span></div>
-        <div class="opp-dados">${i?`<span>Precio ${ok?"<b style=\"color:var(--gain)\">hasta medio año de ingresos</b>":"<b style=\"color:var(--warn)\">más de medio año de ingresos</b>"}</span><span>Coste <b>${fmt0(custoCarro(i))}/mes</b></span>`:"<span>Vende el coche actual</span>"}<span>Bienestar <b>${dif>0?'+':''}${dif}/mes</b></span></div>
+        <div class="opp-dados">${i?`<span>Precio ${ok?"<b style=\"color:var(--gain)\">hasta medio año de ingresos</b>":"<b style=\"color:var(--warn)\">más de medio año de ingresos</b>"}</span><span>Coste <b>${fmt0(custoCarro(i))}/mes</b></span>`:"<span>Vende el coche actual</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bienestar: ${dif>0?'+':''}${dif}/mes</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Cambiar por este":"Ir sin coche"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Tu coche ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Vale unos ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} al mes${pc?` · préstamo ${pc.restante}x de ${fmt0(pc.valor)}`:''}`:`Transporte: ${fmt0(s.fixos["Transport"]||0)} al mes`}</span></div></div>
-      <div class="fl"><span>Bienestar del coche</span><b>${fc>0?'+':''}${fc}/mes</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Bienestar: ${fc>0?'+':''}${fc}/mes</b></div>
       ${n?`<div class="fl"><span>¿Cabe en el presupuesto?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Sí":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Entrega tu coche</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -13060,7 +13060,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/mo":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Tiempo <b>${h.horas} h/sem</b></span><span>Bienestar <b>+${h.fel}/mes</b></span>${on?`<span>Para <b>${mesesHab(id)} ${mesesHab(id)===1?"mes":"meses"}</b>${mesesHab(id)>=6?" · sólido":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Tiempo <b>${h.horas} h/sem</b></span><span><b style="color:var(--gain)">Bienestar: +${h.fel}/mes</b></span>${on?`<span>Para <b>${mesesHab(id)} ${mesesHab(id)===1?"mes":"meses"}</b>${mesesHab(id)>=6?" · sólido":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Parar":"Empezar"}</button></div>
         ${semTempo?"<p class=\"hint\">No hay tiempo libre para esto ahora.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -19629,7 +19629,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v535</p>
+    <p class="titulo-versao">versão v536</p>
   </div>`;
 }
 function render(){
@@ -26370,7 +26370,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v535</p>
+    <p class="titulo-versao">version v536</p>
   </div>`;
 }
 function render(){
@@ -26503,11 +26503,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mois</span></div>
-        <div class="opp-dados"><span>Loyer ${cabeA?"<b style=\"color:var(--gain)\">jusqu'à 30 % du revenu</b>":"<b style=\"color:var(--warn)\">au-delà de 30 % du revenu</b>"}</span>${pr&&F2()?`<span>Achat <b>${fmt0(pr)}</b></span>`:''}<span>Bien-être <b>${dif>0?'+':''}${dif}/mois</b></span></div>
+        <div class="opp-dados"><span>Loyer ${cabeA?"<b style=\"color:var(--gain)\">jusqu'à 30 % du revenu</b>":"<b style=\"color:var(--warn)\">au-delà de 30 % du revenu</b>"}</span>${pr&&F2()?`<span>Achat <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bien-être: ${dif>0?'+':''}${dif}/mois</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Loyer</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Acheter le logement où tu habites':"Acheter"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Ton logement ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Propriétaire":"Locataire"} · ${fmt0(cm)} par mois${morPropria()?" (charges de copropriété, taxe foncière et mensualité du prêt)":''}</span></div></div>
-      <div class="fl"><span>Bien-être lié au logement</span><b>${fm>0?'+':''}${fm}/mois</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Bien-être: ${fm>0?'+':''}${fm}/mois</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Famille : ${s.casado?"marié":"célibataire"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'enfants':'enfant'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">demande ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Rentre dans le budget ?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Oui":!cabeRenda()?"Non : au-delà de 30 % du revenu":"Non : fonds d'urgence sous 3 mois"}</b></div>
 ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes.</p>"}
@@ -26515,11 +26515,11 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/mo"}</span></div>
-        <div class="opp-dados">${i?`<span>Prix ${ok?"<b style=\"color:var(--gain)\">jusqu'à six mois de revenu</b>":"<b style=\"color:var(--warn)\">plus de six mois de revenu</b>"}</span><span>Coût <b>${fmt0(custoCarro(i))}/mois</b></span>`:"<span>Vend la voiture actuelle</span>"}<span>Bien-être <b>${dif>0?'+':''}${dif}/mois</b></span></div>
+        <div class="opp-dados">${i?`<span>Prix ${ok?"<b style=\"color:var(--gain)\">jusqu'à six mois de revenu</b>":"<b style=\"color:var(--warn)\">plus de six mois de revenu</b>"}</span><span>Coût <b>${fmt0(custoCarro(i))}/mois</b></span>`:"<span>Vend la voiture actuelle</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bien-être: ${dif>0?'+':''}${dif}/mois</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Échanger contre celle-ci":"Se passer de voiture"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Ta voiture ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Vaut environ ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} par mois${pc?` · prêt ${pc.restante}x de ${fmt0(pc.valor)}`:''}`:`Transport : ${fmt0(s.fixos["Transport"]||0)} par mois`}</span></div></div>
-      <div class="fl"><span>Bien-être lié à la voiture</span><b>${fc>0?'+':''}${fc}/mois</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Bien-être: ${fc>0?'+':''}${fc}/mois</b></div>
       ${n?`<div class="fl"><span>Rentre dans le budget ?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Oui":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Reprendre ta voiture</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -26541,7 +26541,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/mo":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Temps <b>${h.horas} h/sem</b></span><span>Bien-être <b>+${h.fel}/mois</b></span>${on?`<span>Pour <b>${mesesHab(id)} ${mesesHab(id)===1?"mois":"mois"}</b>${mesesHab(id)>=6?" · solide":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Temps <b>${h.horas} h/sem</b></span><span><b style="color:var(--gain)">Bien-être: +${h.fel}/mois</b></span>${on?`<span>Pour <b>${mesesHab(id)} ${mesesHab(id)===1?"mois":"mois"}</b>${mesesHab(id)>=6?" · solide":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Arrêter":"Commencer"}</button></div>
         ${semTempo?"<p class=\"hint\">Pas de temps libre pour cela en ce moment.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -33111,7 +33111,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v535</p>
+    <p class="titulo-versao">versione v536</p>
   </div>`;
 }
 function render(){
@@ -33244,11 +33244,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mese</span></div>
-        <div class="opp-dados"><span>Affitto ${cabeA?"<b style=\"color:var(--gain)\">fino al 30% del reddito</b>":"<b style=\"color:var(--warn)\">oltre il 30% del reddito</b>"}</span>${pr&&F2()?`<span>Acquisto <b>${fmt0(pr)}</b></span>`:''}<span>Benessere <b>${dif>0?'+':''}${dif}/mese</b></span></div>
+        <div class="opp-dados"><span>Affitto ${cabeA?"<b style=\"color:var(--gain)\">fino al 30% del reddito</b>":"<b style=\"color:var(--warn)\">oltre il 30% del reddito</b>"}</span>${pr&&F2()?`<span>Acquisto <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Benessere: ${dif>0?'+':''}${dif}/mese</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Affitto</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Compra la casa in cui vivi':"Compra"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">La tua casa ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Di proprietà":"In affitto"} · ${fmt0(cm)} al mese${morPropria()?" (spese condominiali, imposte sulla casa e rata del mutuo)":''}</span></div></div>
-      <div class="fl"><span>Benessere abitativo</span><b>${fm>0?'+':''}${fm}/mese</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Benessere: ${fm>0?'+':''}${fm}/mese</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Famiglia: ${s.casado?"sposato":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'figli':'figlio'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">chiede ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Rientra nel budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Sì":!cabeRenda()?"No: oltre il 30% del reddito":"No: fondo di emergenza sotto i 3 mesi"}</b></div>
 ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p>"}
@@ -33256,11 +33256,11 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/mo"}</span></div>
-        <div class="opp-dados">${i?`<span>Prezzo ${ok?"<b style=\"color:var(--gain)\">fino a mezzo anno di reddito</b>":"<b style=\"color:var(--warn)\">più di mezzo anno di reddito</b>"}</span><span>Costo <b>${fmt0(custoCarro(i))}/mese</b></span>`:"<span>Vende l'auto attuale</span>"}<span>Benessere <b>${dif>0?'+':''}${dif}/mese</b></span></div>
+        <div class="opp-dados">${i?`<span>Prezzo ${ok?"<b style=\"color:var(--gain)\">fino a mezzo anno di reddito</b>":"<b style=\"color:var(--warn)\">più di mezzo anno di reddito</b>"}</span><span>Costo <b>${fmt0(custoCarro(i))}/mese</b></span>`:"<span>Vende l'auto attuale</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Benessere: ${dif>0?'+':''}${dif}/mese</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Cambia con questa":"Fai senza auto"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">La tua auto ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Vale circa ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} al mese${pc?` · prestito ${pc.restante}x da ${fmt0(pc.valor)}`:''}`:`Trasporti: ${fmt0(s.fixos["Transport"]||0)} al mese`}</span></div></div>
-      <div class="fl"><span>Benessere dell'auto</span><b>${fc>0?'+':''}${fc}/mese</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Benessere: ${fc>0?'+':''}${fc}/mese</b></div>
       ${n?`<div class="fl"><span>Rientra nel budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Sì":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Cambia la tua auto</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -33282,7 +33282,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/mo":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Tempo <b>${h.horas} h/sett.</b></span><span>Benessere <b>+${h.fel}/mese</b></span>${on?`<span>Per <b>${mesesHab(id)} ${mesesHab(id)===1?"mese":"mesi"}</b>${mesesHab(id)>=6?" · solido":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Tempo <b>${h.horas} h/sett.</b></span><span><b style="color:var(--gain)">Benessere: +${h.fel}/mese</b></span>${on?`<span>Per <b>${mesesHab(id)} ${mesesHab(id)===1?"mese":"mesi"}</b>${mesesHab(id)>=6?" · solido":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Ferma":"Inizia"}</button></div>
         ${semTempo?"<p class=\"hint\">Per ora non hai tempo libero per questo.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -39852,7 +39852,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v535</p>
+    <p class="titulo-versao">Version v536</p>
   </div>`;
 }
 function render(){
@@ -39985,11 +39985,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/Monat</span></div>
-        <div class="opp-dados"><span>Miete ${cabeA?"<b style=\"color:var(--gain)\">bis zu 30 % des Einkommens</b>":"<b style=\"color:var(--warn)\">über 30 % des Einkommens</b>"}</span>${pr&&F2()?`<span>Kauf <b>${fmt0(pr)}</b></span>`:''}<span>Wohlbefinden <b>${dif>0?'+':''}${dif}/Monat</b></span></div>
+        <div class="opp-dados"><span>Miete ${cabeA?"<b style=\"color:var(--gain)\">bis zu 30 % des Einkommens</b>":"<b style=\"color:var(--warn)\">über 30 % des Einkommens</b>"}</span>${pr&&F2()?`<span>Kauf <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Wohlbefinden: ${dif>0?'+':''}${dif}/Monat</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Miete</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Das Zuhause kaufen, in dem du wohnst':"Kaufen"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Dein Zuhause ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Eigentum":"Gemietet"} · ${fmt0(cm)} im Monat${morPropria()?" (Hausgeld, Grundsteuer und Kreditrate)":''}</span></div></div>
-      <div class="fl"><span>Wohlbefinden durch das Wohnen</span><b>${fm>0?'+':''}${fm}/Monat</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Wohlbefinden: ${fm>0?'+':''}${fm}/Monat</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Familie: ${s.casado?"verheiratet":"ledig"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'Kinder':'Kind'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">verlangt ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Passt es ins Budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Ja":!cabeRenda()?"Nein: über 30 % des Einkommens":"Nein: Notfallreserve unter 3 Monaten"}</b></div>
 ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorbehalten.</p>"}
@@ -39997,11 +39997,11 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/mo"}</span></div>
-        <div class="opp-dados">${i?`<span>Preis ${ok?"<b style=\"color:var(--gain)\">bis zu einem halben Jahreseinkommen</b>":"<b style=\"color:var(--warn)\">mehr als ein halbes Jahreseinkommen</b>"}</span><span>Kosten <b>${fmt0(custoCarro(i))}/Monat</b></span>`:"<span>Verkauft das aktuelle Auto</span>"}<span>Wohlbefinden <b>${dif>0?'+':''}${dif}/Monat</b></span></div>
+        <div class="opp-dados">${i?`<span>Preis ${ok?"<b style=\"color:var(--gain)\">bis zu einem halben Jahreseinkommen</b>":"<b style=\"color:var(--warn)\">mehr als ein halbes Jahreseinkommen</b>"}</span><span>Kosten <b>${fmt0(custoCarro(i))}/Monat</b></span>`:"<span>Verkauft das aktuelle Auto</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Wohlbefinden: ${dif>0?'+':''}${dif}/Monat</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Gegen dieses tauschen":"Ohne Auto auskommen"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Dein Auto ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Wert etwa ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} im Monat${pc?` · Kredit ${pc.restante}x ${fmt0(pc.valor)}`:''}`:`Transport: ${fmt0(s.fixos["Transport"]||0)} im Monat`}</span></div></div>
-      <div class="fl"><span>Wohlbefinden durch das Auto</span><b>${fc>0?'+':''}${fc}/Monat</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Wohlbefinden: ${fc>0?'+':''}${fc}/Monat</b></div>
       ${n?`<div class="fl"><span>Passt es ins Budget?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Ja":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Gib dein Auto in Zahlung</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -40023,7 +40023,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/mo":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Zeit <b>${h.horas} Std./Woche</b></span><span>Wohlbefinden <b>+${h.fel}/Monat</b></span>${on?`<span>Für <b>${mesesHab(id)} ${mesesHab(id)===1?"Monat":"Monate"}</b>${mesesHab(id)>=6?" · solide":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Zeit <b>${h.horas} Std./Woche</b></span><span><b style="color:var(--gain)">Wohlbefinden: +${h.fel}/Monat</b></span>${on?`<span>Für <b>${mesesHab(id)} ${mesesHab(id)===1?"Monat":"Monate"}</b>${mesesHab(id)>=6?" · solide":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Stopp":"Starten"}</button></div>
         ${semTempo?"<p class=\"hint\">Dafür hast du gerade keine freie Zeit.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -46593,7 +46593,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v535</p>
+    <p class="titulo-versao">версия v536</p>
   </div>`;
 }
 function render(){
@@ -46726,11 +46726,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/мес.</span></div>
-        <div class="opp-dados"><span>Аренда ${cabeA?"<b style=\"color:var(--gain)\">до 30 % дохода</b>":"<b style=\"color:var(--warn)\">больше 30 % дохода</b>"}</span>${pr&&F2()?`<span>Покупка <b>${fmt0(pr)}</b></span>`:''}<span>Самочувствие <b>${dif>0?'+':''}${dif}/мес.</b></span></div>
+        <div class="opp-dados"><span>Аренда ${cabeA?"<b style=\"color:var(--gain)\">до 30 % дохода</b>":"<b style=\"color:var(--warn)\">больше 30 % дохода</b>"}</span>${pr&&F2()?`<span>Покупка <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Самочувствие: ${dif>0?'+':''}${dif}/мес.</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Аренда</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Купить дом, в котором живёшь':"Купить"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Твой дом ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"В собственности":"В аренде"} · ${fmt0(cm)} в месяц${morPropria()?" (коммунальные взносы, налог на имущество и платёж по кредиту)":''}</span></div></div>
-      <div class="fl"><span>Самочувствие от жилья</span><b>${fm>0?'+':''}${fm}/мес.</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Самочувствие: ${fm>0?'+':''}${fm}/мес.</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Семья: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">просит ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Вписывается в бюджет?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Да":!cabeRenda()?"Нет: больше 30 % дохода":"Нет: финансовая подушка меньше 3 месяцев"}</b></div>
 ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на следующие этапы.</p>"}
@@ -46738,11 +46738,11 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/мес."}</span></div>
-        <div class="opp-dados">${i?`<span>Цена ${ok?"<b style=\"color:var(--gain)\">до полугодового дохода</b>":"<b style=\"color:var(--warn)\">больше полугодового дохода</b>"}</span><span>Стоимость <b>${fmt0(custoCarro(i))}/мес.</b></span>`:"<span>Продаёт текущую машину</span>"}<span>Самочувствие <b>${dif>0?'+':''}${dif}/мес.</b></span></div>
+        <div class="opp-dados">${i?`<span>Цена ${ok?"<b style=\"color:var(--gain)\">до полугодового дохода</b>":"<b style=\"color:var(--warn)\">больше полугодового дохода</b>"}</span><span>Стоимость <b>${fmt0(custoCarro(i))}/мес.</b></span>`:"<span>Продаёт текущую машину</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Самочувствие: ${dif>0?'+':''}${dif}/мес.</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Поменять на эту":"Обойтись без машины"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Твоя машина ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Стоит около ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} в месяц${pc?` · кредит ${pc.restante}x по ${fmt0(pc.valor)}`:''}`:`Транспорт: ${fmt0(s.fixos["Transport"]||0)} в месяц`}</span></div></div>
-      <div class="fl"><span>Самочувствие от машины</span><b>${fc>0?'+':''}${fc}/мес.</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Самочувствие: ${fc>0?'+':''}${fc}/мес.</b></div>
       ${n?`<div class="fl"><span>Вписывается в бюджет?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Да":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Сдать свою машину в зачёт</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -46764,7 +46764,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/мес.":"бесплатно"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Время <b>${h.horas} ч/нед.</b></span><span>Самочувствие <b>+${h.fel}/мес.</b></span>${on?`<span>Для <b>${mesesHab(id)} ${mesesHab(id)===1?"мес.":"мес."}</b>${mesesHab(id)>=6?" · надёжно":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Время <b>${h.horas} ч/нед.</b></span><span><b style="color:var(--gain)">Самочувствие: +${h.fel}/мес.</b></span>${on?`<span>Для <b>${mesesHab(id)} ${mesesHab(id)===1?"мес.":"мес."}</b>${mesesHab(id)>=6?" · надёжно":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Остановить":"Начать"}</button></div>
         ${semTempo?"<p class=\"hint\">Сейчас нет свободного времени для этого.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -53334,7 +53334,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v535</p>
+    <p class="titulo-versao">versi v536</p>
   </div>`;
 }
 function render(){
@@ -53467,11 +53467,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/bln</span></div>
-        <div class="opp-dados"><span>Sewa ${cabeA?"<b style=\"color:var(--gain)\">hingga 30% dari penghasilan</b>":"<b style=\"color:var(--warn)\">lebih dari 30% dari penghasilan</b>"}</span>${pr&&F2()?`<span>Pembelian <b>${fmt0(pr)}</b></span>`:''}<span>Kesejahteraan <b>${dif>0?'+':''}${dif}/bln</b></span></div>
+        <div class="opp-dados"><span>Sewa ${cabeA?"<b style=\"color:var(--gain)\">hingga 30% dari penghasilan</b>":"<b style=\"color:var(--warn)\">lebih dari 30% dari penghasilan</b>"}</span>${pr&&F2()?`<span>Pembelian <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Kesejahteraan: ${dif>0?'+':''}${dif}/bln</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Sewa</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Beli rumah yang kamu tinggali':"Beli"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Rumahmu ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Milik sendiri":"Sewa"} · ${fmt0(cm)} per bulan${morPropria()?" (iuran lingkungan, pajak properti, dan cicilan)":''}</span></div></div>
-      <div class="fl"><span>Kesejahteraan tempat tinggal</span><b>${fm>0?'+':''}${fm}/bln</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Kesejahteraan: ${fm>0?'+':''}${fm}/bln</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Keluarga: ${s.casado?"menikah":"lajang"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'anak':'anak'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">meminta ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Sesuai anggaran?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Ya":!cabeRenda()?"Tidak: lebih dari 30% penghasilan":"Tidak: dana darurat di bawah 3 bulan"}</b></div>
 ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"}
@@ -53479,11 +53479,11 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/bln"}</span></div>
-        <div class="opp-dados">${i?`<span>Harga ${ok?"<b style=\"color:var(--gain)\">hingga setengah penghasilan setahun</b>":"<b style=\"color:var(--warn)\">lebih dari setengah penghasilan setahun</b>"}</span><span>Biaya <b>${fmt0(custoCarro(i))}/bln</b></span>`:"<span>Menjual mobil saat ini</span>"}<span>Kesejahteraan <b>${dif>0?'+':''}${dif}/bln</b></span></div>
+        <div class="opp-dados">${i?`<span>Harga ${ok?"<b style=\"color:var(--gain)\">hingga setengah penghasilan setahun</b>":"<b style=\"color:var(--warn)\">lebih dari setengah penghasilan setahun</b>"}</span><span>Biaya <b>${fmt0(custoCarro(i))}/bln</b></span>`:"<span>Menjual mobil saat ini</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Kesejahteraan: ${dif>0?'+':''}${dif}/bln</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Tukar dengan yang ini":"Tanpa mobil"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Mobilmu ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Bernilai sekitar ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} per bulan${pc?` · pinjaman ${pc.restante}x ${fmt0(pc.valor)}`:''}`:`Transportasi: ${fmt0(s.fixos["Transport"]||0)} per bulan`}</span></div></div>
-      <div class="fl"><span>Kesejahteraan mobil</span><b>${fc>0?'+':''}${fc}/bln</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">Kesejahteraan: ${fc>0?'+':''}${fc}/bln</b></div>
       ${n?`<div class="fl"><span>Sesuai anggaran?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Ya":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Tukar tambah mobilmu</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -53505,7 +53505,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/bln":"gratis"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Waktu <b>${h.horas} jam/mgg</b></span><span>Kesejahteraan <b>+${h.fel}/bln</b></span>${on?`<span>Untuk <b>${mesesHab(id)} ${mesesHab(id)===1?"bln":"bln"}</b>${mesesHab(id)>=6?" · solid":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Waktu <b>${h.horas} jam/mgg</b></span><span><b style="color:var(--gain)">Kesejahteraan: +${h.fel}/bln</b></span>${on?`<span>Untuk <b>${mesesHab(id)} ${mesesHab(id)===1?"bln":"bln"}</b>${mesesHab(id)>=6?" · solid":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Berhenti":"Mulai"}</button></div>
         ${semTempo?"<p class=\"hint\">Tidak ada waktu luang untuk ini sekarang.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -60075,7 +60075,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v535</p>
+    <p class="titulo-versao">sürüm v536</p>
   </div>`;
 }
 function render(){
@@ -60208,11 +60208,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/ay</span></div>
-        <div class="opp-dados"><span>Kira ${cabeA?"<b style=\"color:var(--gain)\">gelirin en fazla %30'u</b>":"<b style=\"color:var(--warn)\">gelirin %30'undan fazla</b>"}</span>${pr&&F2()?`<span>Satın alma <b>${fmt0(pr)}</b></span>`:''}<span>İyi oluş <b>${dif>0?'+':''}${dif}/ay</b></span></div>
+        <div class="opp-dados"><span>Kira ${cabeA?"<b style=\"color:var(--gain)\">gelirin en fazla %30'u</b>":"<b style=\"color:var(--warn)\">gelirin %30'undan fazla</b>"}</span>${pr&&F2()?`<span>Satın alma <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">İyi oluş: ${dif>0?'+':''}${dif}/ay</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Kira</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Yaşadığın evi satın al':"Al"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Evin ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Sahip":"Kiracı"} · ayda ${fmt0(cm)}${morPropria()?" (aidat, emlak vergisi ve kredi taksiti)":''}</span></div></div>
-      <div class="fl"><span>Konut iyi oluşu</span><b>${fm>0?'+':''}${fm}/ay</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">İyi oluş: ${fm>0?'+':''}${fm}/ay</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>Aile: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} istiyor</b></div>`:''}
       <div class="fl"><span>Bütçeye uyuyor mu?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Evet":!cabeRenda()?"Hayır: gelirin %30'unu aşıyor":"Hayır: acil durum fonu 3 ayın altında"}</b></div>
 ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
@@ -60220,11 +60220,11 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/ay"}</span></div>
-        <div class="opp-dados">${i?`<span>Fiyat ${ok?"<b style=\"color:var(--gain)\">yarım yıllık gelire kadar</b>":"<b style=\"color:var(--warn)\">yarım yıllık gelirden fazla</b>"}</span><span>Maliyet <b>${fmt0(custoCarro(i))}/ay</b></span>`:"<span>Mevcut arabayı satar</span>"}<span>İyi oluş <b>${dif>0?'+':''}${dif}/ay</b></span></div>
+        <div class="opp-dados">${i?`<span>Fiyat ${ok?"<b style=\"color:var(--gain)\">yarım yıllık gelire kadar</b>":"<b style=\"color:var(--warn)\">yarım yıllık gelirden fazla</b>"}</span><span>Maliyet <b>${fmt0(custoCarro(i))}/ay</b></span>`:"<span>Mevcut arabayı satar</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">İyi oluş: ${dif>0?'+':''}${dif}/ay</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Bununla değiştir":"Arabasız devam et"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Araban ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Yaklaşık ${fmt0(valorCarro())} değerinde · ayda ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)}${pc?` · kredi ${fmt0(pc.valor)} tutarında ${pc.restante} taksit`:''}`:`Ulaşım: ayda ${fmt0(s.fixos["Transport"]||0)}`}</span></div></div>
-      <div class="fl"><span>Araba iyi oluşu</span><b>${fc>0?'+':''}${fc}/ay</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">İyi oluş: ${fc>0?'+':''}${fc}/ay</b></div>
       ${n?`<div class="fl"><span>Bütçeye uyuyor mu?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Evet":"No"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>Arabanı takas et</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -60246,7 +60246,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/ay":"ücretsiz"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Zaman <b>haftada ${h.horas} sa</b></span><span>İyi oluş <b>+${h.fel}/ay</b></span>${on?`<span>Şunun için <b>${mesesHab(id)} ${mesesHab(id)===1?"ay":"ay"}</b>${mesesHab(id)>=6?" · sağlam":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Zaman <b>haftada ${h.horas} sa</b></span><span><b style="color:var(--gain)">İyi oluş: +${h.fel}/ay</b></span>${on?`<span>Şunun için <b>${mesesHab(id)} ${mesesHab(id)===1?"ay":"ay"}</b>${mesesHab(id)>=6?" · sağlam":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Dur":"Başlat"}</button></div>
         ${semTempo?"<p class=\"hint\">Şu an bunun için boş zaman yok.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -66816,7 +66816,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v535</p>
+    <p class="titulo-versao">الإصدار v536</p>
   </div>`;
 }
 function render(){
@@ -66949,11 +66949,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/شهر</span></div>
-        <div class="opp-dados"><span>الإيجار ${cabeA?"<b style=\"color:var(--gain)\">حتى 30% من الدخل</b>":"<b style=\"color:var(--warn)\">أكثر من 30% من الدخل</b>"}</span>${pr&&F2()?`<span>الشراء <b>${fmt0(pr)}</b></span>`:''}<span>الرفاه <b>${dif>0?'+':''}${dif}/شهر</b></span></div>
+        <div class="opp-dados"><span>الإيجار ${cabeA?"<b style=\"color:var(--gain)\">حتى 30% من الدخل</b>":"<b style=\"color:var(--warn)\">أكثر من 30% من الدخل</b>"}</span>${pr&&F2()?`<span>الشراء <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">الرفاه: ${dif>0?'+':''}${dif}/شهر</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">الإيجار</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'اشترِ المنزل الذي تسكنه':"اشترِ"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">منزلك ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"مملوك":"مستأجر"} · ${fmt0(cm)} في الشهر${morPropria()?" (رسوم الملاك وضريبة العقار وقسط القرض)":''}</span></div></div>
-      <div class="fl"><span>رفاه السكن</span><b>${fm>0?'+':''}${fm}/شهر</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">الرفاه: ${fm>0?'+':''}${fm}/شهر</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>العائلة: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">يطلب ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>هل يناسب الميزانية؟</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"نعم":!cabeRenda()?"لا: أكثر من 30% من الدخل":"لا: صندوق الطوارئ أقل من 3 أشهر"}</b></div>
 ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل القادمة.</p>"}
@@ -66961,11 +66961,11 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/شهر"}</span></div>
-        <div class="opp-dados">${i?`<span>السعر ${ok?"<b style=\"color:var(--gain)\">حتى نصف دخل سنة</b>":"<b style=\"color:var(--warn)\">أكثر من نصف دخل سنة</b>"}</span><span>التكلفة <b>${fmt0(custoCarro(i))}/شهر</b></span>`:"<span>يبيع السيارة الحالية</span>"}<span>الرفاه <b>${dif>0?'+':''}${dif}/شهر</b></span></div>
+        <div class="opp-dados">${i?`<span>السعر ${ok?"<b style=\"color:var(--gain)\">حتى نصف دخل سنة</b>":"<b style=\"color:var(--warn)\">أكثر من نصف دخل سنة</b>"}</span><span>التكلفة <b>${fmt0(custoCarro(i))}/شهر</b></span>`:"<span>يبيع السيارة الحالية</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">الرفاه: ${dif>0?'+':''}${dif}/شهر</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"بدّل بهذه":"بلا سيارة"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">سيارتك ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`قيمتها نحو ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} في الشهر${pc?` · قرض ${pc.restante}x من ${fmt0(pc.valor)}`:''}`:`المواصلات: ${fmt0(s.fixos["Transport"]||0)} في الشهر`}</span></div></div>
-      <div class="fl"><span>رفاه السيارة</span><b>${fc>0?'+':''}${fc}/شهر</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">الرفاه: ${fc>0?'+':''}${fc}/شهر</b></div>
       ${n?`<div class="fl"><span>هل يناسب الميزانية؟</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"نعم":"لا"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>استبدل سيارتك</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -66987,7 +66987,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/شهر":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>الوقت <b>${h.horas} ساعة/أسبوع</b></span><span>الرفاه <b>+${h.fel}/شهر</b></span>${on?`<span>لـ <b>${mesesHab(id)} ${mesesHab(id)===1?"شهر":"أشهر"}</b>${mesesHab(id)>=6?" · متين":''}</span>`:''}</div>
+        <div class="opp-dados"><span>الوقت <b>${h.horas} ساعة/أسبوع</b></span><span><b style="color:var(--gain)">الرفاه: +${h.fel}/شهر</b></span>${on?`<span>لـ <b>${mesesHab(id)} ${mesesHab(id)===1?"شهر":"أشهر"}</b>${mesesHab(id)>=6?" · متين":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"إيقاف":"ابدأ"}</button></div>
         ${semTempo?"<p class=\"hint\">لا وقت فراغ لهذا الآن.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -73557,7 +73557,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v535</p>
+    <p class="titulo-versao">バージョン v536</p>
   </div>`;
 }
 function render(){
@@ -73690,11 +73690,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/月</span></div>
-        <div class="opp-dados"><span>家賃${cabeA?"<b style=\"color:var(--gain)\">収入の30%まで</b>":"<b style=\"color:var(--warn)\">収入の30%超</b>"}</span>${pr&&F2()?`<span>購入 <b>${fmt0(pr)}</b></span>`:''}<span>ウェルビーイング <b>${dif>0?'+':''}${dif}/月</b></span></div>
+        <div class="opp-dados"><span>家賃${cabeA?"<b style=\"color:var(--gain)\">収入の30%まで</b>":"<b style=\"color:var(--warn)\">収入の30%超</b>"}</span>${pr&&F2()?`<span>購入 <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">ウェルビーイング: ${dif>0?'+':''}${dif}/月</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">家賃</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'今住んでいる家を買う':"買う"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">あなたの家${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"持ち家":"賃貸"}・月${fmt0(cm)}${morPropria()?" （管理費、固定資産税、ローン返済）":''}</span></div></div>
-      <div class="fl"><span>住まいのウェルビーイング</span><b>${fm>0?'+':''}${fm}/月</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">ウェルビーイング: ${fm>0?'+':''}${fm}/月</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>家族：${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()}を求めています</b></div>`:''}
       <div class="fl"><span>予算に収まる？</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"はい":!cabeRenda()?"いいえ：収入の30%超":"いいえ：緊急資金が3か月未満"}</b></div>
 ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます。</p>"}
@@ -73702,11 +73702,11 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/月"}</span></div>
-        <div class="opp-dados">${i?`<span>価格${ok?"<b style=\"color:var(--gain)\">年収の半年分まで</b>":"<b style=\"color:var(--warn)\">年収の半年分超</b>"}</span><span>費用 <b>${fmt0(custoCarro(i))}/月</b></span>`:"<span>今の車を売却</span>"}<span>ウェルビーイング <b>${dif>0?'+':''}${dif}/月</b></span></div>
+        <div class="opp-dados">${i?`<span>価格${ok?"<b style=\"color:var(--gain)\">年収の半年分まで</b>":"<b style=\"color:var(--warn)\">年収の半年分超</b>"}</span><span>費用 <b>${fmt0(custoCarro(i))}/月</b></span>`:"<span>今の車を売却</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">ウェルビーイング: ${dif>0?'+':''}${dif}/月</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"これに乗り換える":"車なしで過ごす"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">あなたの車${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`価値は約${fmt0(valorCarro())}・月${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)}${pc?` ・ローン${fmt0(pc.valor)}を${pc.restante}回`:''}`:`交通：月${fmt0(s.fixos["Transport"]||0)}`}</span></div></div>
-      <div class="fl"><span>車のウェルビーイング</span><b>${fc>0?'+':''}${fc}/月</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">ウェルビーイング: ${fc>0?'+':''}${fc}/月</b></div>
       ${n?`<div class="fl"><span>予算に収まる？</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"はい":"いいえ"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>車を下取りに出す</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -73728,7 +73728,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/月":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>時間 <b>${h.horas}時間/週</b></span><span>ウェルビーイング <b>+${h.fel}/月</b></span>${on?`<span>対象 <b>${mesesHab(id)} ${mesesHab(id)===1?"か月":"か月"}</b>${mesesHab(id)>=6?" ・堅実":''}</span>`:''}</div>
+        <div class="opp-dados"><span>時間 <b>${h.horas}時間/週</b></span><span><b style="color:var(--gain)">ウェルビーイング: +${h.fel}/月</b></span>${on?`<span>対象 <b>${mesesHab(id)} ${mesesHab(id)===1?"か月":"か月"}</b>${mesesHab(id)>=6?" ・堅実":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"やめる":"開始"}</button></div>
         ${semTempo?"<p class=\"hint\">今はこのための自由時間がありません。</p>":''}</div>`; }).join('')}
   </section>`;
@@ -80298,7 +80298,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v535</p>
+    <p class="titulo-versao">버전 v536</p>
   </div>`;
 }
 function render(){
@@ -80431,11 +80431,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/월</span></div>
-        <div class="opp-dados"><span>월세 ${cabeA?"<b style=\"color:var(--gain)\">소득의 30%까지</b>":"<b style=\"color:var(--warn)\">소득의 30% 초과</b>"}</span>${pr&&F2()?`<span>구매 <b>${fmt0(pr)}</b></span>`:''}<span>웰빙 <b>${dif>0?'+':''}${dif}/월</b></span></div>
+        <div class="opp-dados"><span>월세 ${cabeA?"<b style=\"color:var(--gain)\">소득의 30%까지</b>":"<b style=\"color:var(--warn)\">소득의 30% 초과</b>"}</span>${pr&&F2()?`<span>구매 <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">웰빙: ${dif>0?'+':''}${dif}/월</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">월세</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'지금 사는 집 사기':"매수"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">당신의 집 ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"자가":"임대"} · 월 ${fmt0(cm)}${morPropria()?" (관리비, 재산세, 대출 상환)":''}</span></div></div>
-      <div class="fl"><span>주거 웰빙</span><b>${fm>0?'+':''}${fm}/월</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">웰빙: ${fm>0?'+':''}${fm}/월</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>가족: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} 요구</b></div>`:''}
       <div class="fl"><span>예산에 맞나요?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"예":!cabeRenda()?"아니요: 소득의 30% 초과":"아니요: 비상금이 3개월치 미만"}</b></div>
 ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p>"}
@@ -80443,11 +80443,11 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/월"}</span></div>
-        <div class="opp-dados">${i?`<span>가격 ${ok?"<b style=\"color:var(--gain)\">반년치 소득까지</b>":"<b style=\"color:var(--warn)\">반년치 소득 초과</b>"}</span><span>비용 <b>${fmt0(custoCarro(i))}/월</b></span>`:"<span>현재 차를 팔아요</span>"}<span>웰빙 <b>${dif>0?'+':''}${dif}/월</b></span></div>
+        <div class="opp-dados">${i?`<span>가격 ${ok?"<b style=\"color:var(--gain)\">반년치 소득까지</b>":"<b style=\"color:var(--warn)\">반년치 소득 초과</b>"}</span><span>비용 <b>${fmt0(custoCarro(i))}/월</b></span>`:"<span>현재 차를 팔아요</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">웰빙: ${dif>0?'+':''}${dif}/월</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"이 차로 교체하기":"차 없이 지내기"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">당신의 차 ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`가치 약 ${fmt0(valorCarro())} · 월 ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)}${pc?` · 대출 ${fmt0(pc.valor)}씩 ${pc.restante}회`:''}`:`교통: 월 ${fmt0(s.fixos["Transport"]||0)}`}</span></div></div>
-      <div class="fl"><span>차 웰빙</span><b>${fc>0?'+':''}${fc}/월</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">웰빙: ${fc>0?'+':''}${fc}/월</b></div>
       ${n?`<div class="fl"><span>예산에 맞나요?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"예":"아니요"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>내 차 보상 판매</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -80469,7 +80469,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/월":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>시간 <b>주 ${h.horas}시간</b></span><span>웰빙 <b>+${h.fel}/월</b></span>${on?`<span>대상: <b>${mesesHab(id)}${mesesHab(id)===1?"개월":"개월"}</b>${mesesHab(id)>=6?" · 탄탄함":''}</span>`:''}</div>
+        <div class="opp-dados"><span>시간 <b>주 ${h.horas}시간</b></span><span><b style="color:var(--gain)">웰빙: +${h.fel}/월</b></span>${on?`<span>대상: <b>${mesesHab(id)}${mesesHab(id)===1?"개월":"개월"}</b>${mesesHab(id)>=6?" · 탄탄함":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"중단":"시작"}</button></div>
         ${semTempo?"<p class=\"hint\">지금은 이를 위한 자유 시간이 없어요.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -87038,7 +87038,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v535</p>
+    <p class="titulo-versao">वर्ज़न v536</p>
   </div>`;
 }
 function render(){
@@ -87171,11 +87171,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/माह</span></div>
-        <div class="opp-dados"><span>किराया ${cabeA?"<b style=\"color:var(--gain)\">आमदनी के 30% तक</b>":"<b style=\"color:var(--warn)\">आमदनी के 30% से ज़्यादा</b>"}</span>${pr&&F2()?`<span>खरीद <b>${fmt0(pr)}</b></span>`:''}<span>सेहत <b>${dif>0?'+':''}${dif}/माह</b></span></div>
+        <div class="opp-dados"><span>किराया ${cabeA?"<b style=\"color:var(--gain)\">आमदनी के 30% तक</b>":"<b style=\"color:var(--warn)\">आमदनी के 30% से ज़्यादा</b>"}</span>${pr&&F2()?`<span>खरीद <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">सेहत: ${dif>0?'+':''}${dif}/माह</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">किराया</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'जिस घर में रहते हैं उसे खरीदें':"खरीदें"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">आपका घर ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"अपना":"किराये का"} · प्रति माह ${fmt0(cm)}${morPropria()?" (सोसाइटी शुल्क, संपत्ति कर और लोन की किस्त)":''}</span></div></div>
-      <div class="fl"><span>आवास से सेहत</span><b>${fm>0?'+':''}${fm}/माह</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">सेहत: ${fm>0?'+':''}${fm}/माह</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>परिवार: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} माँगता है</b></div>`:''}
       <div class="fl"><span>बजट में बैठता है?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"हाँ":!cabeRenda()?"नहीं: आमदनी के 30% से ज़्यादा":"नहीं: आपातकालीन फ़ंड 3 महीने से कम"}</b></div>
 ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणों के लिए छोड़ा गया है।</p>"}
@@ -87183,11 +87183,11 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/माह"}</span></div>
-        <div class="opp-dados">${i?`<span>कीमत ${ok?"<b style=\"color:var(--gain)\">आधे साल की आमदनी तक</b>":"<b style=\"color:var(--warn)\">आधे साल की आमदनी से ज़्यादा</b>"}</span><span>लागत <b>${fmt0(custoCarro(i))}/माह</b></span>`:"<span>मौजूदा कार बेचता है</span>"}<span>सेहत <b>${dif>0?'+':''}${dif}/माह</b></span></div>
+        <div class="opp-dados">${i?`<span>कीमत ${ok?"<b style=\"color:var(--gain)\">आधे साल की आमदनी तक</b>":"<b style=\"color:var(--warn)\">आधे साल की आमदनी से ज़्यादा</b>"}</span><span>लागत <b>${fmt0(custoCarro(i))}/माह</b></span>`:"<span>मौजूदा कार बेचता है</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">सेहत: ${dif>0?'+':''}${dif}/माह</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"इससे बदलें":"बिना कार के रहें"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">आपकी कार ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`क़ीमत लगभग ${fmt0(valorCarro())} · प्रति माह ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)}${pc?` · लोन ${pc.restante}x ${fmt0(pc.valor)}`:''}`:`परिवहन: प्रति माह ${fmt0(s.fixos["Transport"]||0)}`}</span></div></div>
-      <div class="fl"><span>कार से सेहत</span><b>${fc>0?'+':''}${fc}/माह</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">सेहत: ${fc>0?'+':''}${fc}/माह</b></div>
       ${n?`<div class="fl"><span>बजट में बैठता है?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"हाँ":"नहीं"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>अपनी कार बदलें</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -87209,7 +87209,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/माह":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>समय <b>${h.horas} घंटे/सप्ताह</b></span><span>सेहत <b>+${h.fel}/माह</b></span>${on?`<span>के लिए <b>${mesesHab(id)} ${mesesHab(id)===1?"महीने":"महीने"}</b>${mesesHab(id)>=6?" · ठोस":''}</span>`:''}</div>
+        <div class="opp-dados"><span>समय <b>${h.horas} घंटे/सप्ताह</b></span><span><b style="color:var(--gain)">सेहत: +${h.fel}/माह</b></span>${on?`<span>के लिए <b>${mesesHab(id)} ${mesesHab(id)===1?"महीने":"महीने"}</b>${mesesHab(id)>=6?" · ठोस":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"रोकें":"शुरू करें"}</button></div>
         ${semTempo?"<p class=\"hint\">अभी इसके लिए खाली समय नहीं है।</p>":''}</div>`; }).join('')}
   </section>`;
@@ -93778,7 +93778,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v535</p>
+    <p class="titulo-versao">版本 v536</p>
   </div>`;
 }
 function render(){
@@ -93911,11 +93911,11 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/月</span></div>
-        <div class="opp-dados"><span>租金${cabeA?"<b style=\"color:var(--gain)\">不超过收入的30%</b>":"<b style=\"color:var(--warn)\">超过收入的30%</b>"}</span>${pr&&F2()?`<span>购买 <b>${fmt0(pr)}</b></span>`:''}<span>幸福感 <b>${dif>0?'+':''}${dif}/月</b></span></div>
+        <div class="opp-dados"><span>租金${cabeA?"<b style=\"color:var(--gain)\">不超过收入的30%</b>":"<b style=\"color:var(--warn)\">超过收入的30%</b>"}</span>${pr&&F2()?`<span>购买 <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">幸福感: ${dif>0?'+':''}${dif}/月</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">房租</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'买下你住的房子':"买入"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">你的家${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"自有":"租住"} · 每月${fmt0(cm)}${morPropria()?" （物业费、房产税和贷款月供）":''}</span></div></div>
-      <div class="fl"><span>居住幸福感</span><b>${fm>0?'+':''}${fm}/月</b></div>
+      <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">幸福感: ${fm>0?'+':''}${fm}/月</b></div>
       ${s.casado||totalFilhos()?`<div class="fl"><span>家庭：${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">需要${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>符合预算吗？</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"是":!cabeRenda()?"否：超过收入的30%":"否：应急基金不足3个月"}</b></div>
 ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
@@ -93923,11 +93923,11 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/月"}</span></div>
-        <div class="opp-dados">${i?`<span>价格${ok?"<b style=\"color:var(--gain)\">不超过半年的收入</b>":"<b style=\"color:var(--warn)\">超过半年的收入</b>"}</span><span>成本 <b>${fmt0(custoCarro(i))}/月</b></span>`:"<span>卖掉现在的车</span>"}<span>幸福感 <b>${dif>0?'+':''}${dif}/月</b></span></div>
+        <div class="opp-dados">${i?`<span>价格${ok?"<b style=\"color:var(--gain)\">不超过半年的收入</b>":"<b style=\"color:var(--warn)\">超过半年的收入</b>"}</span><span>成本 <b>${fmt0(custoCarro(i))}/月</b></span>`:"<span>卖掉现在的车</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">幸福感: ${dif>0?'+':''}${dif}/月</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"换成这辆":"不买车"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">你的车${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`价值约${fmt0(valorCarro())} · 每月${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)}${pc?` · 贷款${pc.restante}期每期${fmt0(pc.valor)}`:''}`:`交通：每月${fmt0(s.fixos["Transport"]||0)}`}</span></div></div>
-      <div class="fl"><span>车带来的幸福感</span><b>${fc>0?'+':''}${fc}/月</b></div>
+      <div class="fl"><span></span><b style="color:${fc>0?'var(--gain)':fc<0?'var(--loss)':'inherit'}">幸福感: ${fc>0?'+':''}${fc}/月</b></div>
       ${n?`<div class="fl"><span>符合预算吗？</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"是":"否"}</b></div>`:''}
       ${linhas?`<details class="mais" data-k="carro" ${ui.aberto?.carro?'open':''}><summary>以旧换新</summary>${linhas}</details>`:''}</section>`; })();
   const estudando=(s.estudoAte||0)>s.mes;
@@ -93949,7 +93949,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/月":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>时间 <b>每周${h.horas}小时</b></span><span>幸福感 <b>+${h.fel}/月</b></span>${on?`<span>为期 <b>${mesesHab(id)} ${mesesHab(id)===1?"个月":"个月"}</b>${mesesHab(id)>=6?" · 扎实":''}</span>`:''}</div>
+        <div class="opp-dados"><span>时间 <b>每周${h.horas}小时</b></span><span><b style="color:var(--gain)">幸福感: +${h.fel}/月</b></span>${on?`<span>为期 <b>${mesesHab(id)} ${mesesHab(id)===1?"个月":"个月"}</b>${mesesHab(id)>=6?" · 扎实":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"停止":"开始"}</button></div>
         ${semTempo?"<p class=\"hint\">目前没有空闲时间做这个。</p>":''}</div>`; }).join('')}
   </section>`;
@@ -100514,7 +100514,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v535</p>
+    <p class="titulo-versao">versão v536</p>
   </div>`;
 }
 function render(){
