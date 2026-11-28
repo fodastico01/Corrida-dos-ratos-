@@ -1474,6 +1474,11 @@ body .dado-slot.grande .dado{position:absolute;left:0;top:0;width:60px;height:60
 body .dado-slot.grande .dado.parou{animation:none}
 body .dado-slot.grande .dado i{width:11px;height:11px}
 body main.tela{padding-bottom:30px}
+/* v532 carimbo de visto do CEO */
+body .opp{position:relative}
+.carimbo-ceo{position:absolute;top:18px;right:16px;z-index:3;transform:rotate(-9deg);display:grid;justify-items:center;gap:0;padding:3px 12px 4px;border:3px double #2f7d4c;border-radius:9px;color:#2f7d4c;background:rgba(244,252,246,.93);text-transform:uppercase;letter-spacing:.09em;line-height:1.15;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.25),0 0 0 1px rgba(47,125,76,.25) inset}
+.carimbo-ceo span{font-size:16px;font-weight:900;letter-spacing:.2em}
+.carimbo-ceo b{font-size:10px;font-weight:800}
 /* v529: feedback de teste real (Luana) - janelas respeitam as barras do Android, 1 rolagem, fechar no topo */
 :root{--sat:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));--sab:max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px))}
 html.nativo{--sat:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px),34px);--sab:max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px),50px)}
@@ -6374,7 +6379,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Cash: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Your properties and businesses</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Income <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Time <b>${hm(horasAtivo(a))} h/mo</b>${a.gerente?" (supervision)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>With manager</span>":'')}${a.area?"<span>Your field</span>":''}${a.finUid?"<span>Financed</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Appreciated <b>${pctFmt(a.valor/a.custo-1)}</b> since purchase</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Rent adjusted <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Fixed payment of ${fmt0(pp.valor)} against rent of ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': with inflation, rent rises and the payment doesn\'t, so the debt weighs less each year.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -6607,6 +6612,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -13113,7 +13119,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Al contado: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Tus inmuebles y negocios</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Ingresos <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Tiempo <b>${hm(horasAtivo(a))} h/mes</b>${a.gerente?" (supervisión)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Con gerente</span>":'')}${a.area?"<span>Tu sector</span>":''}${a.finUid?"<span>Financiado</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Revalorizado <b>${pctFmt(a.valor/a.custo-1)}</b> desde la compra</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Alquiler ajustado <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Cuota fija de ${fmt0(pp.valor)} frente a un alquiler de ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': con la inflación, el alquiler sube y la cuota no, así que la deuda pesa menos cada año.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -13346,6 +13352,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -19851,7 +19858,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">A pronto: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Os teus imóveis e negócios</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Rendimento <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mês</b>${a.gerente?" (supervisão)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Com gerente</span>":'')}${a.area?"<span>A tua área</span>":''}${a.finUid?"<span>Financiado</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorizado <b>${pctFmt(a.valor/a.custo-1)}</b> desde a compra</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Renda atualizada <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Prestação fixa de ${fmt0(pp.valor)} contra uma renda de ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': com inflação, a renda sobe e a prestação não, por isso a dívida pesa menos a cada ano.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -20084,6 +20091,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -26590,7 +26598,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Comptant : ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Tes biens et entreprises</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Revenus <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Temps <b>${hm(horasAtivo(a))} h/mois</b>${a.gerente?" (supervision)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Avec gérant</span>":'')}${a.area?"<span>Ton domaine</span>":''}${a.finUid?"<span>Financé</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorisé <b>${pctFmt(a.valor/a.custo-1)}</b> depuis l'achat</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Loyer ajusté <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Mensualité fixe de ${fmt0(pp.valor)} contre un loyer de ${fmt0(rendaAtivo(a))}${PAIS.inflacao?' : avec l\'inflation, le loyer monte et la mensualité non, donc la dette pèse moins chaque année.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -26823,6 +26831,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -33329,7 +33338,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Contanti: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">I tuoi immobili e le tue attività</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Reddito <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mese</b>${a.gerente?" (supervisione)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Con responsabile</span>":'')}${a.area?"<span>Il tuo settore</span>":''}${a.finUid?"<span>Finanziato</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Rivalutato <b>${pctFmt(a.valor/a.custo-1)}</b> dall'acquisto</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Affitto adeguato <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Rata fissa di ${fmt0(pp.valor)} contro un affitto di ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': con l\'inflazione, l\'affitto sale e la rata no, quindi il debito pesa meno ogni anno.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -33562,6 +33571,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -40068,7 +40078,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Bar: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Deine Immobilien und Geschäfte</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Einkommen <b>${a.tipo==='terreno'?'none':a.vagoAte>=s.mes?'vacant':fmt0(rendaAtivo(a))+"/mo"}</b></span><span>Zeit <b>${hm(horasAtivo(a))} Std./Monat</b>${a.gerente?" (Aufsicht)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Mit Manager</span>":'')}${a.area?"<span>Dein Fachgebiet</span>":''}${a.finUid?"<span>Finanziert</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Im Wert gestiegen <b>${pctFmt(a.valor/a.custo-1)}</b> seit dem Kauf</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Miete angepasst <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Feste Rate von ${fmt0(pp.valor)} gegenüber einer Miete von ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': Mit Inflation steigt die Miete, die Rate nicht, also wiegt die Schuld jedes Jahr weniger.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -40301,6 +40311,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -46807,7 +46818,7 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Наличные: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Твоя недвижимость и бизнесы</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Доход <b>${a.tipo==='terreno'?'нет':a.vagoAte>=s.mes?'свободно':fmt0(rendaAtivo(a))+"/мес."}</b></span><span>Время <b>${hm(horasAtivo(a))} ч/мес.</b>${a.gerente?" (надзор)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>С управляющим</span>":'')}${a.area?"<span>Твоя сфера</span>":''}${a.finUid?"<span>В рассрочку</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Подорожало <b>${pctFmt(a.valor/a.custo-1)}</b> с момента покупки</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Аренда скорректирована <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Фиксированный платёж ${fmt0(pp.valor)} против аренды ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': при инфляции аренда растёт, а платёж нет, поэтому долг с каждым годом давит меньше.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -47040,6 +47051,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -53546,7 +53558,7 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Tunai: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Properti dan bisnismu</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Penghasilan <b>${a.tipo==='terreno'?'tidak ada':a.vagoAte>=s.mes?'kosong':fmt0(rendaAtivo(a))+"/bln"}</b></span><span>Waktu <b>${hm(horasAtivo(a))} jam/bln</b>${a.gerente?" (pengawasan)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Dengan manajer</span>":'')}${a.area?"<span>Bidangmu</span>":''}${a.finUid?"<span>Dibiayai</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Menghargai <b>${pctFmt(a.valor/a.custo-1)}</b> sejak pembelian</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Sewa disesuaikan <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Cicilan tetap ${fmt0(pp.valor)} terhadap sewa ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': dengan inflasi, sewa naik dan cicilan tidak, jadi utang makin ringan tiap tahun.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -53779,6 +53791,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -60285,7 +60298,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">Peşin: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Mülklerin ve işletmelerin</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Gelir <b>${a.tipo==='terreno'?'yok':a.vagoAte>=s.mes?'boş':fmt0(rendaAtivo(a))+"/ay"}</b></span><span>Zaman <b>ayda ${hm(horasAtivo(a))} sa</b>${a.gerente?" (denetim)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>Yöneticili</span>":'')}${a.area?"<span>Alanın</span>":''}${a.finUid?"<span>Finanse edildi</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Değer kazandı <b>${pctFmt(a.valor/a.custo-1)}</b> satın almadan beri</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Kira güncellendi <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">${fmt0(rendaAtivo(a))} kiraya karşılık ${fmt0(pp.valor)} sabit taksit${PAIS.inflacao?': enflasyonla kira artar ve taksit artmaz, bu yüzden borç her yıl daha az yük olur.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -60518,6 +60531,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -67024,7 +67038,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">نقداً: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">عقاراتك وأعمالك</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>الدخل <b>${a.tipo==='terreno'?'—':a.vagoAte>=s.mes?'شاغر':fmt0(rendaAtivo(a))+"/شهر"}</b></span><span>الوقت <b>${hm(horasAtivo(a))} ساعة/شهر</b>${a.gerente?" (إشراف)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>مع مدير</span>":'')}${a.area?"<span>مجالك</span>":''}${a.finUid?"<span>ممول</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>ارتفعت قيمته <b>${pctFmt(a.valor/a.custo-1)}</b> منذ الشراء</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>عُدّل الإيجار <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">قسط ثابت ${fmt0(pp.valor)} مقابل إيجار ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': مع التضخم يرتفع الإيجار ولا يرتفع القسط، فيخفّ ثقل الدين كل عام.':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -67257,6 +67271,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -73763,7 +73778,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">現金：${avisoEmerg(precoAVista(o))}。</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">あなたの不動産と事業</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>収入 <b>${a.tipo==='terreno'?'—':a.vagoAte>=s.mes?'空室':fmt0(rendaAtivo(a))+"/月"}</b></span><span>時間 <b>${hm(horasAtivo(a))}時間/月</b>${a.gerente?" （監督）":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>マネージャー付き</span>":'')}${a.area?"<span>あなたの分野</span>":''}${a.finUid?"<span>ローンあり</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>値上がり <b>${pctFmt(a.valor/a.custo-1)}</b> 購入時から</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>家賃が改定された <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">${fmt0(rendaAtivo(a))}${PAIS.inflacao?'：インフレで家賃は上がり、返済額は上がらないため、負債は毎年軽くなります。':'.'}の家賃に対して、固定返済${fmt0(pp.valor)}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -73996,6 +74011,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -80502,7 +80518,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">현금: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">당신의 부동산과 사업</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>소득 <b>${a.tipo==='terreno'?'—':a.vagoAte>=s.mes?'공실':fmt0(rendaAtivo(a))+"/월"}</b></span><span>시간 <b>월 ${hm(horasAtivo(a))}시간</b>${a.gerente?" (감독)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>매니저와 함께</span>":'')}${a.area?"<span>당신의 분야</span>":''}${a.finUid?"<span>대출로 구매</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>가치 상승 <b>${pctFmt(a.valor/a.custo-1)}</b> 구매 이후</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>월세 조정 <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">월세 ${fmt0(rendaAtivo(a))}${PAIS.inflacao?': 물가가 오르면 월세는 오르고 할부금은 그대로라서 빚의 부담이 해마다 줄어요.':'.'} 대비 고정 할부금 ${fmt0(pp.valor)}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -80735,6 +80751,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -87240,7 +87257,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">नकद: ${avisoEmerg(precoAVista(o))}।</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">आपकी संपत्तियाँ और कारोबार</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>आमदनी <b>${a.tipo==='terreno'?'—':a.vagoAte>=s.mes?'ख़ाली':fmt0(rendaAtivo(a))+"/माह"}</b></span><span>समय <b>${hm(horasAtivo(a))} घंटे/माह</b>${a.gerente?" (देखरेख)":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>मैनेजर के साथ</span>":'')}${a.area?"<span>आपका क्षेत्र</span>":''}${a.finUid?"<span>फ़ाइनेंस किया हुआ</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>मूल्य बढ़ा <b>${pctFmt(a.valor/a.custo-1)}</b> खरीद के बाद से</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>किराया समायोजित <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">${fmt0(rendaAtivo(a))} के किराये के मुक़ाबले ${fmt0(pp.valor)} की तय किस्त${PAIS.inflacao?': महँगाई के साथ किराया बढ़ता है और किस्त नहीं, इसलिए कर्ज़ का बोझ हर साल हल्का होता है।':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -87473,6 +87490,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -93978,7 +93996,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
         <p class="hint${/⚠️|short/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">现金：${avisoEmerg(precoAVista(o))}。</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">你的房产和生意</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>收入 <b>${a.tipo==='terreno'?'—':a.vagoAte>=s.mes?'空置':fmt0(rendaAtivo(a))+"/月"}</b></span><span>时间 <b>${hm(horasAtivo(a))}小时/月</b>${a.gerente?" （监督）":''}</span>${lojaObraSpan(a)+(a.gerente?"<span>有经理</span>":'')}${a.area?"<span>你的领域</span>":''}${a.finUid?"<span>已贷款</span>":''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>已升值 <b>${pctFmt(a.valor/a.custo-1)}</b> 自购买以来</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>租金已调整 <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">固定月供${fmt0(pp.valor)}，对比租金${fmt0(rendaAtivo(a))}${PAIS.inflacao?'：随着通胀，租金上涨而月供不变，所以债务的负担逐年减轻。':'.'}</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -94211,6 +94229,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
@@ -100712,7 +100731,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
         <p class="hint${/⚠️|Faltam/.test(avisoEmerg(precoAVista(o)))?' res-alerta':''}">À vista: ${avisoEmerg(precoAVista(o))}.</p>
       </div>`;}).join('')}</section>`:'';
   const ativos=(s.ativos||[]).length?`<section class="card" aria-labelledby="t-ativos"><h2 id="t-ativos">Seus imóveis e negócios</h2>
-    ${s.ativos.map(a=>`<div class="opp">${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
+    ${s.ativos.map(a=>`<div class="opp">${ceoCarimbo(a)}${fotoNeg(a.id,a)}<div class="opp-top"><b>${a.nome}</b><span class="num">${fmt0(a.valor)}</span></div>
       <div class="opp-dados"><span>Renda <b>${a.tipo==='terreno'?'nenhuma':a.vagoAte>=s.mes?'vazio':fmt0(rendaAtivo(a))+'/mês'}</b></span><span>Tempo <b>${hm(horasAtivo(a))} h/mês</b>${a.gerente?' (supervisão)':''}</span>${lojaObraSpan(a)+(a.gerente?'<span>Com gerente</span>':'')}${a.area?'<span>Sua área</span>':''}${a.finUid?'<span>Financiado</span>':''}${((a.tipo==='imovel'||a.tipo==='terreno')&&a.custo>0&&Math.abs(a.valor/a.custo-1)>=0.005?`<span>Valorizou <b>${pctFmt(a.valor/a.custo-1)}</b> desde a compra</span>`:'')+(a.tipo==='terreno'?terrInfo(a):'')}${a.ultReaj?`<span>Aluguel reajustado <b>${pctFmt(a.ultReaj)}</b></span>`:''}</div>
       ${a.tipo==='imovel'&&a.finUid?(()=>{ const pp=s.parcelas.find(x=>x.uid===a.finUid); return pp?`<p class="hint">Parcela fixa de ${fmt0(pp.valor)} contra aluguel de ${fmt0(rendaAtivo(a))}: com a inflação, o aluguel sobe e a parcela não, então a dívida pesa menos a cada ano.</p>`:''; })():''}
       ${escala(a)?(()=>{ const r=ritmoNegocio(a), teto=(a.rendaBase||a.renda)*TETO_UNID*(a.unid||1), noTeto=a.renda>=teto*0.98;
@@ -100945,6 +100964,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
+const ceoCarimbo=a=>(ceo().on && a.ceoSelo) ? `<div class="carimbo-ceo" aria-label="${CEOT.selo}"><span>CEO</span><b>${CEOT.selo}</b></div>` : '';
 const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
