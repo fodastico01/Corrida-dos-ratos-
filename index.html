@@ -6148,7 +6148,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v533</p>
+    <p class="titulo-versao">version v534</p>
   </div>`;
 }
 function render(){
@@ -12889,7 +12889,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v533</p>
+    <p class="titulo-versao">versión v534</p>
   </div>`;
 }
 function render(){
@@ -19629,7 +19629,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v533</p>
+    <p class="titulo-versao">versão v534</p>
   </div>`;
 }
 function render(){
@@ -19762,7 +19762,7 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mês</span></div>
-        <div class="opp-dados"><span>Renda ${cabeA?"<b style=\"color:var(--gain)\">até 30% do rendimento</b>":"<b style=\"color:var(--warn)\">acima de 30% do rendimento</b>"}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
+        <div class="opp-dados"><span>Renda ${cabeA?"<b style=\"color:var(--gain)\">até 30% do rendimento</b>":"<b style=\"color:var(--warn)\">acima de 30% do rendimento</b>"}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bem-estar: ${dif>0?'+':''}${dif}/mês</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Renda</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Comprar a casa onde vives':"Comprar"}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">A tua casa ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Próprio":"Arrendado"} · ${fmt0(cm)} por mês${morPropria()?" (condomínio, IMI e prestação do crédito)":''}</span></div></div>
@@ -19774,7 +19774,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+"/mo"}</span></div>
-        <div class="opp-dados">${i?`<span>Preço ${ok?"<b style=\"color:var(--gain)\">até meio ano de rendimento</b>":"<b style=\"color:var(--warn)\">mais de meio ano de rendimento</b>"}</span><span>Custo <b>${fmt0(custoCarro(i))}/mês</b></span>`:"<span>Vende o carro atual</span>"}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
+        <div class="opp-dados">${i?`<span>Preço ${ok?"<b style=\"color:var(--gain)\">até meio ano de rendimento</b>":"<b style=\"color:var(--warn)\">mais de meio ano de rendimento</b>"}</span><span>Custo <b>${fmt0(custoCarro(i))}/mês</b></span>`:"<span>Vende o carro atual</span>"}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bem-estar: ${dif>0?'+':''}${dif}/mês</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?"Trocar por este":"Ficar sem carro"}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">O teu carro ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Vale cerca de ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos["Car (payment and insurance)"]||0)} por mês${pc?` · empréstimo ${pc.restante}x de ${fmt0(pc.valor)}`:''}`:`Transporte: ${fmt0(s.fixos["Transport"]||0)} por mês`}</span></div></div>
@@ -19800,7 +19800,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+"/mo":"free"}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Tempo <b>${h.horas} h/sem</b></span><span>Bem-estar <b>+${h.fel}/mês</b></span>${on?`<span>Para <b>${mesesHab(id)} ${mesesHab(id)===1?"mês":"meses"}</b>${mesesHab(id)>=6?" · sólido":''}</span>`:''}</div>
+        <div class="opp-dados"><span>Tempo <b>${h.horas} h/sem</b></span><span><b style="color:var(--gain)">Bem-estar: +${h.fel}/mês</b></span>${on?`<span>Para <b>${mesesHab(id)} ${mesesHab(id)===1?"mês":"meses"}</b>${mesesHab(id)>=6?" · sólido":''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?"Parar":"Começar"}</button></div>
         ${semTempo?"<p class=\"hint\">Sem tempo livre para isto agora.</p>":''}</div>`; }).join('')}
   </section>`;
@@ -26370,7 +26370,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v533</p>
+    <p class="titulo-versao">version v534</p>
   </div>`;
 }
 function render(){
@@ -33111,7 +33111,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v533</p>
+    <p class="titulo-versao">versione v534</p>
   </div>`;
 }
 function render(){
@@ -39852,7 +39852,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v533</p>
+    <p class="titulo-versao">Version v534</p>
   </div>`;
 }
 function render(){
@@ -46593,7 +46593,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v533</p>
+    <p class="titulo-versao">версия v534</p>
   </div>`;
 }
 function render(){
@@ -53334,7 +53334,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v533</p>
+    <p class="titulo-versao">versi v534</p>
   </div>`;
 }
 function render(){
@@ -60075,7 +60075,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v533</p>
+    <p class="titulo-versao">sürüm v534</p>
   </div>`;
 }
 function render(){
@@ -66816,7 +66816,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v533</p>
+    <p class="titulo-versao">الإصدار v534</p>
   </div>`;
 }
 function render(){
@@ -73557,7 +73557,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v533</p>
+    <p class="titulo-versao">バージョン v534</p>
   </div>`;
 }
 function render(){
@@ -80298,7 +80298,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v533</p>
+    <p class="titulo-versao">버전 v534</p>
   </div>`;
 }
 function render(){
@@ -87038,7 +87038,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v533</p>
+    <p class="titulo-versao">वर्ज़न v534</p>
   </div>`;
 }
 function render(){
@@ -93778,7 +93778,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v533</p>
+    <p class="titulo-versao">版本 v534</p>
   </div>`;
 }
 function render(){
@@ -100514,7 +100514,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v533</p>
+    <p class="titulo-versao">versão v534</p>
   </div>`;
 }
 function render(){
@@ -100647,7 +100647,7 @@ function render(){
     const linhas=MORADIAS.map((X,i)=>{ if(i===n && (morPropria() || !F2() || !precoN(i))) return ''; const al=aluguelN(i), pr=precoN(i), cabeA=cabeRenda(al);
       const dif=X.fel-MORADIAS[morBase()].fel;
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${fmt0(al)}/mês</span></div>
-        <div class="opp-dados"><span>Aluguel ${cabeA?'<b style="color:var(--gain)">até 30% da renda</b>':'<b style="color:var(--warn)">passa de 30% da renda</b>'}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
+        <div class="opp-dados"><span>Aluguel ${cabeA?'<b style="color:var(--gain)">até 30% da renda</b>':'<b style="color:var(--warn)">passa de 30% da renda</b>'}</span>${pr&&F2()?`<span>Compra <b>${fmt0(pr)}</b></span>`:''}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bem-estar: ${dif>0?'+':''}${dif}/mês</b></span></div>
         <div class="conta-acoes">${i===n?'':`<button class="btn" data-acao="mudar" data-alvo="${i}:alugar">Alugar</button>`}${pr&&F2()?`<button class="btn coin" data-acao="mudar" data-alvo="${i}:comprar">${i===n?'Comprar a casa em que você mora':'Comprar'}</button>`:''}</div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Sua casa ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?'Própria':'Alugada'} · ${fmt0(cm)} por mês${morPropria()?' (condomínio, IPTU e parcela)':''}</span></div></div>
@@ -100659,7 +100659,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   const carroCard = !F2() ? '' : (()=>{ const n=carN(), K=CARROS[n], fc=felCarro(), cabe=n===0||cabeCarro(), pc=parcCarro();
     const linhas=CARROS.map((X,i)=>{ if(i===n) return ''; const pr=precoCarro(i), dif=X.fel-CARROS[carBase()].fel, ok=i===0||pr<=6*Math.max(1,rendaTotal());
       return `<div class="opp"><div class="opp-top"><b>${pix(X.ic,'mini')} ${X.nome}</b><span class="num">${i?fmt0(pr):fmt0(transpBase())+'/mês'}</span></div>
-        <div class="opp-dados">${i?`<span>Preço ${ok?'<b style="color:var(--gain)">até meia renda anual</b>':'<b style="color:var(--warn)">passa de meia renda anual</b>'}</span><span>Custo <b>${fmt0(custoCarro(i))}/mês</b></span>`:'<span>Vende o carro atual</span>'}<span>Bem-estar <b>${dif>0?'+':''}${dif}/mês</b></span></div>
+        <div class="opp-dados">${i?`<span>Preço ${ok?'<b style="color:var(--gain)">até meia renda anual</b>':'<b style="color:var(--warn)">passa de meia renda anual</b>'}</span><span>Custo <b>${fmt0(custoCarro(i))}/mês</b></span>`:'<span>Vende o carro atual</span>'}<span><b style="color:${dif>0?'var(--gain)':dif<0?'var(--loss)':'inherit'}">Bem-estar: ${dif>0?'+':''}${dif}/mês</b></span></div>
         <div class="conta-acoes"><button class="btn${i?' coin':''}" data-acao="carro" data-alvo="${i}">${i?'Trocar por este':'Ficar sem carro'}</button></div></div>`; }).join('');
     return `<section class="card" aria-labelledby="t-carro"><h2 id="t-carro" data-info="carro">Seu carro ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(K.ic,'g')}</span><div><b>${K.nome}</b><span class="hint">${n?`Vale cerca de ${fmt0(valorCarro())} · ${fmt0(s.fixos[CK]||s.fixos['Carro (parcela e seguro)']||0)} por mês${pc?` · financiamento ${pc.restante}x de ${fmt0(pc.valor)}`:''}`:`Transporte: ${fmt0(s.fixos['Transporte']||0)} por mês`}</span></div></div>
@@ -100685,7 +100685,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
     ${Object.entries(HABITOS).filter(([,h])=>!h.fases||faseOk(h.fases)).map(([id,h])=>{ const on=id in (s.habitos||{}), c=custoHab(id), semTempo=!on && horasLivres()-h.horas<10;
       return `<div class="opp"><div class="opp-top"><b>${h.nome}</b><span class="num">${c?fmt0(c)+'/mês':'grátis'}</span></div>
         <p class="hint desc">${h.desc}</p>
-        <div class="opp-dados"><span>Tempo <b>${h.horas} h/sem</b></span><span>Bem-estar <b>+${h.fel}/mês</b></span>${on?`<span>Há <b>${mesesHab(id)} ${mesesHab(id)===1?'mês':'meses'}</b>${mesesHab(id)>=6?' · firme':''}</span>`:''}</div>
+        <div class="opp-dados"><span>Tempo <b>${h.horas} h/sem</b></span><span><b style="color:var(--gain)">Bem-estar: +${h.fel}/mês</b></span>${on?`<span>Há <b>${mesesHab(id)} ${mesesHab(id)===1?'mês':'meses'}</b>${mesesHab(id)>=6?' · firme':''}</span>`:''}</div>
         <div class="conta-acoes"><button class="btn ${on?'':'coin'}" data-acao="habito" data-alvo="${id}" ${semTempo?'disabled':''}>${on?'Parar':'Começar'}</button></div>
         ${semTempo?'<p class="hint">Sem tempo livre para isso agora.</p>':''}</div>`; }).join('')}
   </section>`;
