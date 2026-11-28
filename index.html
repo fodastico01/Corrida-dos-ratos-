@@ -2654,7 +2654,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Next: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Next: <b>${S.niv[n]}</b> for <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ This step changes the size of the company: it includes ${fmt0(R.extra)} of ${R.rotulo.toLowerCase()}, and it stays ${R.verbo} for ${R.meses} months, ${tycLojas(a)>1?'with one store closed at a time (the others keep selling)':'selling nothing'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pay from company cash</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>From my pocket</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Total you invested (purchase, upgrades and stores)</span><b>${fmt0(a.custo)}</b></div>
@@ -6607,7 +6607,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -6615,7 +6615,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -9394,7 +9393,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Siguiente: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Siguiente: <b>${S.niv[n]}</b> por <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Este paso cambia el tamaño de la empresa: incluye ${fmt0(R.extra)} de ${R.rotulo.toLowerCase()}, y queda ${R.verbo} durante ${R.meses} meses, ${tycLojas(a)>1?'con una tienda cerrada a la vez (las demás siguen vendiendo)':'sin vender nada'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pagar con la caja de la empresa</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>De mi bolsillo</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Total que invertiste (compra, mejoras y tiendas)</span><b>${fmt0(a.custo)}</b></div>
@@ -13347,7 +13346,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -13355,7 +13354,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -16133,7 +16131,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Próximo: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Próximo: <b>${S.niv[n]}</b> por <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Este passo muda a dimensão da empresa: inclui ${fmt0(R.extra)} de ${R.rotulo.toLowerCase()} e fica ${R.verbo} durante ${R.meses} meses, ${tycLojas(a)>1?'com uma loja fechada de cada vez (as outras continuam a vender)':'sem vender nada'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pagar com o caixa da empresa</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Do meu bolso</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Total que investiste (compra, melhorias e lojas)</span><b>${fmt0(a.custo)}</b></div>
@@ -20086,7 +20084,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -20094,7 +20092,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -22873,7 +22870,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Prochain : ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Prochain : <b>${S.niv[n]}</b> pour <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Cette étape change la taille de l'entreprise : elle comprend ${fmt0(R.extra)} de ${R.rotulo.toLowerCase()}, et elle reste ${R.verbo} pendant ${R.meses} mois, ${tycLojas(a)>1?'avec un magasin fermé à la fois (les autres continuent de vendre)':'sans rien vendre'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Payer avec la trésorerie de l'entreprise</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>De ma poche</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Total que tu as investi (achat, améliorations et magasins)</span><b>${fmt0(a.custo)}</b></div>
@@ -26826,7 +26823,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -26834,7 +26831,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -29613,7 +29609,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Prossimo: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Prossimo: <b>${S.niv[n]}</b> per <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Questo passo cambia la dimensione dell'azienda: include ${fmt0(R.extra)} di ${R.rotulo.toLowerCase()}, e resta ${R.verbo} per ${R.meses} mesi, ${tycLojas(a)>1?'con un negozio chiuso alla volta (gli altri continuano a vendere)':'senza vendere nulla'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Paga con la cassa dell'azienda</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Di tasca mia</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Totale che hai investito (acquisto, miglioramenti e negozi)</span><b>${fmt0(a.custo)}</b></div>
@@ -33566,7 +33562,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -33574,7 +33570,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -36353,7 +36348,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Als Nächstes: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Als Nächstes: <b>${S.niv[n]}</b> für <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Dieser Schritt verändert die Größe des Unternehmens: Er umfasst ${fmt0(R.extra)} von ${R.rotulo.toLowerCase()}, und es bleibt ${R.verbo} für ${R.meses} Monate, ${tycLojas(a)>1?'mit jeweils einem geschlossenen Laden (die anderen verkaufen weiter)':'ohne Verkäufe'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Aus der Unternehmenskasse zahlen</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Aus eigener Tasche</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Insgesamt von dir investiert (Kauf, Ausbauten und Läden)</span><b>${fmt0(a.custo)}</b></div>
@@ -40306,7 +40301,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -40314,7 +40309,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -43093,7 +43087,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Далее: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Далее: <b>${S.niv[n]}</b> за <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Этот шаг меняет размер компании: он включает ${fmt0(R.extra)} из ${R.rotulo.toLowerCase()}, и она остаётся ${R.verbo} на ${R.meses} мес., ${tycLojas(a)>1?'при закрытии одного магазина за раз (остальные продолжают продавать)':'ничего не продаёт'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Оплатить из кассы компании</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Из своего кармана</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Всего ты вложил (покупка, улучшения и магазины)</span><b>${fmt0(a.custo)}</b></div>
@@ -47046,7 +47040,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -47054,7 +47048,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -49833,7 +49826,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Berikutnya: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Berikutnya: <b>${S.niv[n]}</b> untuk <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Langkah ini mengubah ukuran perusahaan: mencakup ${fmt0(R.extra)} dari ${R.rotulo.toLowerCase()}, dan tetap ${R.verbo} selama ${R.meses} bulan, ${tycLojas(a)>1?'dengan satu toko tutup setiap kali (yang lain tetap berjualan)':'tidak berjualan'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Bayar dari kas perusahaan</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Dari kantong sendiri</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Total yang kamu investasikan (pembelian, peningkatan, dan toko)</span><b>${fmt0(a.custo)}</b></div>
@@ -53786,7 +53779,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -53794,7 +53787,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -56573,7 +56565,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Sıradaki: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Sıradaki: <b>${S.niv[n]}</b> için <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Bu adım şirketin büyüklüğünü değiştirir: ${R.rotulo.toLowerCase()} içinde ${fmt0(R.extra)} var ve ${R.meses} ay boyunca ${R.verbo} kalır, ${tycLojas(a)>1?'aynı anda bir mağaza kapalı olacak (diğerleri satmaya devam eder)':'hiçbir şey satmıyor'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Şirket kasasından öde</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Cebimden</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Toplam yatırdığın (satın alma, geliştirmeler ve mağazalar)</span><b>${fmt0(a.custo)}</b></div>
@@ -60526,7 +60518,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -60534,7 +60526,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -63313,7 +63304,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 التالي: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">التالي: <b>${S.niv[n]}</b> لمدة <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ هذه الخطوة تغيّر حجم الشركة: تشمل ${fmt0(R.extra)} من ${R.rotulo.toLowerCase()}، وتبقى ${R.verbo} لمدة ${R.meses} أشهر، ${tycLojas(a)>1?'مع إغلاق متجر واحد في كل مرة (والباقي يواصل البيع)':'دون مبيعات'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>ادفع من نقد الشركة</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>من جيبي</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>إجمالي ما استثمرته (الشراء والترقيات والمتاجر)</span><b>${fmt0(a.custo)}</b></div>
@@ -67266,7 +67257,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -67274,7 +67265,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -70053,7 +70043,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 次：${S.niv[n]}。${bl}。</p>`
       :`<p class="hint">次： <b>${S.niv[n]}</b>・<b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ このステップは会社の規模を変えます：${R.rotulo.toLowerCase()}の${fmt0(R.extra)}を含み、${R.verbo}の状態が${R.meses}か月続き、${tycLojas(a)>1?'1店舗ずつ閉めて行います（ほかは営業を続けます）':'売上なし'}。</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>会社の現金から支払う</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>自分のお金から</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>あなたが投資した合計（購入、アップグレード、店舗）</span><b>${fmt0(a.custo)}</b></div>
@@ -74006,7 +73996,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -74014,7 +74004,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -76793,7 +76782,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 다음: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">다음: <b>${S.niv[n]}</b> 기간 <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ 이 단계는 회사 규모를 바꿔요: ${R.rotulo.toLowerCase()}의 ${fmt0(R.extra)}이(가) 포함되고, ${R.meses}개월 동안 ${R.verbo} 상태로 유지돼요, ${tycLojas(a)>1?'한 번에 매장 하나가 문을 닫아요(나머지는 계속 판매해요)':'아무것도 팔지 않음'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>회사 현금으로 지불</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>내 주머니에서</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>총 투자액(구입, 업그레이드, 매장)</span><b>${fmt0(a.custo)}</b></div>
@@ -80746,7 +80735,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -80754,7 +80743,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -83532,7 +83520,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 अगला: ${S.niv[n]}। ${bl}।</p>`
       :`<p class="hint">अगला: <b>${S.niv[n]}</b> के लिए <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ यह कदम कंपनी का आकार बदलता है: इसमें ${R.rotulo.toLowerCase()} का ${fmt0(R.extra)} शामिल है, और यह ${R.meses} महीने तक ${R.verbo} रहती है, ${tycLojas(a)>1?'एक बार में एक स्टोर बंद रहता है (बाक़ी बिक्री जारी रखते हैं)':'कुछ नहीं बिकता'}।</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>कंपनी की नकदी से भुगतान करें</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>अपनी जेब से</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>आपने कुल कितना लगाया (खरीद, सुधार और स्टोर)</span><b>${fmt0(a.custo)}</b></div>
@@ -87485,7 +87473,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -87493,7 +87481,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -90271,7 +90258,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 下一步：${S.niv[n]}。${bl}。</p>`
       :`<p class="hint">下一步： <b>${S.niv[n]}</b> 期间 <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ 这一步会改变公司规模：包含${fmt0(R.extra)}${R.rotulo.toLowerCase()}，并且${R.verbo}持续${R.meses}个月，${tycLojas(a)>1?'每次关闭一家店（其他店继续营业）':'没有任何销量'}。</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>用公司现金支付</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>自己掏腰包</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>你的总投入（购买、升级和店铺）</span><b>${fmt0(a.custo)}</b></div>
@@ -94224,7 +94211,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -94232,7 +94219,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
@@ -97006,7 +96992,7 @@ function modalTyc(a){
       ${n>=tycNmax(a)?'':bl?`<p class="hint" style="color:var(--loss)">🔒 Próximo: ${S.niv[n]}. ${bl}.</p>`
       :`<p class="hint">Próximo: <b>${S.niv[n]}</b> por <b>${fmt0(c)}</b></p>${R?`<p class="hint" style="color:var(--loss)">⚠️ Esta etapa muda o porte da empresa: inclui ${fmt0(R.extra)} de ${R.rotulo.toLowerCase()}, e ela fica ${R.verbo} por ${R.meses} meses, ${tycLojas(a)>1?'com uma loja fechada por vez (as outras seguem vendendo)':'sem vender nada'}.</p>`:''}<div class="conta-acoes"><button class="btn coin" data-acao="tycSubir" data-alvo="${a.uid}:${i}:caixa" ${doCaixa?'':'disabled'}>Pagar com o caixa</button><button class="btn" data-acao="tycSubir" data-alvo="${a.uid}:${i}:bolso" ${doBolso?'':'disabled'}>Do meu bolso</button></div>`}</div>`; }).join('');
   return `<div class="overlay" data-acao="fechar-fundo"><div class="sheet hab-sheet tyc-sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
-    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}${ceoSeloTag(a)}</h3></div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
+    <div class="tyc-topo"><div><span class="tag neutro">${EM.tagPorte(tycPorte(nEq))===tycPorte(nEq)?EM.porte[nEq<=3?0:nEq<=6?1:2]:EM.tagPorte(tycPorte(nEq))}</span><h3 id="m-t">${a.nome}</h3>${ceoSeloTag(a)}</div><span class="tyc-estr">${'★'.repeat(Math.ceil(nEq/3))}${'☆'.repeat(3-Math.ceil(nEq/3))}</span></div>
     <div class="tyc-cena">${cena}</div>
     <div class="info-lista">
       <div class="fl"><span>Total que você investiu (compra, melhorias e lojas)</span><b>${fmt0(a.custo)}</b></div>
@@ -100959,7 +100945,7 @@ function ceoSeloToggle(uid){ const c=ceo(); const a=(s.ativos||[]).find(x=>Strin
   if(a.ceoSelo){ a.ceoSelo=false; a.ceoMan='off'; return; }
   if(ceoCob().length>=CEO_NIV[ceoNivel()].cob){ ui.ceoProm={titulo:CEOT.cheioT, texto:CEOT.cheio}; ui.modal='ceoProm'; return; }
   a.ceoSelo=true; a.ceoMan='on'; }
-const ceoSeloTag=a=>(ceo().on && a.ceoSelo) ? ` <span class="tag neutro">🧑‍💼 ${CEOT.selo}</span>` : '';
+const ceoSeloTag=a=>(ceo().on && a.tyc) ? ` <button class="tag neutro" data-acao="ceoSelo" data-alvo="${a.uid}" style="min-height:36px;padding:0 14px;cursor:pointer;border:0;font:inherit;font-weight:700;margin:2px 0 6px">${a.ceoSelo?'🧑‍💼 '+CEOT.selo+' ×':'+ '+CEOT.dar}</button>` : '';
 function renderCeoProm(){ const p=ui.ceoProm; if(!p){ ui.modal=null; modal.innerHTML=''; return; }
   modal.innerHTML=`<div class="overlay" data-acao="ceoPromFechar"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t"><span class="tag neutro">🧑‍💼 CEO</span><h3 id="m-t">${p.titulo}</h3>${p.img?ceoImg():''}<p>${p.texto}</p><div class="opcoes"><button class="opcao coin" data-acao="ceoPromFechar"><b>${CEOT.ok}</b></button></div></div></div>`; }
 function ceoNivHtml(){
@@ -100967,7 +100953,6 @@ function ceoNivHtml(){
   let h=`<h3 class="hint" style="margin:12px 0 4px"><b>${CEOT.n[n-1]} · ${CEOT.niv} ${n}/5</b></h3>
     <p class="hint">${CEOT.cob}: <b>${R.cob>=999?CEOT.todas:R.cob}</b> · ${CEOT.melh}: <b>${tr(R.melh)}</b> · ${CEOT.lj}: <b>${CEOT.loj[R.loja]}</b> · ${CEOT.sal}: <b>${fmt0(ceoSal())}</b></p>
     <p class="hint">${ceoF(CEOT.cuid,{a:cob.length,b:E.length})}</p>`;
-  h+=E.map(a=>`<div class="fl"><span>${a.ceoSelo?'🧑‍💼 ':''}${a.nome}</span><button class="btn" style="min-width:132px;flex:none" data-acao="ceoSelo" data-alvo="${a.uid}">${a.ceoSelo?CEOT.tirar:CEOT.dar}</button></div>`).join('');
   if(N){ const rq=ceoReq(n+1), ok=rq.every(x=>x[1]), salN=Math.round(C(25000)*N.sal/100)*100;
     h+=`<p class="hint" style="margin-top:10px"><b>${CEOT.prom} ${CEOT.n[n]}</b> · ${CEOT.cob}: ${N.cob>=999?CEOT.todas:N.cob} · ${CEOT.melh}: ${tr(N.melh)} · ${CEOT.lj}: ${CEOT.loj[N.loja]} · ${CEOT.prox}: ${fmt0(salN)}</p>
       <p class="hint">${rq.map(x=>(x[1]?'✅ ':'⬜ ')+x[0]).join('<br>')}</p>
