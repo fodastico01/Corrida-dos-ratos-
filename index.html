@@ -6149,7 +6149,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v539</p>
+    <p class="titulo-versao">version v540</p>
   </div>`;
 }
 function render(){
@@ -9724,7 +9724,7 @@ function reqProx(){
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} meses en el puesto`, Math.min(meses,Rm)+" de "+Rm, meses>=Rm],
     ["Reconocimiento en el trabajo", recOk?'logrado':"todavía no", recOk]];
-  if(R.curso) itens.push([`Completa ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'en curso':'pending'), cursoFeito(R.curso)]);
+  if(R.curso) itens.push([`Completa ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'hecho':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'en curso':'pendiente'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -12891,7 +12891,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v539</p>
+    <p class="titulo-versao">versión v540</p>
   </div>`;
 }
 function render(){
@@ -16465,7 +16465,7 @@ function reqProx(){
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} meses no cargo`, Math.min(meses,Rm)+" de "+Rm, meses>=Rm],
     ["Reconhecimento no trabalho", recOk?'alcançado':"ainda não", recOk]];
-  if(R.curso) itens.push([`Conclui ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'em curso':'pending'), cursoFeito(R.curso)]);
+  if(R.curso) itens.push([`Conclui ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'concluído':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'em curso':'pendente'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -19632,7 +19632,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v539</p>
+    <p class="titulo-versao">versão v540</p>
   </div>`;
 }
 function render(){
@@ -23207,7 +23207,7 @@ function reqProx(){
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} mois dans le poste`, Math.min(meses,Rm)+" de "+Rm, meses>=Rm],
     ["Reconnaissance au travail", recOk?'atteint':"pas encore", recOk]];
-  if(R.curso) itens.push([`Terminer ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'en cours':'pending'), cursoFeito(R.curso)]);
+  if(R.curso) itens.push([`Terminer ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'terminé':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'en cours':'à faire'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -26374,7 +26374,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v539</p>
+    <p class="titulo-versao">version v540</p>
   </div>`;
 }
 function render(){
@@ -29949,7 +29949,7 @@ function reqProx(){
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} mesi nel ruolo`, Math.min(meses,Rm)+" di "+Rm, meses>=Rm],
     ["Riconoscimento sul lavoro", recOk?'raggiunto':"non ancora", recOk]];
-  if(R.curso) itens.push([`Completa ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'in corso':'pending'), cursoFeito(R.curso)]);
+  if(R.curso) itens.push([`Completa ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'fatto':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'in corso':'da fare'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -33116,7 +33116,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v539</p>
+    <p class="titulo-versao">versione v540</p>
   </div>`;
 }
 function render(){
@@ -36691,7 +36691,7 @@ function reqProx(){
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} Monate in der Position`, Math.min(meses,Rm)+" von "+Rm, meses>=Rm],
     ["Anerkennung im Beruf", recOk?'erreicht':"noch nicht", recOk]];
-  if(R.curso) itens.push([`${nomeEst(R.curso)} abschließen`, cursoFeito(R.curso)?'erledigt':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'in Arbeit':'pending'), cursoFeito(R.curso)]);
+  if(R.curso) itens.push([`${nomeEst(R.curso)} abschließen`, cursoFeito(R.curso)?'erledigt':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'in Arbeit':'offen'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -39858,7 +39858,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v539</p>
+    <p class="titulo-versao">Version v540</p>
   </div>`;
 }
 function render(){
@@ -46600,7 +46600,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v539</p>
+    <p class="titulo-versao">версия v540</p>
   </div>`;
 }
 function render(){
@@ -53342,7 +53342,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v539</p>
+    <p class="titulo-versao">versi v540</p>
   </div>`;
 }
 function render(){
@@ -60084,7 +60084,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v539</p>
+    <p class="titulo-versao">sürüm v540</p>
   </div>`;
 }
 function render(){
@@ -66826,7 +66826,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v539</p>
+    <p class="titulo-versao">الإصدار v540</p>
   </div>`;
 }
 function render(){
@@ -73568,7 +73568,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v539</p>
+    <p class="titulo-versao">バージョン v540</p>
   </div>`;
 }
 function render(){
@@ -80310,7 +80310,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v539</p>
+    <p class="titulo-versao">버전 v540</p>
   </div>`;
 }
 function render(){
@@ -87051,7 +87051,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v539</p>
+    <p class="titulo-versao">वर्ज़न v540</p>
   </div>`;
 }
 function render(){
@@ -93792,7 +93792,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v539</p>
+    <p class="titulo-versao">版本 v540</p>
   </div>`;
 }
 function render(){
@@ -100529,7 +100529,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v539</p>
+    <p class="titulo-versao">versão v540</p>
   </div>`;
 }
 function render(){
