@@ -6148,7 +6148,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v532</p>
+    <p class="titulo-versao">version v533</p>
   </div>`;
 }
 function render(){
@@ -7165,9 +7165,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">The maximum is 100% of the balance.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% of the account = <b>${g.n} ${g.n===1?'share':'shares'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'share':'shares'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% of the account (${fmt(c*bruto/100)}) doesn't buy 1 share of ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% of the account = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} stays in the checking account.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} stays in the checking account.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -12889,7 +12889,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v532</p>
+    <p class="titulo-versao">versión v533</p>
   </div>`;
 }
 function render(){
@@ -13906,9 +13906,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">El máximo es el 100% del saldo.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% de la cuenta = <b>${g.n} ${g.n===1?'acción':'acciones'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'acción':'acciones'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">El ${pt}% de la cuenta (${fmt(c*bruto/100)}) no compra 1 acción de ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% de la cuenta = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} se queda en la cuenta corriente.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} se queda en la cuenta corriente.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -19629,7 +19629,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v532</p>
+    <p class="titulo-versao">versão v533</p>
   </div>`;
 }
 function render(){
@@ -20646,9 +20646,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">O máximo é 100% do saldo.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% da conta = <b>${g.n} ${g.n===1?'ação':'ações'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'ação':'ações'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% da conta (${fmt(c*bruto/100)}) não compra 1 ação de ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% da conta = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} ficam na conta à ordem.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} ficam na conta à ordem.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -26370,7 +26370,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v532</p>
+    <p class="titulo-versao">version v533</p>
   </div>`;
 }
 function render(){
@@ -27387,9 +27387,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">Le maximum est 100 % du solde.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt} % du compte = <b>${g.n} ${g.n===1?'action':'actions'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'action':'actions'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt} % du compte (${fmt(c*bruto/100)}) n'achète pas 1 action de ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt} % du compte = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} restent sur le compte courant.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} restent sur le compte courant.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -33111,7 +33111,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v532</p>
+    <p class="titulo-versao">versione v533</p>
   </div>`;
 }
 function render(){
@@ -34128,9 +34128,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">Il massimo è il 100% del saldo.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% del conto = <b>${g.n} ${g.n===1?'azione':'azioni'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'azione':'azioni'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% del conto (${fmt(c*bruto/100)}) non compra 1 azione di ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% del conto = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} resta sul conto corrente.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} resta sul conto corrente.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -39852,7 +39852,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v532</p>
+    <p class="titulo-versao">Version v533</p>
   </div>`;
 }
 function render(){
@@ -40869,9 +40869,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">Das Maximum sind 100 % des Saldos.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt} % des Kontos = <b>${g.n} ${g.n===1?'Aktie':'Aktien'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'Aktie':'Aktien'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt} % des Kontos (${fmt(c*bruto/100)}) kaufen keine 1 Aktie von ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt} % des Kontos = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} bleiben auf dem Girokonto.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} bleiben auf dem Girokonto.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -46593,7 +46593,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v532</p>
+    <p class="titulo-versao">версия v533</p>
   </div>`;
 }
 function render(){
@@ -47610,9 +47610,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">Максимум — 100 % баланса.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt} % счёта = <b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt} % счёта (${fmt(c*bruto/100)}) не хватает на 1 акцию ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt} % счёта = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} остаётся на расчётном счёте.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} остаётся на расчётном счёте.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -53334,7 +53334,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v532</p>
+    <p class="titulo-versao">versi v533</p>
   </div>`;
 }
 function render(){
@@ -54351,9 +54351,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">Maksimumnya 100% dari saldo.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% dari rekening = <b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% dari rekening (${fmt(c*bruto/100)}) tidak membeli 1 lembar ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% dari rekening = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} tetap di rekening giro.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} tetap di rekening giro.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -60075,7 +60075,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v532</p>
+    <p class="titulo-versao">sürüm v533</p>
   </div>`;
 }
 function render(){
@@ -61092,9 +61092,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">Azami bakiyenin %100'üdür.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>Hesabın %${pt}'ı = <b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">Hesabın %${pt}'ı (${fmt(c*bruto/100)}) ${fmt(px)} hissesinin 1 adedini almaya yetmiyor.</span>`; return; }
-  el.innerHTML=`<span>Hesabın %${pt}'ı = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} vadesiz hesapta kalır.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} vadesiz hesapta kalır.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -66816,7 +66816,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v532</p>
+    <p class="titulo-versao">الإصدار v533</p>
   </div>`;
 }
 function render(){
@@ -67833,9 +67833,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">الحد الأقصى 100% من الرصيد.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% من الحساب = <b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${umOuVarios(g.n,UNID.acoes)}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% من الحساب (${fmt(c*bruto/100)}) لا تشتري سهماً واحداً من ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% من الحساب = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} يبقى في الحساب الجاري.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} يبقى في الحساب الجاري.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -73557,7 +73557,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v532</p>
+    <p class="titulo-versao">バージョン v533</p>
   </div>`;
 }
 function render(){
@@ -74574,9 +74574,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">上限は残高の100%です。</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>口座の${pt}% = <b>${g.n} 株</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span>口座の<b>${g.n} 株</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">口座の${pt}%（${fmt(c*bruto/100)}）では、${fmt(px)}を1株買えません。</span>`; return; }
-  el.innerHTML=`<span>口座の${pt}% = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)}は当座預金に残ります。</span>`;
+  el.innerHTML=`<span>口座の<b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)}は当座預金に残ります。</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -80298,7 +80298,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v532</p>
+    <p class="titulo-versao">버전 v533</p>
   </div>`;
 }
 function render(){
@@ -81315,9 +81315,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">최대는 잔액의 100%예요.</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>계좌의 ${pt}% = <b>${g.n} 주</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span>계좌의 <b>${g.n} 주</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">계좌의 ${pt}%(${fmt(c*bruto/100)})로는 ${fmt(px)} 1주를 살 수 없어요.</span>`; return; }
-  el.innerHTML=`<span>계좌의 ${pt}% = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)}은(는) 입출금 계좌에 남아요.</span>`;
+  el.innerHTML=`<span>계좌의 <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)}은(는) 입출금 계좌에 남아요.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -87038,7 +87038,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v532</p>
+    <p class="titulo-versao">वर्ज़न v533</p>
   </div>`;
 }
 function render(){
@@ -88055,9 +88055,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">अधिकतम शेष राशि का 100% है।</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>खाते का ${pt}% = <b>${g.n} शेयर</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span>खाते का <b>${g.n} शेयर</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">खाते का ${pt}% (${fmt(c*bruto/100)}) ${fmt(px)} का 1 शेयर नहीं खरीदता।</span>`; return; }
-  el.innerHTML=`<span>खाते का ${pt}% = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} चालू खाते में रहता है।</span>`;
+  el.innerHTML=`<span>खाते का <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)} चालू खाते में रहता है।</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -93778,7 +93778,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v532</p>
+    <p class="titulo-versao">版本 v533</p>
   </div>`;
 }
 function render(){
@@ -94795,9 +94795,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML="<span style=\"color:var(--loss)\">最高是余额的100%。</span>"; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>账户的${pt}% = <b>${g.n} 股</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span>账户的<b>${g.n} 股</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">账户的${pt}%（${fmt(c*bruto/100)}）买不到1股${fmt(px)}。</span>`; return; }
-  el.innerHTML=`<span>账户的${pt}% = <b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)}留在活期账户里。</span>`;
+  el.innerHTML=`<span>账户的<b>${fmt(g.v)}</b></span><span>${fmt(c-g.v)}留在活期账户里。</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
@@ -100514,7 +100514,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v532</p>
+    <p class="titulo-versao">versão v533</p>
   </div>`;
 }
 function render(){
@@ -101531,9 +101531,9 @@ function atualizarPct(){
   if(bruto>100){ el.innerHTML='<span style="color:var(--loss)">O máximo é 100% do saldo.</span>'; return; }
   const g=guardarDe(al), pt=bruto%1?dec1(bruto):String(bruto);
   if(POR_COTA(al)){ const px=preco(al);
-    el.innerHTML = g.n>0 ? `<span>${pt}% da conta = <b>${g.n} ${g.n===1?'cota':'cotas'}</b> (${fmt(g.v)})</span>`
+    el.innerHTML = g.n>0 ? `<span><b>${g.n} ${g.n===1?'cota':'cotas'}</b> (${fmt(g.v)})</span>`
       : `<span style="color:var(--loss)">${pt}% da conta (${fmt(c*bruto/100)}) não compra 1 cota de ${fmt(px)}.</span>`; return; }
-  el.innerHTML=`<span>${pt}% da conta = <b>${fmt(g.v)}</b></span><span>Ficam ${fmt(c-g.v)} na conta corrente.</span>`;
+  el.innerHTML=`<span><b>${fmt(g.v)}</b></span><span>Ficam ${fmt(c-g.v)} na conta corrente.</span>`;
 }
 function atualizarQtd(){
   const el=document.getElementById('previewQtd'); if(!el||!ui.mov) return;
