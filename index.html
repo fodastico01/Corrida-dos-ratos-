@@ -2990,6 +2990,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -2999,7 +3000,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Started: ${nomeEst(id)}`, texto:`${E.meses} months studying ${hm(E.horas)} h per month. In the end, the salary rises ${Math.round(E.aum*100)}% (today that would be ${fmt0(ganhoAum(aumEst(id)))} more per month), and the raise stays in your salary from then on.${aVista?` 👏 Congrats on paying upfront! In installments, the course would cost ${fmt0(total)}; paying upfront you saved ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Started: ${nomeEst(id)}`, texto:semNaN(`${E.meses} months studying ${hm(E.horas)} h per month. In the end, the salary rises ${Math.round(E.aum*100)}% (today that would be ${fmt0(ganhoAum(aumEst(id)))} more per month), and the raise stays in your salary from then on.${aVista?` 👏 Congrats on paying upfront! In installments, the course would cost ${fmt0(total)}; paying upfront you saved ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -3167,11 +3168,11 @@ function lazerCard(){
     <div class="humor-hud" role="meter" aria-label="Condicionamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="label">Condicionamento</span><div class="humor-hud-bar"><i style="width:${pct}%;background:${cor}"></i></div><b class="num" style="color:${cor}">${pct}<small class="delta">${NOME_COND[n]}</small></b></div>
     <p class="hint">Fitness gives time back: more energy and better organization. Right now you get <b>${hm(horasCond())} h per month</b> back (up to ${hm(3)} h at most).</p>
     <p class="hint">Training costs money (gym, shoes, clothes and transport) and uses free time, but it pays off: it raises well-being and fitness. The fitter you are, the calmer and more forgiving the race gets. Stopping training lowers your fitness slowly.</p>
-    <div class="seg seg-hud" role="group" aria-label="Treino por semana">${seg}</div>
-    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub" id="provas-corrida">Provas de corrida</h3>
+    <div class="seg seg-hud" role="group" aria-label="Training per week">${seg}</div>
+    ${(livre-3<9?"<p class=\"hint\">Little free time to train: free up hours (less work, study or bad habits) to choose a workout.</p>":'')+condRetornoHtml()+programasHtml()}<h3 class="lazer-sub" id="provas-corrida">Races</h3>
     <div class="provas">${provas}</div>
     ${(usada?"<p class=\"hint\">You've already run this month.</p>":'')+bonusCorridaHtml()}<p class="hint">Races happen from time to time: the park every 3 months, the city every 6 and the seafront once a year. You can only sign up in the month of the race.</p>
-    <div class="seg seg-hud lazer-persp" role="group" aria-label="Queda dos tênis"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">Em perspectiva<small>vindo do horizonte</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Em linha reta<small>caindo reto</small></button></div>
+    <div class="seg seg-hud lazer-persp" role="group" aria-label="Falling shoes"><button data-acao="corridaPersp" data-alvo="1" aria-pressed="${c.persp!==false}">In perspective<small>coming from the horizon</small></button><button data-acao="corridaPersp" data-alvo="0" aria-pressed="${c.persp===false}">Straight down<small>falling straight</small></button></div>
     ${u?`<p class="hint lazer-ult">Last race (${u.km} km): <b>${u.pos}th place</b> in ${fmtTempo(u.tempo)} · well-being +${u.gf} · fitness +${u.gc}</p>`:"<p class=\"hint\">A race result only adds: first place gives more, and last place still gives a little.</p>"}
   </section>`; }
 function efeitosFel(hl=horasLivres()){
@@ -4895,7 +4896,7 @@ const CASAS={
   mer:{ic:'🏦',nome:"Finance",cor:'#7DA9CF', txt:"Bank, income tax, easy offers and scams."},
   gop:{ic:'⭐',nome:"Big opportunity",cor:'#D9A520', txt:"A business 25% below price. Only worth it on the spot."},
   cor:{ic:'✂️',nome:"Company layoffs",cor:'#C0574A', txt:"The company will cut staff. The risk depends on the profession."},
-  emp:{ic:'🏪',nome:"Your assets",cor:'#4FA8A0', txt:'Notícias dos seus imóveis e negócios. Sem nenhum bem ainda, aparece uma oportunidade à venda.'},
+  emp:{ic:'🏪',nome:"Your assets",cor:'#4FA8A0', txt:'News about your properties and businesses. With no assets yet, an opportunity for sale shows up.'},
   opp:{ic:'💼',nome:"Opportunity",cor:'#6BAE88', txt:"A business or property for sale."}
 };
 const CASAS_RUINS=['imp','sau','ten','cor'];
@@ -6148,7 +6149,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games mascot">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · educational game, not investment advice</p>
-    <p class="titulo-versao">version v536</p>
+    <p class="titulo-versao">version v539</p>
   </div>`;
 }
 function render(){
@@ -6485,7 +6486,7 @@ ${F2()?'':"<p class=\"hint\">Buying a house is left for the next phases.</p>"}
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -9731,6 +9732,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -9740,7 +9742,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Iniciada: ${nomeEst(id)}`, texto:`${E.meses} meses estudiando ${hm(E.horas)} h al mes. Al final, el salario sube un ${Math.round(E.aum*100)}% (hoy serían ${fmt0(ganhoAum(aumEst(id)))} más al mes), y la subida se queda en tu salario desde entonces.${aVista?` 👏 ¡Enhorabuena por pagar al contado! A plazos, el curso habría costado ${fmt0(total)}; pagando al contado ahorraste ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Iniciada: ${nomeEst(id)}`, texto:semNaN(`${E.meses} meses estudiando ${hm(E.horas)} h al mes. Al final, el salario sube un ${Math.round(E.aum*100)}% (hoy serían ${fmt0(ganhoAum(aumEst(id)))} más al mes), y la subida se queda en tu salario desde entonces.${aVista?` 👏 ¡Enhorabuena por pagar al contado! A plazos, el curso habría costado ${fmt0(total)}; pagando al contado ahorraste ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -10254,7 +10256,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Casilla de estudio",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Aquí puedes empezar <b>one</b> curso. Solo estudias una cosa a la vez, y la siguiente oportunidad solo aparece cuando la ratita vuelve a pasar por una casilla de estudio.${s.estBolsa?" <b>Día de la bolsa: 30% de descuento en todos los cursos.</b>":''}${pref&&L.includes(pref)?" El curso "+nomeEst(pref).toLowerCase()+" es lo que necesitas para tu próximo ascenso.":''}`; },
+      return `Aquí puedes empezar <b>un</b> curso. Solo estudias una cosa a la vez, y la siguiente oportunidad solo aparece cuando la ratita vuelve a pasar por una casilla de estudio.${s.estBolsa?" <b>Día de la bolsa: 30% de descuento en todos los cursos.</b>":''}${pref&&L.includes(pref)?" El curso "+nomeEst(pref).toLowerCase()+" es lo que necesitas para tu próximo ascenso.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Salario +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} h al mes · ${E.meses} meses`;
@@ -10264,7 +10266,7 @@ const ESPECIAIS = {
       out.push({label:"Ahora no", sub:"Queda para la próxima visita", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"Hora de invertir en ti",
-    texto:()=>"Te paraste a cuidarte. Puedes empezar <b>one</b> habilidad ahora; las demás quedan para las próximas visitas a la casilla de crecimiento personal (🌱). Una a la vez, pagando en el momento y ocupando horas mientras aprendes.",
+    texto:()=>"Te paraste a cuidarte. Puedes empezar <b>una</b> habilidad ahora; las demás quedan para las próximas visitas a la casilla de crecimiento personal (🌱). Una a la vez, pagando en el momento y ocupando horas mientras aprendes.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 mes":H.meses+" meses"} · ${hm(H.horas)} h al mes${c?' · '+fmt0(c)+(s.conta>=c?'':" (vende inversiones)"):" · gratis"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -12889,7 +12891,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascota de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · juego educativo, no es asesoramiento de inversión</p>
-    <p class="titulo-versao">versión v536</p>
+    <p class="titulo-versao">versión v539</p>
   </div>`;
 }
 function render(){
@@ -13226,7 +13228,7 @@ ${F2()?'':"<p class=\"hint\">Comprar una casa queda para las próximas fases.</p
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Secciones del juego">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Secciones del juego">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -16471,6 +16473,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -16480,7 +16483,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Iniciado: ${nomeEst(id)}`, texto:`${E.meses} meses a estudar ${hm(E.horas)} h por mês. No fim, o ordenado sobe ${Math.round(E.aum*100)}% (hoje seriam mais ${fmt0(ganhoAum(aumEst(id)))} por mês) e o aumento fica no teu ordenado daí em diante.${aVista?` 👏 Parabéns por pagares a pronto! Em prestações, o curso custaria ${fmt0(total)}; a pronto poupaste ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Iniciado: ${nomeEst(id)}`, texto:semNaN(`${E.meses} meses a estudar ${hm(E.horas)} h por mês. No fim, o ordenado sobe ${Math.round(E.aum*100)}% (hoje seriam mais ${fmt0(ganhoAum(aumEst(id)))} por mês) e o aumento fica no teu ordenado daí em diante.${aVista?` 👏 Parabéns por pagares a pronto! Em prestações, o curso custaria ${fmt0(total)}; a pronto poupaste ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -16994,7 +16997,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Casa de estudo",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Aqui podes começar <b>one</b> curso. Só estudas uma coisa de cada vez, e a próxima oportunidade só aparece quando o ratinho passar de novo por uma casa de estudo.${s.estBolsa?" <b>Dia da bolsa de valores: 30% de desconto em todos os cursos.</b>":''}${pref&&L.includes(pref)?" O curso "+nomeEst(pref).toLowerCase()+" é o que precisas para a tua próxima promoção.":''}`; },
+      return `Aqui podes começar <b>um</b> curso. Só estudas uma coisa de cada vez, e a próxima oportunidade só aparece quando o ratinho passar de novo por uma casa de estudo.${s.estBolsa?" <b>Dia da bolsa de valores: 30% de desconto em todos os cursos.</b>":''}${pref&&L.includes(pref)?" O curso "+nomeEst(pref).toLowerCase()+" é o que precisas para a tua próxima promoção.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Ordenado +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} h por mês · ${E.meses} meses`;
@@ -17004,7 +17007,7 @@ const ESPECIAIS = {
       out.push({label:"Agora não", sub:"Ficou para a próxima visita", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"Hora de investir em ti",
-    texto:()=>"Paraste para cuidar de ti. Podes começar <b>one</b> competência agora; as outras ficam para as próximas visitas à casa de crescimento pessoal (🌱). Uma de cada vez, pagando na hora e ocupando horas enquanto aprendes.",
+    texto:()=>"Paraste para cuidar de ti. Podes começar <b>uma</b> competência agora; as outras ficam para as próximas visitas à casa de crescimento pessoal (🌱). Uma de cada vez, pagando na hora e ocupando horas enquanto aprendes.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 mês":H.meses+" meses"} · ${hm(H.horas)} h por mês${c?' · '+fmt0(c)+(s.conta>=c?'':" (vende investimentos)"):" · grátis"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -19133,7 +19136,7 @@ function linhaProduto(id,p){
   </div>`;
 }
 
-const ABAS=[['inicio','🎲',"Início"],['dinheiro','💰',"Dinheiro"],['investir','📈',"Investir"],['renda','🏢',"Rendimento"],['vida','❤️',"Vida"],['casa','🏡',"Casa"],['carreira','🌱',"Tu"]];
+const ABAS=[['inicio','🎲',"Início"],['dinheiro','💰',"Dinheiro"],['investir','📈',"Investir"],['renda','🏢',"Ganhos"],['vida','❤️',"Vida"],['casa','🏡',"Casa"],['carreira','🌱',"Tu"]];
 const ABA_ANTIGA={resumo:'inicio', voce:'vida', banco:'dinheiro'};
 function badgeAba(id){
   if(id==='renda'){ if(F2() && (s.infl||0)>=100 && !s.inflVisto) return '★'; const n=(s.ofertas||[]).filter(o=>!(s.ofertasVistas||[]).includes(o.uid)).length; return n?String(n):''; }
@@ -19629,7 +19632,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é aconselhamento de investimento</p>
-    <p class="titulo-versao">versão v536</p>
+    <p class="titulo-versao">versão v539</p>
   </div>`;
 }
 function render(){
@@ -19966,7 +19969,7 @@ ${F2()?'':"<p class=\"hint\">Comprar casa fica para as próximas fases.</p>"}
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Secções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Secções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -23212,6 +23215,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -23221,7 +23225,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Commencé : ${nomeEst(id)}`, texto:`${E.meses} mois d'études à ${hm(E.horas)} h par mois. À la fin, le salaire augmente de ${Math.round(E.aum*100)} % (aujourd'hui cela ferait ${fmt0(ganhoAum(aumEst(id)))} de plus par mois), et l'augmentation reste dans ton salaire ensuite.${aVista?` 👏 Bravo d'avoir payé comptant ! En plusieurs fois, la formation aurait coûté ${fmt0(total)} ; en payant comptant, tu as économisé ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Commencé : ${nomeEst(id)}`, texto:semNaN(`${E.meses} mois d'études à ${hm(E.horas)} h par mois. À la fin, le salaire augmente de ${Math.round(E.aum*100)} % (aujourd'hui cela ferait ${fmt0(ganhoAum(aumEst(id)))} de plus par mois), et l'augmentation reste dans ton salaire ensuite.${aVista?` 👏 Bravo d'avoir payé comptant ! En plusieurs fois, la formation aurait coûté ${fmt0(total)} ; en payant comptant, tu as économisé ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -23735,7 +23739,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Case d'étude",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Ici tu peux commencer <b>one</b> formation. Tu n'étudies qu'une chose à la fois, et la prochaine occasion n'apparaît que lorsque le petit rat repasse sur une case d'étude.${s.estBolsa?" <b>Jour de la bourse : 30 % de réduction sur toutes les formations.</b>":''}${pref&&L.includes(pref)?" La formation "+nomeEst(pref).toLowerCase()+" est ce qu'il te faut pour ta prochaine promotion.":''}`; },
+      return `Ici tu peux commencer <b>une</b> formation. Tu n'étudies qu'une chose à la fois, et la prochaine occasion n'apparaît que lorsque le petit rat repasse sur une case d'étude.${s.estBolsa?" <b>Jour de la bourse : 30 % de réduction sur toutes les formations.</b>":''}${pref&&L.includes(pref)?" La formation "+nomeEst(pref).toLowerCase()+" est ce qu'il te faut pour ta prochaine promotion.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Salaire +${Math.round(E.aum*100)} %`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} h par mois · ${E.meses} mois`;
@@ -23745,7 +23749,7 @@ const ESPECIAIS = {
       out.push({label:"Pas maintenant", sub:"Laissé pour la prochaine visite", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"C'est le moment d'investir en toi",
-    texto:()=>"Tu t'es arrêté pour prendre soin de toi. Tu peux commencer <b>one</b> compétence maintenant ; les autres sont laissées aux prochaines visites sur la case de développement personnel (🌱). Une à la fois, payée sur place et prenant des heures pendant que tu apprends.",
+    texto:()=>"Tu t'es arrêté pour prendre soin de toi. Tu peux commencer <b>une</b> compétence maintenant ; les autres sont laissées aux prochaines visites sur la case de développement personnel (🌱). Une à la fois, payée sur place et prenant des heures pendant que tu apprends.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 mois":H.meses+" mois"} · ${hm(H.horas)} h par mois${c?' · '+fmt0(c)+(s.conta>=c?'':" (vend des investissements)"):" · gratuit"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -26370,7 +26374,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte de LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jeu éducatif, pas un conseil en investissement</p>
-    <p class="titulo-versao">version v536</p>
+    <p class="titulo-versao">version v539</p>
   </div>`;
 }
 function render(){
@@ -26707,7 +26711,7 @@ ${F2()?'':"<p class=\"hint\">Acheter une maison est laissé aux phases suivantes
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Sections du jeu">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Sections du jeu">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -29953,6 +29957,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -29962,7 +29967,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Iniziato: ${nomeEst(id)}`, texto:`${E.meses} mesi di studio per ${hm(E.horas)} h al mese. Alla fine, lo stipendio sale del ${Math.round(E.aum*100)}% (oggi sarebbero ${fmt0(ganhoAum(aumEst(id)))} in più al mese), e l'aumento resta nel tuo stipendio da allora in poi.${aVista?` 👏 Complimenti per aver pagato subito! A rate, il corso sarebbe costato ${fmt0(total)}; pagando subito hai risparmiato ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Iniziato: ${nomeEst(id)}`, texto:semNaN(`${E.meses} mesi di studio per ${hm(E.horas)} h al mese. Alla fine, lo stipendio sale del ${Math.round(E.aum*100)}% (oggi sarebbero ${fmt0(ganhoAum(aumEst(id)))} in più al mese), e l'aumento resta nel tuo stipendio da allora in poi.${aVista?` 👏 Complimenti per aver pagato subito! A rate, il corso sarebbe costato ${fmt0(total)}; pagando subito hai risparmiato ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -30476,7 +30481,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Casella dello studio",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Qui puoi iniziare <b>one</b> corso. Studi una sola cosa alla volta, e la prossima occasione compare solo quando il topolino passa di nuovo su una casella dello studio.${s.estBolsa?" <b>Giorno della borsa: 30% di sconto su tutti i corsi.</b>":''}${pref&&L.includes(pref)?" Il corso "+nomeEst(pref).toLowerCase()+" è ciò che ti serve per la prossima promozione.":''}`; },
+      return `Qui puoi iniziare <b>un</b> corso. Studi una sola cosa alla volta, e la prossima occasione compare solo quando il topolino passa di nuovo su una casella dello studio.${s.estBolsa?" <b>Giorno della borsa: 30% di sconto su tutti i corsi.</b>":''}${pref&&L.includes(pref)?" Il corso "+nomeEst(pref).toLowerCase()+" è ciò che ti serve per la prossima promozione.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Stipendio +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} h al mese · ${E.meses} mesi`;
@@ -30486,7 +30491,7 @@ const ESPECIAIS = {
       out.push({label:"Non ora", sub:"Rimandato alla prossima visita", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"È ora di investire in te stesso",
-    texto:()=>"Ti sei fermato a prenderti cura di te. Puoi iniziare <b>one</b> competenza ora; le altre restano per le prossime visite alla casella di crescita personale (🌱). Una alla volta, pagando sul momento e occupando ore mentre impari.",
+    texto:()=>"Ti sei fermato a prenderti cura di te. Puoi iniziare <b>una</b> competenza ora; le altre restano per le prossime visite alla casella di crescita personale (🌱). Una alla volta, pagando sul momento e occupando ore mentre impari.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 mese":H.meses+" mesi"} · ${hm(H.horas)} h al mese${c?' · '+fmt0(c)+(s.conta>=c?'':" (vende investimenti)"):" · gratis"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -32615,7 +32620,7 @@ function linhaProduto(id,p){
   </div>`;
 }
 
-const ABAS=[['inicio','🎲',"Casa"],['dinheiro','💰',"Denaro"],['investir','📈',"Investi"],['renda','🏢',"Reddito"],['vida','❤️',"Vita"],['casa','🏡',"Casa"],['carreira','🌱',"Tu"]];
+const ABAS=[['inicio','🎲',"Inizio"],['dinheiro','💰',"Denaro"],['investir','📈',"Investi"],['renda','🏢',"Reddito"],['vida','❤️',"Vita"],['casa','🏡',"Casa"],['carreira','🌱',"Tu"]];
 const ABA_ANTIGA={resumo:'inicio', voce:'vida', banco:'dinheiro'};
 function badgeAba(id){
   if(id==='renda'){ if(F2() && (s.infl||0)>=100 && !s.inflVisto) return '★'; const n=(s.ofertas||[]).filter(o=>!(s.ofertasVistas||[]).includes(o.uid)).length; return n?String(n):''; }
@@ -33111,7 +33116,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascotte di LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · gioco educativo, non è consulenza finanziaria</p>
-    <p class="titulo-versao">versione v536</p>
+    <p class="titulo-versao">versione v539</p>
   </div>`;
 }
 function render(){
@@ -33448,7 +33453,7 @@ ${F2()?'':"<p class=\"hint\">Comprare casa è rimandato alle fasi successive.</p
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Sezioni del gioco">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Sezioni del gioco">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -36694,6 +36699,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -36703,7 +36709,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Gestartet: ${nomeEst(id)}`, texto:`${E.meses} Monate Studium mit ${hm(E.horas)} Std. pro Monat. Am Ende steigt das Gehalt um ${Math.round(E.aum*100)} % (heute wären das ${fmt0(ganhoAum(aumEst(id)))} mehr pro Monat), und die Erhöhung bleibt von da an in deinem Gehalt.${aVista?` 👏 Glückwunsch, du hast sofort bezahlt! In Raten hätte der Kurs ${fmt0(total)} gekostet; mit sofortiger Zahlung hast du ${fmt0(total-v)} gespart.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Gestartet: ${nomeEst(id)}`, texto:semNaN(`${E.meses} Monate Studium mit ${hm(E.horas)} Std. pro Monat. Am Ende steigt das Gehalt um ${Math.round(E.aum*100)} % (heute wären das ${fmt0(ganhoAum(aumEst(id)))} mehr pro Monat), und die Erhöhung bleibt von da an in deinem Gehalt.${aVista?` 👏 Glückwunsch, du hast sofort bezahlt! In Raten hätte der Kurs ${fmt0(total)} gekostet; mit sofortiger Zahlung hast du ${fmt0(total-v)} gespart.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -37217,7 +37223,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Studienfeld",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Hier kannst du starten <b>one</b> Kurs. Du studierst immer nur eines, und die nächste Chance erscheint erst, wenn die Ratte wieder an einem Studienfeld vorbeikommt.${s.estBolsa?" <b>Börsentag: 30 % Rabatt auf alle Kurse.</b>":''}${pref&&L.includes(pref)?" Der Kurs "+nomeEst(pref).toLowerCase()+" ist das, was du für deine nächste Beförderung brauchst.":''}`; },
+      return `Hier kannst du <b>einen</b> Kurs starten. Du studierst immer nur eines, und die nächste Chance erscheint erst, wenn die Ratte wieder an einem Studienfeld vorbeikommt.${s.estBolsa?" <b>Börsentag: 30 % Rabatt auf alle Kurse.</b>":''}${pref&&L.includes(pref)?" Der Kurs "+nomeEst(pref).toLowerCase()+" ist das, was du für deine nächste Beförderung brauchst.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Gehalt +${Math.round(E.aum*100)} %`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} Std. pro Monat · ${E.meses} Monate`;
@@ -37227,7 +37233,7 @@ const ESPECIAIS = {
       out.push({label:"Jetzt nicht", sub:"Für den nächsten Besuch aufgehoben", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"Zeit, in dich zu investieren",
-    texto:()=>"Du hast angehalten, um dich um dich selbst zu kümmern. Du kannst starten <b>one</b> Fähigkeit jetzt; die anderen bleiben für die nächsten Besuche auf dem Feld für persönliches Wachstum (🌱). Eine nach der anderen, sofort bezahlt und mit Stunden belegt, solange du lernst.",
+    texto:()=>"Du hast angehalten, um dich um dich selbst zu kümmern. Du kannst jetzt <b>eine</b> Fähigkeit starten; die anderen bleiben für die nächsten Besuche auf dem Feld für persönliches Wachstum (🌱). Eine nach der anderen, sofort bezahlt und mit Stunden belegt, solange du lernst.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 Monat":H.meses+" Monate"} · ${hm(H.horas)} Std. pro Monat${c?' · '+fmt0(c)+(s.conta>=c?'':" (verkauft Anlagen)"):" · kostenlos"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -39852,7 +39858,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskottchen von LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · Lernspiel, keine Anlageberatung</p>
-    <p class="titulo-versao">Version v536</p>
+    <p class="titulo-versao">Version v539</p>
   </div>`;
 }
 function render(){
@@ -40189,7 +40195,7 @@ ${F2()?'':"<p class=\"hint\">Ein Haus zu kaufen bleibt den nächsten Phasen vorb
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Spielbereiche">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Spielbereiche">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -40696,7 +40702,7 @@ function renderModal0(){
         <li><b>Aktien sind für die lange Frist.</b> Hier folgen sie dem echten Aktienmarkt, Monat für Monat. Sie zahlen Dividenden und wachsen über 5, 10 Jahre, sind in Krisen aber um mehr als 30 % gefallen. Deshalb werden sie erst freigeschaltet, wenn du 3 Monate Notfallreserve hast.</li>
         <li>Ziel: in 24 Monaten <b>6 Monate Lebenshaltungskosten</b> in Staatsanleihen zu haben, ohne Schulden.</li>
       </ul>
-      <p class="hint">${pix('📖','mini')} Im Buch <b>The Total Money Makeover</b>verteidigt Dave Ramsey dieselbe Reihenfolge: zuerst die Notfallreserve (3 bis 6 Monate Ausgaben, nach Abbezahlung etwaiger Schulden), und erst dann Anlagen.</p></details>
+      <p class="hint">${pix('📖','mini')} Im Buch <b>The Total Money Makeover</b> verteidigt Dave Ramsey dieselbe Reihenfolge: zuerst die Notfallreserve (3 bis 6 Monate Ausgaben, nach Abbezahlung etwaiger Schulden), und erst dann Anlagen.</p></details>
       <button class="avancar" data-acao="comecar">Starten mit ${rotulo(1)}</button>`
     : `
       <span class="tag neutro">Phase 2 · Anleger</span>
@@ -43426,8 +43432,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} мес. в должности`, Math.min(meses,Rm)+" из "+Rm, meses>=Rm],
-    ["Признание на работе", recOk?'achieved':"пока нет", recOk]];
-  if(R.curso) itens.push([`Завершить ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'в процессе':'pending'), cursoFeito(R.curso)]);
+    ["Признание на работе", recOk?'достигнуто':"пока нет", recOk]];
+  if(R.curso) itens.push([`Завершить ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'готово':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'в процессе':'не начато'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -43435,6 +43441,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -43444,7 +43451,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Начато: ${nomeEst(id)}`, texto:`${E.meses} мес. учёбы по ${hm(E.horas)} ч в месяц. В итоге зарплата растёт на ${Math.round(E.aum*100)} % (сегодня это было бы на ${fmt0(ganhoAum(aumEst(id)))} больше в месяц), и прибавка остаётся в твоей зарплате навсегда.${aVista?` 👏 Молодец, что заплатил сразу! В рассрочку курс стоил бы ${fmt0(total)}; заплатив сразу, ты сэкономил ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Начато: ${nomeEst(id)}`, texto:semNaN(`${E.meses} мес. учёбы по ${hm(E.horas)} ч в месяц. В итоге зарплата растёт на ${Math.round(E.aum*100)} % (сегодня это было бы на ${fmt0(ganhoAum(aumEst(id)))} больше в месяц), и прибавка остаётся в твоей зарплате навсегда.${aVista?` 👏 Молодец, что заплатил сразу! В рассрочку курс стоил бы ${fmt0(total)}; заплатив сразу, ты сэкономил ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -43958,7 +43965,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Клетка учёбы",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Здесь можно начать <b>one</b> курс. Ты учишься только чему-то одному, а следующий шанс появится, только когда крысёнок снова пройдёт клетку учёбы.${s.estBolsa?" <b>День фондового рынка: скидка 30 % на все курсы.</b>":''}${pref&&L.includes(pref)?" Курс "+nomeEst(pref).toLowerCase()+" — то, что нужно для твоего следующего повышения.":''}`; },
+      return `Здесь можно начать <b>один</b> курс. Ты учишься только чему-то одному, а следующий шанс появится, только когда крысёнок снова пройдёт клетку учёбы.${s.estBolsa?" <b>День фондового рынка: скидка 30 % на все курсы.</b>":''}${pref&&L.includes(pref)?" Курс "+nomeEst(pref).toLowerCase()+" — то, что нужно для твоего следующего повышения.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Зарплата +${Math.round(E.aum*100)} %`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} ч в месяц · ${E.meses} мес.`;
@@ -43968,7 +43975,7 @@ const ESPECIAIS = {
       out.push({label:"Не сейчас", sub:"Оставлено до следующего визита", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"Время инвестировать в себя",
-    texto:()=>"Ты остановился позаботиться о себе. Можно начать <b>one</b> навык сейчас; остальные ждут следующих посещений клетки личностного роста (🌱). По одному, с оплатой на месте и занимая часы, пока учишься.",
+    texto:()=>"Ты остановился позаботиться о себе. Можно начать <b>один</b> навык сейчас; остальные ждут следующих посещений клетки личностного роста (🌱). По одному, с оплатой на месте и занимая часы, пока учишься.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 месяц":H.meses+" мес."} · ${hm(H.horas)} ч в месяц${c?' · '+fmt0(c)+(s.conta>=c?'':" (продаёт инвестиции)"):" · бесплатно"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -46097,7 +46104,7 @@ function linhaProduto(id,p){
   </div>`;
 }
 
-const ABAS=[['inicio','🎲',"Дом"],['dinheiro','💰',"Деньги"],['investir','📈',"Инвестиции"],['renda','🏢',"Доход"],['vida','❤️',"Жизнь"],['casa','🏡',"Дом"],['carreira','🌱',"Ты"]];
+const ABAS=[['inicio','🎲',"Старт"],['dinheiro','💰',"Деньги"],['investir','📈',"Вложения"],['renda','🏢',"Доход"],['vida','❤️',"Жизнь"],['casa','🏡',"Дом"],['carreira','🌱',"Ты"]];
 const ABA_ANTIGA={resumo:'inicio', voce:'vida', banco:'dinheiro'};
 function badgeAba(id){
   if(id==='renda'){ if(F2() && (s.infl||0)>=100 && !s.inflVisto) return '★'; const n=(s.ofertas||[]).filter(o=>!(s.ofertasVistas||[]).includes(o.uid)).length; return n?String(n):''; }
@@ -46593,7 +46600,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Талисман LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · обучающая игра, не инвестиционный совет</p>
-    <p class="titulo-versao">версия v536</p>
+    <p class="titulo-versao">версия v539</p>
   </div>`;
 }
 function render(){
@@ -46731,7 +46738,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Твой дом ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"В собственности":"В аренде"} · ${fmt0(cm)} в месяц${morPropria()?" (коммунальные взносы, налог на имущество и платёж по кредиту)":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">Самочувствие: ${fm>0?'+':''}${fm}/мес.</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>Семья: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">просит ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>Семья: ${s.casado?"в браке":"не в браке"}${totalFilhos()?` · ${totalFilhos()} ${(n=>n===1?'ребёнок':n<5?'ребёнка':'детей')(totalFilhos())}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">нужно: ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>Вписывается в бюджет?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Да":!cabeRenda()?"Нет: больше 30 % дохода":"Нет: финансовая подушка меньше 3 месяцев"}</b></div>
 ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на следующие этапы.</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>Переехать</summary>${linhas}</details>`:''}</section>`; })();
@@ -46924,13 +46931,13 @@ ${F2()?'':"<p class=\"hint\">Покупка дома оставлена на с�
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Варианты">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · месяц ${s.mes} из ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Счёт</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>государственные облигации</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Следующий месяц</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Счёт</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>облигации</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>След. мес.</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Самочувствие ${fz} из 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Самочувствие</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Выгорел":faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Разделы игры">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Разделы игры">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -47437,7 +47444,7 @@ function renderModal0(){
         <li><b>Акции — для долгого срока.</b> Здесь они следуют за реальным фондовым рынком, месяц за месяцем. Они платят дивиденды и растут на горизонте 5–10 лет, но в кризисы падали больше чем на 30 %. Поэтому они открываются, только когда у тебя есть подушка на 3 месяца.</li>
         <li>Цель: за 24 месяца накопить <b>6 месяцев расходов на жизнь</b> в государственных облигациях, без долгов.</li>
       </ul>
-      <p class="hint">${pix('📖','mini')} В книге <b>The Total Money Makeover</b>Дэйв Рэмси защищает тот же порядок: сначала финансовая подушка (3–6 месяцев расходов, с погашением всех долгов), и только потом инвестиции.</p></details>
+      <p class="hint">${pix('📖','mini')} В книге <b>The Total Money Makeover</b> Дэйв Рэмси защищает тот же порядок: сначала финансовая подушка (3–6 месяцев расходов, с погашением всех долгов), и только потом инвестиции.</p></details>
       <button class="avancar" data-acao="comecar">Начать с ${rotulo(1)}</button>`
     : `
       <span class="tag neutro">2-й этап · Инвестор</span>
@@ -50176,6 +50183,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -50185,7 +50193,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Dimulai: ${nomeEst(id)}`, texto:`${E.meses} bulan belajar ${hm(E.horas)} jam per bulan. Pada akhirnya, gaji naik ${Math.round(E.aum*100)}% (hari ini itu berarti ${fmt0(ganhoAum(aumEst(id)))} lebih banyak per bulan), dan kenaikannya tetap ada di gajimu sejak saat itu.${aVista?` 👏 Selamat sudah membayar tunai! Kalau dicicil, kursusnya akan berbiaya ${fmt0(total)}; dengan membayar tunai kamu menghemat ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Dimulai: ${nomeEst(id)}`, texto:semNaN(`${E.meses} bulan belajar ${hm(E.horas)} jam per bulan. Pada akhirnya, gaji naik ${Math.round(E.aum*100)}% (hari ini itu berarti ${fmt0(ganhoAum(aumEst(id)))} lebih banyak per bulan), dan kenaikannya tetap ada di gajimu sejak saat itu.${aVista?` 👏 Selamat sudah membayar tunai! Kalau dicicil, kursusnya akan berbiaya ${fmt0(total)}; dengan membayar tunai kamu menghemat ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -50699,7 +50707,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Kotak belajar",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Di sini kamu bisa memulai <b>one</b> kursus. Kamu hanya belajar satu hal dalam satu waktu, dan kesempatan berikutnya baru muncul saat tikus kecil melewati kotak belajar lagi.${s.estBolsa?" <b>Hari pasar saham: diskon 30% untuk semua kursus.</b>":''}${pref&&L.includes(pref)?" Kursus "+nomeEst(pref).toLowerCase()+" adalah yang kamu butuhkan untuk promosi berikutnya.":''}`; },
+      return `Di sini kamu bisa memulai <b>satu</b> kursus. Kamu hanya belajar satu hal dalam satu waktu, dan kesempatan berikutnya baru muncul saat tikus kecil melewati kotak belajar lagi.${s.estBolsa?" <b>Hari pasar saham: diskon 30% untuk semua kursus.</b>":''}${pref&&L.includes(pref)?" Kursus "+nomeEst(pref).toLowerCase()+" adalah yang kamu butuhkan untuk promosi berikutnya.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Gaji +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} jam per bulan · ${E.meses} bulan`;
@@ -50709,7 +50717,7 @@ const ESPECIAIS = {
       out.push({label:"Bukan sekarang", sub:"Disisakan untuk kunjungan berikutnya", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"Saatnya berinvestasi pada diri sendiri",
-    texto:()=>"Kamu berhenti untuk merawat diri. Kamu bisa memulai <b>one</b> keterampilan sekarang; yang lain disisakan untuk kunjungan berikutnya ke kotak pengembangan diri (🌱). Satu per satu, bayar di tempat dan memakan jam selama kamu belajar.",
+    texto:()=>"Kamu berhenti untuk merawat diri. Kamu bisa memulai <b>satu</b> keterampilan sekarang; yang lain disisakan untuk kunjungan berikutnya ke kotak pengembangan diri (🌱). Satu per satu, bayar di tempat dan memakan jam selama kamu belajar.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 bulan":H.meses+" bln"} · ${hm(H.horas)} jam per bulan${c?' · '+fmt0(c)+(s.conta>=c?'':" (menjual investasi)"):" · gratis"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -52838,7 +52846,7 @@ function linhaProduto(id,p){
   </div>`;
 }
 
-const ABAS=[['inicio','🎲',"Beranda"],['dinheiro','💰',"Uang"],['investir','📈',"Investasi"],['renda','🏢',"Penghasilan"],['vida','❤️',"Kehidupan"],['casa','🏡',"Rumah"],['carreira','🌱',"Kamu"]];
+const ABAS=[['inicio','🎲',"Beranda"],['dinheiro','💰',"Uang"],['investir','📈',"Investasi"],['renda','🏢',"Pemasukan"],['vida','❤️',"Kehidupan"],['casa','🏡',"Rumah"],['carreira','🌱',"Kamu"]];
 const ABA_ANTIGA={resumo:'inicio', voce:'vida', banco:'dinheiro'};
 function badgeAba(id){
   if(id==='renda'){ if(F2() && (s.infl||0)>=100 && !s.inflVisto) return '★'; const n=(s.ofertas||[]).filter(o=>!(s.ofertasVistas||[]).includes(o.uid)).length; return n?String(n):''; }
@@ -53334,7 +53342,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Maskot LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · game edukasi, bukan saran investasi</p>
-    <p class="titulo-versao">versi v536</p>
+    <p class="titulo-versao">versi v539</p>
   </div>`;
 }
 function render(){
@@ -53665,13 +53673,13 @@ ${F2()?'':"<p class=\"hint\">Membeli rumah dibiarkan untuk fase berikutnya.</p>"
   <header class="topo2">
     <button class="topo-menu" data-acao="config" aria-label="Opsi">☰</button>
     <div class="topo-mes"><b>${rotulo(s.mes)}</b><small>${nomeFase()} · bulan ${s.mes} dari ${tot}</small></div>
-    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Rekening</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>obligasi pemerintah</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Bulan depan</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
+    <button class="topo-conta ${neg?'neg':''} ${(()=>{ const f=ui.flashConta; ui.flashConta=null; return f?'fl-'+f:''; })()}" data-acao="aba" data-alvo="dinheiro"><span class="tc-r"><small>Rekening</small><b class="num">${Math.abs(s.conta)>=1e7?fmtC(s.conta):fmt0(s.conta)}</b></span>${(()=>{ const P=prods(), fx=fluxo().sobra; return `${P.cdb?`<span class="tc-r"><small>obligasi</small><b class="num">${fmtC(valor('cdb'))}</b></span>`:''}<span class="tc-r ${fx<0?'neg':'pos'}"><small>Bln depan</small><b class="num">${fx<0?'':'+'}${fmtC(fx)}</b></span>`; })()}</button>
     <button class="topo-fel2" data-acao="aba" data-alvo="vida" aria-label="Kesejahteraan ${fz} dari 100"><span class="tf-ic">${fz>=70?pixK('fel-4','😄'):fz>=50?pixK('fel-3','🙂'):fz>=25?pixK('fel-2','😩'):pixK('fel-1','😫')}</span><span class="tf-n">Kesejahteraan</span><span class="tf-bar"><i style="width:${fz}%;background:${corF}"></i></span><b class="num" style="color:${corF}">${fz}</b><span class="tf-st" style="color:${corF}">${esgotado()?"Kelelahan":faixaFel().nome}</span></button>
   </header>
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Bagian game">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Bagian game">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -56908,8 +56916,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`Görevde ${Rm} ay`, Math.min(meses,Rm)+" / "+Rm, meses>=Rm],
-    ["İş yerinde tanınma", recOk?'achieved':"henüz değil", recOk]];
-  if(R.curso) itens.push([`${nomeEst(R.curso)} tamamla`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'sürüyor':'pending'), cursoFeito(R.curso)]);
+    ["İş yerinde tanınma", recOk?'sağlandı':"henüz değil", recOk]];
+  if(R.curso) itens.push([`${nomeEst(R.curso)} tamamla`, cursoFeito(R.curso)?'tamamlandı':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'sürüyor':'başlamadı'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -56917,6 +56925,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -56926,7 +56935,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Başladı: ${nomeEst(id)}`, texto:`${E.meses} ay boyunca ayda ${hm(E.horas)} saat çalışmak. Sonunda maaş %${Math.round(E.aum*100)} artar (bugün bu ayda ${fmt0(ganhoAum(aumEst(id)))} fazla demek) ve zam o andan itibaren maaşında kalır.${aVista?` 👏 Peşin ödediğin için tebrikler! Taksitle kurs ${fmt0(total)} tutardı; peşin ödeyerek ${fmt0(total-v)} tasarruf ettin.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Başladı: ${nomeEst(id)}`, texto:semNaN(`${E.meses} ay boyunca ayda ${hm(E.horas)} saat çalışmak. Sonunda maaş %${Math.round(E.aum*100)} artar (bugün bu ayda ${fmt0(ganhoAum(aumEst(id)))} fazla demek) ve zam o andan itibaren maaşında kalır.${aVista?` 👏 Peşin ödediğin için tebrikler! Taksitle kurs ${fmt0(total)} tutardı; peşin ödeyerek ${fmt0(total-v)} tasarruf ettin.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -57440,7 +57449,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"Çalışma karesi",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `Burada başlayabilirsin <b>one</b> kurs. Aynı anda tek şey çalışırsın ve bir sonraki şans ancak küçük fare bir çalışma karesinden yeniden geçince çıkar.${s.estBolsa?" <b>Borsa günü: tüm kurslarda %30 indirim.</b>":''}${pref&&L.includes(pref)?" Kurs "+nomeEst(pref).toLowerCase()+" bir sonraki terfin için ihtiyacın olan şey.":''}`; },
+      return `Burada <b>bir</b> kurs başlatabilirsin. Aynı anda tek şey çalışırsın ve bir sonraki şans ancak küçük fare bir çalışma karesinden yeniden geçince çıkar.${s.estBolsa?" <b>Borsa günü: tüm kurslarda %30 indirim.</b>":''}${pref&&L.includes(pref)?" Kurs "+nomeEst(pref).toLowerCase()+" bir sonraki terfin için ihtiyacın olan şey.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`Maaş +%${Math.round(E.aum*100)}`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ayda ${hm(E.horas)} saat · ${E.meses} ay`;
@@ -57450,7 +57459,7 @@ const ESPECIAIS = {
       out.push({label:"Şimdi değil", sub:"Sonraki ziyarete kaldı", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"Kendine yatırım yapma zamanı",
-    texto:()=>"Kendine bakmak için durdun. Başlayabilirsin <b>one</b> beceri şimdi; diğerleri kişisel gelişim karesine (🌱) sonraki ziyaretlere kaldı. Teker teker, yerinde ödeyerek ve öğrenirken saat harcayarak.",
+    texto:()=>"Kendine bakmak için durdun. Şimdi <b>bir</b> beceri başlatabilirsin; diğerleri kişisel gelişim karesine (🌱) sonraki ziyaretlere kaldı. Teker teker, yerinde ödeyerek ve öğrenirken saat harcayarak.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 ay":H.meses+" ay"} · ayda ${hm(H.horas)} saat${c?' · '+fmt0(c)+(s.conta>=c?'':" (yatırımları satar)"):" · ücretsiz"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -60075,7 +60084,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games maskotu">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · eğitici oyun, yatırım tavsiyesi değildir</p>
-    <p class="titulo-versao">sürüm v536</p>
+    <p class="titulo-versao">sürüm v539</p>
   </div>`;
 }
 function render(){
@@ -60213,7 +60222,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">Evin ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"Sahip":"Kiracı"} · ayda ${fmt0(cm)}${morPropria()?" (aidat, emlak vergisi ve kredi taksiti)":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">İyi oluş: ${fm>0?'+':''}${fm}/ay</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>Aile: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} istiyor</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>Aile: ${s.casado?"evli":"bekâr"}${totalFilhos()?` · ${totalFilhos()} ${'çocuk'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} istiyor</b></div>`:''}
       <div class="fl"><span>Bütçeye uyuyor mu?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"Evet":!cabeRenda()?"Hayır: gelirin %30'unu aşıyor":"Hayır: acil durum fonu 3 ayın altında"}</b></div>
 ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>Ev değiştir</summary>${linhas}</details>`:''}</section>`; })();
@@ -60412,7 +60421,7 @@ ${F2()?'':"<p class=\"hint\">Ev satın almak sonraki aşamalara kaldı.</p>"}
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Oyun bölümleri">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Oyun bölümleri">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -63649,8 +63658,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`${Rm} أشهر في المنصب`, Math.min(meses,Rm)+" من "+Rm, meses>=Rm],
-    ["التقدير في العمل", recOk?'achieved':"ليس بعد", recOk]];
-  if(R.curso) itens.push([`أكمل ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'قيد التنفيذ':'pending'), cursoFeito(R.curso)]);
+    ["التقدير في العمل", recOk?'تحقق':"ليس بعد", recOk]];
+  if(R.curso) itens.push([`أكمل ${nomeEst(R.curso)}`, cursoFeito(R.curso)?'تم':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'قيد التنفيذ':'لم يبدأ'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -63658,6 +63667,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -63667,7 +63677,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`بدأت: ${nomeEst(id)}`, texto:`${E.meses} أشهر من الدراسة بمعدل ${hm(E.horas)} ساعة شهرياً. في النهاية يرتفع الراتب ${Math.round(E.aum*100)}% (اليوم يعني ذلك ${fmt0(ganhoAum(aumEst(id)))} زيادة شهرياً)، وتبقى الزيادة في راتبك بعد ذلك.${aVista?` 👏 أحسنت بالدفع كاملاً! بالتقسيط كانت الدورة ستكلّف ${fmt0(total)}؛ وبالدفع المقدم وفّرت ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`بدأت: ${nomeEst(id)}`, texto:semNaN(`${E.meses} أشهر من الدراسة بمعدل ${hm(E.horas)} ساعة شهرياً. في النهاية يرتفع الراتب ${Math.round(E.aum*100)}% (اليوم يعني ذلك ${fmt0(ganhoAum(aumEst(id)))} زيادة شهرياً)، وتبقى الزيادة في راتبك بعد ذلك.${aVista?` 👏 أحسنت بالدفع كاملاً! بالتقسيط كانت الدورة ستكلّف ${fmt0(total)}؛ وبالدفع المقدم وفّرت ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -64181,7 +64191,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"خانة الدراسة",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `هنا يمكنك أن تبدأ <b>one</b> دورة. تدرس شيئاً واحداً فقط في كل مرة، ولا تظهر الفرصة التالية إلا عندما يمرّ الفأر الصغير على خانة دراسة من جديد.${s.estBolsa?" <b>يوم سوق الأسهم: خصم 30% على كل الدورات.</b>":''}${pref&&L.includes(pref)?" الدورة "+nomeEst(pref).toLowerCase()+" هي ما تحتاجه لترقيتك القادمة.":''}`; },
+      return `هنا يمكنك أن تبدأ <b>دورة</b> واحدة. تدرس شيئاً واحداً فقط في كل مرة، ولا تظهر الفرصة التالية إلا عندما يمرّ الفأر الصغير على خانة دراسة من جديد.${s.estBolsa?" <b>يوم سوق الأسهم: خصم 30% على كل الدورات.</b>":''}${pref&&L.includes(pref)?" الدورة "+nomeEst(pref).toLowerCase()+" هي ما تحتاجه لترقيتك القادمة.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`الراتب +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · ${hm(E.horas)} ساعة شهرياً · ${E.meses} أشهر`;
@@ -64191,7 +64201,7 @@ const ESPECIAIS = {
       out.push({label:"ليس الآن", sub:"تُرك للزيارة القادمة", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"حان وقت الاستثمار في نفسك",
-    texto:()=>"توقفت لتعتني بنفسك. يمكنك أن تبدأ <b>one</b> مهارة الآن؛ والبقية تُترك لزيارات خانة النمو الشخصي (🌱) القادمة. واحدة في كل مرة، بالدفع فوراً وتستغرق ساعات أثناء التعلّم.",
+    texto:()=>"توقفت لتعتني بنفسك. يمكنك أن تبدأ <b>مهارة</b> واحدة الآن؛ والبقية تُترك لزيارات خانة النمو الشخصي (🌱) القادمة. واحدة في كل مرة، بالدفع فوراً وتستغرق ساعات أثناء التعلّم.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"شهر واحد":H.meses+" أشهر"} · ${hm(H.horas)} ساعة شهرياً${c?' · '+fmt0(c)+(s.conta>=c?'':" (يبيع الاستثمارات)"):" · مجاني"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -66816,7 +66826,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="تميمة LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · لعبة تعليمية، وليست نصيحة استثمارية</p>
-    <p class="titulo-versao">الإصدار v536</p>
+    <p class="titulo-versao">الإصدار v539</p>
   </div>`;
 }
 function render(){
@@ -66954,7 +66964,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">منزلك ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"مملوك":"مستأجر"} · ${fmt0(cm)} في الشهر${morPropria()?" (رسوم الملاك وضريبة العقار وقسط القرض)":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">الرفاه: ${fm>0?'+':''}${fm}/شهر</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>العائلة: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">يطلب ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>العائلة: ${s.casado?"متزوج":"أعزب"}${totalFilhos()?` · ${totalFilhos()} ${(totalFilhos()>1?'أطفال':'طفل')}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">يطلب ${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>هل يناسب الميزانية؟</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"نعم":!cabeRenda()?"لا: أكثر من 30% من الدخل":"لا: صندوق الطوارئ أقل من 3 أشهر"}</b></div>
 ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل القادمة.</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>انتقل إلى منزل آخر</summary>${linhas}</details>`:''}</section>`; })();
@@ -67153,7 +67163,7 @@ ${F2()?'':"<p class=\"hint\">شراء المنزل متروك للمراحل ا�
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} ←</button>
-    <nav class="abas2" role="tablist" aria-label="أقسام اللعبة">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="أقسام اللعبة">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -70390,8 +70400,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`在職${Rm}か月`, Math.min(meses,Rm)+" / "+Rm, meses>=Rm],
-    ["職場での評価", recOk?'achieved':"まだ", recOk]];
-  if(R.curso) itens.push([`${nomeEst(R.curso)}を完了`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'進行中':'pending'), cursoFeito(R.curso)]);
+    ["職場での評価", recOk?'達成':"まだ", recOk]];
+  if(R.curso) itens.push([`${nomeEst(R.curso)}を完了`, cursoFeito(R.curso)?'完了':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'進行中':'未着手'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -70399,6 +70409,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -70408,7 +70419,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`開始：${nomeEst(id)}`, texto:`${E.meses}か月間、月${hm(E.horas)}時間勉強します。最後に給料が${Math.round(E.aum*100)}%上がり（今日の水準では月${fmt0(ganhoAum(aumEst(id)))}増）、その昇給はそれ以降の給料に残ります。${aVista?` 👏 一括払いで賞賛です！分割ならコースは${fmt0(total)}かかりますが、一括払いで${fmt0(total-v)}節約できました。`:''}${t}`};
+  s.licao={tom:'bom', titulo:`開始：${nomeEst(id)}`, texto:semNaN(`${E.meses}か月間、月${hm(E.horas)}時間勉強します。最後に給料が${Math.round(E.aum*100)}%上がり（今日の水準では月${fmt0(ganhoAum(aumEst(id)))}増）、その昇給はそれ以降の給料に残ります。${aVista?` 👏 一括払いで賞賛です！分割ならコースは${fmt0(total)}かかりますが、一括払いで${fmt0(total-v)}節約できました。`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -70922,7 +70933,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"学習マス",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `ここから始められます <b>one</b> 講座です。一度に学べるのは1つだけで、次の機会は、ねずみがまた学習マスを通ったときに現れます。${s.estBolsa?" <b>株式市場の日：すべての講座が30%オフ。</b>":''}${pref&&L.includes(pref)?" その講座は "+nomeEst(pref).toLowerCase()+" 次の昇進に必要なものです。":''}`; },
+      return `ここから始められるのは<b>1つ</b>の講座です。一度に学べるのは1つだけで、次の機会は、ねずみがまた学習マスを通ったときに現れます。${s.estBolsa?" <b>株式市場の日：すべての講座が30%オフ。</b>":''}${pref&&L.includes(pref)?" その講座は "+nomeEst(pref).toLowerCase()+" 次の昇進に必要なものです。":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`給料+${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef}・月${hm(E.horas)}時間・${E.meses}か月`;
@@ -70932,7 +70943,7 @@ const ESPECIAIS = {
       out.push({label:"今は違う", sub:"次回に回した", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"自分に投資する時間",
-    texto:()=>"立ち止まって自分を大切にしました。始められるのは <b>one</b> のスキルを今は選び、他は次に自己成長マス（🌱）に来たときに回します。一度に1つ、その場で支払い、学んでいる間は時間を取られます。",
+    texto:()=>"立ち止まって自分を大切にしました。始められるのは<b>1つ</b>のスキルを今は選び、他は次に自己成長マス（🌱）に来たときに回します。一度に1つ、その場で支払い、学んでいる間は時間を取られます。",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1か月":H.meses+"か月"}・月${hm(H.horas)}時間${c?' · '+fmt0(c)+(s.conta>=c?'':" （投資を売却する）"):" ・無料"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -73557,7 +73568,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Gamesのマスコット">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games・教育用ゲームであり、投資助言ではありません</p>
-    <p class="titulo-versao">バージョン v536</p>
+    <p class="titulo-versao">バージョン v539</p>
   </div>`;
 }
 function render(){
@@ -73695,7 +73706,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">あなたの家${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"持ち家":"賃貸"}・月${fmt0(cm)}${morPropria()?" （管理費、固定資産税、ローン返済）":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">ウェルビーイング: ${fm>0?'+':''}${fm}/月</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>家族：${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()}を求めています</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>家族：${s.casado?"既婚":"独身"}${totalFilhos()?` · ${totalFilhos()} ${'子ども'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()}を求めています</b></div>`:''}
       <div class="fl"><span>予算に収まる？</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"はい":!cabeRenda()?"いいえ：収入の30%超":"いいえ：緊急資金が3か月未満"}</b></div>
 ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます。</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>引っ越す</summary>${linhas}</details>`:''}</section>`; })();
@@ -73894,7 +73905,7 @@ ${F2()?'':"<p class=\"hint\">家の購入は次のフェーズに回されます
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="ゲームのセクション">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="ゲームのセクション">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -77131,8 +77142,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`재직 ${Rm}개월`, Math.min(meses,Rm)+" / "+Rm, meses>=Rm],
-    ["직장에서의 인정", recOk?'achieved':"아직 아님", recOk]];
-  if(R.curso) itens.push([`${nomeEst(R.curso)} 완료`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'진행 중':'pending'), cursoFeito(R.curso)]);
+    ["직장에서의 인정", recOk?'달성':"아직 아님", recOk]];
+  if(R.curso) itens.push([`${nomeEst(R.curso)} 완료`, cursoFeito(R.curso)?'완료':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'진행 중':'시작 전'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -77140,6 +77151,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -77149,7 +77161,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`시작: ${nomeEst(id)}`, texto:`${E.meses}개월 동안 월 ${hm(E.horas)}시간 공부해요. 끝나면 월급이 ${Math.round(E.aum*100)}% 오르고(오늘 기준 월 ${fmt0(ganhoAum(aumEst(id)))} 더), 그 인상분은 이후 월급에 계속 남아요.${aVista?` 👏 일시불로 결제하다니 대단해요! 할부였다면 강좌 비용은 ${fmt0(total)}이었을 거예요. 일시불로 ${fmt0(total-v)}을(를) 아꼈어요.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`시작: ${nomeEst(id)}`, texto:semNaN(`${E.meses}개월 동안 월 ${hm(E.horas)}시간 공부해요. 끝나면 월급이 ${Math.round(E.aum*100)}% 오르고(오늘 기준 월 ${fmt0(ganhoAum(aumEst(id)))} 더), 그 인상분은 이후 월급에 계속 남아요.${aVista?` 👏 일시불로 결제하다니 대단해요! 할부였다면 강좌 비용은 ${fmt0(total)}이었을 거예요. 일시불로 ${fmt0(total-v)}을(를) 아꼈어요.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -77663,7 +77675,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"공부 칸",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `여기서 시작할 수 있어요 <b>one</b> 강좌. 한 번에 한 가지만 공부할 수 있고, 다음 기회는 작은 쥐가 다시 공부 칸을 지날 때 나타나요.${s.estBolsa?" <b>주식 시장의 날: 모든 강좌 30% 할인.</b>":''}${pref&&L.includes(pref)?" 강좌 "+nomeEst(pref).toLowerCase()+" 은(는) 다음 승진에 필요한 거예요.":''}`; },
+      return `여기서 <b>강좌 하나</b>를 시작할 수 있어요. 한 번에 한 가지만 공부할 수 있고, 다음 기회는 작은 쥐가 다시 공부 칸을 지날 때 나타나요.${s.estBolsa?" <b>주식 시장의 날: 모든 강좌 30% 할인.</b>":''}${pref&&L.includes(pref)?" 강좌 "+nomeEst(pref).toLowerCase()+" 은(는) 다음 승진에 필요한 거예요.":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`월급 +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · 월 ${hm(E.horas)}시간 · ${E.meses}개월`;
@@ -77673,7 +77685,7 @@ const ESPECIAIS = {
       out.push({label:"지금은 아니에요", sub:"다음 방문으로 미뤘어요", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"자신에게 투자할 시간",
-    texto:()=>"멈춰서 자신을 돌봤어요. 시작할 수 있어요: <b>one</b> 능력을 지금 시작해요. 나머지는 자기 계발 칸(🌱)을 다음에 방문할 때로 남겨 둬요. 한 번에 하나, 그 자리에서 결제하고, 배우는 동안 시간을 써요.",
+    texto:()=>"멈춰서 자신을 돌봤어요. 지금 <b>능력 하나</b>를 시작할 수 있어요. 나머지는 자기 계발 칸(🌱)을 다음에 방문할 때로 남겨 둬요. 한 번에 하나, 그 자리에서 결제하고, 배우는 동안 시간을 써요.",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1개월":H.meses+"개월"} · 월 ${hm(H.horas)}시간${c?' · '+fmt0(c)+(s.conta>=c?'':" (투자 매도)"):" · 무료"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -80298,7 +80310,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="레전더리BR 게임즈 마스코트">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 교육용 게임이며 투자 조언이 아니에요</p>
-    <p class="titulo-versao">버전 v536</p>
+    <p class="titulo-versao">버전 v539</p>
   </div>`;
 }
 function render(){
@@ -80436,7 +80448,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">당신의 집 ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"자가":"임대"} · 월 ${fmt0(cm)}${morPropria()?" (관리비, 재산세, 대출 상환)":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">웰빙: ${fm>0?'+':''}${fm}/월</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>가족: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} 요구</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>가족: ${s.casado?"기혼":"미혼"}${totalFilhos()?` · ${totalFilhos()} ${'자녀'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} 요구</b></div>`:''}
       <div class="fl"><span>예산에 맞나요?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"예":!cabeRenda()?"아니요: 소득의 30% 초과":"아니요: 비상금이 3개월치 미만"}</b></div>
 ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>이사하기</summary>${linhas}</details>`:''}</section>`; })();
@@ -80635,7 +80647,7 @@ ${F2()?'':"<p class=\"hint\">집 구매는 다음 단계로 남겨 뒀어요.</p
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="게임 섹션">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="게임 섹션">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -83871,8 +83883,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`पद पर ${Rm} महीने`, Math.min(meses,Rm)+" / "+Rm, meses>=Rm],
-    ["काम में पहचान", recOk?'achieved':"अभी नहीं", recOk]];
-  if(R.curso) itens.push([`${nomeEst(R.curso)} पूरा करें`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'जारी है':'pending'), cursoFeito(R.curso)]);
+    ["काम में पहचान", recOk?'हासिल':"अभी नहीं", recOk]];
+  if(R.curso) itens.push([`${nomeEst(R.curso)} पूरा करें`, cursoFeito(R.curso)?'पूरा':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'जारी है':'बाकी'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -83880,6 +83892,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -83889,7 +83902,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`शुरू हुआ: ${nomeEst(id)}`, texto:`${E.meses} महीने महीने के ${hm(E.horas)} घंटे पढ़ाई। अंत में वेतन ${Math.round(E.aum*100)}% बढ़ता है (आज यह महीने में ${fmt0(ganhoAum(aumEst(id)))} ज़्यादा होता), और यह बढ़त उसके बाद आपके वेतन में बनी रहती है।${aVista?` 👏 पूरा पैसा पहले देने पर बधाई! किस्तों में यह कोर्स ${fmt0(total)} का पड़ता; पहले चुकाकर आपने ${fmt0(total-v)} बचाए।`:''}${t}`};
+  s.licao={tom:'bom', titulo:`शुरू हुआ: ${nomeEst(id)}`, texto:semNaN(`${E.meses} महीने महीने के ${hm(E.horas)} घंटे पढ़ाई। अंत में वेतन ${Math.round(E.aum*100)}% बढ़ता है (आज यह महीने में ${fmt0(ganhoAum(aumEst(id)))} ज़्यादा होता), और यह बढ़त उसके बाद आपके वेतन में बनी रहती है।${aVista?` 👏 पूरा पैसा पहले देने पर बधाई! किस्तों में यह कोर्स ${fmt0(total)} का पड़ता; पहले चुकाकर आपने ${fmt0(total-v)} बचाए।`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -84403,7 +84416,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"पढ़ाई का खाना",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `यहाँ आप शुरू कर सकते हैं <b>one</b> कोर्स। आप एक बार में एक ही चीज़ पढ़ते हैं, और अगला मौक़ा तभी आता है जब छोटा चूहा फिर किसी पढ़ाई के खाने से गुज़रे।${s.estBolsa?" <b>शेयर बाज़ार दिवस: सभी कोर्स पर 30% छूट।</b>":''}${pref&&L.includes(pref)?" कोर्स "+nomeEst(pref).toLowerCase()+" आपके अगले प्रमोशन के लिए ज़रूरी है।":''}`; },
+      return `यहाँ आप <b>एक</b> कोर्स शुरू कर सकते हैं। आप एक बार में एक ही चीज़ पढ़ते हैं, और अगला मौक़ा तभी आता है जब छोटा चूहा फिर किसी पढ़ाई के खाने से गुज़रे।${s.estBolsa?" <b>शेयर बाज़ार दिवस: सभी कोर्स पर 30% छूट।</b>":''}${pref&&L.includes(pref)?" कोर्स "+nomeEst(pref).toLowerCase()+" आपके अगले प्रमोशन के लिए ज़रूरी है।":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`वेतन +${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · महीने के ${hm(E.horas)} घंटे · ${E.meses} महीने`;
@@ -84413,7 +84426,7 @@ const ESPECIAIS = {
       out.push({label:"अभी नहीं", sub:"अगली विज़िट के लिए छोड़ा", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"ख़ुद में निवेश का समय",
-    texto:()=>"आप अपना ख़्याल रखने के लिए रुके। आप शुरू कर सकते हैं <b>one</b> हुनर अभी; बाक़ी व्यक्तिगत विकास वाले खाने (🌱) की अगली विज़िट के लिए रहते हैं। एक बार में एक, मौक़े पर भुगतान और सीखते समय घंटे लगाते हुए।",
+    texto:()=>"आप अपना ख़्याल रखने के लिए रुके। आप अभी <b>एक</b> हुनर शुरू कर सकते हैं; बाक़ी व्यक्तिगत विकास वाले खाने (🌱) की अगली विज़िट के लिए रहते हैं। एक बार में एक, मौक़े पर भुगतान और सीखते समय घंटे लगाते हुए।",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1 महीना":H.meses+" महीने"} · महीने के ${hm(H.horas)} घंटे${c?' · '+fmt0(c)+(s.conta>=c?'':" (निवेश बेचता है)"):" · मुफ़्त"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -87038,7 +87051,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="लेजेंडारियोBR गेम्स का शुभंकर">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · शैक्षिक खेल, निवेश सलाह नहीं</p>
-    <p class="titulo-versao">वर्ज़न v536</p>
+    <p class="titulo-versao">वर्ज़न v539</p>
   </div>`;
 }
 function render(){
@@ -87176,7 +87189,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">आपका घर ${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"अपना":"किराये का"} · प्रति माह ${fmt0(cm)}${morPropria()?" (सोसाइटी शुल्क, संपत्ति कर और लोन की किस्त)":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">सेहत: ${fm>0?'+':''}${fm}/माह</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>परिवार: ${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} माँगता है</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>परिवार: ${s.casado?"विवाहित":"अविवाहित"}${totalFilhos()?` · ${totalFilhos()} ${(totalFilhos()>1?'बच्चे':'बच्चा')}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">${MORADIAS[morMin()].nome.toLowerCase()} माँगता है</b></div>`:''}
       <div class="fl"><span>बजट में बैठता है?</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"हाँ":!cabeRenda()?"नहीं: आमदनी के 30% से ज़्यादा":"नहीं: आपातकालीन फ़ंड 3 महीने से कम"}</b></div>
 ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणों के लिए छोड़ा गया है।</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>घर बदलें</summary>${linhas}</details>`:''}</section>`; })();
@@ -87375,7 +87388,7 @@ ${F2()?'':"<p class=\"hint\">घर खरीदना अगले चरणो
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="खेल के भाग">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="खेल के भाग">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -90611,8 +90624,8 @@ function reqProx(){
   // o reconhecimento junta desempenho e (nos cargos de liderança) já ter ensinado alguém, sem dizer exatamente o quê
   const recOk = pts>=R.desemp && (!R.mentor || s.mentorou) && s.fel>=30;
   const itens=[[`任职${Rm}个月`, Math.min(meses,Rm)+" / "+Rm, meses>=Rm],
-    ["工作认可", recOk?'achieved':"尚未", recOk]];
-  if(R.curso) itens.push([`完成${nomeEst(R.curso)}`, cursoFeito(R.curso)?'done':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'进行中':'pending'), cursoFeito(R.curso)]);
+    ["工作认可", recOk?'已达成':"尚未", recOk]];
+  if(R.curso) itens.push([`完成${nomeEst(R.curso)}`, cursoFeito(R.curso)?'已完成':(s.estudoAte>s.mes && s.estudoNome===nomeEst(R.curso)?'进行中':'未开始'), cursoFeito(R.curso)]);
   return {n, itens, ok:itens.every(i=>i[2])};
 }
 const pctCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=cargoN(); return M[n+1] ? Math.round((M[n+1]/M[n]-1)*100) : 0; };
@@ -90620,6 +90633,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -90629,7 +90643,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`已开始：${nomeEst(id)}`, texto:`学习${E.meses}个月，每月${hm(E.horas)}小时。结束时薪水涨${Math.round(E.aum*100)}%（按今天算，每月多${fmt0(ganhoAum(aumEst(id)))}），而且这次涨薪从此一直保留在你的薪水里。${aVista?` 👏 恭喜你一次付清！如果分期，这门课要花${fmt0(total)}；一次付清你省下了${fmt0(total-v)}。`:''}${t}`};
+  s.licao={tom:'bom', titulo:`已开始：${nomeEst(id)}`, texto:semNaN(`学习${E.meses}个月，每月${hm(E.horas)}小时。结束时薪水涨${Math.round(E.aum*100)}%（按今天算，每月多${fmt0(ganhoAum(aumEst(id)))}），而且这次涨薪从此一直保留在你的薪水里。${aVista?` 👏 恭喜你一次付清！如果分期，这门课要花${fmt0(total)}；一次付清你省下了${fmt0(total-v)}。`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -91143,7 +91157,7 @@ const duracaoEsgot = () => { const n=(s.cansaco||0)>=15?6:4; return temMente()?M
 const ESPECIAIS = {
   casaEstudo:{tipo:'opcoes', titulo:"学习格",
     texto:()=>{ const L=estudosAbertos(), R=reqProx(), pref=R&&REQ_CARGO[R.n]?.curso, f=s.estBolsa?0.7:1;
-      return `在这里你可以开始 <b>one</b> 课程。一次只能学一门，下一次机会只有在小老鼠再次经过学习格时才会出现。${s.estBolsa?" <b>股市日：所有课程七折。</b>":''}${pref&&L.includes(pref)?" 课程 "+nomeEst(pref).toLowerCase()+" 是你下次晋升所需要的。":''}`; },
+      return `在这里你可以开始<b>一门</b>课程。一次只能学一门，下一次机会只有在小老鼠再次经过学习格时才会出现。${s.estBolsa?" <b>股市日：所有课程七折。</b>":''}${pref&&L.includes(pref)?" 课程 "+nomeEst(pref).toLowerCase()+" 是你下次晋升所需要的。":''}`; },
     opcoes:()=>{ const L=estudosAbertos(), f=s.estBolsa?0.7:1, out=[];
       for(const id of L){ const E=ESTUDOS[id], p=Math.round(C(E.parc)*f), v=Math.round(p*E.meses*0.85), semTempo=horasLivres()-E.horas<6;
         const ef=E.emp?E.efTxt:`薪水+${Math.round(E.aum*100)}%`+(E.efTxt?` · ${E.efTxt}`:''), base=`${ef} · 每月${hm(E.horas)}小时 · ${E.meses}个月`;
@@ -91153,7 +91167,7 @@ const ESPECIAIS = {
       out.push({label:"现在不要", sub:"留到下次", run:()=>{ s.estBolsa=false; return s.licao; }});
       return out; }},
   casaCresc:{tipo:'opcoes', titulo:"是时候投资自己了",
-    texto:()=>"你停下来照顾自己。你现在可以开始 <b>one</b> 技能；其他的留到下次经过个人成长格（🌱）时再学。一次一项，当场付款，学习期间占用你的时间。",
+    texto:()=>"你停下来照顾自己。你现在可以开始<b>一项</b>技能；其他的留到下次经过个人成长格（🌱）时再学。一次一项，当场付款，学习期间占用你的时间。",
     opcoes:()=>{ const out=[];
       for(const id of candHab()){ const H=HABS[id], c=custoHabC(id); s.visitaCresc=true; const m=porQueNaoHab(id); s.visitaCresc=false;
         out.push({label:`${H.ic} ${H.nome}`, sub:m||`${H.meses===1?"1个月":H.meses+" 个月"} · 每月${hm(H.horas)}小时${c?' · '+fmt0(c)+(s.conta>=c?'':" （会卖出投资）"):" · 免费"}`, disabled:!!m, run:()=>{ s.visitaCresc=true; comecarHab(id); s.visitaCresc=false; return s.licao; }}); }
@@ -93282,7 +93296,7 @@ function linhaProduto(id,p){
   </div>`;
 }
 
-const ABAS=[['inicio','🎲',"家"],['dinheiro','💰',"钱"],['investir','📈',"投资"],['renda','🏢',"收入"],['vida','❤️',"生活"],['casa','🏡',"房子"],['carreira','🌱',"你"]];
+const ABAS=[['inicio','🎲',"首页"],['dinheiro','💰',"钱"],['investir','📈',"投资"],['renda','🏢',"收入"],['vida','❤️',"生活"],['casa','🏡',"房子"],['carreira','🌱',"你"]];
 const ABA_ANTIGA={resumo:'inicio', voce:'vida', banco:'dinheiro'};
 function badgeAba(id){
   if(id==='renda'){ if(F2() && (s.infl||0)>=100 && !s.inflVisto) return '★'; const n=(s.ofertas||[]).filter(o=>!(s.ofertasVistas||[]).includes(o.uid)).length; return n?String(n):''; }
@@ -93778,7 +93792,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="LegendárioBR Games吉祥物">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · 教育游戏，不构成投资建议</p>
-    <p class="titulo-versao">版本 v536</p>
+    <p class="titulo-versao">版本 v539</p>
   </div>`;
 }
 function render(){
@@ -93916,7 +93930,7 @@ function render(){
     return `<section class="card" aria-labelledby="t-casa"><h2 id="t-casa" data-info="casa">你的家${ii}</h2>
       <div class="casa-atual"><span class="casa-ic-g">${pix(M.ic,'g')}</span><div><b>${M.nome}</b><span class="hint">${morPropria()?"自有":"租住"} · 每月${fmt0(cm)}${morPropria()?" （物业费、房产税和贷款月供）":''}</span></div></div>
       <div class="fl"><span></span><b style="color:${fm>0?'var(--gain)':fm<0?'var(--loss)':'inherit'}">幸福感: ${fm>0?'+':''}${fm}/月</b></div>
-      ${s.casado||totalFilhos()?`<div class="fl"><span>家庭：${s.casado?"married":"single"}${totalFilhos()?` · ${totalFilhos()} ${totalFilhos()>1?'children':'child'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">需要${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
+      ${s.casado||totalFilhos()?`<div class="fl"><span>家庭：${s.casado?"已婚":"单身"}${totalFilhos()?` · ${totalFilhos()} ${'孩子'}`:''}</span><b style="color:${morN()>=morMin()?'var(--gain)':'var(--loss)'}">需要${MORADIAS[morMin()].nome.toLowerCase()}</b></div>`:''}
       <div class="fl"><span>符合预算吗？</span><b style="color:${cabe?'var(--gain)':'var(--warn)'}">${cabe?"是":!cabeRenda()?"否：超过收入的30%":"否：应急基金不足3个月"}</b></div>
 ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
       ${linhas?`<details class="mais" data-k="casa" ${ui.aberto?.casa?'open':''}><summary>搬家</summary>${linhas}</details>`:''}</section>`; })();
@@ -94115,7 +94129,7 @@ ${F2()?'':"<p class=\"hint\">买房留到后面的阶段。</p>"}
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="游戏分区">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="游戏分区">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
@@ -97356,6 +97370,7 @@ const aumCargo = () => { const M=MULT_CARGO[s.prof]||MULT_CARGO.professor, n=car
 const aumEst = id => Math.round(s.salario*ESTUDOS[id].aum);
 // ganho mensal total do aumento (a comissão do vendedor é % do salário, então sobe junto)
 const ganhoAum = v => Math.round(v*(1+(prof().comissao?prof().comissao*1.08:0)));
+const semNaN = (x,E) => { if(!/NaN/.test(x)) return x; const ps=x.split(/(?<=[.!?])\s+|(?<=[。।])\s*/).filter(q=>q&&!/NaN/.test(q)); return ps.join(' ')+(typeof E.efTxt==='string'?' '+E.efTxt+'.':''); };
 function iniciarEstudo(id, aVista){
   const E=ESTUDOS[id], p=Math.round(C(E.parc)*(s.bolsaEst||1)), total=p*E.meses, v=Math.round(total*0.85);
   if((s.estudoAte||0)>s.mes || cursoUsado(id)) return;
@@ -97365,7 +97380,7 @@ function iniciarEstudo(id, aVista){
   else s.parcelas.push({nome:nomeEst(id), valor:p, restante:E.meses, total:E.meses, juros:0});
   s.estudos={...(s.estudos||{}), [id]:s.mes}; s.estudoIni=s.mes; s.estudoAte=s.mes+E.meses; s.estudoHoras=E.horas; s.estudoNome=nomeEst(id); s.estudoAumPct=E.emp?0:E.aum;
   s.agenda.push({mes:s.mes+E.meses, id:'curso_fim'}); s.fel=clamp(s.fel-4,0,100);
-  s.licao={tom:'bom', titulo:`Começou: ${nomeEst(id)}`, texto:`${E.meses} meses estudando ${hm(E.horas)} h por mês. No fim, o salário sobe ${Math.round(E.aum*100)}% (hoje seriam ${fmt0(ganhoAum(aumEst(id)))} a mais por mês), e o aumento acompanha a inflação junto com o salário.${aVista?` 👏 Parabéns por pagar à vista! Parcelado, o curso sairia por ${fmt0(total)}; à vista você economizou ${fmt0(total-v)}.`:''}${t}`};
+  s.licao={tom:'bom', titulo:`Começou: ${nomeEst(id)}`, texto:semNaN(`${E.meses} meses estudando ${hm(E.horas)} h por mês. No fim, o salário sobe ${Math.round(E.aum*100)}% (hoje seriam ${fmt0(ganhoAum(aumEst(id)))} a mais por mês), e o aumento acompanha a inflação junto com o salário.${aVista?` 👏 Parabéns por pagar à vista! Parcelado, o curso sairia por ${fmt0(total)}; à vista você economizou ${fmt0(total-v)}.`:''}${t}`,E)};
 }
 // com gerente ainda é preciso supervisionar: reuniões, contas e decisões (1/4 das horas, no mínimo 1 h)
 // negócios de dedicação (franquia, food truck, clínica, loja) pedem o dono presente: com gerente ainda tomam metade das horas
@@ -100514,7 +100529,7 @@ function telaTitulo(){
       ${ARTE.marca?.mascote?`<img class="rodape-mascote" src="${ARTE.marca.mascote}" alt="Mascote da LegendárioBR Games">`:''}
     </div>
     <p class="titulo-rodape">© LegendárioBR Games · jogo educativo, não é recomendação de investimento</p>
-    <p class="titulo-versao">versão v536</p>
+    <p class="titulo-versao">versão v539</p>
   </div>`;
 }
 function render(){
@@ -100851,7 +100866,7 @@ ${F2()?'':'<p class="hint">Comprar casa fica para as próximas fases.</p>'}
   <main class="tela" id="tela">${conteudo}</main>
   <footer class="rodape2">
     <button class="avancar" data-acao="avancar" data-alvo="1">${proximo} →</button>
-    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n">${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
+    <nav class="abas2" role="tablist" aria-label="Seções do jogo">${ABAS.map(([id,ic,nome])=>{ const b=badgeAba(id); return `<button role="tab" data-acao="aba" data-alvo="${id}" aria-selected="${aba===id}"><span class="ab-ic">${pixK(ABA_PX[id],ic)}</span><span class="ab-n"${nome.length>=(/[\u0400-\u04FF]/.test(nome)?8:9)?' style="font-size:9px"':''}>${nome}</span>${b?`<i class="badge ${b==='!'?'alerta':''}">${b}</i>`:''}</button>`; }).join('')}</nav>
   </footer>`;
   // com janela aberta: não refaz a tela de trás (evita a piscada); ao fechar, refaz
   const _jaAberta=!!ui._modalAntes; ui._modalAntes=!!ui.modal;
